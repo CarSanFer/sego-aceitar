@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SEGO — Sistema Externo de Gestão de Obra</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --navy:#1E3A5F;--navy2:#2C4E7A;
+    --gold:#C9922A;--gold-light:#E8A830;
+    --border:#2E3A4A;--border-light:#D8DCE6;
+    --bg:#F0F2F5;--bg-card:#FFFFFF;
+    --text:#1A1D2E;--text-muted:#6B7280;
+    --success:#1A7A4A;--success-bg:#E6F4ED;
+    --warning:#7C5E0A;--warning-bg:#FEF3CD;
+    --danger:#B91C1C;--danger-bg:#FEE2E2;
+    --info:#1B4F9B;--info-bg:#DBEAFE;
+    --purple:#6D28D9;--purple-bg:#EDE9FE;
+    --radius:4px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;height:100%;font-family:'Calibri',Calibri,sans-serif;font-size:13px;background:var(--bg);color:var(--text)}
+  code{background:var(--bg);padding:1px 5px;border-radius:3px;font-size:11px;font-family:monospace}
+
+  /* NAVBAR (44px, underline dourado 2px) */
+  .navbar{background:var(--navy);height:44px;display:flex;align-items:center;gap:10px;padding:0 12px;position:sticky;top:0;z-index:100;border-bottom:2px solid var(--gold)}
+  .logo-box{width:28px;height:28px;border-radius:4px;background:#fff;display:flex;align-items:center;justify-content:center;color:var(--navy);font-weight:900;font-size:13px;flex-shrink:0}
+  .brand{display:flex;flex-direction:column;line-height:1.05}
+  .brand .t{font-weight:700;letter-spacing:.5px;font-size:15px;color:#fff;display:flex;align-items:center;font-family:'Calibri',Calibri,sans-serif}
+  .brand .s{font-size:9px;font-weight:400;color:rgba(255,255,255,.55);letter-spacing:.8px;text-transform:uppercase;font-family:'Calibri',Calibri,sans-serif}
+  .ver-badge{margin-left:7px;font-size:9.5px;font-weight:700;letter-spacing:.4px;color:var(--navy);background:var(--gold);padding:1px 7px;border-radius:999px}
+  .nav-spacer{flex:1}
+  .nav-actions{display:flex;align-items:center;gap:10px}
+  .deploy-btn{background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:4px 9px;font-size:11px;cursor:pointer;display:flex;align-items:center;gap:4px;transition:all .15s;position:relative;overflow:hidden;font-family:'Calibri',Calibri,sans-serif}
+  .deploy-btn:hover{border-color:var(--gold);color:var(--gold)}
+  .deploy-btn input[type=file]{position:absolute;left:0;top:0;opacity:0;width:100%;height:100%;cursor:pointer}
+  .avatar{width:28px;height:28px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0}
+
+  .wrap{padding:14px 16px;margin:0}
+  .page-header{margin-bottom:12px}
+  .page-title{font-size:17px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:7px}
+  .page-count{font-size:11px;color:var(--text-muted);margin-top:2px}
+
+  .filter-select{background:var(--bg-card);border:1px solid var(--border-light);padding:5px 8px;border-radius:var(--radius);font-size:12px;font-family:'Calibri',Calibri,sans-serif;color:var(--text);cursor:pointer}
+  .filter-select:focus{outline:none;border-color:var(--gold);background:#fff}
+
+  .badge{display:inline-block;padding:1px 8px;border-radius:999px;font-size:10.5px;font-weight:700;letter-spacing:.3px}
+  .b-em-curso{background:var(--info-bg);color:var(--info)}
+  .b-concluida{background:var(--success-bg);color:var(--success)}
+  .b-suspensa{background:var(--warning-bg);color:var(--warning)}
+  .b-ext{background:var(--purple-bg);color:var(--purple)}
+  .pill-rascunho{background:#eef1f5;color:#5a6675}
+  .pill-submetido{background:var(--warning-bg);color:var(--warning)}
+  .pill-publicado{background:var(--success-bg);color:var(--success)}
+
+  .table-card{background:var(--bg-card);border:1px solid var(--border-light);border-radius:var(--radius);overflow:hidden}
+  table{width:100%;border-collapse:collapse;font-size:13px;font-family:'Calibri',Calibri,sans-serif}
+  th{text-align:left;font-size:10px;letter-spacing:.5px;text-transform:uppercase;color:var(--text-muted);font-weight:700;padding:8px 10px;border-bottom:1px solid var(--border-light);background:#fafbfc}
+  td{padding:7px 10px;border-bottom:1px solid var(--border-light);vertical-align:middle}
+  tr:last-child td{border-bottom:none}
+
+  .card{background:var(--bg-card);border:1px solid var(--border-light);border-radius:var(--radius);padding:14px;margin-bottom:14px}
+  .sec{font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--navy);margin:0 0 10px;padding-bottom:7px;border-bottom:1px solid var(--border-light);display:flex;align-items:center;gap:7px}
+  .sec .n{background:var(--navy);color:#fff;width:18px;height:18px;border-radius:3px;display:inline-flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0}
+  .sec .note{text-transform:none;letter-spacing:0;font-weight:400;color:var(--text-muted);font-size:11px}
+
+  .field-row{display:grid;grid-template-columns:170px 1fr;border-bottom:1px solid var(--border-light);padding:6px 0;min-height:30px;align-items:center}
+  .field-row:last-child{border-bottom:none}
+  .field-row .fl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--text-muted)}
+  .field-row .fv{font-size:13px;color:var(--text)}
+  .back-btn{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;background:none;border:1px solid var(--border-light);border-radius:var(--radius);cursor:pointer;font-size:12px;font-family:'Calibri',Calibri,sans-serif;color:var(--text-muted);margin-bottom:10px;transition:all .15s}
+  .back-btn:hover{border-color:var(--gold);color:var(--gold)}
+
+  .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:12px}
+  .form-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--text-muted);margin-bottom:4px;display:block}
+  .form-input,.form-select,.form-textarea{width:100%;background:var(--bg);border:1px solid var(--border-light);border-radius:var(--radius);padding:6px 8px;font-size:13px;font-family:'Calibri',Calibri,sans-serif;color:var(--text)}
+  .form-input:focus,.form-select:focus,.form-textarea:focus{outline:none;border-color:var(--gold);background:#fff}
+  .form-textarea{min-height:78px;resize:vertical}
+  .ro{background:#EBEEF2;color:#46505d}
+
+  .btn{display:inline-flex;align-items:center;gap:5px;padding:6px 13px;border-radius:var(--radius);font-size:13px;font-family:'Calibri',Calibri,sans-serif;font-weight:700;cursor:pointer;border:none;transition:all .15s}
+  .btn-gold{background:var(--gold);color:#fff}
+  .btn-gold:hover{background:var(--gold-light)}
+  .btn-outline{background:var(--bg-card);border:1px solid var(--border-light);color:var(--text)}
+  .btn-outline:hover{border-color:var(--gold)}
+  .btn-danger-outline{background:var(--bg-card);border:1px solid #FCA5A5;color:var(--danger)}
+  .btn-bar{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+  .icon-btn{border:none;background:none;cursor:pointer;color:var(--text-muted);font-size:14px}
+  .icon-btn:hover{color:var(--danger)}
+
+  .bar{height:9px;border-radius:999px;background:#E1E5EB;overflow:hidden;border:1px solid var(--border-light)}
+  .bar>span{display:block;height:100%;background:var(--navy)}
+  .bar.real>span{background:var(--gold)}
+
+  .empty-state{text-align:center;padding:32px;color:var(--text-muted);font-size:13px}
+  .config-banner{background:var(--warning-bg);border:1px solid #e6c878;color:var(--warning);padding:9px 13px;border-radius:var(--radius);font-size:12px;margin-bottom:12px}
+  .toast{position:fixed;right:16px;bottom:16px;z-index:200;background:var(--navy);color:#fff;padding:10px 15px;border-radius:var(--radius);box-shadow:0 8px 24px rgba(0,0,0,.25);font-size:13px;font-weight:700;opacity:0;transform:translateY(8px);transition:.18s;pointer-events:none}
+  .toast.show{opacity:1;transform:translateY(0)}
+  .toast.err{background:var(--danger)}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:760px){.grid-2{grid-template-columns:1fr}.field-row{grid-template-columns:1fr}}
+
+  /* FICHA DE OBRA */
+  .ficha-head{padding:14px 18px;border-radius:var(--radius);margin-bottom:14px;color:#fff}
+  .ficha-head .cs{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:rgba(255,255,255,.72)}
+  .ficha-head .nm{font-size:22px;font-weight:400;margin:2px 0 3px}
+  .ficha-head .mo{font-size:12px;color:rgba(255,255,255,.82)}
+  .stat4{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-bottom:14px;align-items:start}
+  .scard{background:var(--bg-card);border:1px solid var(--border-light);border-radius:var(--radius);padding:13px 14px}
+  .scard-h{display:flex;align-items:center;gap:9px;padding-bottom:9px;border-bottom:1px solid var(--border-light);margin-bottom:7px}
+  .scard-ic{width:30px;height:30px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .scard-h .lab{font-size:9.5px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;line-height:1.1}
+  .scard-h .tit{font-size:14px;font-weight:700;color:var(--text);line-height:1.1}
+  .krow2{display:flex;justify-content:space-between;align-items:center;padding:4px 0}
+  .krow2 .k{font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.4px}
+  .krow2 .v{font-size:12px;color:var(--text)}
+  .ficha-2col{display:grid;grid-template-columns:1.6fr 1fr;gap:14px;align-items:start}
+  .iv-group{font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--text-muted);margin:13px 0 4px;padding-bottom:4px;border-bottom:1px solid var(--border-light)}
+  .iv-group.first{margin-top:2px}
+  .iv-person{display:flex;align-items:center;gap:10px;padding:6px 0}
+  .iv-av{width:30px;height:30px;border-radius:50%;background:var(--info-bg);color:var(--info);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;overflow:hidden}
+  .iv-av img{width:100%;height:100%;object-fit:cover}
+  .iv-nm{font-size:13px;font-weight:700;color:var(--text);line-height:1.15}
+  .iv-rl{font-size:11px;color:var(--text-muted);line-height:1.15}
+  @media(max-width:860px){.ficha-2col{grid-template-columns:1fr}}
+
+  /* ===================== RVT — CHECK LIST AMBIENTE & SEGURANÇA ===================== */
+  .rvt{ --rmono:ui-monospace,Menlo,Consolas,monospace; --line:var(--border-light); --line-2:#e6e9ef;
+    --c-c:#1A7A4A;--c-c-bg:#E6F4ED;--c-om:#C9922A;--c-om-bg:#FEF3CD;--c-nc:#c0392b;--c-nc-bg:#FEE2E2;
+    --c-na:#6B7785;--c-na-bg:#EEF0F5;--c-nv:#2c5f8a;--c-nv-bg:#E6EEF9;
+    --obs-w:260px;--photo-w:140px;--status-w:238px; margin-top:6px;}
+  .rvt .id-card,.rvt .kpi-bar,.rvt .filter-bar,.rvt .section,.rvt .footer-actions{background:#fff;border:1px solid var(--line);border-radius:4px;margin-bottom:12px}
+  .rvt .id-card{padding:14px 16px}
+  .rvt .id-card h2{margin:0 0 12px;font-size:11px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--text-muted)}
+  .rvt .id-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+  .rvt .id-grid .field{display:flex;flex-direction:column;gap:4px}
+  .rvt .id-grid label{font-size:10.5px;font-weight:700;color:var(--text-muted);letter-spacing:.3px;text-transform:uppercase}
+  .rvt .id-grid input{border:1px solid var(--line);background:#fbfcfd;padding:8px 10px;border-radius:4px;font:inherit;font-size:13px;color:var(--text)}
+  .rvt .id-grid input:focus{outline:none;border-color:var(--gold);background:#fff}
+  .rvt .id-grid input[readonly]{background:#EBEEF2;color:#46505d}
+  .rvt .kpi-bar{padding:14px;display:grid;grid-template-columns:repeat(6,1fr);gap:10px;position:sticky;top:44px;z-index:40}
+  .rvt .kpi{padding:11px 13px;border-radius:4px;background:#fbfcfd;border:1px solid var(--line-2);display:flex;flex-direction:column;gap:2px;position:relative;overflow:hidden;cursor:pointer;transition:transform .12s,box-shadow .12s}
+  .rvt .kpi:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(20,30,50,.08)}
+  .rvt .kpi.open{box-shadow:0 0 0 2px var(--navy),0 8px 22px rgba(20,30,50,.12)}
+  .rvt .kpi::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--c-na)}
+  .rvt .kpi.c::before{background:var(--c-c)}.rvt .kpi.om::before{background:var(--c-om)}.rvt .kpi.nc::before{background:var(--c-nc)}.rvt .kpi.nv::before{background:var(--c-nv)}.rvt .kpi.total::before{background:var(--navy)}
+  .rvt .kpi-label{font-size:10.5px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--text-muted)}
+  .rvt .kpi-value{font-size:24px;font-weight:800;color:var(--text);font-family:var(--rmono);line-height:1.1;margin-top:2px}
+  .rvt .kpi-sub{font-size:10.5px;color:var(--text-muted);font-weight:600}
+  .rvt .kpi.c .kpi-value{color:var(--c-c)}.rvt .kpi.om .kpi-value{color:var(--c-om)}.rvt .kpi.nc .kpi-value{color:var(--c-nc)}.rvt .kpi.nv .kpi-value{color:var(--c-nv)}.rvt .kpi.total .kpi-value{color:var(--navy)}
+  .rvt .gauge{background:var(--navy);color:#fff;padding:11px 13px;border-radius:4px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden;cursor:pointer}
+  .rvt .gauge::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--gold)}
+  .rvt .gauge .kpi-label{color:#cfd7e6}
+  .rvt .gauge-value{font-size:26px;font-weight:800;font-family:var(--rmono);line-height:1.1;color:#fff;margin-top:2px}
+  .rvt .gauge-bar{height:5px;background:rgba(255,255,255,.12);border-radius:99px;margin-top:8px;overflow:hidden}
+  .rvt .gauge-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-light));width:0%;transition:width .35s;border-radius:99px}
+  .rvt .filter-bar{padding:10px 14px;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+  .rvt .filter-bar .flabel{font-size:10.5px;font-weight:800;letter-spacing:.7px;text-transform:uppercase;color:var(--text-muted)}
+  .rvt .chip{border:1px solid var(--line);background:#fff;color:var(--text);padding:6px 12px;border-radius:999px;font:inherit;font-size:12px;font-weight:700;cursor:pointer;transition:.12s}
+  .rvt .chip:hover{border-color:var(--navy)}
+  .rvt .chip.active{background:var(--navy);border-color:var(--navy);color:#fff}
+  .rvt .chip .count{display:inline-block;margin-left:6px;padding:1px 7px;background:rgba(0,0,0,.06);border-radius:999px;font-family:var(--rmono);font-size:10px}
+  .rvt .chip.active .count{background:rgba(255,255,255,.2);color:#fff}
+  .rvt .fb-spacer{flex:1;min-width:8px}
+  .rvt .chip.toggle{display:inline-flex;align-items:center;gap:6px}
+  .rvt .chip.toggle.active{background:#eef3fb;border-color:#bcd0ee;color:var(--navy)}
+  .rvt .chip.toggle:not(.active){opacity:.7}
+  .rvt .section{overflow:hidden;box-shadow:var(--shadow)}
+  .rvt .section-head{display:flex;align-items:center;gap:12px;padding:12px 16px;cursor:pointer;background:linear-gradient(180deg,#fbfcfd,#f6f8fb);border-bottom:1px solid var(--line);user-select:none}
+  .rvt .section.collapsed .section-head{border-bottom:none}
+  .rvt .section-num{width:28px;height:28px;border-radius:6px;background:var(--navy);color:#fff;display:grid;place-items:center;font-weight:800;font-size:13px;font-family:var(--rmono);flex-shrink:0}
+  .rvt .section-title{flex:1;font-size:13.5px;font-weight:700;color:var(--text)}
+  .rvt .section-counts{display:flex;gap:6px}
+  .rvt .pill{font-family:var(--rmono);font-size:10.5px;font-weight:700;padding:3px 8px;border-radius:999px;background:#eef1f7;color:var(--text-muted)}
+  .rvt .pill.c{background:var(--c-c-bg);color:var(--c-c)}.rvt .pill.om{background:var(--c-om-bg);color:var(--c-om)}.rvt .pill.nc{background:var(--c-nc-bg);color:var(--c-nc)}.rvt .pill.na{background:var(--c-na-bg);color:var(--c-na)}.rvt .pill.nv{background:var(--c-nv-bg);color:var(--c-nv)}
+  .rvt .pill[data-count="0"]{opacity:.35}
+  .rvt .chevron{width:20px;text-align:center;color:var(--text-muted);transition:transform .2s}
+  .rvt .section.collapsed .chevron{transform:rotate(-90deg)}
+  .rvt .section.collapsed .section-body{display:none}
+  .rvt .col-head{display:grid;grid-template-columns:44px minmax(150px,1fr) auto;column-gap:14px;padding:8px 16px;border-bottom:1px solid var(--line);background:#fafbfd;align-items:center}
+  .rvt .col-head .ch-main{grid-column:2;font-size:10px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--text-muted)}
+  .rvt .col-head .ch-controls{grid-column:3;display:flex;gap:12px;align-items:center}
+  .rvt .col-head .ch-status{width:var(--status-w);flex:0 0 var(--status-w);font-size:10px;font-weight:800;text-transform:uppercase;color:var(--text-muted);text-align:center;letter-spacing:.5px}
+  .rvt .col-head .ch-obs{width:var(--obs-w);flex:0 0 var(--obs-w);font-size:10px;font-weight:800;text-transform:uppercase;color:var(--text-muted);letter-spacing:.5px}
+  .rvt .col-head .ch-photo{width:var(--photo-w);flex:0 0 var(--photo-w);font-size:10px;font-weight:800;text-transform:uppercase;color:var(--text-muted);letter-spacing:.5px}
+  .rvt .item{display:grid;grid-template-columns:44px minmax(150px,1fr) auto;column-gap:14px;align-items:flex-start;padding:11px 16px;border-bottom:1px solid var(--line-2)}
+  .rvt .item:last-child{border-bottom:none}
+  .rvt .item.hidden{display:none}
+  .rvt .item-num{font-family:var(--rmono);font-size:12px;font-weight:700;color:var(--text-muted);padding-top:8px}
+  .rvt .item-desc{font-size:13px;line-height:1.5;color:var(--text);padding-top:4px}
+  .rvt .tip-anchor{position:relative;display:inline;cursor:help}
+  .rvt .tip-text{border-bottom:1px dotted #aab3c6}
+  .rvt .tip-anchor:hover .tip-text{border-bottom-color:var(--gold)}
+  .rvt .tip-dot{display:inline-grid;place-items:center;width:14px;height:14px;border-radius:50%;background:#c3ccdb;color:#fff;font-size:9px;font-weight:700;font-family:var(--rmono);margin-left:5px;vertical-align:middle}
+  .rvt .tip-anchor:hover .tip-dot{background:var(--gold)}
+  .rvt .tip{position:absolute;left:0;top:calc(100% + 8px);z-index:35;width:max-content;max-width:340px;background:var(--navy);color:#fff;font-size:12px;font-weight:500;line-height:1.5;padding:9px 12px;border-radius:6px;box-shadow:0 12px 30px rgba(20,30,50,.28);opacity:0;transform:translateY(-5px);pointer-events:none;transition:.15s;white-space:normal}
+  .rvt .tip::before{content:"";position:absolute;top:-5px;left:16px;width:10px;height:10px;background:var(--navy);transform:rotate(45deg)}
+  .rvt .tip-anchor:hover .tip{opacity:1;transform:translateY(0)}
+  .rvt .item-controls{display:flex;align-items:flex-start;gap:12px}
+  .rvt .item-obs-col{width:var(--obs-w);flex:0 0 var(--obs-w)}
+  .rvt .item-obs-col textarea{width:100%;border:1px solid var(--line);background:#fbfcfd;padding:7px 9px;border-radius:4px;font:inherit;font-size:12.5px;color:var(--text);resize:vertical;min-height:38px;line-height:1.4}
+  .rvt .item-obs-col textarea:focus{outline:none;border-color:var(--gold);background:#fff}
+  .rvt .item[data-status="OM"] .item-obs-col textarea:placeholder-shown{border-color:#f0c98a;background:#fffdf6}
+  .rvt .item[data-status="NC"] .item-obs-col textarea:placeholder-shown{border-color:#f1b9c1;background:#fffafb}
+  .rvt .item-photo-col{width:var(--photo-w);flex:0 0 var(--photo-w);display:flex;flex-direction:column;gap:6px}
+  .rvt .photo-slot{font-size:11px;color:var(--text-muted);font-weight:700;padding:8px 10px;border:1px dashed var(--line);border-radius:4px;background:#fbfcfd;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px}
+  .rvt .photo-slot:hover{border-color:var(--navy);color:var(--navy);background:#fff}
+  .rvt .photo-thumbs{display:flex;flex-wrap:wrap;gap:4px}
+  .rvt .photo-thumb{width:30px;height:30px;border-radius:4px;border:1px solid var(--line);background:#eef1f7 center/cover no-repeat;cursor:pointer}
+  .rvt body.hide-obs .item-obs-col,.rvt.hide-obs .item-obs-col,.rvt.hide-obs .ch-obs{display:none}
+  .rvt.hide-photo .item-photo-col,.rvt.hide-photo .ch-photo{display:none}
+  .rvt .status-group{display:flex;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:#fff;flex:0 0 var(--status-w);width:var(--status-w)}
+  .rvt .status-btn{border:none;background:transparent;padding:8px 4px;font:inherit;font-size:12px;font-weight:800;color:var(--text-muted);cursor:pointer;border-right:1px solid var(--line);transition:.12s;flex:1;min-width:0}
+  .rvt .status-btn:last-child{border-right:none}
+  .rvt .status-btn:hover{background:#f6f8fb;color:var(--text)}
+  .rvt .status-btn.active{color:#fff}
+  .rvt .status-btn[data-status="C"].active{background:var(--c-c)}.rvt .status-btn[data-status="OM"].active{background:var(--c-om)}.rvt .status-btn[data-status="NC"].active{background:var(--c-nc)}.rvt .status-btn[data-status="NA"].active{background:var(--c-na)}.rvt .status-btn[data-status="NV"].active{background:var(--c-nv)}
+  .rvt.locked .status-btn:not(.active){display:none}
+  .rvt.locked .status-btn{cursor:default;border-right:none}
+  .rvt.locked .photo-slot{display:none}
+  .rvt.locked .item-obs-col textarea{background:#f3f5f8;color:#46505d}
+  .rvt .footer-actions{padding:12px 16px;display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-bottom:4px}
+  .rvt .save-status{font-size:12px;color:var(--text-muted);font-weight:600;display:flex;align-items:center;gap:6px}
+  .rvt .save-dot{width:7px;height:7px;border-radius:50%;background:var(--c-c)}
+  .rvt .footer-spacer{flex:1}
+  .rvt .rbtn{background:#fff;color:var(--text);border:1px solid var(--line);padding:7px 13px;border-radius:4px;font:inherit;font-size:12.5px;font-weight:700;cursor:pointer;transition:.12s}
+  .rvt .rbtn:hover{border-color:var(--navy)}
+  .rvt .rbtn.primary{background:var(--gold);border-color:var(--gold);color:#fff}
+  .rvt .rbtn.navy{background:var(--navy);border-color:var(--navy);color:#fff}
+  .rvt .rbtn.danger{color:var(--c-nc);border-color:#f3c8cf}
+  .rvt .breakdown{position:absolute;z-index:60;background:#fff;border:1px solid var(--line);border-radius:6px;box-shadow:0 18px 44px rgba(20,30,50,.18);min-width:320px;max-width:420px;display:none;overflow:hidden}
+  .rvt .breakdown.show{display:block}
+  .rvt .bd-head{padding:11px 13px;background:linear-gradient(180deg,#fbfcfd,#f4f6fa);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:9px}
+  .rvt .bd-dot{width:10px;height:10px;border-radius:50%;background:var(--c-na)}
+  .rvt .bd-dot.c{background:var(--c-c)}.rvt .bd-dot.om{background:var(--c-om)}.rvt .bd-dot.nc{background:var(--c-nc)}.rvt .bd-dot.na{background:var(--c-na)}.rvt .bd-dot.nv{background:var(--c-nv)}.rvt .bd-dot.total{background:var(--navy)}.rvt .bd-dot.gauge{background:var(--gold)}
+  .rvt .bd-title{font-size:10.5px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--text-muted);flex:1}
+  .rvt .bd-title strong{color:var(--text)}
+  .rvt .bd-close{background:transparent;border:none;color:var(--text-muted);cursor:pointer;font-size:18px;line-height:1;padding:2px 4px}
+  .rvt .bd-rows{padding:6px 0;max-height:340px;overflow-y:auto}
+  .rvt .bd-row{display:grid;grid-template-columns:22px 1fr auto auto;gap:10px;align-items:center;padding:8px 13px;cursor:pointer;border-left:2px solid transparent}
+  .rvt .bd-row:hover{background:#fbfcfd;border-left-color:var(--gold)}
+  .rvt .bd-row-num{width:22px;height:22px;border-radius:5px;background:var(--navy);color:#fff;display:grid;place-items:center;font-weight:700;font-size:11px;font-family:var(--rmono)}
+  .rvt .bd-row-title{font-size:12.5px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .rvt .bd-row-count{font-family:var(--rmono);font-weight:700;font-size:14px;color:var(--text);min-width:34px;text-align:right}
+  .rvt .bd-row-count.zero{color:var(--text-muted);opacity:.5}
+  .rvt .bd-row-share{font-family:var(--rmono);font-size:10.5px;font-weight:600;color:var(--text-muted);min-width:42px;text-align:right;background:#eef1f7;padding:2px 6px;border-radius:99px}
+  .rvt .bd-bar{height:3px;background:#eef1f7;border-radius:99px;overflow:hidden;margin-top:5px;grid-column:2/-1}
+  .rvt .bd-bar-fill{height:100%;border-radius:99px}
+  .rvt .bd-bar-fill.c{background:var(--c-c)}.rvt .bd-bar-fill.om{background:var(--c-om)}.rvt .bd-bar-fill.nc{background:var(--c-nc)}.rvt .bd-bar-fill.na{background:var(--c-na)}.rvt .bd-bar-fill.nv{background:var(--c-nv)}.rvt .bd-bar-fill.total{background:var(--navy)}.rvt .bd-bar-fill.gauge{background:linear-gradient(90deg,var(--c-nc),var(--c-om),var(--c-c))}
+  .rvt .bd-foot{padding:9px 13px;border-top:1px solid var(--line);background:#fbfcfd;font-size:11px;color:var(--text-muted);display:flex;justify-content:space-between}
+  .rvt .bd-foot strong{color:var(--text);font-family:var(--rmono)}
+  .rvt .lock-tag{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:var(--c-c);background:var(--c-c-bg);padding:3px 9px;border-radius:999px}
+  @media(max-width:1024px){.rvt{--obs-w:200px;--photo-w:110px}.rvt .kpi-bar{grid-template-columns:repeat(3,1fr)}.rvt .id-grid{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:760px){.rvt .item{grid-template-columns:44px 1fr}.rvt .item-controls{grid-column:1/-1;flex-wrap:wrap;margin-top:8px}.rvt .col-head{display:none}}
+</style>
+</head>
+<body>
+
+<div class="navbar">
+  <div class="logo-box">◆</div>
+  <div class="brand">
+    <span class="t">SEGO <span class="ver-badge" id="verBadge">v26.05.20.2106</span></span>
+    <span class="s">Sist Ext Gest Obra</span>
+  </div>
+  <div class="nav-spacer"></div>
+  <div class="nav-actions">
+    <label class="deploy-btn" title="Deploy (GitHub → Vercel)">✎ Deploy<input type="file" id="deployInput" multiple onchange="handleDeploy(this.files)"></label>
+    <div class="avatar" title="Aceitar">CF</div>
+  </div>
+</div>
+
+<div class="wrap" id="app"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* =====================================================================
+   SEGO — Sistema Externo de Gestão de Obra
+   Single-file HTML · deploy GitHub → Vercel · CarSanFer/sego-aceitar
+   Réplica do SIGO (renderObras / tokens / Calibri).
+   ===================================================================== */
+const CONFIG = {
+  SID_URL:  "https://tqizqusplpkajzdphqje.supabase.co",
+  SID_ANON: "sb_publishable_U-S0i7PefeWtyGPW9LL1iA_Ot2-C9a2",
+  SEGO_URL:  "https://rdrowqgdklqwhfrmstgd.supabase.co",
+  SEGO_ANON: "sb_publishable_gPJEAbmUXKJ4a9Wg1sshYg_9qLHzHSa",
+  DEPLOY_ENDPOINT: "/api/deploy",
+  DEPLOY_REPO: "CarSanFer/sego-aceitar"
+};
+
+let sb=null, sbRel=null;
+function initClients(){
+  const ok=(u,k)=>u&&k&&!u.includes("<<<")&&!k.includes("<<<");
+  if(window.supabase){
+    if(ok(CONFIG.SID_URL,CONFIG.SID_ANON))   sb=window.supabase.createClient(CONFIG.SID_URL,CONFIG.SID_ANON);
+    if(ok(CONFIG.SEGO_URL,CONFIG.SEGO_ANON)) sbRel=window.supabase.createClient(CONFIG.SEGO_URL,CONFIG.SEGO_ANON);
+  }
+}
+
+/* ----------------------------- DB / STATE --------------------------- */
+const DB={obras:[],relatorios:[],rvts:[],utilizadores:[],empresas:[],subempreiteiros:[],especialidades:[]};
+let view="obras", obraSel=null, obrasFilter="Todos os Estados", obrasSearch="";
+let intervSel=null, relSel=null, opTab='seguranca';
+
+/* mapObra() — mapeia campos do Supabase (snake_case) para o modelo SIGO */
+function mapObra(o){
+  return {
+    id:o.id, codigo:o.codigo, sigla:o.sigla, nome:o.nome, estado:o.estado,
+    localidade:o.localidade, valorObra:o.valor_obra,
+    inicioPrevisto:o.inicio_previsto, inicioReal:o.inicio_real, fimPrevisto:o.fim_previsto,
+    prorrogacoes:Array.isArray(o.prorrogacoes)?o.prorrogacoes:[],
+    relMensal:o.rel_mensal===true,
+    _raw:o
+  };
+}
+function obraById(id){return DB.obras.find(o=>String(o.id)===String(id));}
+function getObrasVisiveis(){ /* SEGO externo: todas as obras lidas do SID (afinar c/ auth) */ return DB.obras; }
+function relVisivelParaUser(r){ /* externo: todos por agora (afinar p/ só publicados) */ return true; }
+
+/* ----------------------------- HELPERS ------------------------------ */
+function fmtDate(v){if(!v)return "";const d=new Date(v);if(isNaN(d))return esc(String(v));return d.toLocaleDateString("pt-PT");}
+function fmtMesAno(periodo){if(!periodo)return "";const[a,m]=String(periodo).split("-");return m&&a?`${m}/${a}`:esc(periodo);}
+function eur(v){const n=Number(v);if(v==null||isNaN(n))return null;return n.toLocaleString("pt-PT",{minimumFractionDigits:2})+" €";}
+function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function prettyKey(k){return k.replace(/_/g," ").replace(/\b\w/g,c=>c.toUpperCase())}
+function numOrNull(v){if(v===""||v==null)return null;const n=Number(v);return isNaN(n)?null:n}
+function badgeEstado(e){const s=(e||"").toLowerCase();const c=s.includes("conclu")?"b-concluida":s.includes("suspens")?"b-suspensa":"b-em-curso";return `<span class="badge ${c}">${esc(e||"—")}</span>`;}
+function toast(msg,type){const t=document.getElementById("toast");t.textContent=msg;t.className="toast show"+(type==="err"?" err":"");clearTimeout(toast._t);toast._t=setTimeout(()=>t.className="toast",2600);}
+
+/* ----------------------------- NAV ---------------------------------- */
+function go(v,id){view=v;obraSel=id||null;intervSel=null;if(!id)relSel=null;render();window.scrollTo(0,0);}
+function render(){
+  const app=document.getElementById("app");
+  if(view==="obras"&&obraSel) renderFichaObra(app);
+  else renderObras(app);
+}
+
+/* ----------------------------- DADOS -------------------------------- */
+async function boot(){
+  initClients();
+  await loadAll();
+  render();
+}
+async function loadAll(){
+  if(sb){
+    try{
+      const {data,error}=await sb.from("obras").select("*").eq("rel_mensal",true);
+      if(error)throw error;
+      DB.obras=(data||[]).map(mapObra);
+    }catch(e){console.error(e);toast("Falha a carregar obras do SID","err");}
+  }
+  if(sbRel){
+    try{
+      const {data,error}=await sbRel.from("relatorios_ext").select("*");
+      if(error)throw error;
+      DB.relatorios=(data||[]).map(r=>({...r,obra_id:String(r.obra_id)}));
+    }catch(e){console.error(e);}
+    try{
+      const {data,error}=await sbRel.from("checklists_amb_seg").select("id,obra_id,rvt,estado,conformity,summary,updated_at");
+      if(error)throw error;
+      DB.rvts=(data||[]).map(r=>({...r,obra_id:String(r.obra_id)}));
+    }catch(e){/* tabela ainda não criada — ignorar */}
+  }
+}
+
+/* ================================================================
+   OBRAS — LISTA  (réplica fiel do renderObras do SIGO)
+   ================================================================ */
+function renderObras(app){
+  const states=['Todos os Estados','Em Curso','Concluída','Suspensa','Em Preparação'];
+  let obras=getObrasVisiveis().filter(o=>o.relMensal).sort((a,b)=>(a.codigo||'').localeCompare(b.codigo||''));
+  if(obrasFilter!=='Todos os Estados') obras=obras.filter(o=>o.estado===obrasFilter);
+  if(obrasSearch) obras=obras.filter(o=>[o.nome,o.sigla,o.codigo,o.localidade].join(' ').toLowerCase().includes(obrasSearch.toLowerCase()));
+
+  const corEstado=e=>({'Em Curso':'#0F6E56','Em Preparação':'#185FA5','Suspensa':'#A32D2D','Concluída':'#854F0B'}[e]||'#1E3A5F');
+  const row=(label,val,valStyle='')=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0">
+      <span style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px">${label}</span>
+      <span style="font-size:12px;font-weight:400;color:var(--text);${valStyle}">${val||'—'}</span>
+    </div>`;
+
+  const cards=obras.map(o=>{
+    const prrs=o.prorrogacoes||[];
+    const fimAtual=prrs.length&&prrs[prrs.length-1].novoFim?prrs[prrs.length-1].novoFim:o.fimPrevisto;
+    const rels=DB.relatorios.filter(r=>r.obra_id===String(o.id)&&relVisivelParaUser(r)).sort((a,b)=>String(b.periodo).localeCompare(String(a.periodo)));
+    const ultRel=rels[0];
+    return `
+    <div onclick="go('obras','${o.id}')" style="background:var(--bg-card);border:1px solid var(--border-light);border-radius:var(--radius);overflow:hidden;cursor:pointer;transition:border-color .15s"
+      onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border-light)'">
+      <div style="background:${corEstado(o.estado)};padding:10px 14px">
+        <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,.65);text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px">${esc(o.codigo||'')} · ${esc(o.sigla||'')}</div>
+        <div style="font-size:13px;font-weight:400;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(o.nome||'')}</div>
+      </div>
+      <div style="padding:10px 14px">
+        ${row('Valor de Obra', eur(o.valorObra), 'color:var(--gold)')}
+        <div style="height:0.5px;background:var(--border-light);margin:4px 0"></div>
+        ${row('Início Previsto', fmtDate(o.inicioPrevisto))}
+        ${row('Início Real', fmtDate(o.inicioReal))}
+        ${row('Fim Previsto', fmtDate(fimAtual))}
+        ${prrs.length
+          ? `<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0"><span style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px">Prorrogações</span><span style="font-size:12px;font-weight:400;color:var(--danger)">${prrs.length} prorrogaç${prrs.length===1?'ão':'ões'}</span></div>`
+          : `<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0"><span style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px">Prorrogações</span><span style="font-size:12px;font-weight:400;color:var(--text-muted)">0</span></div>`}
+        <div style="height:0.5px;background:var(--border-light);margin:4px 0"></div>
+        ${row('Último Relatório', ultRel?fmtMesAno(ultRel.periodo):null)}
+      </div>
+    </div>`;
+  }).join('');
+
+  const banner=(!sb||!sbRel)?`<div class="config-banner"><b>Configuração:</b> ${!sb?'SID':''}${(!sb&&!sbRel)?' e ':''}${!sbRel?'SEGO':''} sem ligação.</div>`:"";
+  app.innerHTML=`
+  ${banner}
+  <div class="page-header">
+    <div><div class="page-title">Obras</div><div class="page-count">${obras.length} obra(s)</div></div>
+  </div>
+  <div style="display:flex;gap:8px;margin-bottom:14px;align-items:center">
+    <input class="filter-select" style="flex:1;max-width:320px" placeholder="Pesquisar obra, sigla ou código..." value="${esc(obrasSearch)}" oninput="obrasSearch=this.value;render()">
+    <select class="filter-select" onchange="obrasFilter=this.value;render()">
+      ${states.map(s=>`<option ${obrasFilter===s?'selected':''}>${s}</option>`).join('')}
+    </select>
+  </div>
+  ${obras.length?`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px">${cards}</div>`:`<div class="empty-state">Nenhuma obra encontrada.</div>`}`;
+  const qi=document.querySelector('.filter-select');if(qi&&obrasSearch){qi.focus();qi.setSelectionRange(qi.value.length,qi.value.length);}
+}
+
+/* ================================================================
+   FICHA DE OBRA — READ ONLY + RELATÓRIOS EXTERNOS
+   ================================================================ */
+/* helpers ficha */
+function diasEntre(a,b){if(!a||!b)return null;const d1=new Date(a),d2=new Date(b);if(isNaN(d1)||isNaN(d2))return null;return Math.round((d2-d1)/86400000);}
+function dDias(n){return n==null?'—':`${n} d`;}
+function dDelta(n){return n==null?'—':`${n>0?'+':''}${n} d`;}
+const IC={
+  emp:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="1"/><path d="M9 8h.01M15 8h.01M9 12h.01M15 12h.01M10 21v-4h4v4"/></svg>',
+  ctr:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l6 6v14H6z"/><path d="M14 2v6h6"/></svg>',
+  dev:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 7-7"/><path d="M17 7h4v4"/></svg>',
+  real:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2.4" fill="currentColor"/></svg>',
+  int:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13A4 4 0 0 1 16 11"/></svg>',
+  rel:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg>'
+};
+function scard(ic,lab,labColor,bg,tit,rowsHtml){
+  return `<div class="scard">
+    <div class="scard-h"><div class="scard-ic" style="background:${bg};color:${labColor}">${ic}</div>
+      <div><div class="lab" style="color:${labColor}">${lab}</div><div class="tit">${tit}</div></div></div>
+    ${rowsHtml}</div>`;
+}
+function kr(k,v,vStyle=''){return `<div class="krow2"><span class="k">${k}</span><span class="v" style="${vStyle}">${v||'—'}</span></div>`;}
+function ivPapel(p){return p.papel||p.funcao||p.cargo||p.role||'';}
+function ivGrupo(p){return p.grupo||p.categoria||p.tipo||p.papel_grupo||'Outros';}
+function ivAvatar(p){const foto=p.foto||p.avatar||p.imagem;const nm=p.nome||p.name||'';const ini=nm.split(/\s+/).filter(Boolean).map(w=>w[0]).slice(0,2).join('').toUpperCase();return `<div class="iv-av">${foto?`<img src="${esc(foto)}" alt="">`:esc(ini||'?')}</div>`;}
+function getIntervArray(o){
+  const raw=o._raw||{};
+  const cands=['intervenientes','equipa','pessoas','contactos','stakeholders','team'];
+  for(const k of cands){if(Array.isArray(raw[k])&&raw[k].length&&typeof raw[k][0]==='object')return raw[k];}
+  for(const k of Object.keys(raw)){const v=raw[k];if(Array.isArray(v)&&v.length&&typeof v[0]==='object'&&(v[0].nome||v[0].name))return v;}
+  return null;
+}
+function renderIntervenientes(o){
+  const arr=getIntervArray(o);
+  if(!arr) return `<div class="empty-state" style="text-align:left;padding:8px 0">Por ligar à fonte SID — partilha o <code>renderFichaObra</code> para mapear os grupos (Dono de Obra, Fiscalização, Empreiteiros, Projetistas).</div>`;
+  const ordem=['Dono de Obra','Fiscalização','Empreiteiros','Projetistas','Outros'];
+  const grupos={};
+  arr.forEach(p=>{const g=ivGrupo(p);(grupos[g]=grupos[g]||[]).push(p);});
+  const chaves=Object.keys(grupos).sort((a,b)=>{const ia=ordem.indexOf(a),ib=ordem.indexOf(b);return (ia<0?99:ia)-(ib<0?99:ib);});
+  return chaves.map((g,gi)=>`
+    <div class="iv-group ${gi===0?'first':''}">${esc(g)}</div>
+    ${grupos[g].map(p=>`<div class="iv-person">${ivAvatar(p)}<div><div class="iv-nm">${esc(p.nome||p.name||'—')}</div><div class="iv-rl">${esc(ivPapel(p))}</div></div></div>`).join('')}
+  `).join('');
+}
+
+// ================================================================
+// FICHA DE OBRA — READ ONLY + RELATÓRIOS (layout SIGO)
+// ================================================================
+async function renderFichaObra(app){
+  const o=obraById(obraSel); if(!o){go('obras');return;}
+  if(intervSel===null) await loadIntervenientes(o);
+  const raw=o._raw||{};
+  const rels=DB.relatorios.filter(r=>r.obra_id===String(o.id)&&relVisivelParaUser(r)).sort((a,b)=>String(b.periodo).localeCompare(String(a.periodo)));
+
+  const cor={'Em Curso':'#0F6E56','Em Preparação':'#185FA5','Suspensa':'#A32D2D','Concluída':'#854F0B'}[o.estado]||'#1E3A5F';
+  const morada=[raw.morada,raw.localidade].filter(Boolean).join(' · ');
+  const duracao=raw.duracao!=null?raw.duracao:(raw.prazo!=null?raw.prazo:(raw.prazo_dias!=null?raw.prazo_dias:null));
+  const desvioIni=diasEntre(o.inicioPrevisto,o.inicioReal);
+
+  // cartão EMPRESA
+  const cEmp=scard(IC.emp,'EMP','var(--purple)','var(--purple-bg)','Empresa',
+      kr('Cliente', esc(raw.cliente||raw.dono_obra||''))+kr('Empreiteiro', esc(raw.empreiteiro||'')));
+  // cartão CONTRATO
+  const cCtr=scard(IC.ctr,'CTR','var(--info)','var(--info-bg)','Contrato',
+      kr('Valor', eur(o.valorObra),'color:var(--gold);font-weight:700')
+      +kr('Início Previsto', fmtDate(o.inicioPrevisto))
+      +kr('Início Real', fmtDate(o.inicioReal))
+      +kr('Fim Previsto', fmtDate(o.fimPrevisto))
+      +kr('Duração', dDias(duracao)));
+  // cartão DESVIOS
+  const cDev=scard(IC.dev,'DEV','var(--danger)','var(--danger-bg)','Desvios',
+      kr('Real − Previsto', dDelta(desvioIni), desvioIni>0?'color:var(--danger);font-weight:700':(desvioIni<0?'color:var(--success);font-weight:700':'')));
+  // cartão REAL
+  const cReal=scard(IC.real,'REAL','var(--navy)','#EAEFF5','Real',
+      kr('Desvio', raw.desvio_real!=null?dDelta(raw.desvio_real):'—')
+      +kr('Fim', fmtDate(raw.fim_real))
+      +kr('Duração', raw.duracao_real!=null?dDias(raw.duracao_real):'—'));
+
+  const tabelaRVT = DB.rvts.filter(r=>r.obra_id===String(o.id)).sort((a,b)=>String(a.rvt).localeCompare(String(b.rvt)));
+  const listaRVTHtml = tabelaRVT.length?`<div class="table-card"><table><thead><tr><th>RVT</th><th>Estado</th><th>Conformidade</th><th>Atualizado</th><th></th></tr></thead><tbody>${tabelaRVT.map(r=>`
+      <tr><td><b>${esc(r.rvt)}</b></td>
+      <td><span class="badge ${r.estado==='publicado'?'pill-publicado':'pill-rascunho'}">${esc((r.estado||'rascunho').toUpperCase())}</span></td>
+      <td>${r.conformity!=null?r.conformity+'%':'—'}</td>
+      <td style="color:var(--text-muted)">${r.updated_at?new Date(r.updated_at).toLocaleDateString('pt-PT'):'—'}</td>
+      <td><button class="btn btn-outline" style="padding:3px 9px" onclick="abrirRVT('${esc(r.rvt)}')">Abrir →</button></td></tr>`).join("")}</tbody></table></div>`
+      :`<div class="empty-state" style="text-align:left;padding:8px 0;font-style:italic">Sem RVTs.</div>`;
+
+  app.innerHTML=`
+  <button class="back-btn" onclick="go('obras')">← Voltar a Obras</button>
+
+  <div class="ficha-head" style="background:${cor}">
+    <div class="cs">${esc(o.codigo||'')} · ${esc(o.sigla||'')} · ${esc(o.estado||'')}</div>
+    <div class="nm">${esc(o.nome||'')}</div>
+    ${morada?`<div class="mo">${esc(morada)}</div>`:''}
+  </div>
+
+  <div class="stat4">${cEmp}${cCtr}${cDev}${cReal}</div>
+
+  <div class="ficha-2col">
+    <div class="scard">
+      <div class="scard-h"><div class="scard-ic" style="background:var(--warning-bg);color:var(--warning)">${IC.int}</div>
+        <div><div class="lab" style="color:var(--warning)">INT</div><div class="tit">Intervenientes</div></div></div>
+      ${renderIntervenientes(o)}
+    </div>
+    <div class="scard">
+      <div class="scard-h"><div class="scard-ic" style="background:var(--purple-bg);color:var(--purple)">${IC.rel}</div>
+        <div style="flex:1"><div class="lab" style="color:var(--purple)">OPR</div><div class="tit">Operacionalidade</div></div></div>
+      <div style="display:flex;gap:8px;margin-bottom:12px">
+        <button class="btn btn-outline" disabled style="opacity:.45;cursor:not-allowed" title="Em breve">Fiscalização</button>
+        <button class="btn ${opTab==='seguranca'?'btn-gold':'btn-outline'}" onclick="opTab='seguranca';render()">Segurança</button>
+      </div>
+      ${opTab==='seguranca'
+        ? (sbRel?`<div class="btn-bar" style="margin-bottom:10px"><button class="btn btn-gold" style="padding:4px 10px;font-size:12px" onclick="abrirRVT()">+ RVT</button><span class="note" style="font-size:11px;color:var(--text-muted)">Check List Ambiente &amp; Segurança</span></div>${listaRVTHtml}`:`<div class="empty-state" style="text-align:left;padding:8px 0">Configura o SEGO para gerir RVTs.</div>`)
+        : `<div class="empty-state" style="text-align:left;padding:8px 0">Selecione um módulo.</div>`}
+    </div>
+  </div>
+  <div id="editorMount"></div>`;
+}
+
+async function loadIntervenientes(o){
+  intervSel={utilizadores:[],empresas:[],subempreiteiros:[],especialidades:[]};
+  if(!sb)return;
+  const tryQ=async(tbl,col)=>{try{let q=sb.from(tbl).select("*");if(col)q=q.eq(col,o.id);const{data,error}=await q;if(error)throw error;return data||[];}catch(_){return[];}};
+  intervSel.especialidades=await tryQ("especialidades","obra_id");
+  intervSel.subempreiteiros=await tryQ("subempreiteiros","obra_id");
+  intervSel.empresas=await tryQ("empresas",null);
+  intervSel.utilizadores=await tryQ("utilizadores",null);
+}
+
+/* ================================================================
+   RVT — Check List Ambiente & Segurança  (integrado da app Segurança)
+   Persistência: sbRel.checklists_amb_seg (chave obra_id+rvt) · Fotos: Storage checklist-fotos
+   ================================================================ */
+const RVT_SECTIONS = [
+  { id:1, title:"Documentação — Atualizada, Disponível e Acessível", items:[
+    {n:"1.1",  t:"Vitrine", aux:"Alvará, Horário, Organograma, Planta de Estaleiro, Recibo AT, Comunicação Prévia, Procedimentos de Emergência e Índices de Sinistralidade"},
+    {n:"1.2",  t:"PSS — Plano de Segurança e Saúde"},
+    {n:"1.3",  t:"Registo Diário de Empresas e Trabalhadores"},
+    {n:"1.4",  t:"Processos Documentais das Empresas e Trabalhadores"},
+    {n:"1.5",  t:"Registos de Formação", aux:"Acolhimento e Específicas"},
+    {n:"1.6",  t:"Processos Documentais dos Equipamentos"},
+    {n:"1.7",  t:"Habilitação Legal / Profissional dos Manobradores de Máquinas e Grua"},
+    {n:"1.8",  t:"Termo de Responsabilidade pela Instalação Elétrica Provisória"},
+    {n:"1.9",  t:"Termo de Responsabilidade pela Montagem da Grua / Verificação Periódica"},
+    {n:"1.10", t:"Termo de Responsabilidade pela Montagem de Andaimes / Verificação Periódica"},
+    {n:"1.11", t:"FDS — Arquivo de Fichas de Dados de Segurança"},
+    {n:"1.12", t:"FPS / ITS", aux:"Arquivo de Fichas de Procedimento de Segurança e Instruções de Trabalho de Segurança"},
+    {n:"1.13", t:"PTRE — Arquivo do Plano de Trabalhos de Riscos Especiais"},
+    {n:"1.14", t:"PV — Plano de Visitantes"},
+    {n:"1.15", t:"PSVP — Plano de Sinalização da Via Pública"},
+  ]},
+  { id:2, title:"Resposta à Emergência", items:[
+    {n:"2.1", t:"Caixa de Primeiros Socorros", aux:"Sinalizada, acessível, conteúdo adequado e artigos dentro da validade (lista de controlo periódico)"},
+    {n:"2.2", t:"Extintores", aux:"Sinalizados, desobstruídos, acessíveis e em quantidade suficiente (zona social, grua, quadro elétrico, produtos químicos, etc.)"},
+    {n:"2.3", t:"Pontos de Encontro", aux:"Sinalizados e localização do conhecimento dos trabalhadores"},
+    {n:"2.4", t:"Percursos pedonais, acessos e saídas de emergência", aux:"Desobstruídos e sinalizados"},
+    {n:"2.5", t:"Procedimentos de Emergência do conhecimento dos trabalhadores", aux:"Evacuação de emergência, acidente grave, incêndio"},
+  ]},
+  { id:3, title:"Cumprimento de Normas Gerais de Segurança em Estaleiro", items:[
+    {n:"3.1",  t:"Arrumação / Organização Geral do Estaleiro"},
+    {n:"3.2",  t:"Zonas Sociais e WC", aux:"Refeições e vestiário com boas condições de higiene e respetiva sinalização"},
+    {n:"3.3",  t:"Disponibilização de Água Potável aos Trabalhadores e respetiva sinalização"},
+    {n:"3.4",  t:"Utilização Correta dos EPI (obrigatórios e opcionais)"},
+    {n:"3.5",  t:"Existência e Conformidade das Proteções Coletivas"},
+    {n:"3.6",  t:"Conformidade Funcional dos Utensílios Manuais", aux:"Escadas, escadotes, ferramentas manuais, etc."},
+    {n:"3.7",  t:"Conformidade Funcional de Equipamentos e Acessórios de Elevação de Cargas", aux:"Cabos, manilhas, cintas, ganchos, correntes, olhais, guinchos, guindastes"},
+    {n:"3.8",  t:"Sinalização de Segurança", aux:"Zonas funcionais, água não potável, avisos de proibição/obrigação/perigo, entrada em estaleiro, etc."},
+    {n:"3.9",  t:"Plataformas de Trabalho e Andaimes", aux:"Guarda-corpos acima de 1,20 m, base nivelada e maciça, assoalhamento mínimo 60 cm"},
+    {n:"3.10", t:"Trabalhos em Altura", aux:"Linhas de vida e pontos de ancoragem"},
+    {n:"3.11", t:"Entivação de Escavações com profundidade superior a 1,20 m"},
+    {n:"3.12", t:"Delimitação da Zona Abrangente pelas Demolições"},
+    {n:"3.13", t:"Zonas de Fumo", aux:"Sinalizadas, abrigadas, afastadas de fontes de ignição, próximas a extintor e com cinzeiro"},
+    {n:"3.14", t:"Proibição de Consumo de Bebidas Alcoólicas em Estaleiro", aux:"Informação escrita e inclusão do tema no acolhimento"},
+    {n:"3.15", t:"Sinalização / Assoalhamento de desníveis, protuberâncias, arestas vivas e zonas contundentes"},
+    {n:"3.16", t:"Iluminação Suficiente (natural ou artificial)"},
+    {n:"3.17", t:"Cumprimento do Plano de Visitantes", aux:"Capacetes e coletes, informação sobre procedimentos de emergência, registo de entradas"},
+    {n:"3.18", t:"Cumprimento do Plano de Sinalização da Via Pública", aux:"Sinalização / delimitação de veículos e de desvio de trânsito"},
+    {n:"3.19", t:"Outros Aspetos Considerados Relevantes (campo livre — usar observação)"},
+  ]},
+  { id:4, title:"Eletricidade e Instalações Provisórias", items:[
+    {n:"4.1", t:"Quadros Elétricos Protegidos, Identificados e Sinalizados"},
+    {n:"4.2", t:"Cabos Elétricos em bom estado de isolamento e protegidos / suspensos"},
+    {n:"4.3", t:"Conformidade Funcional das Ferramentas Elétricas"},
+    {n:"4.4", t:"Tomadas e Fichas Apropriadas (IP45 ou IP54)"},
+    {n:"4.5", t:"Existência de Ligações à Terra e Disjuntores Diferenciais"},
+  ]},
+  { id:5, title:"Ambiente", items:[
+    {n:"5.1", t:"Parque de Resíduos", aux:"Adequado à quantidade e tipo de resíduo, sinalizado e com designação dos Códigos LER / encaminhamento RCD"},
+    {n:"5.2", t:"Armazenamento de Produtos Químicos sinalizado, abrigado e ventilado"},
+    {n:"5.3", t:"Acondicionamento de Produtos Químicos", aux:"Bacias de retenção e embalagens fechadas devidamente (quando não utilizadas)"},
+    {n:"5.4", t:"Embalagens Não Originais Devidamente Rotuladas", aux:"Designação do produto, pictogramas de perigo, primeiros socorros e meios de combate a incêndio"},
+    {n:"5.5", t:"Contenção de Efluentes", aux:"Lavagens, betão, óleos — local específico, sinalizado/delimitado e com filtro no solo"},
+    {n:"5.6", t:"Controlo de Poeiras (rega ou contenção)"},
+    {n:"5.7", t:"Existência de Kit de Derrame Sinalizado"},
+  ]},
+];
+const RVT_STATUSES=["C","OM","NC","NA","NV"];
+let RVT=null, rvtPendingPhoto=null, rvtOpenBd=null, rvtSaveTimer;
+
+function rvtLabelStatus(s){return ({C:"Conforme",OM:"Oportunidade de Melhoria",NC:"Não Conforme",NA:"Não Aplicável",NV:"Não Verificado"})[s]||s;}
+function rvtNextOrder(obraId){const nums=DB.rvts.filter(r=>r.obra_id===String(obraId)).map(r=>parseInt(String(r.rvt).split('.')[0],10)).filter(n=>!isNaN(n));return String((nums.length?Math.max(...nums):0)+1).padStart(3,'0')+'.0';}
+function rvtNextRevisao(num){const p=String(num).split('.');return p[0]+'.'+((parseInt(p[1]||'0',10)||0)+1);}
+function rvtBlank(o,num){const s={meta:{obra:o.nome||'',local:[o._raw.morada,o.localidade].filter(Boolean).join(' · '),data:'',rvt:num,cso:''},items:{},collapsed:{},filter:'all',cols:{obs:true,photo:true},estado:'rascunho'};RVT_SECTIONS.forEach(sec=>sec.items.forEach(it=>{s.items[it.n]={status:'NV',obs:'',photos:[]};}));return s;}
+async function rvtLoad(obraId,num){
+  try{
+    const {data}=await sbRel.from('checklists_amb_seg').select('payload,estado').eq('obra_id',Number(obraId)).eq('rvt',num).maybeSingle();
+    if(data&&data.payload){
+      RVT=Object.assign(RVT,data.payload); RVT.estado=data.estado||RVT.estado||'rascunho';
+      if(!RVT.cols)RVT.cols={obs:true,photo:true};
+      RVT_SECTIONS.forEach(s=>s.items.forEach(it=>{if(!RVT.items[it.n])RVT.items[it.n]={status:'NV',obs:'',photos:[]};if(!RVT.items[it.n].photos)RVT.items[it.n].photos=[];}));
+    }
+  }catch(e){console.error(e);}
+}
+async function abrirRVT(rvt){
+  const o=obraById(obraSel); if(!o)return;
+  const num=rvt||rvtNextOrder(o.id);
+  RVT=rvtBlank(o,num);
+  if(rvt) await rvtLoad(o.id,num);
+  rvtRenderApp(o); rvtRender(); rvtBindGlobal(o);
+  document.getElementById('editorMount').scrollIntoView({behavior:'smooth'});
+}
+
+/* ----- counts / kpis ----- */
+function rvtCountSection(sec){const c={C:0,OM:0,NC:0,NA:0,NV:0};sec.items.forEach(it=>c[RVT.items[it.n].status]++);return c;}
+function rvtCountAll(){const c={C:0,OM:0,NC:0,NA:0,NV:0,total:0};Object.values(RVT.items).forEach(it=>{c[it.status]++;c.total++;});return c;}
+function rvtConformity(){const c=rvtCountAll();const d=c.C+c.OM+c.NC;return d===0?null:Math.round((c.C/d)*100);}
+function rvtPct(p,t){return t===0?'0%':Math.round((p/t)*100)+'%';}
+
+/* ----- shell ----- */
+function rvtRenderApp(o){
+  const loc=[o._raw.morada,o.localidade].filter(Boolean).join(' · ');
+  const locked=RVT.estado==='publicado';
+  document.getElementById('editorMount').innerHTML=`
+  <div class="rvt ${locked?'locked':''} ${RVT.cols.obs?'':'hide-obs'} ${RVT.cols.photo?'':'hide-photo'}" id="rvtApp">
+    <section class="id-card">
+      <h2>Identificação da Inspeção ${locked?'<span class="lock-tag">● PUBLICADO</span>':''}</h2>
+      <div class="id-grid">
+        <div class="field"><label>Obra</label><input type="text" readonly value="${esc(RVT.meta.obra)}"></div>
+        <div class="field"><label>Localização</label><input type="text" readonly value="${esc(loc)}"></div>
+        <div class="field"><label>Data da Visita</label><input type="date" id="rvt_data" value="${esc(RVT.meta.data||'')}" ${locked?'readonly':''}></div>
+        <div class="field"><label>RVT Nº</label><input type="text" id="rvt_rvt" readonly value="${esc(RVT.meta.rvt)}"></div>
+        <div class="field"><label>Coordenador de Segurança</label><input type="text" id="rvt_cso" value="${esc(RVT.meta.cso||'')}" placeholder="Nome do CSO" ${locked?'readonly':''}></div>
+      </div>
+    </section>
+    <section class="kpi-bar" id="rvtKpiBar">
+      <div class="kpi total" data-bd="total"><span class="kpi-label">Total Itens</span><span class="kpi-value" id="rvtKTotal">51</span><span class="kpi-sub">universo da check list</span></div>
+      <div class="kpi c" data-bd="C"><span class="kpi-label">Conforme</span><span class="kpi-value" id="rvtKC">0</span><span class="kpi-sub" id="rvtKCpct">0%</span></div>
+      <div class="kpi om" data-bd="OM"><span class="kpi-label">Oport. Melhoria</span><span class="kpi-value" id="rvtKOM">0</span><span class="kpi-sub" id="rvtKOMpct">0%</span></div>
+      <div class="kpi nc" data-bd="NC"><span class="kpi-label">Não Conforme</span><span class="kpi-value" id="rvtKNC">0</span><span class="kpi-sub" id="rvtKNCpct">0%</span></div>
+      <div class="kpi nv" data-bd="NV"><span class="kpi-label">Por Verificar</span><span class="kpi-value" id="rvtKNV">51</span><span class="kpi-sub" id="rvtKNVpct">100%</span></div>
+      <div class="gauge" data-bd="gauge"><span class="kpi-label">Índice de Conformidade</span><span class="gauge-value" id="rvtGaugeVal">—</span><div class="gauge-bar"><div class="gauge-fill" id="rvtGaugeFill"></div></div></div>
+      <div class="breakdown" id="rvtBreakdown"></div>
+    </section>
+    <section class="filter-bar">
+      <span class="flabel">Filtrar</span>
+      <button class="chip active" data-filter="all">Todos <span class="count" id="rvtcAll">51</span></button>
+      <button class="chip" data-filter="NV">Pendentes <span class="count" id="rvtcNV">51</span></button>
+      <button class="chip" data-filter="NC">Não Conformes <span class="count" id="rvtcNC">0</span></button>
+      <button class="chip" data-filter="OM">Oport. Melhoria <span class="count" id="rvtcOM">0</span></button>
+      <button class="chip" data-filter="C">Conformes <span class="count" id="rvtcC">0</span></button>
+      <button class="chip" data-filter="NA">N/A <span class="count" id="rvtcNA">0</span></button>
+      <span class="fb-spacer"></span>
+      <span class="flabel">Colunas</span>
+      <button class="chip toggle ${RVT.cols.obs?'active':''}" data-col="obs">Observações</button>
+      <button class="chip toggle ${RVT.cols.photo?'active':''}" data-col="photo">Fotos</button>
+    </section>
+    <div id="rvtSections"></div>
+    <section class="footer-actions">
+      <span class="save-status"><span class="save-dot"></span><span id="rvtSaveText">Guardado automaticamente</span></span>
+      <div class="footer-spacer"></div>
+      <button class="rbtn" onclick="rvtCollapse(true)">Colapsar tudo</button>
+      <button class="rbtn" onclick="rvtCollapse(false)">Expandir tudo</button>
+      <button class="rbtn" onclick="rvtExport()">↓ Exportar JSON</button>
+      <button class="rbtn" onclick="rvtPrint()">🖨 Imprimir</button>
+      ${locked?`<button class="rbtn navy" onclick="rvtNovaRevisao()">Nova revisão</button>`:`<button class="rbtn primary" onclick="rvtPublicar()">Publicar</button>`}
+      <button class="rbtn" onclick="rvtFechar()">Fechar</button>
+    </section>
+    <input type="file" id="rvtPhotoInput" accept="image/*" multiple style="display:none">
+  </div>`;
+}
+
+/* ----- render sections ----- */
+function rvtRender(){
+  const root=document.getElementById('rvtSections'); if(!root)return;
+  const locked=RVT.estado==='publicado';
+  root.innerHTML=RVT_SECTIONS.map(sec=>{
+    const c=rvtCountSection(sec), col=!!RVT.collapsed[sec.id];
+    return `<section class="section ${col?'collapsed':''}">
+      <header class="section-head" data-toggle="${sec.id}">
+        <div class="section-num">${sec.id}</div>
+        <div class="section-title">${esc(sec.title)}</div>
+        <div class="section-counts">
+          <span class="pill c" data-count="${c.C}">C ${c.C}</span>
+          <span class="pill om" data-count="${c.OM}">OM ${c.OM}</span>
+          <span class="pill nc" data-count="${c.NC}">NC ${c.NC}</span>
+          <span class="pill na" data-count="${c.NA}">NA ${c.NA}</span>
+          <span class="pill nv" data-count="${c.NV}">NV ${c.NV}</span>
+        </div>
+        <div class="chevron">▾</div>
+      </header>
+      <div class="section-body">
+        <div class="col-head"><div class="ch-main">Ponto de verificação</div><div class="ch-controls"><div class="ch-status">Estado</div><div class="ch-obs">Observação / Evidência / Ação corretiva</div><div class="ch-photo">Fotos</div></div></div>
+        ${sec.items.map(it=>rvtRenderItem(it,locked)).join('')}
+      </div>
+    </section>`;
+  }).join('');
+  root.querySelectorAll('[data-toggle]').forEach(h=>h.addEventListener('click',()=>{const id=h.dataset.toggle;RVT.collapsed[id]=!RVT.collapsed[id];rvtSave(true);rvtRender();}));
+  if(!locked){
+    root.querySelectorAll('.status-btn').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();const n=b.closest('.item').dataset.itemNum;RVT.items[n].status=b.dataset.status;rvtSave();rvtRender();}));
+    root.querySelectorAll('.item-obs-col textarea').forEach(t=>t.addEventListener('input',()=>{const n=t.closest('.item').dataset.itemNum;RVT.items[n].obs=t.value;rvtSave();}));
+    root.querySelectorAll('.photo-slot[data-photo]').forEach(b=>b.addEventListener('click',()=>{rvtPendingPhoto=b.dataset.photo;document.getElementById('rvtPhotoInput').click();}));
+    root.querySelectorAll('.photo-thumb[data-rm]').forEach(t=>t.addEventListener('click',()=>{const a=t.dataset.rm.split('::');RVT.items[a[0]].photos.splice(Number(a[1]),1);rvtSave();rvtRender();}));
+  }
+  rvtApplyFilter(); rvtUpdateKPIs();
+}
+function rvtRenderItem(it,locked){
+  const st=RVT.items[it.n].status, obs=RVT.items[it.n].obs||'', photos=RVT.items[it.n].photos||[];
+  const desc=it.aux?`<span class="tip-anchor" tabindex="0"><span class="tip-text">${esc(it.t)}</span><span class="tip-dot">i</span><span class="tip">${esc(it.aux)}</span></span>`:esc(it.t);
+  const thumbs=photos.length?`<div class="photo-thumbs">${photos.map((p,i)=>`<div class="photo-thumb" style="background-image:url('${esc(p.url)}')" ${locked?'':`data-rm="${it.n}::${i}"`} title="${esc(p.name||'')}"></div>`).join('')}</div>`:'';
+  return `<div class="item" data-item-num="${it.n}" data-status="${st}">
+    <div class="item-num">${it.n}</div>
+    <div class="item-main"><div class="item-desc">${desc}</div></div>
+    <div class="item-controls">
+      <div class="status-group">${RVT_STATUSES.map(s=>`<button class="status-btn ${st===s?'active':''}" data-status="${s}" title="${rvtLabelStatus(s)}">${s}</button>`).join('')}</div>
+      <div class="item-obs-col"><textarea placeholder="Observação / evidência / ação corretiva…" ${locked?'readonly':''}>${esc(obs)}</textarea></div>
+      <div class="item-photo-col">${locked?'':`<span class="photo-slot" data-photo="${it.n}"><span>📷</span> anexar</span>`}${thumbs}</div>
+    </div>
+  </div>`;
+}
+function rvtUpdateKPIs(){
+  const c=rvtCountAll(),t=c.total,g=id=>document.getElementById(id); if(!g('rvtKTotal'))return;
+  g('rvtKTotal').textContent=t;g('rvtKC').textContent=c.C;g('rvtKOM').textContent=c.OM;g('rvtKNC').textContent=c.NC;g('rvtKNV').textContent=c.NV;
+  g('rvtKCpct').textContent=rvtPct(c.C,t);g('rvtKOMpct').textContent=rvtPct(c.OM,t);g('rvtKNCpct').textContent=rvtPct(c.NC,t);g('rvtKNVpct').textContent=rvtPct(c.NV,t);
+  const conf=rvtConformity();
+  g('rvtGaugeVal').textContent=conf===null?'—':conf+'%';g('rvtGaugeFill').style.width=(conf===null?0:conf)+'%';
+  g('rvtcAll').textContent=t;g('rvtcC').textContent=c.C;g('rvtcOM').textContent=c.OM;g('rvtcNC').textContent=c.NC;g('rvtcNA').textContent=c.NA;g('rvtcNV').textContent=c.NV;
+}
+function rvtApplyFilter(){
+  const f=RVT.filter;
+  document.querySelectorAll('#rvtApp .chip[data-filter]').forEach(c=>c.classList.toggle('active',c.dataset.filter===f));
+  document.querySelectorAll('#rvtApp .item').forEach(it=>{if(f==='all')it.classList.remove('hidden');else it.classList.toggle('hidden',it.dataset.status!==f);});
+}
+function rvtApplyCols(){
+  const app=document.getElementById('rvtApp'); if(!app)return;
+  app.classList.toggle('hide-obs',!RVT.cols.obs);
+  app.classList.toggle('hide-photo',!RVT.cols.photo);
+  app.querySelectorAll('.chip.toggle[data-col]').forEach(c=>c.classList.toggle('active',!!RVT.cols[c.dataset.col]));
+}
+function rvtBindGlobal(o){
+  const app=document.getElementById('rvtApp'); if(!app)return;
+  const locked=RVT.estado==='publicado';
+  app.querySelectorAll('.chip[data-filter]').forEach(c=>c.addEventListener('click',()=>{RVT.filter=c.dataset.filter;rvtSave(true);rvtApplyFilter();}));
+  app.querySelectorAll('.chip.toggle[data-col]').forEach(c=>c.addEventListener('click',()=>{RVT.cols[c.dataset.col]=!RVT.cols[c.dataset.col];rvtSave(true);rvtApplyCols();}));
+  app.querySelectorAll('.kpi[data-bd],.gauge[data-bd]').forEach(k=>k.addEventListener('click',()=>rvtToggleBreakdown(k.dataset.bd,k)));
+  if(!locked){
+    const d=document.getElementById('rvt_data'); if(d)d.addEventListener('input',()=>{RVT.meta.data=d.value;rvtSave();});
+    const cso=document.getElementById('rvt_cso'); if(cso)cso.addEventListener('input',()=>{RVT.meta.cso=cso.value;rvtSave();});
+    const pi=document.getElementById('rvtPhotoInput'); if(pi)pi.addEventListener('change',e=>{const files=Array.from(e.target.files||[]);if(rvtPendingPhoto&&files.length)rvtAttachPhotos(rvtPendingPhoto,files);e.target.value='';rvtPendingPhoto=null;});
+  }
+  rvtApplyCols();
+}
+
+/* ----- fotos (Storage) ----- */
+async function rvtAttachPhotos(itemN,files){
+  for(const f of files){
+    let ok=false;
+    try{
+      const path=(obraSel+'/'+RVT.meta.rvt+'/'+itemN+'/'+Date.now()+'_'+f.name).replace(/\s+/g,'_');
+      const up=await sbRel.storage.from('checklist-fotos').upload(path,f,{upsert:false});
+      if(up.error)throw up.error;
+      const pub=sbRel.storage.from('checklist-fotos').getPublicUrl(path);
+      RVT.items[itemN].photos.push({name:f.name,url:pub.data.publicUrl,path}); ok=true;
+    }catch(e){console.error(e);RVT.items[itemN].photos.push({name:f.name,url:URL.createObjectURL(f)});}
+    if(!ok)toast('Foto só em sessão — cria o bucket checklist-fotos','err');
+  }
+  rvtSave(); rvtRender();
+}
+
+/* ----- persistência ----- */
+function rvtSave(silent){clearTimeout(rvtSaveTimer);rvtSaveTimer=setTimeout(()=>rvtSaveNow(silent),300);}
+async function rvtSaveNow(silent){
+  if(!sbRel||!RVT)return;
+  try{
+    const payload=JSON.parse(JSON.stringify(RVT));
+    const row={obra_id:Number(obraSel),rvt:RVT.meta.rvt,estado:RVT.estado||'rascunho',conformity:rvtConformity(),summary:rvtCountAll(),payload,updated_at:new Date().toISOString()};
+    const {error}=await sbRel.from('checklists_amb_seg').upsert(row,{onConflict:'obra_id,rvt'});
+    if(error)throw error;
+    const i=DB.rvts.findIndex(r=>r.obra_id===String(obraSel)&&r.rvt===RVT.meta.rvt);
+    const cache={obra_id:String(obraSel),rvt:RVT.meta.rvt,estado:row.estado,conformity:row.conformity,summary:row.summary,updated_at:row.updated_at};
+    if(i>=0)DB.rvts[i]=cache;else DB.rvts.push(cache);
+    if(!silent)rvtFlashSaved();
+  }catch(e){console.error(e);const el=document.getElementById('rvtSaveText');if(el)el.textContent='Não foi possível guardar';}
+}
+function rvtFlashSaved(){const el=document.getElementById('rvtSaveText');if(!el)return;el.textContent='A guardar…';setTimeout(()=>{el.textContent='Guardado automaticamente';},600);}
+
+/* ----- ações ----- */
+function rvtCollapse(v){RVT_SECTIONS.forEach(s=>RVT.collapsed[s.id]=v);rvtSave(true);rvtRender();}
+async function rvtPublicar(){
+  if(!confirm('Publicar este RVT? Depois de publicado fica bloqueado — não é possível alterar estados/observações nem apagar fotos.'))return;
+  RVT.estado='publicado'; await rvtSaveNow(true);
+  const o=obraById(obraSel); rvtRenderApp(o); rvtRender(); rvtBindGlobal(o); toast('RVT publicado');
+}
+async function rvtNovaRevisao(){
+  const novo=rvtNextRevisao(RVT.meta.rvt);
+  if(!confirm('Criar a revisão '+novo+' (cópia editável desta)?'))return;
+  RVT=JSON.parse(JSON.stringify(RVT)); RVT.meta.rvt=novo; RVT.estado='rascunho';
+  await rvtSaveNow(true);
+  const o=obraById(obraSel); rvtRenderApp(o); rvtRender(); rvtBindGlobal(o); toast('Revisão '+novo+' criada');
+}
+function rvtFechar(){RVT=null;document.getElementById('editorMount').innerHTML='';loadAll().then(render);}
+function rvtExport(){
+  const c=rvtCountAll();
+  const payload={meta:RVT.meta,estado:RVT.estado,generated_at:new Date().toISOString(),conformity_index:rvtConformity(),summary:c,items:Object.entries(RVT.items).map(([n,v])=>({ref:n,status:v.status,observation:v.obs,photos:(v.photos||[]).length}))};
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  const safe=(RVT.meta.obra||'obra').toLowerCase().replace(/[^a-z0-9]+/g,'_');
+  a.download='checklist_'+safe+'_RVT'+(RVT.meta.rvt||'x')+'.json';a.click();toast('JSON exportado');
+}
+function rvtPrint(){rvtCollapse(false);setTimeout(()=>window.print(),200);}
+
+/* ----- drill-down ----- */
+const RVT_BD={total:{label:'Total de itens',cls:'total'},C:{label:'Conformes',cls:'c'},OM:{label:'Oport. melhoria',cls:'om'},NC:{label:'Não conformes',cls:'nc'},NA:{label:'Não aplicável',cls:'na'},NV:{label:'Por verificar',cls:'nv'},gauge:{label:'Índice de Conformidade',cls:'gauge'}};
+function rvtBdRows(bd){
+  return RVT_SECTIONS.map(sec=>{
+    const c=rvtCountSection(sec),total=sec.items.length;let value,share,valueLabel,shareLabel;
+    if(bd==='total'){value=total;const grand=Object.keys(RVT.items).length;share=grand?total/grand*100:0;valueLabel=String(value);shareLabel=Math.round(share)+'%';}
+    else if(bd==='gauge'){const d=c.C+c.OM+c.NC;const conf=d===0?null:c.C/d*100;value=conf;share=conf===null?0:conf;valueLabel=conf===null?'—':Math.round(conf)+'%';shareLabel=d+'/'+total;}
+    else{value=c[bd]||0;share=total===0?0:value/total*100;valueLabel=String(value);shareLabel=Math.round(share)+'%';}
+    return {secId:sec.id,title:sec.title,share,valueLabel,shareLabel,isZero:bd==='gauge'?value===null:value===0};
+  });
+}
+function rvtToggleBreakdown(bd,el){
+  if(rvtOpenBd===bd){rvtCloseBreakdown();return;}
+  rvtOpenBd=bd;
+  document.querySelectorAll('#rvtApp .kpi,#rvtApp .gauge').forEach(k=>k.classList.remove('open'));
+  el.classList.add('open');
+  const meta=RVT_BD[bd],rows=rvtBdRows(bd),c=rvtCountAll();
+  let foot;
+  if(bd==='gauge'){const d=c.C+c.OM+c.NC;foot='Global: <strong>'+(d===0?'—':Math.round(c.C/d*100)+'%')+'</strong> · base: '+d+' item(ns)';}
+  else if(bd==='total'){foot='Total: <strong>'+c.total+'</strong> itens · 5 capítulos';}
+  else{const v=c[bd]||0;foot='Global: <strong>'+v+'</strong> de '+c.total+' · <strong>'+rvtPct(v,c.total)+'</strong>';}
+  const bdEl=document.getElementById('rvtBreakdown');
+  bdEl.innerHTML='<div class="bd-head"><span class="bd-dot '+meta.cls+'"></span><span class="bd-title">Detalhe por capítulo · <strong>'+esc(meta.label)+'</strong></span><button class="bd-close" onclick="rvtCloseBreakdown()">×</button></div>'+
+    '<div class="bd-rows">'+rows.map(r=>'<div class="bd-row"><div class="bd-row-num">'+r.secId+'</div><div class="bd-row-title">'+esc(r.title)+'</div><div class="bd-row-count '+(r.isZero?'zero':'')+'">'+r.valueLabel+'</div><div class="bd-row-share '+(r.isZero?'zero':'')+'">'+r.shareLabel+'</div><div class="bd-bar"><div class="bd-bar-fill '+meta.cls+'" style="width:'+Math.max(0,Math.min(100,r.share||0))+'%"></div></div></div>').join('')+'</div>'+
+    '<div class="bd-foot"><span>'+foot+'</span></div>';
+  const barR=document.getElementById('rvtKpiBar').getBoundingClientRect(), r=el.getBoundingClientRect();
+  bdEl.style.left=Math.max(6,r.left-barR.left)+'px';
+  bdEl.style.top=(r.bottom-barR.top+8)+'px';
+  bdEl.classList.add('show');
+}
+function rvtCloseBreakdown(){rvtOpenBd=null;const b=document.getElementById('rvtBreakdown');if(b)b.classList.remove('show');document.querySelectorAll('#rvtApp .kpi,#rvtApp .gauge').forEach(k=>k.classList.remove('open'));}
+
+
+function blankRel(){const n=new Date(),periodo=`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}`;return {id:null,obra_id:String(obraSel),periodo,estado:"rascunho",resumo_executivo:"",progresso_planeado:null,progresso_real:null,trabalhos_executados:"",trabalhos_previstos:"",prazos:[],seguranca:{acidentes:0,near_miss:0,indice_freq:null,acoes:""},qualidade:{ncs_abertas:0,ncs_fechadas:0,lista:[]},riscos:[],mao_obra:[],fotos:[],observacoes:"",elaborado_por:""};}
+function novoRelatorio(){relSel=blankRel();renderEditor();document.getElementById("editorMount").scrollIntoView({behavior:"smooth"});}
+function editarRelatorio(id){const r=DB.relatorios.find(x=>String(x.id)===String(id));relSel=JSON.parse(JSON.stringify(normalizeRel(r)));renderEditor();document.getElementById("editorMount").scrollIntoView({behavior:"smooth"});}
+function normalizeRel(r){const b=blankRel();return {...b,...r,prazos:r.prazos||[],riscos:r.riscos||[],mao_obra:r.mao_obra||[],fotos:r.fotos||[],seguranca:{...b.seguranca,...(r.seguranca||{})},qualidade:{...b.qualidade,...(r.qualidade||{}),lista:(r.qualidade&&r.qualidade.lista)||[]}};}
+function pi(v){return ["Baixo","Médio","Alto"].map(s=>`<option ${v===s?'selected':''}>${s}</option>`).join("")}
+function pct(v){const n=Number(v);return isNaN(n)?0:Math.max(0,Math.min(100,n))}
+function renderEditor(){
+  const r=relSel;if(!r)return;
+  const o=obraById(obraSel);
+  const desvio=(r.progresso_real!=null&&r.progresso_planeado!=null)?(Number(r.progresso_real)-Number(r.progresso_planeado)).toFixed(1):null;
+  document.getElementById("editorMount").innerHTML=`
+  <div class="card">
+    <div class="sec"><span class="n">✎</span> Relatório ${r.id?'· edição':'· novo'} — ${esc(o.nome)}</div>
+    <div class="form-grid">
+      <div><label class="form-label">Período</label><input class="form-input" id="f_periodo" type="month" value="${esc(r.periodo)}"></div>
+      <div><label class="form-label">Estado</label><select class="form-select" id="f_estado">${["rascunho","submetido","publicado"].map(s=>`<option value="${s}" ${r.estado===s?'selected':''}>${s.toUpperCase()}</option>`).join("")}</select></div>
+      <div><label class="form-label">Elaborado por</label><input class="form-input" id="f_elab" value="${esc(r.elaborado_por||'')}"></div>
+    </div>
+    <div class="sec"><span class="n">1</span> Resumo executivo</div>
+    <textarea class="form-textarea" id="f_resumo">${esc(r.resumo_executivo||'')}</textarea>
+    <div class="sec" style="margin-top:14px"><span class="n">2</span> Progresso físico</div>
+    <div class="form-grid">
+      <div><label class="form-label">% Planeado</label><input class="form-input" id="f_plan" type="number" min="0" max="100" step="0.1" value="${r.progresso_planeado??''}" oninput="liveProgress()"></div>
+      <div><label class="form-label">% Real</label><input class="form-input" id="f_real" type="number" min="0" max="100" step="0.1" value="${r.progresso_real??''}" oninput="liveProgress()"></div>
+      <div><label class="form-label">Desvio (pp)</label><input class="form-input ro" id="f_desv" readonly value="${desvio!=null?desvio:''}"></div>
+    </div>
+    <div style="margin:4px 0"><span class="form-label">Planeado</span><div class="bar"><span id="barPlan" style="width:${pct(r.progresso_planeado)}%"></span></div></div>
+    <div style="margin:8px 0 4px"><span class="form-label">Real</span><div class="bar real"><span id="barReal" style="width:${pct(r.progresso_real)}%"></span></div></div>
+    <div class="sec" style="margin-top:14px"><span class="n">3</span> Prazos &amp; marcos</div>
+    ${dynTable("prazos",["Marco","Data prevista","Data real","Estado"],r.prazos,(it,i)=>`
+      <td><input class="form-input" value="${esc(it.marco||'')}" oninput="upd('prazos',${i},'marco',this.value)"></td>
+      <td><input class="form-input" type="date" value="${esc(it.data_prev||'')}" oninput="upd('prazos',${i},'data_prev',this.value)"></td>
+      <td><input class="form-input" type="date" value="${esc(it.data_real||'')}" oninput="upd('prazos',${i},'data_real',this.value)"></td>
+      <td><select class="form-select" onchange="upd('prazos',${i},'estado',this.value)">${["No prazo","Em risco","Atrasado","Concluído"].map(s=>`<option ${it.estado===s?'selected':''}>${s}</option>`).join("")}</select></td>`)}
+    <div class="sec" style="margin-top:14px"><span class="n">4</span> Trabalhos executados / previstos</div>
+    <div class="grid-2">
+      <div><label class="form-label">Executados no período</label><textarea class="form-textarea" id="f_exec">${esc(r.trabalhos_executados||'')}</textarea></div>
+      <div><label class="form-label">Previstos próximo período</label><textarea class="form-textarea" id="f_prev">${esc(r.trabalhos_previstos||'')}</textarea></div>
+    </div>
+    <div class="sec" style="margin-top:14px"><span class="n">5</span> Segurança em obra</div>
+    <div class="form-grid">
+      <div><label class="form-label">Acidentes c/ baixa</label><input class="form-input" id="f_acid" type="number" min="0" value="${r.seguranca.acidentes??0}"></div>
+      <div><label class="form-label">Near-miss</label><input class="form-input" id="f_near" type="number" min="0" value="${r.seguranca.near_miss??0}"></div>
+      <div><label class="form-label">Índice frequência</label><input class="form-input" id="f_if" type="number" step="0.01" value="${r.seguranca.indice_freq??''}"></div>
+    </div>
+    <div><label class="form-label">Ações de segurança</label><textarea class="form-textarea" id="f_segacoes">${esc(r.seguranca.acoes||'')}</textarea></div>
+    <div class="sec" style="margin-top:14px"><span class="n">6</span> Qualidade &amp; não-conformidades</div>
+    <div class="form-grid">
+      <div><label class="form-label">NCs abertas</label><input class="form-input" id="f_ncab" type="number" min="0" value="${r.qualidade.ncs_abertas??0}"></div>
+      <div><label class="form-label">NCs fechadas</label><input class="form-input" id="f_ncfe" type="number" min="0" value="${r.qualidade.ncs_fechadas??0}"></div>
+    </div>
+    ${dynTable("qualidade.lista",["Não-conformidade","Estado"],r.qualidade.lista,(it,i)=>`
+      <td><input class="form-input" value="${esc(it.desc||'')}" oninput="updNested('qualidade','lista',${i},'desc',this.value)"></td>
+      <td><select class="form-select" onchange="updNested('qualidade','lista',${i},'estado',this.value)">${["Aberta","Em tratamento","Fechada"].map(s=>`<option ${it.estado===s?'selected':''}>${s}</option>`).join("")}</select></td>`)}
+    <div class="sec" style="margin-top:14px"><span class="n">7</span> Riscos &amp; medidas de mitigação</div>
+    ${dynTable("riscos",["Risco","Probabilidade","Impacto","Medida de mitigação"],r.riscos,(it,i)=>`
+      <td><input class="form-input" value="${esc(it.risco||'')}" oninput="upd('riscos',${i},'risco',this.value)"></td>
+      <td><select class="form-select" onchange="upd('riscos',${i},'prob',this.value)">${pi(it.prob)}</select></td>
+      <td><select class="form-select" onchange="upd('riscos',${i},'impacto',this.value)">${pi(it.impacto)}</select></td>
+      <td><input class="form-input" value="${esc(it.medida||'')}" oninput="upd('riscos',${i},'medida',this.value)"></td>`)}
+    <div class="sec" style="margin-top:14px"><span class="n">8</span> Mão de obra / equipamentos</div>
+    ${dynTable("mao_obra",["Categoria","Nº médio"],r.mao_obra,(it,i)=>`
+      <td><input class="form-input" value="${esc(it.categoria||'')}" oninput="upd('mao_obra',${i},'categoria',this.value)"></td>
+      <td><input class="form-input" type="number" min="0" value="${it.n??''}" oninput="upd('mao_obra',${i},'n',this.value)"></td>`)}
+    <div class="sec" style="margin-top:14px"><span class="n">9</span> Registo fotográfico (URLs)</div>
+    ${dynTable("fotos",["URL da imagem","Legenda"],r.fotos,(it,i)=>`
+      <td><input class="form-input" value="${esc(it.url||'')}" oninput="upd('fotos',${i},'url',this.value)" placeholder="https://…"></td>
+      <td><input class="form-input" value="${esc(it.legenda||'')}" oninput="upd('fotos',${i},'legenda',this.value)"></td>`)}
+    <div class="sec" style="margin-top:14px"><span class="n">10</span> Observações ao dono de obra</div>
+    <textarea class="form-textarea" id="f_obs">${esc(r.observacoes||'')}</textarea>
+    <div class="btn-bar" style="margin-top:14px">
+      <button class="btn btn-gold" onclick="guardarRelatorio()">Guardar</button>
+      <button class="btn btn-outline" onclick="relSel=null;render()">Cancelar</button>
+      ${r.id?`<button class="btn btn-danger-outline" onclick="apagarRelatorio()">Apagar</button>`:''}
+    </div>
+  </div>`;
+}
+function liveProgress(){const p=document.getElementById("f_plan").value,r=document.getElementById("f_real").value;document.getElementById("barPlan").style.width=pct(p)+"%";document.getElementById("barReal").style.width=pct(r)+"%";document.getElementById("f_desv").value=(r!==""&&p!=="")?(Number(r)-Number(p)).toFixed(1):"";}
+function dynTable(key,heads,rows,rowFn){const body=(rows||[]).map((it,i)=>`<tr>${rowFn(it,i)}<td style="width:34px;text-align:center"><button class="icon-btn" onclick="delRow('${key}',${i})">✕</button></td></tr>`).join("");return `<div class="table-card"><table><thead><tr>${heads.map(h=>`<th>${h}</th>`).join("")}<th></th></tr></thead><tbody>${body||`<tr><td colspan="${heads.length+1}" class="empty-state" style="padding:14px">Sem registos.</td></tr>`}</tbody></table></div><div class="btn-bar" style="margin-top:8px"><button class="btn btn-outline" onclick='addRow("${key}")'>+ Adicionar linha</button></div>`;}
+function getArr(key){return key==="qualidade.lista"?relSel.qualidade.lista:relSel[key];}
+function addRow(key){const b={"prazos":{marco:"",data_prev:"",data_real:"",estado:"No prazo"},"riscos":{risco:"",prob:"Médio",impacto:"Médio",medida:""},"mao_obra":{categoria:"",n:0},"fotos":{url:"",legenda:""},"qualidade.lista":{desc:"",estado:"Aberta"}};getArr(key).push(JSON.parse(JSON.stringify(b[key])));syncScalars();renderEditor();}
+function delRow(key,i){getArr(key).splice(i,1);syncScalars();renderEditor();}
+function upd(key,i,f,v){relSel[key][i][f]=v;}
+function updNested(p,a,i,f,v){relSel[p][a][i][f]=v;}
+function syncScalars(){const r=relSel,g=id=>document.getElementById(id);if(!g("f_periodo"))return;r.periodo=g("f_periodo").value;r.estado=g("f_estado").value;r.elaborado_por=g("f_elab").value;r.resumo_executivo=g("f_resumo").value;r.progresso_planeado=numOrNull(g("f_plan").value);r.progresso_real=numOrNull(g("f_real").value);r.trabalhos_executados=g("f_exec").value;r.trabalhos_previstos=g("f_prev").value;r.seguranca.acidentes=numOrNull(g("f_acid").value)||0;r.seguranca.near_miss=numOrNull(g("f_near").value)||0;r.seguranca.indice_freq=numOrNull(g("f_if").value);r.seguranca.acoes=g("f_segacoes").value;r.qualidade.ncs_abertas=numOrNull(g("f_ncab").value)||0;r.qualidade.ncs_fechadas=numOrNull(g("f_ncfe").value)||0;r.observacoes=g("f_obs").value;}
+
+async function guardarRelatorio(){
+  if(!sbRel){toast("Configura o SEGO","err");return;}
+  syncScalars();const r=relSel;
+  if(!r.periodo){toast("Indica o período","err");return;}
+  const payload={...r,obra_id:String(obraSel),atualizado_em:new Date().toISOString()};delete payload.id;
+  try{
+    let res=r.id?await sbRel.from("relatorios_ext").update(payload).eq("id",r.id).select().single()
+                :await sbRel.from("relatorios_ext").insert(payload).select().single();
+    if(res.error)throw res.error;
+    relSel=null;await loadAll();render();toast("Relatório guardado ✓");
+  }catch(e){console.error(e);toast("Erro ao guardar: "+(e.message||e),"err");}
+}
+async function apagarRelatorio(){
+  if(!relSel.id)return;if(!confirm("Apagar este relatório?"))return;
+  try{const{error}=await sbRel.from("relatorios_ext").delete().eq("id",relSel.id);if(error)throw error;relSel=null;await loadAll();render();toast("Relatório apagado");}
+  catch(e){toast("Erro ao apagar: "+(e.message||e),"err");}
+}
+
+/* ----------------------------- DEPLOY ------------------------------- */
+function pathForFile(name){const base=name.split("/").pop();if(/\.js$/i.test(base)&&base!=="vercel.js")return "api/"+base;return base;}
+async function handleDeploy(fileList){
+  const files=[...fileList];if(!files.length)return;
+  const mapped=files.map(f=>({name:f.name,path:pathForFile(f.name),file:f}));
+  if(!confirm(`Deploy para ${CONFIG.DEPLOY_REPO}:\n\n${mapped.map(m=>`• ${m.name} → ${m.path}`).join("\n")}\n\nConfirmar?`)){document.getElementById("deployInput").value="";return;}
+  try{
+    const form=new FormData();form.append("repo",CONFIG.DEPLOY_REPO);
+    mapped.forEach(m=>{form.append("paths[]",m.path);form.append("files[]",m.file,m.name);});
+    const resp=await fetch(CONFIG.DEPLOY_ENDPOINT,{method:"POST",body:form});
+    if(!resp.ok)throw new Error("HTTP "+resp.status);
+    toast(`Deploy enviado (${mapped.length} ficheiro(s))`);
+  }catch(e){console.error(e);toast("Deploy falhou: "+(e.message||e),"err");}
+  finally{document.getElementById("deployInput").value="";}
+}
+
+window.addEventListener("DOMContentLoaded",boot);
+</script>
+</body>
+</html>
