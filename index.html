@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.05.21.0132</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.05.21.0147</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -950,7 +950,7 @@ function go(p,extra=null){
 // ================================================================
 function render(){
   const app=$('app');
-  if(relRelId){ renderFichaRelatorio(app); return; }
+  if(relRelId){ const _r=DB.relatorios.find(x=>x.id===relRelId); if(_r&&_r.conteudo&&_r.conteudo.tipo==='seguranca'){ renderFichaRVT(app,_r); return; } renderFichaRelatorio(app); return; }
   if(relObraId){ renderCapaObra(app); return; }
   if(fichObraId){ 
     try{ renderFichaObra(app); }
@@ -994,7 +994,7 @@ function renderRelatorios(app){
   const obras=getObrasVisiveis().filter(o=>o.relMensal);
   app.innerHTML=`
   <div class="page-header">
-    <div><div class="page-title">Relatórios Mensais</div><div class="page-count">${obras.length} obra(s) com relatório mensal</div></div>
+    <div><div class="page-title">Controlo Operacional</div><div class="page-count">${obras.length} obra(s) com controlo operacional</div></div>
   </div>
   <div class="table-card"><div class="table-wrap"><table>
     <thead><tr><th>Código</th><th>Sigla</th><th>Nome</th><th>Estado</th><th>Último Rel.</th><th>Ação</th></tr></thead>
@@ -1753,21 +1753,74 @@ function relSection(label,val){
 // ================================================================
 // RELATÓRIOS — MODAL NOVO
 // ================================================================
+function coCard(opts){
+  const dis=opts.disabled;
+  return `<div ${dis?'':'onclick="'+opts.onclick+'"'} style="position:relative;border:1px solid var(--border-light);border-left:4px solid ${dis?'var(--border-light)':opts.color};border-radius:var(--radius);padding:14px;background:var(--bg-card);cursor:${dis?'not-allowed':'pointer'};opacity:${dis?'.55':'1'};transition:background .15s" ${dis?'':"onmouseover=\"this.style.background='var(--bg)'\" onmouseout=\"this.style.background='var(--bg-card)'\""}>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+      <div style="font-size:9px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:${dis?'var(--text-muted)':opts.color}">${opts.sigla}</div>
+      ${dis?'<span class="badge b-prep" style="font-size:9px">Em breve</span>':''}
+    </div>
+    <div style="font-size:15px;font-weight:700;color:var(--text);margin-top:4px">${opts.title}</div>
+    <div style="font-size:11px;color:var(--text-muted);margin-top:2px">${opts.desc}</div>
+  </div>`;
+}
 function modalNovoRelatorio(obraId){
   const o=DB.obras.find(x=>x.id===obraId);
   if(!o)return;
+  showModal('Novo Controlo Operacional — '+o.nome,`
+  <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px">Selecione o tipo de controlo operacional.</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+    ${coCard({title:'Segurança',sigla:'SEG',desc:'RVT e outros',color:'var(--danger)',disabled:false,onclick:`modalNovoSeguranca('${obraId}')`})}
+    ${coCard({title:'Fiscalização',sigla:'FISC',desc:'Em desenvolvimento',color:'var(--info)',disabled:true})}
+  </div>`,[
+    {label:'Cancelar',cls:'btn-outline',fn:'closeModal()'},
+  ]);
+}
+window.modalNovoSeguranca=function(obraId){
+  const o=DB.obras.find(x=>x.id===obraId);
+  if(!o)return;
+  showModal('Segurança — '+o.nome,`
+  <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px">Selecione o documento de segurança.</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+    ${coCard({title:'RVT',sigla:'RVT',desc:'Segurança · formulário',color:'var(--danger)',disabled:false,onclick:`criarCO('${obraId}','seguranca','RVT')`})}
+    ${coCard({title:'Outros',sigla:'—',desc:'Em desenvolvimento',color:'var(--text-muted)',disabled:true})}
+  </div>`,[
+    {label:'← Voltar',cls:'btn-outline',fn:`modalNovoRelatorio('${obraId}')`},
+  ]);
+};
+window.criarCO=async function(obraId,tipo,subtipo){
   const rels=DB.relatorios.filter(r=>r.obra_id===obraId);
   const proximoNum=(rels.length?Math.max(...rels.map(r=>r.numero||0)):0)+1;
   const agora=new Date();
-  showModal('Novo Relatório — '+o.nome,`
-  <div class="form-row f3">
-    <div><label class="form-label">Número</label><input class="form-input" id="nr-num" type="number" value="${proximoNum}" min="1"></div>
-    <div><label class="form-label">Mês</label><select class="form-select" id="nr-mes">${mesesPT.map((m,i)=>`<option value="${i+1}" ${i===agora.getMonth()?'selected':''}>${m}</option>`).join('')}</select></div>
-    <div><label class="form-label">Ano</label><input class="form-input" id="nr-ano" type="number" value="${agora.getFullYear()}" min="2020"></div>
-  </div>`,[
-    {label:'Cancelar',cls:'btn-outline',fn:'closeModal()'},
-    {label:'Criar Relatório',cls:'btn-gold',fn:`criarRelatorio('${obraId}')`},
-  ]);
+  const novo={
+    id:uid(), obra_id:obraId, numero:proximoNum, versao:0,
+    mes:agora.getMonth()+1, ano:agora.getFullYear(), estado:'rascunho',
+    criado_por:currentUser.id, criado_por_nome:currentUser.nome,
+    criado_em:agora.toISOString(),
+    conteudo:{tipo,subtipo,dados:{}},
+  };
+  try{
+    showLoadingOverlay('A criar...');
+    await sbRel.post('relatorios',{...novo,conteudo:JSON.stringify(novo.conteudo)});
+    DB.relatorios.push(novo);
+    hideLoadingOverlay(); closeModal();
+    relRelId=novo.id; relTab='form'; render();
+  }catch(e){hideLoadingOverlay();alert('Erro: '+e.message);}
+};
+function renderFichaRVT(app,r){
+  const o=DB.obras.find(x=>x.id===r.obra_id)||{};
+  const sub=(r.conteudo&&r.conteudo.subtipo)||'RVT';
+  app.innerHTML=`
+  <button class="back-btn" onclick="relRelId=null;render()">← Voltar a Controlo Operacional</button>
+  <div class="page-header">
+    <div><div class="page-title"><span class="code-pill" style="font-size:13px">${o.codigo||''}</span>${o.sigla||''} — ${sub}</div>
+    <div class="page-count">${o.nome||''} · ${fmtMesAno(r.mes,r.ano)} · ${relBadge(r.estado)}</div></div>
+  </div>
+  <div class="table-card" style="padding:28px;text-align:center;color:var(--text-muted)">
+    <div style="font-size:40px;margin-bottom:8px">🛡️</div>
+    <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:4px">Formulário ${sub} — Segurança</div>
+    <div style="font-size:13px">Estrutura do formulário por definir. Indica os campos e construo aqui.</div>
+  </div>`;
 }
 
 window.criarRelatorio=async function(obraId){
@@ -2410,7 +2463,7 @@ function renderFichaObra(app){
     `<div style="display:flex;align-items:center;justify-content:space-between;padding:11px 14px 10px;border-bottom:0.5px solid var(--border-light)">
       <div style="display:flex;align-items:center;gap:10px">
         <div style="width:34px;height:34px;border-radius:var(--radius);background:#EEEDFE;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="18" height="18" viewBox="0 0 48 48" fill="none"><rect x="8" y="10" width="24" height="30" rx="3" stroke="#534AB7" stroke-width="2.5"/><path d="M14 18h12M14 24h8M14 30h10" stroke="#534AB7" stroke-width="2" stroke-linecap="round"/></svg></div>
-        <div><div style="font-size:9px;font-weight:700;color:#534AB7;letter-spacing:.7px;text-transform:uppercase">REL</div><div style="font-size:13px;font-weight:500;color:var(--text);margin-top:1px">Relatórios Mensais</div></div>
+        <div><div style="font-size:9px;font-weight:700;color:#534AB7;letter-spacing:.7px;text-transform:uppercase">CO</div><div style="font-size:13px;font-weight:500;color:var(--text);margin-top:1px">Controlo Operacional</div></div>
       </div>
       ${novoBtn}
     </div>`,
