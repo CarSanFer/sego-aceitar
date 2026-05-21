@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.05.21.1052</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.05.21.1310</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -1907,15 +1907,16 @@ window.publicarEnviar=async function(relId){
     showLoadingOverlay('A publicar...');
     await sbRel.patch('relatorios',relId,{estado:'disponibilizado'});
     rel.estado='disponibilizado';
-    let ok=0,fail=0;
+    let ok=0,fail=0,lastErr='';
+    if(!window.emailjs){ lastErr='EmailJS não carregou (window.emailjs indefinido).'; }
     if(window.emailjs && dest.length){
       for(const d of dest){
         try{ await emailjs.send(EJS.service, EJS_TPL_RVT, {to_email:d.email,to_name:d.nome||d.email,obra_nome:obraTxt,rvt_ref:relNumero(rel),doc_link:link,mensagem:msg}); ok++; }
-        catch(e){ console.error('email',d.email,e); fail++; }
+        catch(e){ console.error('EmailJS RVT falhou para',d.email,e); fail++; lastErr=(e&&(e.text||e.message))||(typeof e==='string'?e:JSON.stringify(e)); }
       }
     }
     hideLoadingOverlay(); closeModal(); render();
-    if(dest.length) alert('RVT publicado. Emails enviados: '+ok+(fail?(' · falhas: '+fail):''));
+    if(dest.length) alert('RVT publicado.\nEmails enviados: '+ok+(fail?(' · falhas: '+fail+'\n\nErro EmailJS: '+lastErr+'\n(serviço '+EJS.service+' · template '+EJS_TPL_RVT+')'):''));
   }catch(e){ hideLoadingOverlay(); alert('Erro: '+e.message); }
 };
 async function renderPublicDoc(relId){
