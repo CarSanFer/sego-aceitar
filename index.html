@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.05.21.0202</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.05.21.0211</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -1820,13 +1820,34 @@ function renderFichaRVT(app,r){
   const html=rvtDecode(RVT_TEMPLATE_B64).replace('/*__SEGO_CONFIG__*/', function(){ return 'window.__SEGO__='+JSON.stringify(cfg)+';'; });
   app.innerHTML=`
   <button class="back-btn" onclick="relRelId=null;render()">← Voltar a Controlo Operacional</button>
-  <div class="page-header">
-    <div><div class="page-title"><span class="code-pill" style="font-size:13px">${o.codigo||''}</span>${o.sigla||''} — ${sub}</div>
-    <div class="page-count">${o.nome||''} · ${fmtMesAno(r.mes,r.ano)} · ${relBadge(r.estado)}</div></div>
+  <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap">
+    <div>
+      <div class="page-title"><span class="code-pill" style="font-size:13px">${o.codigo||''}</span>${o.sigla||''} — ${sub}</div>
+      <div class="page-count">${o.nome||''} · ${fmtMesAno(r.mes,r.ano)} · <span id="rvtEstado">${relBadge(r.estado)}</span></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <span style="font-size:11px;color:var(--text-muted)">💾 Guarda automaticamente</span>
+      ${rvtActionBtn(r)}
+    </div>
   </div>
   <iframe id="rvtFrame" title="RVT" style="width:100%;height:calc(100vh - 150px);border:1px solid var(--border-light);border-radius:var(--radius);background:#fff"></iframe>`;
   const fr=document.getElementById('rvtFrame'); if(fr) fr.srcdoc=html;
 }
+function rvtActionBtn(r){
+  if(r.estado==='disponibilizado')
+    return `<button id="rvtAction" class="btn btn-outline btn-sm" onclick="mudarEstadoCO('${r.id}','rascunho')">↩ Repor rascunho</button>`;
+  return `<button id="rvtAction" class="btn btn-gold btn-sm" onclick="mudarEstadoCO('${r.id}','disponibilizado')">✓ Publicar RVT</button>`;
+}
+window.mudarEstadoCO=async function(id,novo){
+  const r=DB.relatorios.find(x=>x.id===id); if(!r)return;
+  try{
+    showLoadingOverlay('A atualizar...');
+    await sbRel.patch('relatorios',id,{estado:novo});
+    r.estado=novo; hideLoadingOverlay();
+    const eb=document.getElementById('rvtEstado'); if(eb) eb.innerHTML=relBadge(novo);
+    const ab=document.getElementById('rvtAction'); if(ab) ab.outerHTML=rvtActionBtn(r);
+  }catch(e){hideLoadingOverlay();alert('Erro: '+e.message);}
+};
 
 window.criarRelatorio=async function(obraId){
   const num=parseInt($('nr-num')?.value)||1;
