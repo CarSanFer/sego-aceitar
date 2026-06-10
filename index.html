@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.10.2103</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.10.2107</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -2162,7 +2162,14 @@ function renderFichaRS(app,r){
     .rs-sub-day.fer{}
   </style>`;
   // grelha cabeçalho dias
-  const dayHeader=RS_DAY_LETTERS.map((L,i)=>`<div class="rs-day-h ${d.feriados[i]?'fer':''}" onclick="rsToggleFeriado(${i})" title="${d.feriados[i]?'Feriado · clica para desmarcar':'Clica para marcar '+RS_DAY_NAMES[i]+' como feriado'}"><div class="rs-day-letter">${L}</div><div class="rs-day-date">${rsDayDate(d.semanaIni,i)}</div><div class="rs-fer-btn ${d.feriados[i]?'on':''}">F</div></div>`).join('');
+  const dayHeader=RS_DAY_LETTERS.map((L,i)=>{
+    const F=!!d.feriados[i];
+    const wrapStyle=F?'background:#B91C1C;color:#fff;border-radius:3px;':'';
+    const letStyle=F?'color:#fff !important;':'';
+    const dateStyle=F?'color:#FFE0E0;':'';
+    const fbStyle=F?'background:#fff;color:#B91C1C;border-color:#fff;font-weight:900;':'';
+    return `<div class="rs-day-h" style="${wrapStyle}" onclick="rsToggleFeriado(${i})" title="${F?'Feriado · clica para desmarcar':'Clica para marcar '+RS_DAY_NAMES[i]+' como feriado'}"><div class="rs-day-letter" style="${letStyle}">${L}</div><div class="rs-day-date" style="${dateStyle}">${rsDayDate(d.semanaIni,i)}</div><div class="rs-fer-btn" style="${fbStyle}">F</div></div>`;
+  }).join('');
   // colsAt: id, tipo, descricao, localizacao, 6 dias, remove
   const colsAt=`grid-template-columns:36px 1fr 100px repeat(6,46px) ${ro?'':'28px'}`;
   const colsSb=`grid-template-columns:36px 60px 1fr repeat(6,50px) ${ro?'':'28px'}`;
