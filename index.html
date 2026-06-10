@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.11.0023</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.11.0036</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -1975,6 +1975,11 @@ window.rsCommit=function(section,idx,key,value){
   if(section==null){d[key]=value;}
   else{d[section]=d[section]||[];d[section][idx]=d[section][idx]||{};d[section][idx][key]=value;}
   rsSaveDebounced(r);
+  // Atualizar pills + KPIs quando descrição/localização de atividade mudam
+  if(section==='atividades' && (key==='descricao' || key==='localizacao')){
+    if(typeof rsUpdatePillsRow==='function') rsUpdatePillsRow(idx);
+    if(typeof rsRefreshKPIAtiv==='function') rsRefreshKPIAtiv();
+  }
 };
 window.rsAddRow=function(section){
   const r=DB.relatorios.find(x=>x.id===relRelId);if(!r)return;
@@ -2009,6 +2014,8 @@ window.rsToggleDay=function(btn,idx,dayIdx,key){
   r.conteudo.dados=r.conteudo.dados||{};
   r.conteudo.dados.atividades=r.conteudo.dados.atividades||[];
   const a=r.conteudo.dados.atividades[idx];if(!a)return;
+  // Bloqueio: exige Descrição E Localização preenchidas
+  if(!((a.descricao||'').trim() && (a.localizacao||'').trim()))return;
   a.dias=a.dias||[];
   if(!a.dias[dayIdx])a.dias[dayIdx]={p:false,r:false};
   const wasOn=a.dias[dayIdx][key];
@@ -2054,9 +2061,42 @@ window.rsToggleFeriado=function(dayIdx){
   render();
 };
 function rsKPIsAtiv(d){
-  const ats=d.atividades||[];let prev=0,prevReal=0,nprevReal=0;
-  for(const a of ats){const dias=a.dias||[];for(const day of dias){if(!day)continue;const p=day.p===true,r=day.r===true;if(p)prev++;if(p&&r)prevReal++;if(r&&!p)nprevReal++;}}
-  return{n:ats.length,prev,prevReal,nprevReal};
+  const ats=d.atividades||[];
+  const totalLinhas=ats.length;
+  const valid=ats.filter(a=>(a.descricao||'').trim() && (a.localizacao||'').trim());
+  const nAt=valid.length;
+  let diasEfetivos=0;
+  for(let j=0;j<6;j++){
+    const isSat=(j===5);
+    const isFer=!!(d.feriados&&d.feriados[j]);
+    if(!isSat && !isFer){ diasEfetivos++; }
+    else{
+      const used=valid.some(a=>{const dy=(a.dias||[])[j]||{};return dy.p||dy.r;});
+      if(used) diasEfetivos++;
+    }
+  }
+  const possiveis=nAt*diasEfetivos;
+  let p=0,r=0,pr=0;
+  for(const a of valid){
+    const dias=a.dias||[];
+    for(let j=0;j<6;j++){
+      const dy=dias[j]||{};
+      if(dy.p) p++;
+      if(dy.r) r++;
+      if(dy.p && dy.r) pr++;
+    }
+  }
+  const pNotR=p-pr, nPAndR=r-pr;
+  return{
+    totalLinhas, nAt, diasEfetivos, possiveis,
+    p, r, pr, pNotR, nPAndR,
+    pctAt: totalLinhas>0?Math.round(nAt/totalLinhas*100):0,
+    pctP: possiveis>0?Math.round(p/possiveis*100):0,
+    pctR: possiveis>0?Math.round(r/possiveis*100):0,
+    pctPR: p>0?Math.round(pr/p*100):0,
+    pctPNotR: p>0?Math.round(pNotR/p*100):0,
+    pctNPAndR: r>0?Math.round(nPAndR/r*100):0
+  };
 }
 function rsKPIsSub(d){
   const subs=d.subempreiteiros||[];let prev=0,efet=0;
@@ -2066,8 +2106,27 @@ function rsKPIsSub(d){
 window.rsRefreshKPIAtiv=function(){
   const r=DB.relatorios.find(x=>x.id===relRelId);if(!r)return;
   const k=rsKPIsAtiv(r.conteudo.dados||{});
-  const m={n:'rs-ka-n',prev:'rs-ka-prev',prevReal:'rs-ka-pr',nprevReal:'rs-ka-npr'};
-  for(const key in m){const e=document.getElementById(m[key]);if(e)e.textContent=k[key];}
+  const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  set('rs-ka-nat',k.nAt); set('rs-ka-nat-tot',k.totalLinhas); set('rs-ka-nat-pct',k.pctAt+'%');
+  set('rs-ka-p',k.p); set('rs-ka-p-pct',k.pctP+'%');
+  set('rs-ka-r',k.r); set('rs-ka-r-pct',k.pctR+'%');
+  set('rs-ka-pr',k.pr); set('rs-ka-pr-pct',k.pctPR+'%');
+  set('rs-ka-pnr',k.pNotR); set('rs-ka-pnr-pct',k.pctPNotR+'%');
+  set('rs-ka-npr',k.nPAndR); set('rs-ka-npr-pct',k.pctNPAndR+'%');
+};
+window.rsUpdatePillsRow=function(idx){
+  const r=DB.relatorios.find(x=>x.id===relRelId);if(!r)return;
+  const a=(((r.conteudo||{}).dados||{}).atividades||[])[idx];if(!a)return;
+  const valid=!!((a.descricao||'').trim() && (a.localizacao||'').trim());
+  for(let j=0;j<6;j++){
+    for(const key of ['p','r']){
+      const btn=document.querySelector('[data-rs="atv-'+idx+'-'+j+'-'+key+'"]');
+      if(!btn) continue;
+      btn.style.opacity = valid ? '1' : '0.4';
+      btn.style.cursor = valid ? 'pointer' : 'not-allowed';
+      btn.title = valid ? (key==='p'?'Previsto':'Realizado') : 'Preencher Descrição e Localização para registar P/R';
+    }
+  }
 };
 window.rsRefreshKPISub=function(){
   const r=DB.relatorios.find(x=>x.id===relRelId);if(!r)return;
@@ -2172,7 +2231,7 @@ function renderFichaRS(app,r){
     const wrapStyle=F?'background:#B91C1C;color:#fff;border-radius:3px;padding:6px 2px;box-sizing:border-box;':'';
     const letStyle=F?'color:#fff;font-weight:700;':'';
     const dateStyle=F?'color:#FFE0E0;':'';
-    const fbBase='display:block;width:24px;height:22px;border-radius:3px;padding:0;margin:4px auto 0;line-height:1;text-align:center;cursor:pointer;';
+    const fbBase='display:flex;align-items:center;justify-content:center;width:24px;height:22px;border-radius:3px;padding:0;margin:4px auto 0;cursor:pointer;line-height:1;';
     const fbStyle=F?(fbBase+'background:#7F1D1D;color:#fff;border:1.5px solid #fff;font-size:12px;font-weight:900;box-shadow:0 0 0 1px rgba(0,0,0,0.15);'):(fbBase+'background:#fff;color:#B91C1C;border:1px solid #c8ccd1;font-size:10px;font-weight:700;');
     return `<div class="rs-day-h" style="${wrapStyle}" onclick="rsToggleFeriado(${i})" title="${F?'Feriado · clica para desmarcar':'Clica para marcar '+RS_DAY_NAMES[i]+' como feriado'}"><div class="rs-day-letter" style="${letStyle}">${L}</div><div class="rs-day-date" style="${dateStyle}">${rsDayDate(d.semanaIni,i)}</div><div style="${fbStyle}">F</div></div>`;
   }).join('');
@@ -2212,21 +2271,26 @@ function renderFichaRS(app,r){
         ${ro?'':`<button class="btn btn-outline btn-sm" style="font-size:11px;padding:3px 10px" onclick="rsAddRow('atividades')">+ linha</button>`}
       </div>
       ${(()=>{const ms=[0,1,2,3,4,5].filter(j=>d.feriados[j]).map(j=>RS_DAY_NAMES[j]);return ms.length?`<div style="font-size:10px;color:#B91C1C;background:#FFEBEB;border:0.5px solid #FCDADA;padding:4px 8px;border-radius:3px;margin-bottom:8px">Feriados marcados: <strong>${ms.join(', ')}</strong></div>`:'';})()}
-      <div style="display:grid;${colsAt};gap:6px;padding:0 0 4px 0;font-size:10px;color:var(--text-muted);font-weight:600;letter-spacing:.3px;border-bottom:0.5px solid var(--border-light)">
+      <div style="display:grid;${colsAt};gap:6px;padding:0 0 4px 0;font-size:10px;color:var(--text-muted);font-weight:700;letter-spacing:.3px;border-bottom:0.5px solid var(--border-light)">
         <div style="padding:4px 2px;text-align:center">Id</div>
-        <div style="padding:4px 2px">Descrição</div>
-        <div style="padding:4px 2px">Localização</div>
+        <div style="padding:4px 2px;text-align:center">Descrição</div>
+        <div style="padding:4px 2px;text-align:center">Localização</div>
         ${dayHeader}
         ${ro?'':'<div></div>'}
       </div>
       ${d.atividades.length?d.atividades.map((a,i)=>{
         const dias=a.dias||[];
+        const isRowValid=!!((a.descricao||'').trim() && (a.localizacao||'').trim());
+        const pillOp=isRowValid?'1':'0.4';
+        const pillCur=isRowValid?'pointer':'not-allowed';
+        const tP=isRowValid?'Previsto':'Preencher Descrição e Localização para registar P/R';
+        const tR=isRowValid?'Realizado':'Preencher Descrição e Localização para registar P/R';
         const dayCells=RS_DAY_LETTERS.map((_,j)=>{
           const day=dias[j]||{p:false,r:false};
           const fer=d.feriados[j]?'fer':'';
           return `<div class="rs-day-cell ${fer}" style="display:flex;justify-content:center;align-items:center;gap:14px;padding:6px 2px;box-sizing:border-box">
-            <button class="rs-pill p ${day.p?'on':''}" data-rs="atv-${i}-${j}-p" onclick="rsToggleDay(this,${i},${j},'p')" title="Previsto" style="width:28px;height:26px;border:1px solid #c8ccd1;border-radius:4px;background:${day.p?'#1B4F9B':'#fff'};color:${day.p?'#fff':'#888'};font-size:12px;font-weight:700;cursor:pointer;padding:0;display:inline-flex;align-items:center;justify-content:center">P</button>
-            <button class="rs-pill r ${day.r?'on':''}" data-rs="atv-${i}-${j}-r" onclick="rsToggleDay(this,${i},${j},'r')" title="Realizado" style="width:28px;height:26px;border:1px solid #c8ccd1;border-radius:4px;background:${day.r?'#1A7A4A':'#fff'};color:${day.r?'#fff':'#888'};font-size:12px;font-weight:700;cursor:pointer;padding:0;display:inline-flex;align-items:center;justify-content:center">R</button>
+            <button class="rs-pill p ${day.p?'on':''}" data-rs="atv-${i}-${j}-p" onclick="rsToggleDay(this,${i},${j},'p')" title="${tP}" style="width:28px;height:26px;border:1px solid #c8ccd1;border-radius:4px;background:${day.p?'#1B4F9B':'#fff'};color:${day.p?'#fff':'#888'};font-size:12px;font-weight:700;cursor:${pillCur};padding:0;display:inline-flex;align-items:center;justify-content:center;opacity:${pillOp}">P</button>
+            <button class="rs-pill r ${day.r?'on':''}" data-rs="atv-${i}-${j}-r" onclick="rsToggleDay(this,${i},${j},'r')" title="${tR}" style="width:28px;height:26px;border:1px solid #c8ccd1;border-radius:4px;background:${day.r?'#1A7A4A':'#fff'};color:${day.r?'#fff':'#888'};font-size:12px;font-weight:700;cursor:${pillCur};padding:0;display:inline-flex;align-items:center;justify-content:center;opacity:${pillOp}">R</button>
           </div>`;
         }).join('');
         return `<div style="display:grid;${colsAt};gap:6px;align-items:center;border-bottom:0.5px dashed var(--border-light)">
@@ -2238,12 +2302,14 @@ function renderFichaRS(app,r){
         </div>`;
       }).join(''):empty('Sem atividades · clica "+ linha" para adicionar')}
       <datalist id="rs-tipos-ativ"><option value="PTQ"><option value="CCiv"><option value="PT"><option value="CE"></datalist>
-      <!-- RESUMO ATIVIDADES -->
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px">
-        <div style="background:var(--bg-card);border-left:3px solid #6B7280;padding:8px 10px;border-radius:3px;border:0.5px solid var(--border-light)"><div style="font-size:9px;color:var(--text-muted);letter-spacing:.5px">N.º ATIVIDADES</div><div id="rs-ka-n" style="font-size:20px;font-weight:700;color:#6B7280">${kA.n}</div></div>
-        <div style="background:var(--bg-card);border-left:3px solid #1B4F9B;padding:8px 10px;border-radius:3px;border:0.5px solid var(--border-light)"><div style="font-size:9px;color:var(--text-muted);letter-spacing:.5px">PREVISTAS</div><div id="rs-ka-prev" style="font-size:20px;font-weight:700;color:#1B4F9B">${kA.prev}</div></div>
-        <div style="background:var(--bg-card);border-left:3px solid #1A7A4A;padding:8px 10px;border-radius:3px;border:0.5px solid var(--border-light)"><div style="font-size:9px;color:var(--text-muted);letter-spacing:.5px">REAL. PREV.</div><div id="rs-ka-pr" style="font-size:20px;font-weight:700;color:#1A7A4A">${kA.prevReal}</div></div>
-        <div style="background:var(--bg-card);border-left:3px solid #C9922A;padding:8px 10px;border-radius:3px;border:0.5px solid var(--border-light)"><div style="font-size:9px;color:var(--text-muted);letter-spacing:.5px">REAL. N/PREV.</div><div id="rs-ka-npr" style="font-size:20px;font-weight:700;color:#C9922A">${kA.nprevReal}</div></div>
+      <!-- RESUMO ATIVIDADES: 6 KPIs em 2 linhas x 3 colunas -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px">
+        <div style="background:var(--bg-card);border-left:3px solid #6B7280;padding:8px 10px;border-radius:3px;border:0.5px solid var(--border-light)"><div style="font-size:9px;color:var(--text-muted);letter-spacing:.5px;font-weight:600">N.º ATIVIDADES</div><div style="display:flex;align-items:baseline;gap:6px;margin-top:2px"><div id="rs-ka-nat" style="font-size:22px;font-weight:700;color:#6B7280;line-height:1">${kA.nAt}</div><div style="font-size:11px;color:var(--text-muted)">/ <span id="rs-ka-nat-tot">${kA.totalLinhas}</span> · <span id="rs-ka-nat-pct">${kA.pctAt}%</span></div></div></div>
+        <div style="background:var(--bg-card);border-left:3px solid #1B4F9B;padding:8px 10px;border-radius:3px;border:0.5px solid var(--border-light)"><div style="font-size:9px;color:var(--text-muted);letter-spacing:.5px;font-weight:600">PREVISTAS [P]</div><div style="display:flex;align-items:baseline;gap:6px;margin-top:2px"><div id="rs-ka-p" style="font-size:22px;font-weight:700;color:#1B4F9B;line-height:1">${kA.p}</div><div style="font-size:11px;color:var(--text-muted)"><span id="rs-ka-p-pct">${kA.pctP}%</span></div></div></div>
+        <div style="background:var(--bg-card);border-left:3px solid #1A7A4A;padding:8px 10px;border-radius:3px;border:0.5px solid var(--border-light)"><div style="font-size:9px;color:var(--text-muted);letter-spacing:.5px;font-weight:600">REALIZADAS [R]</div><div style="display:flex;align-items:baseline;gap:6px;margin-top:2px"><div id="rs-ka-r" style="font-size:22px;font-weight:700;color:#1A7A4A;line-height:1">${kA.r}</div><div style="font-size:11px;color:var(--text-muted)"><span id="rs-ka-r-pct">${kA.pctR}%</span></div></div></div>
+        <div style="background:var(--bg-card);border-left:3px solid #16A34A;padding:8px 10px;border-radius:3px;border:0.5px solid var(--border-light)"><div style="font-size:9px;color:var(--text-muted);letter-spacing:.5px;font-weight:600">EXECUÇÃO (P∩R)</div><div style="display:flex;align-items:baseline;gap:6px;margin-top:2px"><div id="rs-ka-pr" style="font-size:22px;font-weight:700;color:#16A34A;line-height:1">${kA.pr}</div><div style="font-size:11px;color:var(--text-muted)"><span id="rs-ka-pr-pct">${kA.pctPR}%</span> de P</div></div></div>
+        <div style="background:var(--bg-card);border-left:3px solid #DC2626;padding:8px 10px;border-radius:3px;border:0.5px solid var(--border-light)"><div style="font-size:9px;color:var(--text-muted);letter-spacing:.5px;font-weight:600">EM ATRASO (P∩nR)</div><div style="display:flex;align-items:baseline;gap:6px;margin-top:2px"><div id="rs-ka-pnr" style="font-size:22px;font-weight:700;color:#DC2626;line-height:1">${kA.pNotR}</div><div style="font-size:11px;color:var(--text-muted)"><span id="rs-ka-pnr-pct">${kA.pctPNotR}%</span> de P</div></div></div>
+        <div style="background:var(--bg-card);border-left:3px solid #C9922A;padding:8px 10px;border-radius:3px;border:0.5px solid var(--border-light)"><div style="font-size:9px;color:var(--text-muted);letter-spacing:.5px;font-weight:600">EXTRA (nP∩R)</div><div style="display:flex;align-items:baseline;gap:6px;margin-top:2px"><div id="rs-ka-npr" style="font-size:22px;font-weight:700;color:#C9922A;line-height:1">${kA.nPAndR}</div><div style="font-size:11px;color:var(--text-muted)"><span id="rs-ka-npr-pct">${kA.pctNPAndR}%</span> de R</div></div></div>
       </div>
     </div>
 
@@ -2253,10 +2319,10 @@ function renderFichaRS(app,r){
         <div style="${sectTitle}">SUBEMPREITEIROS E TRABALHADORES (POR DIA) <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px;color:var(--text-muted);margin-left:6px">cima = previsto · baixo = efetivo</span></div>
         ${ro?'':`<button class="btn btn-outline btn-sm" style="font-size:11px;padding:3px 10px" onclick="rsAddRow('subempreiteiros')">+ linha</button>`}
       </div>
-      <div style="display:grid;${colsSb};gap:6px;padding:0 0 4px 0;font-size:10px;color:var(--text-muted);font-weight:600;letter-spacing:.3px;border-bottom:0.5px solid var(--border-light)">
+      <div style="display:grid;${colsSb};gap:6px;padding:0 0 4px 0;font-size:10px;color:var(--text-muted);font-weight:700;letter-spacing:.3px;border-bottom:0.5px solid var(--border-light)">
         <div style="padding:4px 2px;text-align:center">Id</div>
-        <div style="padding:4px 2px">Ativ.</div>
-        <div style="padding:4px 2px">Subempreiteiro</div>
+        <div style="padding:4px 2px;text-align:center">Ativ.</div>
+        <div style="padding:4px 2px;text-align:center">Subempreiteiro</div>
         ${dayHeader}
         ${ro?'':'<div></div>'}
       </div>
