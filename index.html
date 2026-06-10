@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.10.2349</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.11.0023</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -2149,7 +2149,7 @@ function renderFichaRS(app,r){
     .rs-pill.p.on{background:#1B4F9B;color:#fff;border-color:#1B4F9B}
     .rs-pill.r.on{background:#1A7A4A;color:#fff;border-color:#1A7A4A}
     .rs-pill:disabled{cursor:not-allowed;opacity:.6}
-    .rs-day-h{cursor:pointer;text-align:center;padding:4px 2px;font-size:10px;color:var(--text-muted);letter-spacing:.3px;border-bottom:0.5px solid var(--border-light);user-select:none;border-radius:3px;transition:background .12s}
+    .rs-day-h{cursor:pointer;text-align:center;padding:4px 2px;font-size:10px;color:var(--text-muted);letter-spacing:.3px;user-select:none;border-radius:3px;transition:background .12s;display:flex;flex-direction:column;align-items:center;justify-content:center;box-sizing:border-box}
     .rs-day-h:hover{background:#F1F5F9}
     .rs-day-h.fer{background:#B91C1C !important;color:#fff !important;border-radius:3px}
     .rs-day-h.fer:hover{background:#A01818 !important}
@@ -2159,17 +2159,17 @@ function renderFichaRS(app,r){
     .rs-day-h.fer .rs-day-date{color:#FFE0E0 !important;opacity:1}
     .rs-fer-btn{display:block;width:20px;height:18px;border:0.5px solid #c8ccd1;background:#fff;font-size:9px;font-weight:700;cursor:pointer;border-radius:3px;color:#B91C1C;padding:0;margin:3px auto 0;line-height:1}
     .rs-fer-btn.on{background:#fff !important;color:#B91C1C !important;border-color:#fff !important;font-weight:900}
-    .rs-day-cell{padding:6px 4px;display:flex;justify-content:center;align-items:center;gap:10px;border-bottom:0.5px dashed var(--border-light)}
+    .rs-day-cell{padding:6px 2px;display:flex;justify-content:center;align-items:center;gap:14px;box-sizing:border-box}
     .rs-day-cell.fer{}
     .rs-num{width:34px;padding:2px 4px;border:0.5px solid var(--border-light);border-radius:3px;font-size:11px;font-family:inherit;text-align:center;background:#fff;box-sizing:border-box}
     .rs-num:disabled,.rs-num[readonly]{background:#f0f2f5;color:#666}
-    .rs-sub-day{display:flex;flex-direction:column;gap:2px;padding:3px 2px;border-bottom:0.5px dashed var(--border-light)}
+    .rs-sub-day{display:flex;flex-direction:column;gap:2px;padding:3px 2px;box-sizing:border-box}
     .rs-sub-day.fer{}
   </style>`;
   // grelha cabeçalho dias
   const dayHeader=RS_DAY_LETTERS.map((L,i)=>{
     const F=!!d.feriados[i];
-    const wrapStyle=F?'background:#B91C1C;color:#fff;border-radius:3px;padding:6px 2px;':'';
+    const wrapStyle=F?'background:#B91C1C;color:#fff;border-radius:3px;padding:6px 2px;box-sizing:border-box;':'';
     const letStyle=F?'color:#fff;font-weight:700;':'';
     const dateStyle=F?'color:#FFE0E0;':'';
     const fbBase='display:block;width:24px;height:22px;border-radius:3px;padding:0;margin:4px auto 0;line-height:1;text-align:center;cursor:pointer;';
@@ -2177,7 +2177,7 @@ function renderFichaRS(app,r){
     return `<div class="rs-day-h" style="${wrapStyle}" onclick="rsToggleFeriado(${i})" title="${F?'Feriado · clica para desmarcar':'Clica para marcar '+RS_DAY_NAMES[i]+' como feriado'}"><div class="rs-day-letter" style="${letStyle}">${L}</div><div class="rs-day-date" style="${dateStyle}">${rsDayDate(d.semanaIni,i)}</div><div style="${fbStyle}">F</div></div>`;
   }).join('');
   // colsAt: id, tipo, descricao, localizacao, 6 dias, remove
-  const colsAt=`grid-template-columns:36px 1fr 100px repeat(6,86px) ${ro?'':'28px'}`;
+  const colsAt=`grid-template-columns:36px 1fr 140px repeat(6,76px) ${ro?'':'28px'}`;
   const colsSb=`grid-template-columns:36px 60px 1fr repeat(6,50px) ${ro?'':'28px'}`;
   app.innerHTML=`
   ${styleTag}
@@ -2212,29 +2212,29 @@ function renderFichaRS(app,r){
         ${ro?'':`<button class="btn btn-outline btn-sm" style="font-size:11px;padding:3px 10px" onclick="rsAddRow('atividades')">+ linha</button>`}
       </div>
       ${(()=>{const ms=[0,1,2,3,4,5].filter(j=>d.feriados[j]).map(j=>RS_DAY_NAMES[j]);return ms.length?`<div style="font-size:10px;color:#B91C1C;background:#FFEBEB;border:0.5px solid #FCDADA;padding:4px 8px;border-radius:3px;margin-bottom:8px">Feriados marcados: <strong>${ms.join(', ')}</strong></div>`:'';})()}
-      <div style="display:grid;${colsAt};gap:6px;padding:0 0 4px 0;font-size:10px;color:var(--text-muted);font-weight:600;letter-spacing:.3px">
-        <div style="padding:4px 2px;text-align:center;border-bottom:0.5px solid var(--border-light)">Id</div>
-        <div style="padding:4px 2px;border-bottom:0.5px solid var(--border-light)">Descrição</div>
-        <div style="padding:4px 2px;border-bottom:0.5px solid var(--border-light)">Localização</div>
+      <div style="display:grid;${colsAt};gap:6px;padding:0 0 4px 0;font-size:10px;color:var(--text-muted);font-weight:600;letter-spacing:.3px;border-bottom:0.5px solid var(--border-light)">
+        <div style="padding:4px 2px;text-align:center">Id</div>
+        <div style="padding:4px 2px">Descrição</div>
+        <div style="padding:4px 2px">Localização</div>
         ${dayHeader}
-        ${ro?'':'<div style="border-bottom:0.5px solid var(--border-light)"></div>'}
+        ${ro?'':'<div></div>'}
       </div>
       ${d.atividades.length?d.atividades.map((a,i)=>{
         const dias=a.dias||[];
         const dayCells=RS_DAY_LETTERS.map((_,j)=>{
           const day=dias[j]||{p:false,r:false};
           const fer=d.feriados[j]?'fer':'';
-          return `<div class="rs-day-cell ${fer}" style="display:flex;justify-content:center;align-items:center;gap:14px;padding:6px 4px">
+          return `<div class="rs-day-cell ${fer}" style="display:flex;justify-content:center;align-items:center;gap:14px;padding:6px 2px;box-sizing:border-box">
             <button class="rs-pill p ${day.p?'on':''}" data-rs="atv-${i}-${j}-p" onclick="rsToggleDay(this,${i},${j},'p')" title="Previsto" style="width:28px;height:26px;border:1px solid #c8ccd1;border-radius:4px;background:${day.p?'#1B4F9B':'#fff'};color:${day.p?'#fff':'#888'};font-size:12px;font-weight:700;cursor:pointer;padding:0;display:inline-flex;align-items:center;justify-content:center">P</button>
             <button class="rs-pill r ${day.r?'on':''}" data-rs="atv-${i}-${j}-r" onclick="rsToggleDay(this,${i},${j},'r')" title="Realizado" style="width:28px;height:26px;border:1px solid #c8ccd1;border-radius:4px;background:${day.r?'#1A7A4A':'#fff'};color:${day.r?'#fff':'#888'};font-size:12px;font-weight:700;cursor:pointer;padding:0;display:inline-flex;align-items:center;justify-content:center">R</button>
           </div>`;
         }).join('');
-        return `<div style="display:grid;${colsAt};gap:6px;align-items:center">
-          <div style="font-size:11px;color:var(--text-muted);text-align:center;padding:5px 0;border-bottom:0.5px dashed var(--border-light)">${a.id||(i+1)}</div>
-          <div style="padding:4px 0;border-bottom:0.5px dashed var(--border-light)"><input value="${esc(a.descricao)}" ${ro?'readonly':''} oninput="rsCommit('atividades',${i},'descricao',this.value)" style="${ro?inpRO:inpS}"></div>
-          <div style="padding:4px 0;border-bottom:0.5px dashed var(--border-light)"><input value="${esc(a.localizacao)}" ${ro?'readonly':''} oninput="rsCommit('atividades',${i},'localizacao',this.value)" style="${ro?inpRO:inpS}"></div>
+        return `<div style="display:grid;${colsAt};gap:6px;align-items:center;border-bottom:0.5px dashed var(--border-light)">
+          <div style="font-size:11px;color:var(--text-muted);text-align:center;padding:5px 0">${a.id||(i+1)}</div>
+          <div style="padding:4px 0"><input value="${esc(a.descricao)}" ${ro?'readonly':''} oninput="rsCommit('atividades',${i},'descricao',this.value)" style="${ro?inpRO:inpS}"></div>
+          <div style="padding:4px 0"><input value="${esc(a.localizacao)}" ${ro?'readonly':''} oninput="rsCommit('atividades',${i},'localizacao',this.value)" style="${ro?inpRO:inpS}"></div>
           ${dayCells}
-          ${ro?'':`<div style="padding:5px 0;border-bottom:0.5px dashed var(--border-light);text-align:center">${removeBtn('atividades',i)}</div>`}
+          ${ro?'':`<div style="padding:5px 0;text-align:center">${removeBtn('atividades',i)}</div>`}
         </div>`;
       }).join(''):empty('Sem atividades · clica "+ linha" para adicionar')}
       <datalist id="rs-tipos-ativ"><option value="PTQ"><option value="CCiv"><option value="PT"><option value="CE"></datalist>
@@ -2253,12 +2253,12 @@ function renderFichaRS(app,r){
         <div style="${sectTitle}">SUBEMPREITEIROS E TRABALHADORES (POR DIA) <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px;color:var(--text-muted);margin-left:6px">cima = previsto · baixo = efetivo</span></div>
         ${ro?'':`<button class="btn btn-outline btn-sm" style="font-size:11px;padding:3px 10px" onclick="rsAddRow('subempreiteiros')">+ linha</button>`}
       </div>
-      <div style="display:grid;${colsSb};gap:6px;padding:0 0 4px 0;font-size:10px;color:var(--text-muted);font-weight:600;letter-spacing:.3px">
-        <div style="padding:4px 2px;text-align:center;border-bottom:0.5px solid var(--border-light)">Id</div>
-        <div style="padding:4px 2px;border-bottom:0.5px solid var(--border-light)">Ativ.</div>
-        <div style="padding:4px 2px;border-bottom:0.5px solid var(--border-light)">Subempreiteiro</div>
+      <div style="display:grid;${colsSb};gap:6px;padding:0 0 4px 0;font-size:10px;color:var(--text-muted);font-weight:600;letter-spacing:.3px;border-bottom:0.5px solid var(--border-light)">
+        <div style="padding:4px 2px;text-align:center">Id</div>
+        <div style="padding:4px 2px">Ativ.</div>
+        <div style="padding:4px 2px">Subempreiteiro</div>
         ${dayHeader}
-        ${ro?'':'<div style="border-bottom:0.5px solid var(--border-light)"></div>'}
+        ${ro?'':'<div></div>'}
       </div>
       ${d.subempreiteiros.length?d.subempreiteiros.map((s,i)=>{
         const dias=s.dias||[];
@@ -2270,12 +2270,12 @@ function renderFichaRS(app,r){
             <input class="rs-num" type="number" min="0" value="${day.efet||''}" ${ro?'readonly':''} oninput="rsSetWorkerDay(${i},${j},'efet',this.value)" title="Efetivos">
           </div>`;
         }).join('');
-        return `<div style="display:grid;${colsSb};gap:6px;align-items:center">
-          <div style="font-size:11px;color:var(--text-muted);text-align:center;padding:5px 0;border-bottom:0.5px dashed var(--border-light)">${s.id||(i+1)}</div>
-          <div style="padding:4px 0;border-bottom:0.5px dashed var(--border-light)"><input value="${esc(s.atividade)}" list="rs-tipos-ativ" ${ro?'readonly':''} oninput="rsCommit('subempreiteiros',${i},'atividade',this.value)" style="${ro?inpRO:inpS}"></div>
-          <div style="padding:4px 0;border-bottom:0.5px dashed var(--border-light)"><input value="${esc(s.subempreiteiro)}" ${ro?'readonly':''} oninput="rsCommit('subempreiteiros',${i},'subempreiteiro',this.value)" style="${ro?inpRO:inpS}"></div>
+        return `<div style="display:grid;${colsSb};gap:6px;align-items:center;border-bottom:0.5px dashed var(--border-light)">
+          <div style="font-size:11px;color:var(--text-muted);text-align:center;padding:5px 0">${s.id||(i+1)}</div>
+          <div style="padding:4px 0"><input value="${esc(s.atividade)}" list="rs-tipos-ativ" ${ro?'readonly':''} oninput="rsCommit('subempreiteiros',${i},'atividade',this.value)" style="${ro?inpRO:inpS}"></div>
+          <div style="padding:4px 0"><input value="${esc(s.subempreiteiro)}" ${ro?'readonly':''} oninput="rsCommit('subempreiteiros',${i},'subempreiteiro',this.value)" style="${ro?inpRO:inpS}"></div>
           ${dayCells}
-          ${ro?'':`<div style="padding:5px 0;border-bottom:0.5px dashed var(--border-light);text-align:center">${removeBtn('subempreiteiros',i)}</div>`}
+          ${ro?'':`<div style="padding:5px 0;text-align:center">${removeBtn('subempreiteiros',i)}</div>`}
         </div>`;
       }).join(''):empty('Sem registos · clica "+ linha" para adicionar')}
       <!-- RESUMO SUBEMPREITEIROS -->
