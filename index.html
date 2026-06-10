@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.10.1742</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.10.1755</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -2144,22 +2144,24 @@ function renderFichaRS(app,r){
     .rs-pill.p.on{background:#1B4F9B;color:#fff;border-color:#1B4F9B}
     .rs-pill.r.on{background:#1A7A4A;color:#fff;border-color:#1A7A4A}
     .rs-pill:disabled{cursor:not-allowed;opacity:.6}
-    .rs-day-h{cursor:pointer;text-align:center;padding:4px 2px;font-size:10px;color:var(--text-muted);letter-spacing:.3px;border-bottom:0.5px solid var(--border-light);user-select:none}
-    .rs-day-h.fer{background:#FCDADA;color:#B91C1C;border-radius:3px}
+    .rs-day-h{cursor:pointer;text-align:center;padding:4px 2px;font-size:10px;color:var(--text-muted);letter-spacing:.3px;border-bottom:0.5px solid var(--border-light);user-select:none;border-radius:3px;transition:background .12s}
+    .rs-day-h:hover{background:#F1F5F9}
+    .rs-day-h.fer{background:#FFB8B8;color:#7F1D1D;border-top:3px solid #B91C1C;padding-top:2px}
+    .rs-day-h.fer:hover{background:#FFA3A3}
     .rs-day-letter{font-weight:700;font-size:11px;color:#1E3A5F}
     .rs-day-h.fer .rs-day-letter{color:#B91C1C}
     .rs-day-date{font-size:9px;opacity:.7;margin-top:1px}
     .rs-fer-btn{display:block;width:20px;height:18px;border:0.5px solid #c8ccd1;background:#fff;font-size:9px;font-weight:700;cursor:pointer;border-radius:3px;color:#B91C1C;padding:0;margin:3px auto 0;line-height:1}
     .rs-fer-btn.on{background:#B91C1C;color:#fff;border-color:#B91C1C}
     .rs-day-cell{padding:4px 2px;display:flex;justify-content:center;align-items:center;border-bottom:0.5px dashed var(--border-light)}
-    .rs-day-cell.fer{background:#FCDADA}
+    .rs-day-cell.fer{background:#FFDADA}
     .rs-num{width:34px;padding:2px 4px;border:0.5px solid var(--border-light);border-radius:3px;font-size:11px;font-family:inherit;text-align:center;background:#fff;box-sizing:border-box}
     .rs-num:disabled,.rs-num[readonly]{background:#f0f2f5;color:#666}
     .rs-sub-day{display:flex;flex-direction:column;gap:2px;padding:3px 2px;border-bottom:0.5px dashed var(--border-light)}
-    .rs-sub-day.fer{background:#FCDADA}
+    .rs-sub-day.fer{background:#FFDADA}
   </style>`;
   // grelha cabeçalho dias
-  const dayHeader=RS_DAY_LETTERS.map((L,i)=>`<div class="rs-day-h ${d.feriados[i]?'fer':''}" title="${RS_DAY_NAMES[i]}"><div class="rs-day-letter">${L}</div><div class="rs-day-date">${rsDayDate(d.semanaIni,i)}</div><button class="rs-fer-btn ${d.feriados[i]?'on':''}" onclick="rsToggleFeriado(${i})" title="${d.feriados[i]?'Feriado · clica para desmarcar':'Marcar feriado'}">F</button></div>`).join('');
+  const dayHeader=RS_DAY_LETTERS.map((L,i)=>`<div class="rs-day-h ${d.feriados[i]?'fer':''}" onclick="rsToggleFeriado(${i})" title="${d.feriados[i]?'Feriado · clica para desmarcar':'Clica para marcar '+RS_DAY_NAMES[i]+' como feriado'}"><div class="rs-day-letter">${L}</div><div class="rs-day-date">${rsDayDate(d.semanaIni,i)}</div><div class="rs-fer-btn ${d.feriados[i]?'on':''}">F</div></div>`).join('');
   // colsAt: id, tipo, descricao, localizacao, 6 dias, remove
   const colsAt=`grid-template-columns:36px 1fr 100px repeat(6,46px) ${ro?'':'28px'}`;
   const colsSb=`grid-template-columns:36px 60px 1fr repeat(6,50px) ${ro?'':'28px'}`;
