@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.10.2107</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.10.2323</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -2140,7 +2140,7 @@ function renderFichaRS(app,r){
   const empty=(t)=>`<div style="padding:14px;text-align:center;color:var(--text-muted);font-size:12px;font-style:italic">${t}</div>`;
   // estilos das pills P/R (injetados uma vez)
   const styleTag=document.getElementById('rs-style')?'':`<style id="rs-style">
-    .rs-pill{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border:0.5px solid #c8ccd1;background:#fff;font-size:9px;font-weight:700;cursor:pointer;border-radius:3px;color:#999;padding:0;margin:0 1px;transition:all .12s}
+    .rs-pill{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border:0.5px solid #c8ccd1;background:#fff;font-size:10px;font-weight:700;cursor:pointer;border-radius:3px;color:#999;padding:0;margin:0;transition:all .12s}
     .rs-pill.p.on{background:#1B4F9B;color:#fff;border-color:#1B4F9B}
     .rs-pill.r.on{background:#1A7A4A;color:#fff;border-color:#1A7A4A}
     .rs-pill:disabled{cursor:not-allowed;opacity:.6}
@@ -2154,7 +2154,7 @@ function renderFichaRS(app,r){
     .rs-day-h.fer .rs-day-date{color:#FFE0E0 !important;opacity:1}
     .rs-fer-btn{display:block;width:20px;height:18px;border:0.5px solid #c8ccd1;background:#fff;font-size:9px;font-weight:700;cursor:pointer;border-radius:3px;color:#B91C1C;padding:0;margin:3px auto 0;line-height:1}
     .rs-fer-btn.on{background:#fff !important;color:#B91C1C !important;border-color:#fff !important;font-weight:900}
-    .rs-day-cell{padding:4px 2px;display:flex;justify-content:center;align-items:center;border-bottom:0.5px dashed var(--border-light)}
+    .rs-day-cell{padding:4px 0;display:flex;justify-content:center;align-items:center;gap:5px;border-bottom:0.5px dashed var(--border-light)}
     .rs-day-cell.fer{}
     .rs-num{width:34px;padding:2px 4px;border:0.5px solid var(--border-light);border-radius:3px;font-size:11px;font-family:inherit;text-align:center;background:#fff;box-sizing:border-box}
     .rs-num:disabled,.rs-num[readonly]{background:#f0f2f5;color:#666}
@@ -2164,14 +2164,14 @@ function renderFichaRS(app,r){
   // grelha cabeçalho dias
   const dayHeader=RS_DAY_LETTERS.map((L,i)=>{
     const F=!!d.feriados[i];
-    const wrapStyle=F?'background:#B91C1C;color:#fff;border-radius:3px;':'';
+    const wrapStyle=F?'background:#B91C1C;color:#fff;border-radius:3px;padding:6px 2px;':'';
     const letStyle=F?'color:#fff !important;':'';
     const dateStyle=F?'color:#FFE0E0;':'';
-    const fbStyle=F?'background:#fff;color:#B91C1C;border-color:#fff;font-weight:900;':'';
+    const fbStyle=F?'background:transparent;color:#fff;border-color:#fff;font-weight:900;':'';
     return `<div class="rs-day-h" style="${wrapStyle}" onclick="rsToggleFeriado(${i})" title="${F?'Feriado · clica para desmarcar':'Clica para marcar '+RS_DAY_NAMES[i]+' como feriado'}"><div class="rs-day-letter" style="${letStyle}">${L}</div><div class="rs-day-date" style="${dateStyle}">${rsDayDate(d.semanaIni,i)}</div><div class="rs-fer-btn" style="${fbStyle}">F</div></div>`;
   }).join('');
   // colsAt: id, tipo, descricao, localizacao, 6 dias, remove
-  const colsAt=`grid-template-columns:36px 1fr 100px repeat(6,46px) ${ro?'':'28px'}`;
+  const colsAt=`grid-template-columns:36px 1fr 100px repeat(6,56px) ${ro?'':'28px'}`;
   const colsSb=`grid-template-columns:36px 60px 1fr repeat(6,50px) ${ro?'':'28px'}`;
   app.innerHTML=`
   ${styleTag}
