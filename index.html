@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.10.1632</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.10.1702</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -2005,7 +2005,6 @@ function rsSaveDebounced(r){
 window.rsToggleDay=function(btn,idx,dayIdx,key){
   if(!relRelId)return;
   const r=DB.relatorios.find(x=>x.id===relRelId);if(!r)return;
-  if(r.estado==='disponibilizado')return;
   r.conteudo=r.conteudo||{tipo:'fiscalizacao',subtipo:'RS',dados:{}};
   r.conteudo.dados=r.conteudo.dados||{};
   r.conteudo.dados.atividades=r.conteudo.dados.atividades||[];
@@ -2032,7 +2031,6 @@ window.rsSetWorkerDay=function(idx,dayIdx,key,value){
 window.rsToggleFeriado=function(dayIdx){
   if(!relRelId)return;
   const r=DB.relatorios.find(x=>x.id===relRelId);if(!r)return;
-  if(r.estado==='disponibilizado')return;
   r.conteudo=r.conteudo||{tipo:'fiscalizacao',subtipo:'RS',dados:{}};
   r.conteudo.dados=r.conteudo.dados||{};
   r.conteudo.dados.feriados=r.conteudo.dados.feriados||{};
@@ -2118,6 +2116,7 @@ function renderFichaRS(app,r){
   r.conteudo.dados=r.conteudo.dados||{};
   const d=r.conteudo.dados;
   d.atividades=d.atividades||[];d.subempreiteiros=d.subempreiteiros||[];d.documentacao=d.documentacao||[];d.fotos=d.fotos||[];d.feriados=d.feriados||{};
+  if(r.estado!=='disponibilizado'&&d.atividades.length===0){for(let _i=1;_i<=10;_i++)d.atividades.push({id:_i});sbRel.patch('relatorios',relRelId,{conteudo:JSON.stringify(r.conteudo)}).catch(console.error);}
   if(!d.autor&&currentUser)d.autor=currentUser.nome;
   if(!d.data)d.data=new Date().toISOString().slice(0,10);
   const ro=r.estado==='disponibilizado';
@@ -2140,6 +2139,8 @@ function renderFichaRS(app,r){
     .rs-day-letter{font-weight:700;font-size:11px;color:#1E3A5F}
     .rs-day-h.fer .rs-day-letter{color:#B91C1C}
     .rs-day-date{font-size:9px;opacity:.7;margin-top:1px}
+    .rs-fer-btn{display:block;width:20px;height:18px;border:0.5px solid #c8ccd1;background:#fff;font-size:9px;font-weight:700;cursor:pointer;border-radius:3px;color:#B91C1C;padding:0;margin:3px auto 0;line-height:1}
+    .rs-fer-btn.on{background:#B91C1C;color:#fff;border-color:#B91C1C}
     .rs-day-cell{padding:4px 2px;display:flex;justify-content:center;align-items:center;border-bottom:0.5px dashed var(--border-light)}
     .rs-day-cell.fer{background:#fff7f7}
     .rs-num{width:34px;padding:2px 4px;border:0.5px solid var(--border-light);border-radius:3px;font-size:11px;font-family:inherit;text-align:center;background:#fff;box-sizing:border-box}
@@ -2148,9 +2149,9 @@ function renderFichaRS(app,r){
     .rs-sub-day.fer{background:#fff7f7}
   </style>`;
   // grelha cabeçalho dias
-  const dayHeader=RS_DAY_LETTERS.map((L,i)=>`<div class="rs-day-h ${d.feriados[i]?'fer':''}" ${ro?'':`onclick="rsToggleFeriado(${i})"`} title="${RS_DAY_NAMES[i]}${d.feriados[i]?' · feriado (clica para desmarcar)':' · clica para marcar feriado'}"><div class="rs-day-letter">${L}</div><div class="rs-day-date">${rsDayDate(d.semanaIni,i)}</div></div>`).join('');
+  const dayHeader=RS_DAY_LETTERS.map((L,i)=>`<div class="rs-day-h ${d.feriados[i]?'fer':''}" title="${RS_DAY_NAMES[i]}"><div class="rs-day-letter">${L}</div><div class="rs-day-date">${rsDayDate(d.semanaIni,i)}</div><button class="rs-fer-btn ${d.feriados[i]?'on':''}" onclick="rsToggleFeriado(${i})" title="${d.feriados[i]?'Feriado · clica para desmarcar':'Marcar feriado'}">F</button></div>`).join('');
   // colsAt: id, tipo, descricao, localizacao, 6 dias, remove
-  const colsAt=`grid-template-columns:36px 70px 1fr 100px repeat(6,46px) ${ro?'':'28px'}`;
+  const colsAt=`grid-template-columns:36px 1fr 100px repeat(6,46px) ${ro?'':'28px'}`;
   const colsSb=`grid-template-columns:36px 60px 1fr repeat(6,50px) ${ro?'':'28px'}`;
   app.innerHTML=`
   ${styleTag}
@@ -2186,7 +2187,6 @@ function renderFichaRS(app,r){
       </div>
       <div style="display:grid;${colsAt};gap:6px;padding:0 0 4px 0;font-size:10px;color:var(--text-muted);font-weight:600;letter-spacing:.3px">
         <div style="padding:4px 2px;text-align:center;border-bottom:0.5px solid var(--border-light)">Id</div>
-        <div style="padding:4px 2px;border-bottom:0.5px solid var(--border-light)">Tipo</div>
         <div style="padding:4px 2px;border-bottom:0.5px solid var(--border-light)">Descrição</div>
         <div style="padding:4px 2px;border-bottom:0.5px solid var(--border-light)">Localização</div>
         ${dayHeader}
@@ -2198,13 +2198,12 @@ function renderFichaRS(app,r){
           const day=dias[j]||{p:false,r:false};
           const fer=d.feriados[j]?'fer':'';
           return `<div class="rs-day-cell ${fer}">
-            <button class="rs-pill p ${day.p?'on':''}" ${ro?'disabled':''} onclick="rsToggleDay(this,${i},${j},'p')" title="Previsto">P</button>
-            <button class="rs-pill r ${day.r?'on':''}" ${ro?'disabled':''} onclick="rsToggleDay(this,${i},${j},'r')" title="Realizado">R</button>
+            <button class="rs-pill p ${day.p?'on':''}" onclick="rsToggleDay(this,${i},${j},'p')" title="Previsto">P</button>
+            <button class="rs-pill r ${day.r?'on':''}" onclick="rsToggleDay(this,${i},${j},'r')" title="Realizado">R</button>
           </div>`;
         }).join('');
         return `<div style="display:grid;${colsAt};gap:6px;align-items:center">
           <div style="font-size:11px;color:var(--text-muted);text-align:center;padding:5px 0;border-bottom:0.5px dashed var(--border-light)">${a.id||(i+1)}</div>
-          <div style="padding:4px 0;border-bottom:0.5px dashed var(--border-light)"><input value="${esc(a.tipo)}" list="rs-tipos-ativ" ${ro?'readonly':''} oninput="rsCommit('atividades',${i},'tipo',this.value)" style="${ro?inpRO:inpS}"></div>
           <div style="padding:4px 0;border-bottom:0.5px dashed var(--border-light)"><input value="${esc(a.descricao)}" ${ro?'readonly':''} oninput="rsCommit('atividades',${i},'descricao',this.value)" style="${ro?inpRO:inpS}"></div>
           <div style="padding:4px 0;border-bottom:0.5px dashed var(--border-light)"><input value="${esc(a.localizacao)}" ${ro?'readonly':''} oninput="rsCommit('atividades',${i},'localizacao',this.value)" style="${ro?inpRO:inpS}"></div>
           ${dayCells}
