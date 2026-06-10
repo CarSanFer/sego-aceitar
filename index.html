@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.10.2334</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.10.2349</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -2013,14 +2013,19 @@ window.rsToggleDay=function(btn,idx,dayIdx,key){
   if(!a.dias[dayIdx])a.dias[dayIdx]={p:false,r:false};
   const wasOn=a.dias[dayIdx][key];
   a.dias[dayIdx][key]=!wasOn;
-  if(btn)btn.classList.toggle('on',a.dias[dayIdx][key]);
+  const colOn = key==='p' ? '#1B4F9B' : '#1A7A4A';
+  if(btn){
+    btn.classList.toggle('on',a.dias[dayIdx][key]);
+    btn.style.background = a.dias[dayIdx][key] ? colOn : '#fff';
+    btn.style.color = a.dias[dayIdx][key] ? '#fff' : '#888';
+  }
   // Replicar para a frente quando se liga (off->on); pára antes de Sábado (index 5)
   if(!wasOn){
     for(let k=dayIdx+1;k<5;k++){
       a.dias[k]=a.dias[k]||{p:false,r:false};
       a.dias[k][key]=true;
       const ob=document.querySelector('[data-rs="atv-'+idx+'-'+k+'-'+key+'"]');
-      if(ob)ob.classList.add('on');
+      if(ob){ ob.classList.add('on'); ob.style.background=colOn; ob.style.color='#fff'; }
     }
   }
   rsSaveDebounced(r);rsRefreshKPIAtiv();
@@ -2165,13 +2170,14 @@ function renderFichaRS(app,r){
   const dayHeader=RS_DAY_LETTERS.map((L,i)=>{
     const F=!!d.feriados[i];
     const wrapStyle=F?'background:#B91C1C;color:#fff;border-radius:3px;padding:6px 2px;':'';
-    const letStyle=F?'color:#fff !important;':'';
+    const letStyle=F?'color:#fff;font-weight:700;':'';
     const dateStyle=F?'color:#FFE0E0;':'';
-    const fbStyle=F?'background:transparent;color:#fff;border-color:#fff;font-weight:900;':'';
-    return `<div class="rs-day-h" style="${wrapStyle}" onclick="rsToggleFeriado(${i})" title="${F?'Feriado · clica para desmarcar':'Clica para marcar '+RS_DAY_NAMES[i]+' como feriado'}"><div class="rs-day-letter" style="${letStyle}">${L}</div><div class="rs-day-date" style="${dateStyle}">${rsDayDate(d.semanaIni,i)}</div><div class="rs-fer-btn" style="${fbStyle}">F</div></div>`;
+    const fbBase='display:block;width:24px;height:22px;border-radius:3px;padding:0;margin:4px auto 0;line-height:1;text-align:center;cursor:pointer;';
+    const fbStyle=F?(fbBase+'background:#7F1D1D;color:#fff;border:1.5px solid #fff;font-size:12px;font-weight:900;box-shadow:0 0 0 1px rgba(0,0,0,0.15);'):(fbBase+'background:#fff;color:#B91C1C;border:1px solid #c8ccd1;font-size:10px;font-weight:700;');
+    return `<div class="rs-day-h" style="${wrapStyle}" onclick="rsToggleFeriado(${i})" title="${F?'Feriado · clica para desmarcar':'Clica para marcar '+RS_DAY_NAMES[i]+' como feriado'}"><div class="rs-day-letter" style="${letStyle}">${L}</div><div class="rs-day-date" style="${dateStyle}">${rsDayDate(d.semanaIni,i)}</div><div style="${fbStyle}">F</div></div>`;
   }).join('');
   // colsAt: id, tipo, descricao, localizacao, 6 dias, remove
-  const colsAt=`grid-template-columns:36px 1fr 100px repeat(6,72px) ${ro?'':'28px'}`;
+  const colsAt=`grid-template-columns:36px 1fr 100px repeat(6,86px) ${ro?'':'28px'}`;
   const colsSb=`grid-template-columns:36px 60px 1fr repeat(6,50px) ${ro?'':'28px'}`;
   app.innerHTML=`
   ${styleTag}
@@ -2218,9 +2224,9 @@ function renderFichaRS(app,r){
         const dayCells=RS_DAY_LETTERS.map((_,j)=>{
           const day=dias[j]||{p:false,r:false};
           const fer=d.feriados[j]?'fer':'';
-          return `<div class="rs-day-cell ${fer}">
-            <button class="rs-pill p ${day.p?'on':''}" data-rs="atv-${i}-${j}-p" onclick="rsToggleDay(this,${i},${j},'p')" title="Previsto">P</button>
-            <button class="rs-pill r ${day.r?'on':''}" data-rs="atv-${i}-${j}-r" onclick="rsToggleDay(this,${i},${j},'r')" title="Realizado">R</button>
+          return `<div class="rs-day-cell ${fer}" style="display:flex;justify-content:center;align-items:center;gap:14px;padding:6px 4px">
+            <button class="rs-pill p ${day.p?'on':''}" data-rs="atv-${i}-${j}-p" onclick="rsToggleDay(this,${i},${j},'p')" title="Previsto" style="width:28px;height:26px;border:1px solid #c8ccd1;border-radius:4px;background:${day.p?'#1B4F9B':'#fff'};color:${day.p?'#fff':'#888'};font-size:12px;font-weight:700;cursor:pointer;padding:0;display:inline-flex;align-items:center;justify-content:center">P</button>
+            <button class="rs-pill r ${day.r?'on':''}" data-rs="atv-${i}-${j}-r" onclick="rsToggleDay(this,${i},${j},'r')" title="Realizado" style="width:28px;height:26px;border:1px solid #c8ccd1;border-radius:4px;background:${day.r?'#1A7A4A':'#fff'};color:${day.r?'#fff':'#888'};font-size:12px;font-weight:700;cursor:pointer;padding:0;display:inline-flex;align-items:center;justify-content:center">R</button>
           </div>`;
         }).join('');
         return `<div style="display:grid;${colsAt};gap:6px;align-items:center">
