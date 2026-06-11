@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.11.0506</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.11.1933</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -863,7 +863,13 @@ window.doLogin=function(){
   const stored=String(u.pwd_hash).trim().toLowerCase();
   console.log('LOGIN HASH',{computed,stored,match:computed===stored});
   if(computed!==stored){document.getElementById('login-error').textContent='Password incorrecta.';return;}
-  currentUser={id:u.id,nome:u.nome,email:u.email,role:u.role,obras:u.obras,apps:u.apps||['sid']};
+  // Gating: utilizador tem que ter 'sego' em apps[] (igual ao SIGO)
+  const userApps=Array.isArray(u.apps)?u.apps:[];
+  if(!userApps.includes('sego')){
+    document.getElementById('login-error').textContent='Sem permissão para aceder ao SEGO. Contacte o administrador para activar o acesso a esta aplicação no SID.';
+    return;
+  }
+  currentUser={id:u.id,nome:u.nome,email:u.email,role:u.role,obras:u.obras,apps:userApps};
   showApp();
 };
 
