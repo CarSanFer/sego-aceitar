@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.11.0327</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.11.0348</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -1980,6 +1980,10 @@ window.rsCommit=function(section,idx,key,value){
     if(typeof rsUpdatePillsRow==='function') rsUpdatePillsRow(idx);
     if(typeof rsRefreshKPIAtiv==='function') rsRefreshKPIAtiv();
   }
+  if(section==='subempreiteiros' && (key==='atividade' || key==='subempreiteiro')){
+    if(typeof rsUpdateSubInputsRow==='function') rsUpdateSubInputsRow(idx);
+    if(typeof rsRefreshKPISub==='function') rsRefreshKPISub();
+  }
 };
 window.rsAddRow=function(section){
   const r=DB.relatorios.find(x=>x.id===relRelId);if(!r)return;
@@ -2045,13 +2049,17 @@ window.rsSetWorkerDay=function(idx,dayIdx,key,value){
   r.conteudo.dados=r.conteudo.dados||{};
   r.conteudo.dados.subempreiteiros=r.conteudo.dados.subempreiteiros||[];
   const s=r.conteudo.dados.subempreiteiros[idx];if(!s)return;
+  // Bloqueio: exige Ativ. E Subempreiteiro preenchidos
+  if(!((s.atividade||'').trim() && (s.subempreiteiro||'').trim()))return;
   s.dias=s.dias||[];
   if(!s.dias[dayIdx])s.dias[dayIdx]={prev:0,efet:0};
   s.dias[dayIdx][key]=(+value)||0;
   rsSaveDebounced(r);rsRefreshKPISub();
 };
 window.rsToggleSection=function(name){
-  window._rsCollapsed=window._rsCollapsed||{atividades:true};
+  window._rsCollapsed=window._rsCollapsed||{};
+  if(window._rsCollapsed.atividades===undefined) window._rsCollapsed.atividades=true;
+  if(window._rsCollapsed.subempreiteiros===undefined) window._rsCollapsed.subempreiteiros=true;
   window._rsCollapsed[name]=!window._rsCollapsed[name];
   render();
 };
@@ -2104,9 +2112,40 @@ function rsKPIsAtiv(d){
   };
 }
 function rsKPIsSub(d){
-  const subs=d.subempreiteiros||[];let prev=0,efet=0;
-  for(const s of subs){const dias=s.dias||[];for(const day of dias){if(!day)continue;prev+=(+day.prev||0);efet+=(+day.efet||0);}}
-  return{n:subs.length,prev,efet,cob:prev>0?Math.round((efet/prev)*100):0};
+  const subs=d.subempreiteiros||[];
+  const totalLinhas=subs.length;
+  const valid=subs.filter(s=>(s.atividade||'').trim() && (s.subempreiteiro||'').trim());
+  const nSub=valid.length;
+  let diasEfetivos=0;
+  for(let j=0;j<6;j++){
+    const isSat=(j===5);
+    const isFer=!!(d.feriados&&d.feriados[j]);
+    if(!isSat && !isFer){ diasEfetivos++; }
+    else{
+      const used=valid.some(s=>{const dy=(s.dias||[])[j]||{};return (+dy.prev||0)>0 || (+dy.efet||0)>0;});
+      if(used) diasEfetivos++;
+    }
+  }
+  let totalP=0,totalE=0,defice=0,excedente=0;
+  for(const s of valid){
+    const dias=s.dias||[];
+    for(let j=0;j<6;j++){
+      const dy=dias[j]||{};
+      const p=(+dy.prev)||0;
+      const e=(+dy.efet)||0;
+      totalP+=p; totalE+=e;
+      if(e<p) defice+=(p-e);
+      if(e>p) excedente+=(e-p);
+    }
+  }
+  return{
+    totalLinhas, nSub, diasEfetivos,
+    totalP, totalE, defice, excedente,
+    pctSub: totalLinhas>0?Math.round(nSub/totalLinhas*100):0,
+    cobertura: totalP>0?Math.round(totalE/totalP*100):0,
+    pctDefice: totalP>0?Math.round(defice/totalP*100):0,
+    pctExcedente: totalP>0?Math.round(excedente/totalP*100):0
+  };
 }
 window.rsRefreshKPIAtiv=function(){
   const r=DB.relatorios.find(x=>x.id===relRelId);if(!r)return;
@@ -2136,8 +2175,28 @@ window.rsUpdatePillsRow=function(idx){
 window.rsRefreshKPISub=function(){
   const r=DB.relatorios.find(x=>x.id===relRelId);if(!r)return;
   const k=rsKPIsSub(r.conteudo.dados||{});
-  const m={n:'rs-ks-n',prev:'rs-ks-prev',efet:'rs-ks-efet',cob:'rs-ks-cob'};
-  for(const key in m){const e=document.getElementById(m[key]);if(e)e.textContent=key==='cob'?(k.cob+'%'):k[key];}
+  const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  set('rs-ks-nsub',k.nSub); set('rs-ks-nsub-tot',k.totalLinhas); set('rs-ks-nsub-pct',k.pctSub+'%');
+  set('rs-ks-p',k.totalP);
+  set('rs-ks-e',k.totalE);
+  set('rs-ks-cob',k.cobertura+'%');
+  set('rs-ks-defice',k.defice); set('rs-ks-defice-pct',k.pctDefice+'%');
+  set('rs-ks-excedente',k.excedente); set('rs-ks-excedente-pct',k.pctExcedente+'%');
+};
+window.rsUpdateSubInputsRow=function(idx){
+  const r=DB.relatorios.find(x=>x.id===relRelId);if(!r)return;
+  const s=(((r.conteudo||{}).dados||{}).subempreiteiros||[])[idx];if(!s)return;
+  const valid=!!((s.atividade||'').trim() && (s.subempreiteiro||'').trim());
+  for(let j=0;j<6;j++){
+    for(const key of ['prev','efet']){
+      const inp=document.querySelector('[data-rs="sub-'+idx+'-'+j+'-'+key+'"]');
+      if(!inp) continue;
+      inp.style.opacity = valid ? '1' : '0.4';
+      inp.style.cursor = valid ? 'text' : 'not-allowed';
+      inp.disabled = !valid;
+      inp.title = valid ? (key==='prev'?'Previstos':'Efetivos') : 'Preencher Ativ. e Subempreiteiro para registar P/E';
+    }
+  }
 };
 window.rsAddPhoto=function(){
   if(!relRelId)return;
@@ -2199,7 +2258,11 @@ function renderFichaRS(app,r){
   if(!d.autor&&currentUser)d.autor=currentUser.nome;
   if(!d.data)d.data=new Date().toISOString().slice(0,10);
   const ro=r.estado==='disponibilizado';
-  const atvCollapsed=window._rsCollapsed?!!window._rsCollapsed.atividades:true;
+  if(!window._rsCollapsed) window._rsCollapsed={};
+  if(window._rsCollapsed.atividades===undefined) window._rsCollapsed.atividades=true;
+  if(window._rsCollapsed.subempreiteiros===undefined) window._rsCollapsed.subempreiteiros=true;
+  const atvCollapsed=!!window._rsCollapsed.atividades;
+  const subCollapsed=!!window._rsCollapsed.subempreiteiros;
   const kA=rsKPIsAtiv(d),kS=rsKPIsSub(d);
   const esc=(s)=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   const inpS='width:100%;padding:5px 7px;border:0.5px solid var(--border-light);border-radius:3px;font-size:12px;font-family:inherit;background:#fff;box-sizing:border-box';
@@ -2243,7 +2306,6 @@ function renderFichaRS(app,r){
   // colsAt: id, tipo, descricao, localizacao, 6 dias, remove
   const colsAtLeft=`grid-template-columns:36px 1fr 1fr`;
   const colsAtRight=`grid-template-columns:repeat(6,1fr)${ro?'':' 28px'}`;
-  const colsSb=`grid-template-columns:36px 60px 1fr repeat(6,50px) ${ro?'':'28px'}`;
   app.innerHTML=`
   ${styleTag}
   <button class="back-btn" onclick="relRelId=null;render()">← Voltar</button>
@@ -2334,42 +2396,64 @@ function renderFichaRS(app,r){
 
     <!-- SUBEMPREITEIROS -->
     <div class="table-card" style="padding:14px;margin-bottom:12px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-        <div style="${sectTitle}">SUBEMPREITEIROS E TRABALHADORES (POR DIA) <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px;color:var(--text-muted);margin-left:6px">cima = previsto · baixo = efetivo</span></div>
-        ${ro?'':`<button class="btn btn-outline btn-sm" style="font-size:11px;padding:3px 10px" onclick="rsAddRow('subempreiteiros')">+ linha</button>`}
+      <div onclick="rsToggleSection('subempreiteiros')" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:${subCollapsed?'0':'10px'};cursor:pointer">
+        <div style="display:flex;align-items:center;flex:1">
+          <span style="font-size:12px;margin-right:10px;color:var(--text-muted);user-select:none;width:12px;display:inline-block">${subCollapsed?'▶':'▼'}</span>
+          <span style="${sectTitle}">SUBEMPREITEIROS E TRABALHADORES</span>
+          <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px;color:var(--text-muted);margin-left:24px">P = Previstos · E = Efetivos · Clica no dia para marcar Feriado</span>
+        </div>
+        ${(!ro && !subCollapsed)?`<button class="btn btn-outline btn-sm" style="font-size:11px;padding:3px 10px" onclick="event.stopPropagation();rsAddRow('subempreiteiros')">+ linha</button>`:''}
       </div>
-      <div style="display:grid;${colsSb};gap:6px;padding:0 0 4px 0;font-size:10px;color:var(--text-muted);font-weight:700;letter-spacing:.3px;border-bottom:0.5px solid var(--border-light)">
-        <div style="padding:4px 2px;text-align:center">Id</div>
-        <div style="padding:4px 2px;text-align:center">Ativ.</div>
-        <div style="padding:4px 2px;text-align:center">Subempreiteiro</div>
-        ${dayHeader}
-        ${ro?'':'<div></div>'}
+      ${subCollapsed?'':`
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:0 0 4px 0;font-size:10px;color:var(--text-muted);font-weight:700;letter-spacing:.3px;border-bottom:0.5px solid var(--border-light)">
+        <div style="display:grid;${colsAtLeft};gap:6px">
+          <div style="padding:4px 2px;text-align:center">Id</div>
+          <div style="padding:4px 2px;text-align:center">Ativ.</div>
+          <div style="padding:4px 2px;text-align:center">Subempreiteiro</div>
+        </div>
+        <div style="display:grid;${colsAtRight};gap:6px">
+          ${dayHeader}
+          ${ro?'':'<div></div>'}
+        </div>
       </div>
       ${d.subempreiteiros.length?d.subempreiteiros.map((s,i)=>{
         const dias=s.dias||[];
+        const isRowValid=!!((s.atividade||'').trim() && (s.subempreiteiro||'').trim());
+        const inpOp=isRowValid?'1':'0.4';
+        const inpCur=isRowValid?'text':'not-allowed';
+        const tP=isRowValid?'Previstos':'Preencher Ativ. e Subempreiteiro para registar P/E';
+        const tE=isRowValid?'Efetivos':'Preencher Ativ. e Subempreiteiro para registar P/E';
         const dayCells=RS_DAY_LETTERS.map((_,j)=>{
           const day=dias[j]||{prev:0,efet:0};
           const fer=d.feriados[j]?'fer':'';
-          return `<div class="rs-sub-day ${fer}">
-            <input class="rs-num" type="number" min="0" value="${day.prev||''}" ${ro?'readonly':''} oninput="rsSetWorkerDay(${i},${j},'prev',this.value)" title="Previstos">
-            <input class="rs-num" type="number" min="0" value="${day.efet||''}" ${ro?'readonly':''} oninput="rsSetWorkerDay(${i},${j},'efet',this.value)" title="Efetivos">
+          const hasP=(+day.prev)>0, hasE=(+day.efet)>0;
+          return `<div class="rs-day-cell ${fer}" style="display:flex;justify-content:center;align-items:center;gap:14px;padding:6px 2px;box-sizing:border-box">
+            <input type="number" min="0" inputmode="numeric" value="${day.prev||''}" placeholder="P" data-rs="sub-${i}-${j}-prev" ${!isRowValid?'disabled':''} ${ro?'readonly':''} oninput="rsSetWorkerDay(${i},${j},'prev',this.value)" title="${tP}" style="width:40px;height:26px;border:1px solid #c8ccd1;border-radius:4px;font-size:12px;text-align:center;font-weight:700;padding:0;font-family:inherit;box-sizing:border-box;background:${hasP?'#E5EFFA':'#fff'};color:${hasP?'#1B4F9B':'#888'};opacity:${inpOp};cursor:${inpCur}">
+            <input type="number" min="0" inputmode="numeric" value="${day.efet||''}" placeholder="E" data-rs="sub-${i}-${j}-efet" ${!isRowValid?'disabled':''} ${ro?'readonly':''} oninput="rsSetWorkerDay(${i},${j},'efet',this.value)" title="${tE}" style="width:40px;height:26px;border:1px solid #c8ccd1;border-radius:4px;font-size:12px;text-align:center;font-weight:700;padding:0;font-family:inherit;box-sizing:border-box;background:${hasE?'#E5F4EC':'#fff'};color:${hasE?'#1A7A4A':'#888'};opacity:${inpOp};cursor:${inpCur}">
           </div>`;
         }).join('');
-        return `<div style="display:grid;${colsSb};gap:6px;align-items:center;border-bottom:0.5px dashed var(--border-light)">
-          <div style="font-size:11px;color:var(--text-muted);text-align:center;padding:5px 0">${s.id||(i+1)}</div>
-          <div style="padding:4px 0"><input value="${esc(s.atividade)}" list="rs-tipos-ativ" ${ro?'readonly':''} oninput="rsCommit('subempreiteiros',${i},'atividade',this.value)" style="${ro?inpRO:inpS}"></div>
-          <div style="padding:4px 0"><input value="${esc(s.subempreiteiro)}" ${ro?'readonly':''} oninput="rsCommit('subempreiteiros',${i},'subempreiteiro',this.value)" style="${ro?inpRO:inpS}"></div>
-          ${dayCells}
-          ${ro?'':`<div style="padding:5px 0;text-align:center">${removeBtn('subempreiteiros',i)}</div>`}
+        return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;align-items:center;border-bottom:0.5px dashed var(--border-light)">
+          <div style="display:grid;${colsAtLeft};gap:6px;align-items:center">
+            <div style="font-size:11px;color:var(--text-muted);text-align:center;padding:5px 0">${s.id||(i+1)}</div>
+            <div style="padding:4px 0"><input value="${esc(s.atividade)}" list="rs-tipos-ativ" ${ro?'readonly':''} oninput="rsCommit('subempreiteiros',${i},'atividade',this.value)" style="${ro?inpRO:inpS}"></div>
+            <div style="padding:4px 0"><input value="${esc(s.subempreiteiro)}" ${ro?'readonly':''} oninput="rsCommit('subempreiteiros',${i},'subempreiteiro',this.value)" style="${ro?inpRO:inpS}"></div>
+          </div>
+          <div style="display:grid;${colsAtRight};gap:6px;align-items:center">
+            ${dayCells}
+            ${ro?'':`<div style="padding:5px 0;text-align:center">${removeBtn('subempreiteiros',i)}</div>`}
+          </div>
         </div>`;
       }).join(''):empty('Sem registos · clica "+ linha" para adicionar')}
-      <!-- RESUMO SUBEMPREITEIROS -->
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px">
-        <div style="background:var(--bg-card);border-left:3px solid #6B7280;padding:8px 10px;border-radius:3px;border:0.5px solid var(--border-light)"><div style="font-size:9px;color:var(--text-muted);letter-spacing:.5px">N.º SUBEMPREITEIROS</div><div id="rs-ks-n" style="font-size:20px;font-weight:700;color:#6B7280">${kS.n}</div></div>
-        <div style="background:var(--bg-card);border-left:3px solid #1B4F9B;padding:8px 10px;border-radius:3px;border:0.5px solid var(--border-light)"><div style="font-size:9px;color:var(--text-muted);letter-spacing:.5px">TOTAL DIA-TRAB. PREV.</div><div id="rs-ks-prev" style="font-size:20px;font-weight:700;color:#1B4F9B">${kS.prev}</div></div>
-        <div style="background:var(--bg-card);border-left:3px solid #1A7A4A;padding:8px 10px;border-radius:3px;border:0.5px solid var(--border-light)"><div style="font-size:9px;color:var(--text-muted);letter-spacing:.5px">TOTAL DIA-TRAB. EFET.</div><div id="rs-ks-efet" style="font-size:20px;font-weight:700;color:#1A7A4A">${kS.efet}</div></div>
-        <div style="background:var(--bg-card);border-left:3px solid #C9922A;padding:8px 10px;border-radius:3px;border:0.5px solid var(--border-light)"><div style="font-size:9px;color:var(--text-muted);letter-spacing:.5px">COBERTURA</div><div id="rs-ks-cob" style="font-size:20px;font-weight:700;color:#C9922A">${kS.cob}%</div></div>
+      <!-- RESUMO SUBEMPREITEIROS: 6 KPIs -->
+      <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-top:12px">
+        <div style="background:var(--bg-card);border-left:3px solid #6B7280;padding:8px 10px;border-radius:3px;border:0.5px solid var(--border-light)"><div style="font-size:9px;color:var(--text-muted);letter-spacing:.5px;font-weight:600">N.º SUBEMPREITEIROS</div><div style="display:flex;align-items:baseline;gap:6px;margin-top:2px"><div id="rs-ks-nsub" style="font-size:22px;font-weight:700;color:#6B7280;line-height:1">${kS.nSub}</div><div style="font-size:11px;color:var(--text-muted)">/ <span id="rs-ks-nsub-tot">${kS.totalLinhas}</span> · <span id="rs-ks-nsub-pct">${kS.pctSub}%</span></div></div></div>
+        <div style="background:var(--bg-card);border-left:3px solid #1B4F9B;padding:8px 10px;border-radius:3px;border:0.5px solid var(--border-light)"><div style="font-size:9px;color:var(--text-muted);letter-spacing:.5px;font-weight:600">PREVISTOS [P]</div><div style="display:flex;align-items:baseline;gap:6px;margin-top:2px"><div id="rs-ks-p" style="font-size:22px;font-weight:700;color:#1B4F9B;line-height:1">${kS.totalP}</div><div style="font-size:11px;color:var(--text-muted)">homens·dia</div></div></div>
+        <div style="background:var(--bg-card);border-left:3px solid #1A7A4A;padding:8px 10px;border-radius:3px;border:0.5px solid var(--border-light)"><div style="font-size:9px;color:var(--text-muted);letter-spacing:.5px;font-weight:600">EFETIVOS [E]</div><div style="display:flex;align-items:baseline;gap:6px;margin-top:2px"><div id="rs-ks-e" style="font-size:22px;font-weight:700;color:#1A7A4A;line-height:1">${kS.totalE}</div><div style="font-size:11px;color:var(--text-muted)">homens·dia</div></div></div>
+        <div style="background:var(--bg-card);border-left:3px solid #16A34A;padding:8px 10px;border-radius:3px;border:0.5px solid var(--border-light)"><div style="font-size:9px;color:var(--text-muted);letter-spacing:.5px;font-weight:600">COBERTURA</div><div style="display:flex;align-items:baseline;gap:6px;margin-top:2px"><div id="rs-ks-cob" style="font-size:22px;font-weight:700;color:#16A34A;line-height:1">${kS.cobertura}%</div><div style="font-size:11px;color:var(--text-muted)">E / P</div></div></div>
+        <div style="background:var(--bg-card);border-left:3px solid #DC2626;padding:8px 10px;border-radius:3px;border:0.5px solid var(--border-light)"><div style="font-size:9px;color:var(--text-muted);letter-spacing:.5px;font-weight:600">DÉFICE (P > E)</div><div style="display:flex;align-items:baseline;gap:6px;margin-top:2px"><div id="rs-ks-defice" style="font-size:22px;font-weight:700;color:#DC2626;line-height:1">${kS.defice}</div><div style="font-size:11px;color:var(--text-muted)"><span id="rs-ks-defice-pct">${kS.pctDefice}%</span> de P</div></div></div>
+        <div style="background:var(--bg-card);border-left:3px solid #C9922A;padding:8px 10px;border-radius:3px;border:0.5px solid var(--border-light)"><div style="font-size:9px;color:var(--text-muted);letter-spacing:.5px;font-weight:600">EXCEDENTE (E > P)</div><div style="display:flex;align-items:baseline;gap:6px;margin-top:2px"><div id="rs-ks-excedente" style="font-size:22px;font-weight:700;color:#C9922A;line-height:1">${kS.excedente}</div><div style="font-size:11px;color:var(--text-muted)"><span id="rs-ks-excedente-pct">${kS.pctExcedente}%</span> de P</div></div></div>
       </div>
+      `}
     </div>
 
     <!-- ANÁLISE -->
