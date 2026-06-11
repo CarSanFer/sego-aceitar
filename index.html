@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.11.0358</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.11.0506</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -1992,9 +1992,14 @@ window.rsAddRow=function(section){
   r.conteudo.dados=r.conteudo.dados||{};
   r.conteudo.dados[section]=r.conteudo.dados[section]||[];
   const arr=r.conteudo.dados[section];
-  const newId=(arr.length?Math.max(...arr.map(x=>+x.id||0)):0)+1;
-  const row={id:newId};
-  if(section==='atividades'||section==='subempreiteiros')row.dias=[];
+  let row;
+  if(section==='documentacao'){
+    row={};
+  } else {
+    const newId=(arr.length?Math.max(...arr.map(x=>+x.id||0)):0)+1;
+    row={id:newId};
+    if(section==='atividades'||section==='subempreiteiros')row.dias=[];
+  }
   arr.push(row);
   sbRel.patch('relatorios',relRelId,{conteudo:JSON.stringify(r.conteudo)}).catch(console.error);
   render();
@@ -2096,6 +2101,10 @@ window.rsToggleSection=function(name){
   window._rsCollapsed=window._rsCollapsed||{};
   if(window._rsCollapsed.atividades===undefined) window._rsCollapsed.atividades=true;
   if(window._rsCollapsed.subempreiteiros===undefined) window._rsCollapsed.subempreiteiros=true;
+  if(window._rsCollapsed.analise===undefined) window._rsCollapsed.analise=true;
+  if(window._rsCollapsed.documentacao===undefined) window._rsCollapsed.documentacao=true;
+  if(window._rsCollapsed.outras===undefined) window._rsCollapsed.outras=true;
+  if(window._rsCollapsed.fotos===undefined) window._rsCollapsed.fotos=true;
   window._rsCollapsed[name]=!window._rsCollapsed[name];
   render();
 };
@@ -2294,6 +2303,7 @@ function renderFichaRS(app,r){
     let _needPatch=false;
     if(d.atividades.length===0){for(let _i=1;_i<=10;_i++)d.atividades.push({id:_i});_needPatch=true;}
     if(d.subempreiteiros.length===0){for(let _i=1;_i<=10;_i++)d.subempreiteiros.push({id:_i});_needPatch=true;}
+    if(d.documentacao.length===0){for(let _i=1;_i<=10;_i++)d.documentacao.push({});_needPatch=true;}
     if(_needPatch)sbRel.patch('relatorios',relRelId,{conteudo:JSON.stringify(r.conteudo)}).catch(console.error);
   }
   if(!d.autor&&currentUser)d.autor=currentUser.nome;
@@ -2302,8 +2312,16 @@ function renderFichaRS(app,r){
   if(!window._rsCollapsed) window._rsCollapsed={};
   if(window._rsCollapsed.atividades===undefined) window._rsCollapsed.atividades=true;
   if(window._rsCollapsed.subempreiteiros===undefined) window._rsCollapsed.subempreiteiros=true;
+  if(window._rsCollapsed.analise===undefined) window._rsCollapsed.analise=true;
+  if(window._rsCollapsed.documentacao===undefined) window._rsCollapsed.documentacao=true;
+  if(window._rsCollapsed.outras===undefined) window._rsCollapsed.outras=true;
+  if(window._rsCollapsed.fotos===undefined) window._rsCollapsed.fotos=true;
   const atvCollapsed=!!window._rsCollapsed.atividades;
   const subCollapsed=!!window._rsCollapsed.subempreiteiros;
+  const anaCollapsed=!!window._rsCollapsed.analise;
+  const docCollapsed=!!window._rsCollapsed.documentacao;
+  const outCollapsed=!!window._rsCollapsed.outras;
+  const fotCollapsed=!!window._rsCollapsed.fotos;
   const kA=rsKPIsAtiv(d),kS=rsKPIsSub(d);
   const esc=(s)=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   const inpS='width:100%;padding:5px 7px;border:0.5px solid var(--border-light);border-radius:3px;font-size:12px;font-family:inherit;background:#fff;box-sizing:border-box';
@@ -2347,6 +2365,8 @@ function renderFichaRS(app,r){
   // colsAt: id, tipo, descricao, localizacao, 6 dias, remove
   const colsAtLeft=`grid-template-columns:36px 1fr 1fr`;
   const colsAtRight=`grid-template-columns:repeat(6,1fr)${ro?'':' 28px'}`;
+  const colsDocLeft=`grid-template-columns:1fr 1fr 4fr`;
+  const colsDocRight=`grid-template-columns:1fr 1fr 4fr${ro?'':' 28px'}`;
   app.innerHTML=`
   ${styleTag}
   <button class="back-btn" onclick="relRelId=null;render()">← Voltar</button>
@@ -2499,45 +2519,76 @@ function renderFichaRS(app,r){
 
     <!-- ANÁLISE -->
     <div class="table-card" style="padding:14px;margin-bottom:12px">
-      <div style="${sectTitle};margin-bottom:6px">ANÁLISE E RECOMENDAÇÕES</div>
-      <textarea ${ro?'readonly':''} placeholder="Descrição da produção, desvios face ao planeado, observações..." oninput="rsCommit(null,null,'analise',this.value)" style="width:100%;min-height:90px;padding:8px 10px;border:0.5px solid var(--border-light);border-radius:3px;font-size:12px;font-family:inherit;background:${ro?'#f9fafb':'#fff'};resize:vertical;box-sizing:border-box">${esc(d.analise)}</textarea>
+      <div onclick="rsToggleSection('analise')" style="display:flex;align-items:center;margin-bottom:${anaCollapsed?'0':'10px'};cursor:pointer">
+        <span style="font-size:12px;margin-right:10px;color:var(--text-muted);user-select:none;width:12px;display:inline-block">${anaCollapsed?'▶':'▼'}</span>
+        <span style="${sectTitle}">ANÁLISE E RECOMENDAÇÕES</span>
+      </div>
+      ${anaCollapsed?'':`<textarea ${ro?'readonly':''} placeholder="Descrição da produção, desvios face ao planeado, observações..." oninput="rsCommit(null,null,'analise',this.value)" style="width:100%;min-height:90px;padding:8px 10px;border:0.5px solid var(--border-light);border-radius:3px;font-size:12px;font-family:inherit;background:${ro?'#f9fafb':'#fff'};resize:vertical;box-sizing:border-box">${esc(d.analise)}</textarea>`}
     </div>
 
     <!-- DOCUMENTAÇÃO -->
     <div class="table-card" style="padding:14px;margin-bottom:12px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-        <div style="${sectTitle}">DOCUMENTAÇÃO</div>
-        ${ro?'':`<button class="btn btn-outline btn-sm" style="font-size:11px;padding:3px 10px" onclick="rsAddRow('documentacao')">+ linha</button>`}
+      <div onclick="rsToggleSection('documentacao')" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:${docCollapsed?'0':'10px'};cursor:pointer">
+        <div style="display:flex;align-items:center;flex:1">
+          <span style="font-size:12px;margin-right:10px;color:var(--text-muted);user-select:none;width:12px;display:inline-block">${docCollapsed?'▶':'▼'}</span>
+          <span style="${sectTitle}">DOCUMENTAÇÃO</span>
+        </div>
+        ${(!ro && !docCollapsed)?`<button class="btn btn-outline btn-sm" style="font-size:11px;padding:3px 10px" onclick="event.stopPropagation();rsAddRow('documentacao')">+ linha</button>`:''}
       </div>
-      <div style="display:grid;grid-template-columns:36px 90px 1fr 120px 110px ${ro?'':'28px'};gap:8px;padding:4px 0;font-size:10px;color:var(--text-muted);border-bottom:0.5px solid var(--border-light);font-weight:600;letter-spacing:.3px">
-        <div>Id</div><div>Tipo</div><div>Descrição</div><div>Data</div><div>Estado</div>${ro?'':'<div></div>'}
+      ${docCollapsed?'':`
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:0 0 4px 0;font-size:10px;color:var(--text-muted);font-weight:700;letter-spacing:.3px;border-bottom:0.5px solid var(--border-light)">
+        <div style="display:grid;${colsDocLeft};gap:6px">
+          <div style="padding:4px 2px;text-align:center">Id</div>
+          <div style="padding:4px 2px;text-align:center">Tipo</div>
+          <div style="padding:4px 2px;text-align:center">Descrição</div>
+        </div>
+        <div style="display:grid;${colsDocRight};gap:6px">
+          <div style="padding:4px 2px;text-align:center">Data</div>
+          <div style="padding:4px 2px;text-align:center">Estado</div>
+          <div style="padding:4px 2px;text-align:center">Observações</div>
+          ${ro?'':'<div></div>'}
+        </div>
       </div>
       ${d.documentacao.length?d.documentacao.map((doc,i)=>`
-        <div style="display:grid;grid-template-columns:36px 90px 1fr 120px 110px ${ro?'':'28px'};gap:8px;padding:6px 0;align-items:center;border-bottom:0.5px dashed var(--border-light)">
-          <div style="font-size:11px;color:var(--text-muted);text-align:center">${doc.id||(i+1)}</div>
-          <input value="${esc(doc.tipo)}" ${ro?'readonly':''} oninput="rsCommit('documentacao',${i},'tipo',this.value)" style="${ro?inpRO:inpS}">
-          <input value="${esc(doc.descricao)}" ${ro?'readonly':''} oninput="rsCommit('documentacao',${i},'descricao',this.value)" style="${ro?inpRO:inpS}">
-          <input type="date" value="${doc.data||''}" ${ro?'readonly':''} oninput="rsCommit('documentacao',${i},'data',this.value)" style="${ro?inpRO:inpS}">
-          <input value="${esc(doc.estado)}" placeholder="ex.: Pendente" ${ro?'readonly':''} oninput="rsCommit('documentacao',${i},'estado',this.value)" style="${ro?inpRO:inpS}">
-          ${removeBtn('documentacao',i)}
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;align-items:center;border-bottom:0.5px dashed var(--border-light)">
+          <div style="display:grid;${colsDocLeft};gap:6px;align-items:center">
+            <div style="padding:4px 0"><input value="${esc(doc.id)}" placeholder="Id" ${ro?'readonly':''} oninput="rsCommit('documentacao',${i},'id',this.value)" style="${ro?inpRO:inpS};text-align:center"></div>
+            <div style="padding:4px 0"><input list="rs-doc-tipos" value="${esc(doc.tipo)}" placeholder="Tipo" ${ro?'readonly':''} oninput="rsCommit('documentacao',${i},'tipo',this.value)" style="${ro?inpRO:inpS};text-align:center"></div>
+            <div style="padding:4px 0"><input value="${esc(doc.descricao)}" ${ro?'readonly':''} oninput="rsCommit('documentacao',${i},'descricao',this.value)" style="${ro?inpRO:inpS}"></div>
+          </div>
+          <div style="display:grid;${colsDocRight};gap:6px;align-items:center">
+            <div style="padding:4px 0"><input type="date" value="${doc.data||''}" ${ro?'readonly':''} oninput="rsCommit('documentacao',${i},'data',this.value)" style="${ro?inpRO:inpS}"></div>
+            <div style="padding:4px 0"><input list="rs-doc-estados" value="${esc(doc.estado)}" placeholder="Estado" ${ro?'readonly':''} oninput="rsCommit('documentacao',${i},'estado',this.value)" style="${ro?inpRO:inpS}"></div>
+            <div style="padding:4px 0"><input value="${esc(doc.observacoes)}" ${ro?'readonly':''} oninput="rsCommit('documentacao',${i},'observacoes',this.value)" style="${ro?inpRO:inpS}"></div>
+            ${ro?'':`<div style="padding:5px 0;text-align:center">${removeBtn('documentacao',i)}</div>`}
+          </div>
         </div>`).join(''):empty('Sem documentação registada')}
+      <datalist id="rs-doc-tipos"><option value="PE"><option value="PA"><option value="TCm"><option value="QE"></datalist>
+      <datalist id="rs-doc-estados"><option value="Aprovado"><option value="Pendente"><option value="Em análise"><option value="Rejeitado"><option value="Enviado"></datalist>
+      `}
     </div>
 
     <!-- OUTRAS -->
     <div class="table-card" style="padding:14px;margin-bottom:12px">
-      <div style="${sectTitle};margin-bottom:6px">OUTRAS INFORMAÇÕES RELEVANTES</div>
-      <textarea ${ro?'readonly':''} placeholder="Notas, links, observações livres..." oninput="rsCommit(null,null,'outras_info',this.value)" style="width:100%;min-height:60px;padding:8px 10px;border:0.5px solid var(--border-light);border-radius:3px;font-size:12px;font-family:inherit;background:${ro?'#f9fafb':'#fff'};resize:vertical;box-sizing:border-box">${esc(d.outras_info)}</textarea>
+      <div onclick="rsToggleSection('outras')" style="display:flex;align-items:center;margin-bottom:${outCollapsed?'0':'10px'};cursor:pointer">
+        <span style="font-size:12px;margin-right:10px;color:var(--text-muted);user-select:none;width:12px;display:inline-block">${outCollapsed?'▶':'▼'}</span>
+        <span style="${sectTitle}">OUTRAS INFORMAÇÕES RELEVANTES</span>
+      </div>
+      ${outCollapsed?'':`<textarea ${ro?'readonly':''} placeholder="Notas, links, observações livres..." oninput="rsCommit(null,null,'outras_info',this.value)" style="width:100%;min-height:60px;padding:8px 10px;border:0.5px solid var(--border-light);border-radius:3px;font-size:12px;font-family:inherit;background:${ro?'#f9fafb':'#fff'};resize:vertical;box-sizing:border-box">${esc(d.outras_info)}</textarea>`}
     </div>
 
     <!-- FOTOS -->
     <div class="table-card" style="padding:14px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-        <div style="${sectTitle}">FOTOS · ${d.fotos.length}</div>
-        ${ro?'':`<button class="btn btn-outline btn-sm" style="font-size:11px;padding:3px 10px" onclick="rsAddPhoto()">+ anexar</button>`}
+      <div onclick="rsToggleSection('fotos')" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:${fotCollapsed?'0':'10px'};cursor:pointer">
+        <div style="display:flex;align-items:center;flex:1">
+          <span style="font-size:12px;margin-right:10px;color:var(--text-muted);user-select:none;width:12px;display:inline-block">${fotCollapsed?'▶':'▼'}</span>
+          <span style="${sectTitle}">FOTOS · ${d.fotos.length}</span>
+        </div>
+        ${(!ro && !fotCollapsed)?`<button class="btn btn-outline btn-sm" style="font-size:11px;padding:3px 10px" onclick="event.stopPropagation();rsAddPhoto()">+ anexar</button>`:''}
       </div>
-      ${d.fotos.length?`<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px">
+      ${fotCollapsed?'':(d.fotos.length?`<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px">
         ${d.fotos.map((p,i)=>`<div style="position:relative;aspect-ratio:1;background:url('${p.url}') center/cover #f0f2f5;border-radius:3px;border:0.5px solid var(--border-light)" title="${esc(p.name)}">${ro?'':`<button onclick="rsRemovePhoto(${i})" style="position:absolute;top:2px;right:2px;background:rgba(255,255,255,.9);border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;color:#B91C1C;font-size:12px;line-height:1;display:flex;align-items:center;justify-content:center" title="Remover">×</button>`}</div>`).join('')}
-      </div>`:empty('Sem fotos')}
+      </div>`:empty('Sem fotos'))}
     </div>
   </div>`;
 }
