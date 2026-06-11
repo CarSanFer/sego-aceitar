@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.11.0348</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.11.0358</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -2024,11 +2024,12 @@ window.rsToggleDay=function(btn,idx,dayIdx,key){
   if(!a.dias[dayIdx])a.dias[dayIdx]={p:false,r:false};
   const wasOn=a.dias[dayIdx][key];
   a.dias[dayIdx][key]=!wasOn;
-  const colOn = key==='p' ? '#1B4F9B' : '#1A7A4A';
+  const colTxt = key==='p' ? '#1B4F9B' : '#1A7A4A';
+  const colBg  = key==='p' ? '#E5EFFA' : '#E5F4EC';
   if(btn){
     btn.classList.toggle('on',a.dias[dayIdx][key]);
-    btn.style.background = a.dias[dayIdx][key] ? colOn : '#fff';
-    btn.style.color = a.dias[dayIdx][key] ? '#fff' : '#888';
+    btn.style.background = a.dias[dayIdx][key] ? colBg : '#fff';
+    btn.style.color = a.dias[dayIdx][key] ? colTxt : '#888';
   }
   // Replicar para a frente quando se liga (off->on); pára antes de Sábado (index 5)
   if(!wasOn){
@@ -2036,7 +2037,7 @@ window.rsToggleDay=function(btn,idx,dayIdx,key){
       a.dias[k]=a.dias[k]||{p:false,r:false};
       a.dias[k][key]=true;
       const ob=document.querySelector('[data-rs="atv-'+idx+'-'+k+'-'+key+'"]');
-      if(ob){ ob.classList.add('on'); ob.style.background=colOn; ob.style.color='#fff'; }
+      if(ob){ ob.classList.add('on'); ob.style.background=colBg; ob.style.color=colTxt; }
     }
   }
   rsSaveDebounced(r);rsRefreshKPIAtiv();
@@ -2054,7 +2055,42 @@ window.rsSetWorkerDay=function(idx,dayIdx,key,value){
   s.dias=s.dias||[];
   if(!s.dias[dayIdx])s.dias[dayIdx]={prev:0,efet:0};
   s.dias[dayIdx][key]=(+value)||0;
+  // Atualizar fundo do próprio input em tempo real
+  const inp=document.querySelector('[data-rs="sub-'+idx+'-'+dayIdx+'-'+key+'"]');
+  if(inp){
+    const hasVal=(+value)>0;
+    const isPrev=(key==='prev');
+    inp.style.background = hasVal ? (isPrev?'#E5EFFA':'#E5F4EC') : '#fff';
+    inp.style.color = hasVal ? (isPrev?'#1B4F9B':'#1A7A4A') : '#888';
+  }
   rsSaveDebounced(r);rsRefreshKPISub();
+};
+window.rsReplicateWorkerDay=function(idx,dayIdx,key,value){
+  if(!relRelId)return;
+  const r=DB.relatorios.find(x=>x.id===relRelId);if(!r)return;
+  if(r.estado==='disponibilizado')return;
+  const s=(((r.conteudo||{}).dados||{}).subempreiteiros||[])[idx];if(!s)return;
+  if(!((s.atividade||'').trim() && (s.subempreiteiro||'').trim()))return;
+  const newVal=(+value)||0;
+  if(newVal<=0)return;
+  s.dias=s.dias||[];
+  let replicated=false;
+  // Replicar para a frente; pára antes de Sábado (index 5)
+  for(let k=dayIdx+1;k<5;k++){
+    s.dias[k]=s.dias[k]||{prev:0,efet:0};
+    if(!s.dias[k][key]){
+      s.dias[k][key]=newVal;
+      replicated=true;
+      const inp=document.querySelector('[data-rs="sub-'+idx+'-'+k+'-'+key+'"]');
+      if(inp){
+        inp.value=newVal;
+        const isPrev=(key==='prev');
+        inp.style.background = isPrev?'#E5EFFA':'#E5F4EC';
+        inp.style.color = isPrev?'#1B4F9B':'#1A7A4A';
+      }
+    }
+  }
+  if(replicated){rsSaveDebounced(r);rsRefreshKPISub();}
 };
 window.rsToggleSection=function(name){
   window._rsCollapsed=window._rsCollapsed||{};
@@ -2254,7 +2290,12 @@ function renderFichaRS(app,r){
   r.conteudo.dados=r.conteudo.dados||{};
   const d=r.conteudo.dados;
   d.atividades=d.atividades||[];d.subempreiteiros=d.subempreiteiros||[];d.documentacao=d.documentacao||[];d.fotos=d.fotos||[];d.feriados=d.feriados||{};
-  if(r.estado!=='disponibilizado'&&d.atividades.length===0){for(let _i=1;_i<=10;_i++)d.atividades.push({id:_i});sbRel.patch('relatorios',relRelId,{conteudo:JSON.stringify(r.conteudo)}).catch(console.error);}
+  if(r.estado!=='disponibilizado'){
+    let _needPatch=false;
+    if(d.atividades.length===0){for(let _i=1;_i<=10;_i++)d.atividades.push({id:_i});_needPatch=true;}
+    if(d.subempreiteiros.length===0){for(let _i=1;_i<=10;_i++)d.subempreiteiros.push({id:_i});_needPatch=true;}
+    if(_needPatch)sbRel.patch('relatorios',relRelId,{conteudo:JSON.stringify(r.conteudo)}).catch(console.error);
+  }
   if(!d.autor&&currentUser)d.autor=currentUser.nome;
   if(!d.data)d.data=new Date().toISOString().slice(0,10);
   const ro=r.estado==='disponibilizado';
@@ -2274,8 +2315,8 @@ function renderFichaRS(app,r){
   // estilos das pills P/R (injetados uma vez)
   const styleTag=document.getElementById('rs-style')?'':`<style id="rs-style">
     .rs-pill{display:inline-flex;align-items:center;justify-content:center;width:26px;height:24px;border:1px solid #c8ccd1;background:#fff;font-size:11px;font-weight:700;cursor:pointer;border-radius:4px;color:#888;padding:0;margin:0;transition:all .12s}
-    .rs-pill.p.on{background:#1B4F9B;color:#fff;border-color:#1B4F9B}
-    .rs-pill.r.on{background:#1A7A4A;color:#fff;border-color:#1A7A4A}
+    .rs-pill.p.on{background:#E5EFFA;color:#1B4F9B;border-color:#c8ccd1}
+    .rs-pill.r.on{background:#E5F4EC;color:#1A7A4A;border-color:#c8ccd1}
     .rs-pill:disabled{cursor:not-allowed;opacity:.6}
     .rs-day-h{cursor:pointer;text-align:center;padding:4px 2px;font-size:10px;color:var(--text-muted);letter-spacing:.3px;user-select:none;border-radius:3px;transition:background .12s;display:flex;flex-direction:column;align-items:center;justify-content:center;box-sizing:border-box}
     .rs-day-h:hover{background:#F1F5F9}
@@ -2365,8 +2406,8 @@ function renderFichaRS(app,r){
           const day=dias[j]||{p:false,r:false};
           const fer=d.feriados[j]?'fer':'';
           return `<div class="rs-day-cell ${fer}" style="display:flex;justify-content:center;align-items:center;gap:14px;padding:6px 2px;box-sizing:border-box">
-            <button class="rs-pill p ${day.p?'on':''}" data-rs="atv-${i}-${j}-p" onclick="rsToggleDay(this,${i},${j},'p')" title="${tP}" style="width:28px;height:26px;border:1px solid #c8ccd1;border-radius:4px;background:${day.p?'#1B4F9B':'#fff'};color:${day.p?'#fff':'#888'};font-size:12px;font-weight:700;cursor:${pillCur};padding:0;display:inline-flex;align-items:center;justify-content:center;opacity:${pillOp}">P</button>
-            <button class="rs-pill r ${day.r?'on':''}" data-rs="atv-${i}-${j}-r" onclick="rsToggleDay(this,${i},${j},'r')" title="${tR}" style="width:28px;height:26px;border:1px solid #c8ccd1;border-radius:4px;background:${day.r?'#1A7A4A':'#fff'};color:${day.r?'#fff':'#888'};font-size:12px;font-weight:700;cursor:${pillCur};padding:0;display:inline-flex;align-items:center;justify-content:center;opacity:${pillOp}">R</button>
+            <button class="rs-pill p ${day.p?'on':''}" data-rs="atv-${i}-${j}-p" onclick="rsToggleDay(this,${i},${j},'p')" title="${tP}" style="width:28px;height:26px;border:1px solid #c8ccd1;border-radius:4px;background:${day.p?'#E5EFFA':'#fff'};color:${day.p?'#1B4F9B':'#888'};font-size:12px;font-weight:700;cursor:${pillCur};padding:0;display:inline-flex;align-items:center;justify-content:center;opacity:${pillOp}">P</button>
+            <button class="rs-pill r ${day.r?'on':''}" data-rs="atv-${i}-${j}-r" onclick="rsToggleDay(this,${i},${j},'r')" title="${tR}" style="width:28px;height:26px;border:1px solid #c8ccd1;border-radius:4px;background:${day.r?'#E5F4EC':'#fff'};color:${day.r?'#1A7A4A':'#888'};font-size:12px;font-weight:700;cursor:${pillCur};padding:0;display:inline-flex;align-items:center;justify-content:center;opacity:${pillOp}">R</button>
           </div>`;
         }).join('');
         return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;align-items:center;border-bottom:0.5px dashed var(--border-light)">
@@ -2428,8 +2469,8 @@ function renderFichaRS(app,r){
           const fer=d.feriados[j]?'fer':'';
           const hasP=(+day.prev)>0, hasE=(+day.efet)>0;
           return `<div class="rs-day-cell ${fer}" style="display:flex;justify-content:center;align-items:center;gap:14px;padding:6px 2px;box-sizing:border-box">
-            <input type="number" min="0" inputmode="numeric" value="${day.prev||''}" placeholder="P" data-rs="sub-${i}-${j}-prev" ${!isRowValid?'disabled':''} ${ro?'readonly':''} oninput="rsSetWorkerDay(${i},${j},'prev',this.value)" title="${tP}" style="width:40px;height:26px;border:1px solid #c8ccd1;border-radius:4px;font-size:12px;text-align:center;font-weight:700;padding:0;font-family:inherit;box-sizing:border-box;background:${hasP?'#E5EFFA':'#fff'};color:${hasP?'#1B4F9B':'#888'};opacity:${inpOp};cursor:${inpCur}">
-            <input type="number" min="0" inputmode="numeric" value="${day.efet||''}" placeholder="E" data-rs="sub-${i}-${j}-efet" ${!isRowValid?'disabled':''} ${ro?'readonly':''} oninput="rsSetWorkerDay(${i},${j},'efet',this.value)" title="${tE}" style="width:40px;height:26px;border:1px solid #c8ccd1;border-radius:4px;font-size:12px;text-align:center;font-weight:700;padding:0;font-family:inherit;box-sizing:border-box;background:${hasE?'#E5F4EC':'#fff'};color:${hasE?'#1A7A4A':'#888'};opacity:${inpOp};cursor:${inpCur}">
+            <input type="number" min="0" inputmode="numeric" value="${day.prev||''}" placeholder="P" data-rs="sub-${i}-${j}-prev" ${!isRowValid?'disabled':''} ${ro?'readonly':''} oninput="rsSetWorkerDay(${i},${j},'prev',this.value)" onchange="rsReplicateWorkerDay(${i},${j},'prev',this.value)" title="${tP}" style="width:40px;height:26px;border:1px solid #c8ccd1;border-radius:4px;font-size:12px;text-align:center;font-weight:700;padding:0;font-family:inherit;box-sizing:border-box;background:${hasP?'#E5EFFA':'#fff'};color:${hasP?'#1B4F9B':'#888'};opacity:${inpOp};cursor:${inpCur}">
+            <input type="number" min="0" inputmode="numeric" value="${day.efet||''}" placeholder="E" data-rs="sub-${i}-${j}-efet" ${!isRowValid?'disabled':''} ${ro?'readonly':''} oninput="rsSetWorkerDay(${i},${j},'efet',this.value)" onchange="rsReplicateWorkerDay(${i},${j},'efet',this.value)" title="${tE}" style="width:40px;height:26px;border:1px solid #c8ccd1;border-radius:4px;font-size:12px;text-align:center;font-weight:700;padding:0;font-family:inherit;box-sizing:border-box;background:${hasE?'#E5F4EC':'#fff'};color:${hasE?'#1A7A4A':'#888'};opacity:${inpOp};cursor:${inpCur}">
           </div>`;
         }).join('');
         return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;align-items:center;border-bottom:0.5px dashed var(--border-light)">
