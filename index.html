@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.11.0036</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.11.0056</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -2228,10 +2228,11 @@ function renderFichaRS(app,r){
   // grelha cabeçalho dias
   const dayHeader=RS_DAY_LETTERS.map((L,i)=>{
     const F=!!d.feriados[i];
-    const wrapStyle=F?'background:#B91C1C;color:#fff;border-radius:3px;padding:6px 2px;box-sizing:border-box;':'';
-    const letStyle=F?'color:#fff;font-weight:700;':'';
-    const dateStyle=F?'color:#FFE0E0;':'';
-    const fbBase='display:flex;align-items:center;justify-content:center;width:24px;height:22px;border-radius:3px;padding:0;margin:4px auto 0;cursor:pointer;line-height:1;';
+    const wrapBase='box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;cursor:pointer;user-select:none;border-radius:3px;';
+    const wrapStyle=wrapBase+(F?'background:#B91C1C;color:#fff;padding:6px 2px;':'padding:4px 2px;');
+    const letStyle='display:block;width:100%;text-align:center;font-weight:700;font-size:11px;line-height:1.2;'+(F?'color:#fff;':'color:#1E3A5F;');
+    const dateStyle='display:block;width:100%;text-align:center;font-size:9px;'+(F?'color:#FFE0E0;':'color:var(--text-muted);opacity:.7;');
+    const fbBase='display:flex;align-items:center;justify-content:center;width:24px;height:22px;border-radius:3px;padding:0;margin:4px auto 0;cursor:pointer;line-height:1;box-sizing:border-box;';
     const fbStyle=F?(fbBase+'background:#7F1D1D;color:#fff;border:1.5px solid #fff;font-size:12px;font-weight:900;box-shadow:0 0 0 1px rgba(0,0,0,0.15);'):(fbBase+'background:#fff;color:#B91C1C;border:1px solid #c8ccd1;font-size:10px;font-weight:700;');
     return `<div class="rs-day-h" style="${wrapStyle}" onclick="rsToggleFeriado(${i})" title="${F?'Feriado · clica para desmarcar':'Clica para marcar '+RS_DAY_NAMES[i]+' como feriado'}"><div class="rs-day-letter" style="${letStyle}">${L}</div><div class="rs-day-date" style="${dateStyle}">${rsDayDate(d.semanaIni,i)}</div><div style="${fbStyle}">F</div></div>`;
   }).join('');
@@ -2270,7 +2271,6 @@ function renderFichaRS(app,r){
         <div style="${sectTitle}">ATIVIDADES <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px;color:var(--text-muted);margin-left:6px">P = previsto · R = realizado · clica no dia para marcar feriado</span></div>
         ${ro?'':`<button class="btn btn-outline btn-sm" style="font-size:11px;padding:3px 10px" onclick="rsAddRow('atividades')">+ linha</button>`}
       </div>
-      ${(()=>{const ms=[0,1,2,3,4,5].filter(j=>d.feriados[j]).map(j=>RS_DAY_NAMES[j]);return ms.length?`<div style="font-size:10px;color:#B91C1C;background:#FFEBEB;border:0.5px solid #FCDADA;padding:4px 8px;border-radius:3px;margin-bottom:8px">Feriados marcados: <strong>${ms.join(', ')}</strong></div>`:'';})()}
       <div style="display:grid;${colsAt};gap:6px;padding:0 0 4px 0;font-size:10px;color:var(--text-muted);font-weight:700;letter-spacing:.3px;border-bottom:0.5px solid var(--border-light)">
         <div style="padding:4px 2px;text-align:center">Id</div>
         <div style="padding:4px 2px;text-align:center">Descrição</div>
@@ -2303,7 +2303,7 @@ function renderFichaRS(app,r){
       }).join(''):empty('Sem atividades · clica "+ linha" para adicionar')}
       <datalist id="rs-tipos-ativ"><option value="PTQ"><option value="CCiv"><option value="PT"><option value="CE"></datalist>
       <!-- RESUMO ATIVIDADES: 6 KPIs em 2 linhas x 3 colunas -->
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px">
+      <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-top:12px">
         <div style="background:var(--bg-card);border-left:3px solid #6B7280;padding:8px 10px;border-radius:3px;border:0.5px solid var(--border-light)"><div style="font-size:9px;color:var(--text-muted);letter-spacing:.5px;font-weight:600">N.º ATIVIDADES</div><div style="display:flex;align-items:baseline;gap:6px;margin-top:2px"><div id="rs-ka-nat" style="font-size:22px;font-weight:700;color:#6B7280;line-height:1">${kA.nAt}</div><div style="font-size:11px;color:var(--text-muted)">/ <span id="rs-ka-nat-tot">${kA.totalLinhas}</span> · <span id="rs-ka-nat-pct">${kA.pctAt}%</span></div></div></div>
         <div style="background:var(--bg-card);border-left:3px solid #1B4F9B;padding:8px 10px;border-radius:3px;border:0.5px solid var(--border-light)"><div style="font-size:9px;color:var(--text-muted);letter-spacing:.5px;font-weight:600">PREVISTAS [P]</div><div style="display:flex;align-items:baseline;gap:6px;margin-top:2px"><div id="rs-ka-p" style="font-size:22px;font-weight:700;color:#1B4F9B;line-height:1">${kA.p}</div><div style="font-size:11px;color:var(--text-muted)"><span id="rs-ka-p-pct">${kA.pctP}%</span></div></div></div>
         <div style="background:var(--bg-card);border-left:3px solid #1A7A4A;padding:8px 10px;border-radius:3px;border:0.5px solid var(--border-light)"><div style="font-size:9px;color:var(--text-muted);letter-spacing:.5px;font-weight:600">REALIZADAS [R]</div><div style="display:flex;align-items:baseline;gap:6px;margin-top:2px"><div id="rs-ka-r" style="font-size:22px;font-weight:700;color:#1A7A4A;line-height:1">${kA.r}</div><div style="font-size:11px;color:var(--text-muted)"><span id="rs-ka-r-pct">${kA.pctR}%</span></div></div></div>
