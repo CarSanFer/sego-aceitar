@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.11.1933</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.11.2014</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -623,7 +623,6 @@ function mapObra(r) {
   };
 }
 function mapUtil(r) {
-  console.log('mapUtil raw from Supabase:', r.email, 'pwd_hash:', r.pwd_hash, 'ativo:', r.ativo);
   return {
     id: r.id, nome: r.nome, email: r.email, contacto: r.contacto||'', funcao: r.funcao||'',
     role: r.role||'fiscalizacao', obras: (()=>{let o=r.obras||[];if(typeof o==='string'){try{o=JSON.parse(o);}catch(e){o=[];}}return Array.isArray(o)?o:[];})(), ativo: r.ativo!==false,
@@ -698,7 +697,6 @@ async function loadDB() {
     dbLoaded = true;
     hideLoadingOverlay();
     console.log('DB loaded - utilizadores:', DB.utilizadores.length, 'obras:', DB.obras.length);
-    console.log('UTILIZADORES:', DB.utilizadores.map(u=>({email:u.email,ativo:u.ativo,hash:u.pwd_hash})));
   } catch(e) {
     hideLoadingOverlay();
     console.error('Supabase load error:', e);
@@ -856,12 +854,10 @@ window.doLogin=function(){
   const email=document.getElementById('login-email').value.trim().toLowerCase();
   const pwd=document.getElementById('login-pwd').value;
   const u=DB.utilizadores.find(x=>(x.email||'').trim().toLowerCase()===email&&x.ativo);
-  console.log('LOGIN DEBUG',{dbLoaded,totalUsers:DB.utilizadores.length,inputEmail:email,found:u?u.email:'none'});
-  if(!u){document.getElementById('login-error').textContent='Utilizador não encontrado ou inativo. ('+DB.utilizadores.length+' utilizadores carregados)';return;}
+  if(!u){document.getElementById('login-error').textContent='Utilizador não encontrado ou inativo.';return;}
   if(!u.pwd_hash){document.getElementById('login-error').textContent='Acesso não configurado. Contacte o administrador.';return;}
   const computed=hashPwd(pwd).trim().toLowerCase();
   const stored=String(u.pwd_hash).trim().toLowerCase();
-  console.log('LOGIN HASH',{computed,stored,match:computed===stored});
   if(computed!==stored){document.getElementById('login-error').textContent='Password incorrecta.';return;}
   // Gating: utilizador tem que ter 'sego' em apps[] (igual ao SIGO)
   const userApps=Array.isArray(u.apps)?u.apps:[];
