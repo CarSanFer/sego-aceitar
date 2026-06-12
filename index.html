@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.12.0641</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.12.0657</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -1900,19 +1900,21 @@ window.criarCOdoUltimo=async function(obraId,tipo,subtipo){
   }catch(e){ hideLoadingOverlay(); alert('Erro: '+e.message); }
 };
 window.abrirPublicar=function(relId){
-  const rel=DB.relatorios.find(x=>x.id===relId); if(!rel){alert('RVT não encontrado.');return;}
+  const rel=DB.relatorios.find(x=>x.id===relId); if(!rel){alert('Relatório não encontrado.');return;}
   const o=DB.obras.find(x=>x.id===rel.obra_id)||{};
+  const _sub=(rel.conteudo&&rel.conteudo.subtipo)||'';
+  const _sigla=_sub==='RS'?'RSO':(_sub||'documento');
   const roleL={dono_obra:'Dono de Obra',fiscalizacao:'Fiscalização',superadmin:'Fiscalização',empreiteiro:'Empreiteiro',projetista:'Projetista'};
   const inObra=u=>u.obras==='todas'||(Array.isArray(u.obras)&&u.obras.some(oid=>String(oid)===String(o.id)));
   const people=(DB.utilizadores||[]).filter(u=>u.email&&roleL[u.role]&&inObra(u));
   const link=location.origin+'/?doc='+encodeURIComponent(relId);
   const obraTxt=((o.sigla?o.sigla+' — ':'')+(o.nome||'')).trim();
-  const defMsg='Foi disponibilizado o RVT '+relNumero(rel)+' | '+obraTxt+'.';
-  const opts=people.length?people.map(u=>`<label style="display:flex;gap:8px;align-items:center;padding:5px 0"><input type="checkbox" class="pub-cb" value="${u.email}" data-nome="${(u.nome||'').replace(/"/g,'')}" checked><span style="font-size:13px">${u.nome||u.email} <span style="color:var(--text-muted)">· ${roleL[u.role]} · ${u.email}</span></span></label>`).join(''):'<div style="font-size:12px;color:var(--text-muted)">Sem intervenientes com email nesta obra.</div>';
-  showModal('Publicar e enviar — '+relNumero(rel),`
+  const defMsg='Foi disponibilizado o '+_sigla+' '+relNumero(rel)+' | '+obraTxt+'.';
+  const opts=people.length?people.map(u=>`<label style="display:flex;gap:8px;align-items:center;padding:5px 0"><input type="checkbox" class="pub-cb" value="${u.email}" data-nome="${(u.nome||'').replace(/"/g,'')}"><span style="font-size:13px">${u.nome||u.email} <span style="color:var(--text-muted)">· ${roleL[u.role]} · ${u.email}</span></span></label>`).join(''):'<div style="font-size:12px;color:var(--text-muted)">Sem intervenientes com email nesta obra.</div>';
+  showModal('Publicar e enviar — '+_sigla+' '+relNumero(rel),`
     <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">Mensagem (parametrizável)</div>
     <textarea id="pub-msg" class="form-input" style="width:100%;min-height:90px;margin-bottom:14px">${defMsg}</textarea>
-    <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">Intervenientes — destique quem não deve receber</div>
+    <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">Intervenientes — seleccione quem deve receber (por defeito ninguém é seleccionado)</div>
     <div style="max-height:170px;overflow:auto;border:1px solid var(--border-light);border-radius:var(--radius);padding:4px 10px;margin-bottom:14px">${opts}</div>
     <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">Emails adicionais (separados por vírgula)</div>
     <input id="pub-extra" class="form-input" style="width:100%" placeholder="ceo@empresa.pt, ...">
@@ -1925,6 +1927,8 @@ window.abrirPublicar=function(relId){
 window.publicarEnviar=async function(relId){
   const rel=DB.relatorios.find(x=>x.id===relId); if(!rel)return;
   const o=DB.obras.find(x=>x.id===rel.obra_id)||{};
+  const _sub=(rel.conteudo&&rel.conteudo.subtipo)||'';
+  const _sigla=_sub==='RS'?'RSO':(_sub||'documento');
   const msg=(document.getElementById('pub-msg')?.value||'').trim();
   const checks=[...document.querySelectorAll('.pub-cb:checked')].map(c=>({email:c.value,nome:c.dataset.nome||''}));
   const extra=(document.getElementById('pub-extra')?.value||'').split(/[\n,;]+/).map(x=>x.trim()).filter(x=>x.includes('@')).map(e=>({email:e,nome:''}));
@@ -1939,12 +1943,16 @@ window.publicarEnviar=async function(relId){
     if(!window.emailjs){ lastErr='EmailJS não carregou (window.emailjs indefinido).'; }
     if(window.emailjs && dest.length){
       for(const d of dest){
-        try{ await emailjs.send(EJS.service, EJS_TPL_RVT, {to_email:d.email,to_name:d.nome||d.email,obra_nome:obraTxt,rvt_ref:relNumero(rel),doc_link:link,mensagem:msg}); ok++; }
-        catch(e){ console.error('EmailJS RVT falhou para',d.email,e); fail++; lastErr=(e&&(e.text||e.message))||(typeof e==='string'?e:JSON.stringify(e)); }
+        try{ await emailjs.send(EJS.service, EJS_TPL_RVT, {to_email:d.email,to_name:d.nome||d.email,obra_nome:obraTxt,rvt_ref:_sigla+' '+relNumero(rel),doc_link:link,mensagem:msg,doc_tipo:_sigla}); ok++; }
+        catch(e){ console.error('EmailJS falhou para',d.email,e); fail++; lastErr=(e&&(e.text||e.message))||(typeof e==='string'?e:JSON.stringify(e)); }
       }
     }
     hideLoadingOverlay(); closeModal(); render();
-    if(dest.length) alert('RVT publicado.\nEmails enviados: '+ok+(fail?(' · falhas: '+fail+'\n\nErro EmailJS: '+lastErr+'\n(serviço '+EJS.service+' · template '+EJS_TPL_RVT+')'):''));
+    if(dest.length){
+      alert(_sigla+' publicado.\nEmails enviados: '+ok+(fail?(' · falhas: '+fail+'\n\nErro EmailJS: '+lastErr+'\n(serviço '+EJS.service+' · template '+EJS_TPL_RVT+')'):''));
+    } else {
+      alert(_sigla+' publicado.\n(Sem destinatários seleccionados — não foram enviados emails.)');
+    }
   }catch(e){ hideLoadingOverlay(); alert('Erro: '+e.message); }
 };
 async function renderPublicDoc(relId){
@@ -1961,14 +1969,15 @@ async function renderPublicDoc(relId){
   const fr=document.getElementById('pubFrame'); if(fr) fr.srcdoc=html;
 }
 function rvtRowBtns(r){
-  if(!(r.conteudo&&r.conteudo.tipo==='seguranca')) return '';
-  const lista=DB.relatorios.filter(x=>x.obra_id===r.obra_id&&x.conteudo&&x.conteudo.tipo==='seguranca'&&x.conteudo.subtipo==='RVT');
+  if(!r.conteudo||!r.conteudo.tipo||!r.conteudo.subtipo) return '';
+  const tipo=r.conteudo.tipo, subtipo=r.conteudo.subtipo;
+  const lista=DB.relatorios.filter(x=>x.obra_id===r.obra_id&&x.conteudo&&x.conteudo.tipo===tipo&&x.conteudo.subtipo===subtipo);
   const maxNum=lista.length?Math.max(...lista.map(x=>x.numero||0)):0;
   const S='font-size:10px;padding:2px 7px';
   let b='';
   if(r.estado==='disponibilizado') b+=`<button class="btn btn-outline btn-sm" style="${S}" onclick="event.stopPropagation();criarRevisao('${r.id}')">✎ Rever</button>`;
   else b+=`<button class="btn btn-gold btn-sm" style="${S}" onclick="event.stopPropagation();abrirPublicar('${r.id}')">✓ Publicar</button>`;
-  if((r.numero||0)===maxNum) b+=`<button class="btn btn-outline btn-sm" style="${S}" onclick="event.stopPropagation();criarCOdoUltimo('${r.obra_id}','seguranca','RVT')">⧉ Novo</button>`;
+  if((r.numero||0)===maxNum) b+=`<button class="btn btn-outline btn-sm" style="${S}" onclick="event.stopPropagation();criarCOdoUltimo('${r.obra_id}','${tipo}','${subtipo}')">⧉ Novo</button>`;
   return b;
 }
 const FISC_TIPOS=[{key:'RS',sigla:'RSO',label:'Relatório Semanal de Obra',icon:`<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="9" y="6" width="30" height="36" rx="2" stroke="currentColor" stroke-width="2.5"/><path d="M16 16h16M16 22h16M16 28h10" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>`}];
@@ -3286,7 +3295,7 @@ function renderFichaObra(app){
   );
 
   const novoBtn=o.relMensal&&(currentUser?.role==='fiscalizacao'||canAdmin())?`<div style="display:flex;gap:6px;align-items:center"><button class="btn btn-outline btn-sm" style="font-size:11px;padding:3px 10px" onclick="event.stopPropagation();abrirCapaFisc('${o.id}')">Fiscalização</button><button class="btn btn-gold btn-sm" style="font-size:11px;padding:3px 10px" onclick="event.stopPropagation();abrirCapaSeg('${o.id}')">Segurança</button></div>`:'';
-  const coCols='grid-template-columns:62px 90px 110px 50px 1fr';
+  const coCols='grid-template-columns:62px 1.1fr 1.4fr 0.6fr 2.2fr';
   const coHeader=`<div style="display:grid;${coCols};gap:8px;padding:5px 4px 6px;font-size:9px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--text-muted);border-bottom:0.5px solid var(--border-light)">
     <div>Nº</div>
     <div>Período</div>
