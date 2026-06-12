@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.11.2014</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.12.0608</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -971,6 +971,8 @@ function render(){
 let relObraId=null, relRelId=null, relTab='capa';
 let segObraId=null;
 let fiscObraId=null;
+let capaContext={tipo:null,subtipo:null,sigla:null,label:null,backVar:null};
+function resetCapaContext(){capaContext={tipo:null,subtipo:null,sigla:null,label:null,backVar:null};}
 
 // ================================================================
 // RELATÓRIOS — HELPERS
@@ -1008,13 +1010,13 @@ function renderRelatorios(app){
     <tbody>${obras.length?obras.map(o=>{
       const rels=DB.relatorios.filter(r=>r.obra_id===o.id&&relVisivelParaUser(r));
       const ultimo=rels.sort((a,b)=>b.numero-a.numero)[0];
-      return `<tr class="tr-click" onclick="relObraId='${o.id}';relRelId=null;render()">
+      return `<tr class="tr-click" onclick="resetCapaContext();relObraId='${o.id}';relRelId=null;render()">
         <td><span class="code-pill">${o.codigo}</span></td>
         <td><strong>${o.sigla}</strong></td>
         <td>${o.nome}</td>
         <td>${estadoBadge(o.estado)}</td>
         <td>${ultimo?`${relNumero(ultimo)} — ${fmtMesAno(ultimo.mes,ultimo.ano)} ${relBadge(ultimo.estado)}`:'<span style="color:var(--text-muted);font-size:12px">Sem relatórios</span>'}</td>
-        <td><button class="btn btn-outline btn-sm" onclick="event.stopPropagation();relObraId='${o.id}';relRelId=null;render()">Ver →</button></td>
+        <td><button class="btn btn-outline btn-sm" onclick="event.stopPropagation();resetCapaContext();relObraId='${o.id}';relRelId=null;render()">Ver →</button></td>
       </tr>`;
     }).join(''):`<tr><td colspan="6" class="empty-state">Nenhuma obra com relatório mensal activado.</td></tr>`}
     </tbody>
@@ -1027,31 +1029,52 @@ function renderRelatorios(app){
 function renderCapaObra(app){
   const o=DB.obras.find(x=>x.id===relObraId);
   if(!o){relObraId=null;render();return;}
-  const rels=DB.relatorios.filter(r=>r.obra_id===o.id&&relVisivelParaUser(r)).sort((a,b)=>(b.numero-a.numero)||(b.versao-a.versao));
+  // Filtrar pelo capaContext (se setado)
+  const rels=DB.relatorios.filter(r=>{
+    if(r.obra_id!==o.id) return false;
+    if(!relVisivelParaUser(r)) return false;
+    if(capaContext.tipo && (!r.conteudo || r.conteudo.tipo!==capaContext.tipo)) return false;
+    if(capaContext.subtipo && (!r.conteudo || r.conteudo.subtipo!==capaContext.subtipo)) return false;
+    return true;
+  }).sort((a,b)=>(b.numero-a.numero)||(b.versao-a.versao));
   const canCreate=currentUser?.role==='fiscalizacao'||canAdmin();
   const cli=(DB.empresas||[]).find(e=>e.role==='cliente'&&(e.obras||[]).includes(o.id));
+  // Botão voltar — vai à capa correta consoante o backVar
+  let backOnclick='relObraId=null;resetCapaContext();render()';
+  let backLabel='← Voltar a Relatórios';
+  if(capaContext.backVar==='seg'){ backOnclick=`relObraId=null;segObraId='${o.id}';resetCapaContext();render()`; backLabel='← Voltar a Segurança'; }
+  else if(capaContext.backVar==='fisc'){ backOnclick=`relObraId=null;fiscObraId='${o.id}';resetCapaContext();render()`; backLabel='← Voltar a Fiscalização'; }
+  // Botão criar — usa capaContext se houver, senão default RVT
+  const createBtn = canCreate ? (capaContext.tipo && capaContext.subtipo
+    ? `<button class="btn btn-gold btn-sm" onclick="criarCO('${o.id}','${capaContext.tipo}','${capaContext.subtipo}')">+ Novo ${capaContext.sigla}</button>`
+    : `<button class="btn btn-gold btn-sm" onclick="criarCO('${o.id}','seguranca','RVT')">+ Novo RVT</button>`) : '';
+  // Sub-título indicando o filtro activo
+  const filtroLbl = capaContext.sigla ? ` · ${capaContext.sigla}` : '';
   app.innerHTML=`
-  <button class="back-btn" onclick="relObraId=null;render()">← Voltar a Relatórios</button>
+  <button class="back-btn" onclick="${backOnclick}">${backLabel}</button>
   <div class="page-header">
     <div>
-      <div class="page-title"><span class="code-pill" style="font-size:13px">${o.codigo}</span>${o.sigla} — ${o.nome}</div>
-      <div style="margin-top:4px">${estadoBadge(o.estado)}</div>
+      <div class="page-title"><span class="code-pill" style="font-size:13px">${o.codigo}</span>${o.sigla} — ${o.nome}${filtroLbl}</div>
+      <div style="margin-top:4px">${estadoBadge(o.estado)}${capaContext.label?` · <span style="font-size:12px;color:var(--text-muted)">${capaContext.label}</span>`:''}</div>
     </div>
     <div class="page-actions">
     </div>
   </div>
-  ${(currentUser?.role==='fiscalizacao'||canAdmin())?`<div style="margin-bottom:12px"><button class="btn btn-gold btn-sm" onclick="criarCO('${o.id}','seguranca','RVT')">+ Novo RVT</button></div>`:''}
+  ${createBtn?`<div style="margin-bottom:12px">${createBtn}</div>`:''}
   <!-- Lista de relatórios -->
   <div class="table-card"><div class="table-wrap"><table>
     <thead><tr><th>Referência</th><th>Período</th><th>Estado</th><th>Criado por</th><th>Data</th><th>Ações</th></tr></thead>
-    <tbody>${rels.length?rels.map(r=>`<tr class="tr-click" onclick="relRelId='${r.id}';relTab='capa';render()">
-      <td><strong>${relNumero(r)}</strong></td>
+    <tbody>${rels.length?rels.map(r=>{
+      const rowSigla = capaContext.sigla || (r.conteudo&&r.conteudo.subtipo==='RS'?'RSO':(r.conteudo&&r.conteudo.subtipo)||'');
+      return `<tr class="tr-click" onclick="relRelId='${r.id}';relTab='capa';render()">
+      <td><strong>${rowSigla?rowSigla+' ':''}${relNumero(r)}</strong></td>
       <td>${fmtMesAno(r.mes,r.ano)}</td>
       <td>${relBadge(r.estado)}</td>
       <td style="font-size:12px;color:var(--text-muted)">${r.criado_por_nome||'—'}</td>
       <td style="font-size:12px">${r.criado_em?fmtDate(r.criado_em.split('T')[0]):'—'}</td>
       <td onclick="event.stopPropagation()"><div class="actions-cell" style="display:flex;gap:6px;align-items:center;justify-content:flex-end">${rvtRowBtns(r)}${canAdmin()?`<button class="btn-icon del" onclick="confirmDel('relatorio','${r.id}','${relNumero(r)}')">🗑️</button>`:''}</div></td>
-    </tr>`).join(''):`<tr><td colspan="6" class="empty-state">Sem relatórios para esta obra.</td></tr>`}
+    </tr>`;
+    }).join(''):`<tr><td colspan="6" class="empty-state">Sem relatórios para esta obra${filtroLbl?' ('+capaContext.sigla+')':''}.</td></tr>`}
     </tbody>
   </table></div></div>`;
 }
@@ -1836,13 +1859,18 @@ function renderCapaSeguranca(app){
   const o=DB.obras.find(x=>x.id===segObraId);
   if(!o){segObraId=null;render();return;}
   const card=(t)=>{
-    const n=DB.relatorios.filter(r=>r.obra_id===o.id&&r.conteudo&&r.conteudo.tipo==='seguranca'&&r.conteudo.subtipo===t.key).length;
+    const lista=DB.relatorios.filter(r=>r.obra_id===o.id&&r.conteudo&&r.conteudo.tipo==='seguranca'&&r.conteudo.subtipo===t.key).sort((a,b)=>(b.numero-a.numero)||(b.versao-a.versao));
+    const n=lista.length;
+    const last=lista[0];
+    const lastInfo=last?`<div style="margin-top:6px;padding-top:6px;border-top:0.5px solid var(--border-light);font-size:10px;color:var(--text-muted);line-height:1.5">Último: <strong style="color:var(--text)">${t.sigla} ${relNumero(last)}</strong><br>${last.criado_em?fmtDate(last.criado_em.split('T')[0]):'—'} · ${relBadge(last.estado)}<br>Total: ${n}</div>`:'<div style="margin-top:6px;padding-top:6px;border-top:0.5px solid var(--border-light);font-size:10px;color:var(--text-muted);font-style:italic">Sem relatórios</div>';
     const icon=t.icon.replace('currentColor','var(--danger)');
-    return `<div onclick="relObraId='${o.id}';segObraId=null;render()" style="background:var(--bg-card);border:0.5px solid var(--border-light);border-radius:var(--radius);cursor:pointer;transition:all .15s;padding:14px 12px;text-align:center" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border-light)'">
-      <div style="font-size:9px;font-weight:700;color:var(--text-muted);letter-spacing:.8px;text-transform:uppercase;margin-bottom:5px">${t.sigla}</div>
+    const ctx=`capaContext={tipo:'seguranca',subtipo:'${t.key}',sigla:'${t.sigla}',label:'${t.label.replace(/'/g,"\\'")}',backVar:'seg'}`;
+    return `<div onclick="${ctx};relObraId='${o.id}';segObraId=null;render()" style="background:var(--bg-card);border:0.5px solid var(--border-light);border-radius:var(--radius);cursor:pointer;transition:all .15s;padding:14px 12px;text-align:center" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border-light)'">
+      <div style="font-size:9px;font-weight:700;color:var(--text-muted);letter-spacing:.8px;text-transform:uppercase;margin-bottom:5px">Segurança · ${t.sigla}</div>
       <div style="width:44px;height:44px;margin:0 auto 8px">${icon}</div>
-      <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:2px">Abrir RVT</div>
+      <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:2px">Abrir ${t.sigla}</div>
       <div style="font-size:11px;color:var(--text-muted)">${t.label}</div>
+      ${lastInfo}
     </div>`;
   };
   app.innerHTML=`
@@ -1947,19 +1975,24 @@ function rvtRowBtns(r){
   if((r.numero||0)===maxNum) b+=`<button class="btn btn-outline btn-sm" style="${S}" onclick="event.stopPropagation();criarCOdoUltimo('${r.obra_id}','seguranca','RVT')">⧉ Novo</button>`;
   return b;
 }
-const FISC_TIPOS=[{key:'RS',sigla:'RS',label:'Relatório Semanal de Obra',icon:`<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="9" y="6" width="30" height="36" rx="2" stroke="currentColor" stroke-width="2.5"/><path d="M16 16h16M16 22h16M16 28h10" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>`}];
+const FISC_TIPOS=[{key:'RS',sigla:'RSO',label:'Relatório Semanal de Obra',icon:`<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="9" y="6" width="30" height="36" rx="2" stroke="currentColor" stroke-width="2.5"/><path d="M16 16h16M16 22h16M16 28h10" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>`}];
 window.abrirCapaFisc=function(obraId){ closeModal(); fiscObraId=obraId; segObraId=null; relRelId=null; render(); };
 function renderCapaFiscalizacao(app){
   const o=DB.obras.find(x=>x.id===fiscObraId);
   if(!o){fiscObraId=null;render();return;}
   const card=(t)=>{
-    const n=DB.relatorios.filter(r=>r.obra_id===o.id&&r.conteudo&&r.conteudo.tipo==='fiscalizacao'&&r.conteudo.subtipo===t.key).length;
+    const lista=DB.relatorios.filter(r=>r.obra_id===o.id&&r.conteudo&&r.conteudo.tipo==='fiscalizacao'&&r.conteudo.subtipo===t.key).sort((a,b)=>(b.numero-a.numero)||(b.versao-a.versao));
+    const n=lista.length;
+    const last=lista[0];
+    const lastInfo=last?`<div style="margin-top:6px;padding-top:6px;border-top:0.5px solid var(--border-light);font-size:10px;color:var(--text-muted);line-height:1.5">Último: <strong style="color:var(--text)">${t.sigla} ${relNumero(last)}</strong><br>${last.criado_em?fmtDate(last.criado_em.split('T')[0]):'—'} · ${relBadge(last.estado)}<br>Total: ${n}</div>`:'<div style="margin-top:6px;padding-top:6px;border-top:0.5px solid var(--border-light);font-size:10px;color:var(--text-muted);font-style:italic">Sem relatórios</div>';
     const icon=t.icon.replace('currentColor','var(--info)');
-    return `<div onclick="criarCO('${o.id}','fiscalizacao','${t.key}')" style="background:var(--bg-card);border:0.5px solid var(--border-light);border-radius:var(--radius);cursor:pointer;transition:all .15s;padding:14px 12px;text-align:center" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border-light)'">
-      <div style="font-size:9px;font-weight:700;color:var(--text-muted);letter-spacing:.8px;text-transform:uppercase;margin-bottom:5px">${t.sigla}</div>
+    const ctx=`capaContext={tipo:'fiscalizacao',subtipo:'${t.key}',sigla:'${t.sigla}',label:'${t.label.replace(/'/g,"\\'")}',backVar:'fisc'}`;
+    return `<div onclick="${ctx};relObraId='${o.id}';fiscObraId=null;render()" style="background:var(--bg-card);border:0.5px solid var(--border-light);border-radius:var(--radius);cursor:pointer;transition:all .15s;padding:14px 12px;text-align:center" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border-light)'">
+      <div style="font-size:9px;font-weight:700;color:var(--text-muted);letter-spacing:.8px;text-transform:uppercase;margin-bottom:5px">Fiscalização · ${t.sigla}</div>
       <div style="width:44px;height:44px;margin:0 auto 8px">${icon}</div>
-      <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:2px">+ Novo ${t.sigla}</div>
-      <div style="font-size:11px;color:var(--text-muted)">${t.label}${n?` · ${n} criado(s)`:''}</div>
+      <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:2px">Abrir ${t.sigla}</div>
+      <div style="font-size:11px;color:var(--text-muted)">${t.label}</div>
+      ${lastInfo}
     </div>`;
   };
   app.innerHTML=`
@@ -2283,8 +2316,8 @@ function fiscActionBtn(r){
   const ehUltimo=(r.numero||0)===maxNum;
   let b='';
   if(r.estado==='disponibilizado')b+=`<button class="btn btn-outline btn-sm" onclick="criarRevisao('${r.id}')">✎ Criar revisão</button>`;
-  else b+=`<button class="btn btn-gold btn-sm" onclick="abrirPublicar('${r.id}')">✓ Publicar RS</button>`;
-  if(ehUltimo)b+=` <button class="btn btn-outline btn-sm" onclick="criarCOdoUltimo('${r.obra_id}','fiscalizacao','RS')">⧉ Novo RS</button>`;
+  else b+=`<button class="btn btn-gold btn-sm" onclick="abrirPublicar('${r.id}')">✓ Publicar RSO</button>`;
+  if(ehUltimo)b+=` <button class="btn btn-outline btn-sm" onclick="criarCOdoUltimo('${r.obra_id}','fiscalizacao','RS')">⧉ Novo RSO</button>`;
   return b;
 }
 const RS_DAY_LETTERS=['S','T','Q','Q','S','S'];
@@ -2374,12 +2407,12 @@ function renderFichaRS(app,r){
   <button class="back-btn" onclick="relRelId=null;render()">← Voltar</button>
   <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
     <div>
-      <div class="page-title"><span class="code-pill" style="font-size:13px">${o.codigo||''}</span>${o.sigla||''} — RS ${relNumero(r)}</div>
+      <div class="page-title"><span class="code-pill" style="font-size:13px">${o.codigo||''}</span>${o.sigla||''} — RSO ${relNumero(r)}</div>
       <div class="page-count">${o.nome||''} · ${relBadge(r.estado)}</div>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">${fiscActionBtn(r)}</div>
   </div>
-  <div style="background:#1E3A5F;color:#fff;padding:9px 0;text-align:center;margin-top:10px;font-size:13px;letter-spacing:.5px;border-radius:6px 6px 0 0">RS — Relatório Semanal de Obra</div>
+  <div style="background:#1E3A5F;color:#fff;padding:9px 0;text-align:center;margin-top:10px;font-size:13px;letter-spacing:.5px;border-radius:6px 6px 0 0">RSO — Relatório Semanal de Obra</div>
   <div style="background:transparent;padding:14px;border:0.5px solid var(--border-light);border-top:none;border-radius:0 0 6px 6px">
 
     <!-- IDENTIFICAÇÃO -->
