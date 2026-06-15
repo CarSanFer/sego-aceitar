@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.12.0657</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.15.1619</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -2532,7 +2532,11 @@ function renderFichaRS(app,r){
         return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;align-items:center;border-bottom:0.5px dashed var(--border-light)">
           <div style="display:grid;${colsAtLeft};gap:6px;align-items:center">
             <div style="font-size:11px;color:var(--text-muted);text-align:center;padding:5px 0">${s.id||(i+1)}</div>
-            <div style="padding:4px 0"><input value="${esc(s.atividade)}" list="rs-tipos-ativ" ${ro?'readonly':''} oninput="rsCommit('subempreiteiros',${i},'atividade',this.value)" style="${ro?inpRO:inpS}"></div>
+            <div style="padding:4px 0"><select onchange="rsCommit('subempreiteiros',${i},'atividade',this.value)" ${ro?'disabled':''} style="${ro?inpRO:inpS};font-family:inherit;padding:0 4px;cursor:${ro?'default':'pointer'}">
+              <option value="">— escolher —</option>
+              ${[...new Set(d.atividades.filter(a=>(a.descricao||'').trim()).map(a=>a.descricao))].map(desc=>`<option value="${esc(desc)}" ${s.atividade===desc?'selected':''}>${esc(desc)}</option>`).join('')}
+              ${(s.atividade && !d.atividades.some(a=>a.descricao===s.atividade)) ? `<option value="${esc(s.atividade)}" selected>${esc(s.atividade)} (removida)</option>` : ''}
+            </select></div>
             <div style="padding:4px 0"><input value="${esc(s.subempreiteiro)}" ${ro?'readonly':''} oninput="rsCommit('subempreiteiros',${i},'subempreiteiro',this.value)" style="${ro?inpRO:inpS}"></div>
           </div>
           <div style="display:grid;${colsAtRight};gap:6px;align-items:center">
