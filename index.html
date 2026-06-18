@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.18.1949</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.18.2006</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -2046,6 +2046,12 @@ window.rsCommit=function(section,idx,key,value){
     if(typeof rsUpdatePillsRow==='function') rsUpdatePillsRow(idx);
     if(typeof rsRefreshKPIAtiv==='function') rsRefreshKPIAtiv();
   }
+  // Espelho: descrição de atividade muda → actualizar input da Ativ. no subempreiteiro do mesmo índice
+  if(section==='atividades' && key==='descricao'){
+    if(typeof rsUpdateSubAtivEspelho==='function') rsUpdateSubAtivEspelho(idx);
+    if(typeof rsUpdateSubInputsRow==='function') rsUpdateSubInputsRow(idx);
+    if(typeof rsRefreshKPISub==='function') rsRefreshKPISub();
+  }
   if(section==='subempreiteiros' && (key==='atividade' || key==='subempreiteiro')){
     if(typeof rsUpdateSubInputsRow==='function') rsUpdateSubInputsRow(idx);
     if(typeof rsRefreshKPISub==='function') rsRefreshKPISub();
@@ -2067,6 +2073,12 @@ window.rsAddRow=function(section){
     if(section==='atividades'||section==='subempreiteiros')row.dias=[];
   }
   arr.push(row);
+  // Sincronização: adicionar em Atividades cria também a linha correspondente em Subempreiteiros
+  if(section==='atividades'){
+    r.conteudo.dados.subempreiteiros=r.conteudo.dados.subempreiteiros||[];
+    const subId=(r.conteudo.dados.subempreiteiros.length||0)+1;
+    r.conteudo.dados.subempreiteiros.push({id:subId,dias:[]});
+  }
   sbRel.patch('relatorios',relRelId,{conteudo:JSON.stringify(r.conteudo)}).catch(console.error);
   render();
 };
@@ -2074,10 +2086,20 @@ window.rsRemoveRow=function(section,idx){
   if(!confirm('Remover esta linha?'))return;
   const r=DB.relatorios.find(x=>x.id===relRelId);if(!r)return;
   if(r.estado==='disponibilizado')return;
+  r.conteudo.dados[section]=r.conteudo.dados[section]||[];
   r.conteudo.dados[section].splice(idx,1);
-  // Renumerar IDs após remover (atividades/subempreiteiros têm id sequencial; documentacao mantém id manual)
+  // Sincronização Atividades⇄Subempreiteiros: apagar uma também apaga a outra no mesmo índice
+  if(section==='atividades'){
+    r.conteudo.dados.subempreiteiros=r.conteudo.dados.subempreiteiros||[];
+    if(idx<r.conteudo.dados.subempreiteiros.length) r.conteudo.dados.subempreiteiros.splice(idx,1);
+  } else if(section==='subempreiteiros'){
+    r.conteudo.dados.atividades=r.conteudo.dados.atividades||[];
+    if(idx<r.conteudo.dados.atividades.length) r.conteudo.dados.atividades.splice(idx,1);
+  }
+  // Renumerar IDs em ambas as tabelas (excepto documentacao que tem id manual)
   if(section!=='documentacao'){
-    (r.conteudo.dados[section]||[]).forEach((row,i)=>{ row.id=i+1; });
+    (r.conteudo.dados.atividades||[]).forEach((row,i)=>{ row.id=i+1; });
+    (r.conteudo.dados.subempreiteiros||[]).forEach((row,i)=>{ row.id=i+1; });
   }
   sbRel.patch('relatorios',relRelId,{conteudo:JSON.stringify(r.conteudo)}).catch(console.error);
   render();
@@ -2305,7 +2327,9 @@ window.rsRefreshKPISub=function(){
 window.rsUpdateSubInputsRow=function(idx){
   const r=DB.relatorios.find(x=>x.id===relRelId);if(!r)return;
   const s=(((r.conteudo||{}).dados||{}).subempreiteiros||[])[idx];if(!s)return;
-  const valid=!!((s.atividade||'').trim() && (s.subempreiteiro||'').trim());
+  // Validação usa a descrição da Atividade espelho (não s.atividade)
+  const aDesc=((((r.conteudo||{}).dados||{}).atividades||[])[idx]||{}).descricao||'';
+  const valid=!!(aDesc.trim() && (s.subempreiteiro||'').trim());
   for(let j=0;j<6;j++){
     for(const key of ['prev','efet']){
       const inp=document.querySelector('[data-rs="sub-'+idx+'-'+j+'-'+key+'"]');
@@ -2315,6 +2339,17 @@ window.rsUpdateSubInputsRow=function(idx){
       inp.disabled = !valid;
       inp.title = valid ? (key==='prev'?'Previstos':'Efetivos') : 'Preencher Ativ. e Subempreiteiro para registar P/E';
     }
+  }
+};
+// Espelho: actualiza o input da Ativ. do subempreiteiro idx com a descricao da Atividade idx
+window.rsUpdateSubAtivEspelho=function(idx){
+  if(!relRelId)return;
+  const r=DB.relatorios.find(x=>x.id===relRelId);if(!r)return;
+  const desc=((((r.conteudo||{}).dados||{}).atividades||[])[idx]||{}).descricao||'';
+  const inp=document.querySelector('[data-rs="sub-atividade-'+idx+'"]');
+  if(inp){
+    inp.value=desc;
+    inp.style.fontStyle=desc.trim()?'normal':'italic';
   }
 };
 window.rsAddPhoto=function(){
@@ -2406,6 +2441,11 @@ function renderFichaRS(app,r){
   const empty=(t)=>`<div style="padding:14px;text-align:center;color:var(--text-muted);font-size:12px;font-style:italic">${t}</div>`;
   // estilos das pills P/R (injetados uma vez)
   const styleTag=document.getElementById('rs-style')?'':`<style id="rs-style">
+    /* Esconder setas (spinners) nos inputs numéricos do RSO */
+    input[type=number]::-webkit-outer-spin-button,
+    input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type=number] { -moz-appearance: textfield; appearance: textfield; }
+
     .rs-pill{display:inline-flex;align-items:center;justify-content:center;width:26px;height:24px;border:1px solid #c8ccd1;background:#fff;font-size:11px;font-weight:700;cursor:pointer;border-radius:4px;color:#888;padding:0;margin:0;transition:all .12s}
     .rs-pill.p.on{background:#E5EFFA;color:#1B4F9B;border-color:#c8ccd1}
     .rs-pill.r.on{background:#E5F4EC;color:#1A7A4A;border-color:#c8ccd1}
@@ -2537,7 +2577,7 @@ function renderFichaRS(app,r){
           <span style="${sectTitle}">SUBEMPREITEIROS E TRABALHADORES</span>
           <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px;color:var(--text-muted);margin-left:24px">P = Previstos · E = Efetivos · Clica no dia para marcar Feriado</span>
         </div>
-        ${(!ro && !subCollapsed)?`<button class="btn btn-outline btn-sm" style="font-size:11px;padding:3px 10px" onclick="event.stopPropagation();rsAddRow('subempreiteiros')">+ linha</button>`:''}
+        ${(!ro && !subCollapsed)?`<span style="font-size:10px;color:var(--text-muted);font-style:italic">Adicionar linhas em Atividades</span>`:''}
       </div>
       ${subCollapsed?'':`
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:0 0 4px 0;font-size:10px;color:var(--text-muted);font-weight:700;letter-spacing:.3px;border-bottom:0.5px solid var(--border-light)">
@@ -2570,7 +2610,7 @@ function renderFichaRS(app,r){
         return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;align-items:center;border-bottom:0.5px dashed var(--border-light)">
           <div style="display:grid;${colsAtLeft};gap:6px;align-items:center">
             <div style="font-size:11px;color:var(--text-muted);text-align:center;padding:5px 0">${s.id||(i+1)}</div>
-            <div style="padding:4px 0"><input readonly value="${esc(((d.atividades||[])[i]||{}).descricao||'')}" placeholder="(preencher descrição na atividade ${i+1})" title="Espelha automaticamente a descrição da atividade ${i+1}" style="${inpS};background:#f5f7fa;color:#374151;cursor:not-allowed;font-style:${(((d.atividades||[])[i]||{}).descricao||'').trim()?'normal':'italic'}"></div>
+            <div style="padding:4px 0"><input readonly data-rs="sub-atividade-${i}" value="${esc(((d.atividades||[])[i]||{}).descricao||'')}" placeholder="(preencher descrição na atividade ${i+1})" title="Espelha automaticamente a descrição da atividade ${i+1}" style="${inpS};background:#f5f7fa;color:#374151;cursor:not-allowed;font-style:${(((d.atividades||[])[i]||{}).descricao||'').trim()?'normal':'italic'}"></div>
             <div style="padding:4px 0"><input value="${esc(s.subempreiteiro)}" ${ro?'readonly':''} oninput="rsCommit('subempreiteiros',${i},'subempreiteiro',this.value)" style="${ro?inpRO:inpS}"></div>
           </div>
           <div style="display:grid;${colsAtRight};gap:6px;align-items:center">
