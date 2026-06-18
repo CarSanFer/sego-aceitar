@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.15.1619</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.18.1949</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -1880,23 +1880,53 @@ function renderCapaSeguranca(app){
 }
 window.criarCOdoUltimo=async function(obraId,tipo,subtipo){
   const lista=DB.relatorios.filter(r=>r.obra_id===obraId&&r.conteudo&&r.conteudo.tipo===tipo&&r.conteudo.subtipo===subtipo);
-  if(!lista.length){ alert('Não há RVT anterior para copiar.'); return; }
+  if(!lista.length){ alert('Não há relatório anterior para copiar.'); return; }
   const prev=lista.slice().sort((a,b)=>(b.numero||0)-(a.numero||0))[0];
+  const isRSO=(tipo==='fiscalizacao' && subtipo==='RS');
   try{
-    showLoadingOverlay('A copiar último RVT...');
-    let payload=null;
-    try{ const d=await sbRel.get('checklists_amb_seg',`select=payload&obra_id=eq.${encodeURIComponent(obraId)}&rvt=eq.${encodeURIComponent(prev.id)}&limit=1`); if(d&&d[0]) payload=d[0].payload; }catch(e){}
+    showLoadingOverlay('A copiar último '+(isRSO?'RSO':'RVT')+'...');
     const agora=new Date();
     const proximoNum=(lista.length?Math.max(...lista.map(r=>r.numero||0)):0)+1;
-    const novo={ id:uid(), obra_id:obraId, numero:proximoNum, versao:0, mes:agora.getMonth()+1, ano:agora.getFullYear(), estado:'rascunho', criado_por:currentUser.id, criado_por_nome:currentUser.nome, criado_em:agora.toISOString(), conteudo:{tipo,subtipo,dados:{}} };
+    // Construir dados — para RSO copia previstos (P/Prev), para outros começa vazio
+    let dadosNovo={};
+    if(isRSO){
+      const pd=(prev.conteudo&&prev.conteudo.dados)||{};
+      const ativs=(pd.atividades||[]).map(a=>({
+        id:a.id,
+        descricao:a.descricao||'',
+        localizacao:a.localizacao||'',
+        dias:(a.dias||[]).map(x=>({p:!!x.p, r:false}))
+      }));
+      const subs=(pd.subempreiteiros||[]).map(x=>({
+        id:x.id,
+        atividade:x.atividade||'',
+        subempreiteiro:x.subempreiteiro||'',
+        dias:(x.dias||[]).map(dd=>({prev:(+dd.prev)||0, efet:0}))
+      }));
+      dadosNovo={
+        atividades:ativs,
+        subempreiteiros:subs,
+        feriados:pd.feriados||[],
+        documentacao:[],
+        analise:'',
+        outras_info:'',
+        fotos:[]
+      };
+    }
+    const novo={ id:uid(), obra_id:obraId, numero:proximoNum, versao:0, mes:agora.getMonth()+1, ano:agora.getFullYear(), estado:'rascunho', criado_por:currentUser.id, criado_por_nome:currentUser.nome, criado_em:agora.toISOString(), conteudo:{tipo,subtipo,dados:dadosNovo} };
     await sbRel.post('relatorios',{...novo,conteudo:JSON.stringify(novo.conteudo)});
     DB.relatorios.push(novo);
-    if(payload){
-      payload.meta=payload.meta||{};
-      payload.meta.data=''; payload.meta.obs_gerais=''; payload.meta.rvt='';
-      await sbRel.post('checklists_amb_seg',{obra_id:String(obraId),rvt:String(novo.id),payload,updated_at:agora.toISOString()});
+    // Para RVT, também copiar o payload checklists_amb_seg
+    if(!isRSO){
+      let payload=null;
+      try{ const d=await sbRel.get('checklists_amb_seg',`select=payload&obra_id=eq.${encodeURIComponent(obraId)}&rvt=eq.${encodeURIComponent(prev.id)}&limit=1`); if(d&&d[0]) payload=d[0].payload; }catch(e){}
+      if(payload){
+        payload.meta=payload.meta||{};
+        payload.meta.data=''; payload.meta.obs_gerais=''; payload.meta.rvt='';
+        await sbRel.post('checklists_amb_seg',{obra_id:String(obraId),rvt:String(novo.id),payload,updated_at:agora.toISOString()});
+      }
     }
-    hideLoadingOverlay(); segObraId=null; relRelId=novo.id; relTab='form'; render();
+    hideLoadingOverlay(); segObraId=null; fiscObraId=null; relRelId=novo.id; relTab=isRSO?'capa':'form'; render();
   }catch(e){ hideLoadingOverlay(); alert('Erro: '+e.message); }
 };
 window.abrirPublicar=function(relId){
@@ -2045,6 +2075,10 @@ window.rsRemoveRow=function(section,idx){
   const r=DB.relatorios.find(x=>x.id===relRelId);if(!r)return;
   if(r.estado==='disponibilizado')return;
   r.conteudo.dados[section].splice(idx,1);
+  // Renumerar IDs após remover (atividades/subempreiteiros têm id sequencial; documentacao mantém id manual)
+  if(section!=='documentacao'){
+    (r.conteudo.dados[section]||[]).forEach((row,i)=>{ row.id=i+1; });
+  }
   sbRel.patch('relatorios',relRelId,{conteudo:JSON.stringify(r.conteudo)}).catch(console.error);
   render();
 };
@@ -2091,8 +2125,11 @@ window.rsSetWorkerDay=function(idx,dayIdx,key,value){
   r.conteudo.dados=r.conteudo.dados||{};
   r.conteudo.dados.subempreiteiros=r.conteudo.dados.subempreiteiros||[];
   const s=r.conteudo.dados.subempreiteiros[idx];if(!s)return;
-  // Bloqueio: exige Ativ. E Subempreiteiro preenchidos
-  if(!((s.atividade||'').trim() && (s.subempreiteiro||'').trim()))return;
+  // Bloqueio: exige descrição da Atividade espelho E Subempreiteiro preenchidos
+  const _aDesc=((((r.conteudo.dados.atividades||[])[idx])||{}).descricao||'').trim();
+  if(!(_aDesc && (s.subempreiteiro||'').trim()))return;
+  // Espelho: sincroniza s.atividade com a descrição da atividade do mesmo índice
+  s.atividade=_aDesc;
   s.dias=s.dias||[];
   if(!s.dias[dayIdx])s.dias[dayIdx]={prev:0,efet:0};
   s.dias[dayIdx][key]=(+value)||0;
@@ -2111,7 +2148,8 @@ window.rsReplicateWorkerDay=function(idx,dayIdx,key,value){
   const r=DB.relatorios.find(x=>x.id===relRelId);if(!r)return;
   if(r.estado==='disponibilizado')return;
   const s=(((r.conteudo||{}).dados||{}).subempreiteiros||[])[idx];if(!s)return;
-  if(!((s.atividade||'').trim() && (s.subempreiteiro||'').trim()))return;
+  const _aDesc=((((r.conteudo||{}).dados||{}).atividades||[])[idx]||{}).descricao||'';
+  if(!(_aDesc.trim() && (s.subempreiteiro||'').trim()))return;
   const newVal=(+value)||0;
   if(newVal<=0)return;
   s.dias=s.dias||[];
@@ -2515,7 +2553,7 @@ function renderFichaRS(app,r){
       </div>
       ${d.subempreiteiros.length?d.subempreiteiros.map((s,i)=>{
         const dias=s.dias||[];
-        const isRowValid=!!((s.atividade||'').trim() && (s.subempreiteiro||'').trim());
+        const isRowValid=!!((((d.atividades||[])[i]||{}).descricao||'').trim() && (s.subempreiteiro||'').trim());
         const inpOp=isRowValid?'1':'0.4';
         const inpCur=isRowValid?'text':'not-allowed';
         const tP=isRowValid?'Previstos':'Preencher Ativ. e Subempreiteiro para registar P/E';
@@ -2532,11 +2570,7 @@ function renderFichaRS(app,r){
         return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;align-items:center;border-bottom:0.5px dashed var(--border-light)">
           <div style="display:grid;${colsAtLeft};gap:6px;align-items:center">
             <div style="font-size:11px;color:var(--text-muted);text-align:center;padding:5px 0">${s.id||(i+1)}</div>
-            <div style="padding:4px 0"><select onchange="rsCommit('subempreiteiros',${i},'atividade',this.value)" ${ro?'disabled':''} style="${ro?inpRO:inpS};font-family:inherit;padding:0 4px;cursor:${ro?'default':'pointer'}">
-              <option value="">— escolher —</option>
-              ${[...new Set(d.atividades.filter(a=>(a.descricao||'').trim()).map(a=>a.descricao))].map(desc=>`<option value="${esc(desc)}" ${s.atividade===desc?'selected':''}>${esc(desc)}</option>`).join('')}
-              ${(s.atividade && !d.atividades.some(a=>a.descricao===s.atividade)) ? `<option value="${esc(s.atividade)}" selected>${esc(s.atividade)} (removida)</option>` : ''}
-            </select></div>
+            <div style="padding:4px 0"><input readonly value="${esc(((d.atividades||[])[i]||{}).descricao||'')}" placeholder="(preencher descrição na atividade ${i+1})" title="Espelha automaticamente a descrição da atividade ${i+1}" style="${inpS};background:#f5f7fa;color:#374151;cursor:not-allowed;font-style:${(((d.atividades||[])[i]||{}).descricao||'').trim()?'normal':'italic'}"></div>
             <div style="padding:4px 0"><input value="${esc(s.subempreiteiro)}" ${ro?'readonly':''} oninput="rsCommit('subempreiteiros',${i},'subempreiteiro',this.value)" style="${ro?inpRO:inpS}"></div>
           </div>
           <div style="display:grid;${colsAtRight};gap:6px;align-items:center">
@@ -2603,7 +2637,7 @@ function renderFichaRS(app,r){
             ${ro?'':`<div style="padding:5px 0;text-align:center">${removeBtn('documentacao',i)}</div>`}
           </div>
         </div>`).join(''):empty('Sem documentação registada')}
-      <datalist id="rs-doc-tipos"><option value="PE"><option value="PA"><option value="TCm"><option value="QE"></datalist>
+      <datalist id="rs-doc-tipos"><option value="PTQ"><option value="PB"><option value="PA"><option value="PE"><option value="QE"><option value="AM"><option value="TCm"></datalist>
       <datalist id="rs-doc-estados"><option value="Aprovado"><option value="Pendente"><option value="Em análise"><option value="Rejeitado"><option value="Enviado"></datalist>
       `}
     </div>
