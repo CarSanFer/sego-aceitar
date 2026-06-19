@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.18.2006</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.18.2014</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -1993,10 +1993,137 @@ async function renderPublicDoc(relId){
   try{ const d=await sb.get('obras',`select=*&id=eq.${encodeURIComponent(rel.obra_id)}&limit=1`); if(d&&d[0]) o=mapObra(d[0]); }catch(e){}
   let conteudo={}; try{ conteudo=typeof rel.conteudo==='string'?JSON.parse(rel.conteudo):(rel.conteudo||{}); }catch(e){}
   const sub=conteudo.subtipo||'RVT';
+  // RSO: renderiza HTML standalone (não usa template RVT)
+  if(sub==='RS'){ renderPublicRSO(rel,o,conteudo); return; }
+  // RVT (default): iframe com template
   const cfg={url:SUPA_SEGO.url,key:SUPA_SEGO.key,obra_id:String(rel.obra_id),rvt:String(rel.id),readonly:true,meta:{obra:((o.codigo?o.codigo+' — ':'')+(o.nome||'')).trim(),rvt:relNumero(rel),cso:'Clarice Ferreira'}};
   const html=rvtDecode(RVT_TEMPLATE_B64).replace('/*__SEGO_CONFIG__*/', function(){ return 'window.__SEGO__='+JSON.stringify(cfg)+';'; });
   document.body.innerHTML=`<iframe id="pubFrame" title="RVT" style="width:100%;height:100vh;border:0;background:#fff"></iframe>`;
   const fr=document.getElementById('pubFrame'); if(fr) fr.srcdoc=html;
+}
+// Renderiza RSO em modo público (HTML standalone, sem iframe)
+function renderPublicRSO(rel,o,conteudo){
+  const d=conteudo.dados||{};
+  const obraTxt=((o.codigo?o.codigo+' — ':'')+(o.nome||'')).trim();
+  const sigla=o.sigla||'';
+  const num=relNumero(rel);
+  const ativs=(d.atividades||[]).filter(a=>(a.descricao||'').trim());
+  const subs=(d.subempreiteiros||[]).filter(x=>(x.subempreiteiro||'').trim());
+  const docs=(d.documentacao||[]).filter(x=>(x.descricao||'').trim()||(x.id||'').toString().trim());
+  const fotos=d.fotos||[];
+  const feriados=d.feriados||{};
+  const DAY=['Seg','Ter','Qua','Qui','Sex','Sáb'];
+  const totalAtv=ativs.length;
+  const totalSub=subs.length;
+  const titDoc=(sigla?sigla+' — ':'')+'RSO '+num;
+  document.title=titDoc+' · '+obraTxt;
+  const html=`<style>
+    body{font-family:'Calibri','Segoe UI',sans-serif;margin:0;padding:0;background:#f5f7fa;color:#333;line-height:1.4}
+    .container{max-width:1100px;margin:0 auto;padding:0;background:#fff;box-shadow:0 2px 10px rgba(0,0,0,0.05);min-height:100vh}
+    .header{background:linear-gradient(135deg,#1F2A44,#2C3E64);color:#fff;padding:24px 28px}
+    .htop{font-size:11px;letter-spacing:1.5px;opacity:0.7;margin-bottom:6px;text-transform:uppercase}
+    .htit{font-size:26px;font-weight:700;margin:4px 0}
+    .hsub{font-size:14px;opacity:0.9;margin-top:4px}
+    .badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:700;background:#C9922A;color:#fff;margin-left:10px;letter-spacing:.5px;text-transform:uppercase}
+    .body{padding:24px 28px}
+    h2{font-size:13px;text-transform:uppercase;letter-spacing:.8px;border-bottom:2px solid #1F2A44;padding-bottom:8px;margin:28px 0 14px;color:#1F2A44}
+    h2:first-child{margin-top:0}
+    table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px}
+    th{background:#f0f2f5;padding:8px 6px;text-align:left;border-bottom:2px solid #1F2A44;font-size:10px;text-transform:uppercase;letter-spacing:.3px;color:#1F2A44}
+    th.c{text-align:center}
+    td{padding:6px 8px;border-bottom:1px solid #eee;vertical-align:middle}
+    td.c{text-align:center}
+    .ident{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;background:#f9fafb;padding:16px;border-radius:6px;border:1px solid #e5e7eb}
+    .ident-label{font-size:10px;text-transform:uppercase;color:#666;letter-spacing:.4px;margin-bottom:3px;font-weight:600}
+    .ident-value{font-size:14px;font-weight:600;color:#1F2A44}
+    .pill{display:inline-block;min-width:22px;height:20px;line-height:20px;text-align:center;border:1px solid #d0d5dd;border-radius:4px;font-size:10px;font-weight:700;padding:0 4px;margin:0 1px}
+    .pill.p-on{background:#E5EFFA;color:#1B4F9B;border-color:#1B4F9B}
+    .pill.r-on{background:#E5F4EC;color:#1A7A4A;border-color:#1A7A4A}
+    .pill.off{background:#fafafa;color:#bbb}
+    .day-fer{background:#FEEFEF !important;color:#B91C1C}
+    .text-block{background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;padding:14px;white-space:pre-wrap;font-size:13px;line-height:1.6;color:#333}
+    .photos{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+    .photos a{display:block;aspect-ratio:1;background-size:cover;background-position:center;border-radius:6px;border:1px solid #ddd;text-decoration:none;background-color:#f0f0f0}
+    .footer{margin-top:36px;padding:18px 28px;border-top:1px solid #e5e7eb;font-size:11px;color:#888;text-align:center;background:#fafbfc}
+    .empty{font-style:italic;color:#999;padding:8px 0;font-size:12px}
+    @media print {body{background:#fff} .container{box-shadow:none;max-width:none}}
+  </style>
+  <div class="container">
+    <div class="header">
+      <div class="htop">SEGO · Relatório Semanal de Obra</div>
+      <div class="htit">${esc(sigla)}${sigla?' — ':''}RSO ${num}<span class="badge">Disponibilizado</span></div>
+      <div class="hsub">${esc(obraTxt)}</div>
+    </div>
+    <div class="body">
+      <h2>Identificação</h2>
+      <div class="ident">
+        <div><div class="ident-label">RSO Nº</div><div class="ident-value">${num}</div></div>
+        <div><div class="ident-label">Data</div><div class="ident-value">${rel.criado_em?fmtDate(rel.criado_em.split('T')[0]):'—'}</div></div>
+        <div><div class="ident-label">Autor</div><div class="ident-value">${esc(d.autor||rel.criado_por_nome||'—')}</div></div>
+        <div><div class="ident-label">Obra</div><div class="ident-value">${esc(obraTxt)}</div></div>
+        <div><div class="ident-label">Início da Semana</div><div class="ident-value">${d.semana_ini?fmtDate(d.semana_ini):'—'}</div></div>
+        <div><div class="ident-label">Período</div><div class="ident-value">${esc(d.periodo_desc||fmtMesAno(rel.mes,rel.ano)||'—')}</div></div>
+      </div>
+      <h2>Atividades${totalAtv?' · '+totalAtv:''}</h2>
+      ${totalAtv?`<table>
+        <thead><tr><th class="c" style="width:36px">Id</th><th>Descrição</th><th>Localização</th>${DAY.map((l,j)=>`<th class="c ${feriados[j]?'day-fer':''}" style="width:62px">${l}${feriados[j]?'<br><small>Fer</small>':''}</th>`).join('')}</tr></thead>
+        <tbody>${ativs.map((a,i)=>{
+          const dias=a.dias||[];
+          return `<tr>
+            <td class="c">${a.id||(i+1)}</td>
+            <td>${esc(a.descricao||'')}</td>
+            <td>${esc(a.localizacao||'')}</td>
+            ${[0,1,2,3,4,5].map(j=>{
+              const day=dias[j]||{};
+              return `<td class="c ${feriados[j]?'day-fer':''}">
+                <span class="pill ${day.p?'p-on':'off'}">P</span>
+                <span class="pill ${day.r?'r-on':'off'}">R</span>
+              </td>`;
+            }).join('')}
+          </tr>`;
+        }).join('')}</tbody>
+      </table>`:'<div class="empty">Sem atividades registadas.</div>'}
+      <h2>Subempreiteiros e Trabalhadores${totalSub?' · '+totalSub:''}</h2>
+      ${totalSub?`<table>
+        <thead><tr><th class="c" style="width:36px">Id</th><th>Atividade</th><th>Subempreiteiro</th>${DAY.map((l,j)=>`<th class="c ${feriados[j]?'day-fer':''}" style="width:80px">${l}${feriados[j]?'<br><small>Fer</small>':''}</th>`).join('')}</tr></thead>
+        <tbody>${subs.map((sub,i)=>{
+          const origIdx=(d.subempreiteiros||[]).indexOf(sub);
+          const ativDesc=((d.atividades||[])[origIdx]||{}).descricao||'';
+          const dias=sub.dias||[];
+          return `<tr>
+            <td class="c">${sub.id||(i+1)}</td>
+            <td>${esc(ativDesc)}</td>
+            <td>${esc(sub.subempreiteiro||'')}</td>
+            ${[0,1,2,3,4,5].map(j=>{
+              const day=dias[j]||{};
+              const hasP=(+day.prev)>0, hasE=(+day.efet)>0;
+              return `<td class="c ${feriados[j]?'day-fer':''}">
+                <span class="pill ${hasP?'p-on':'off'}">${day.prev||'—'}</span>
+                <span class="pill ${hasE?'r-on':'off'}">${day.efet||'—'}</span>
+              </td>`;
+            }).join('')}
+          </tr>`;
+        }).join('')}</tbody>
+      </table>`:'<div class="empty">Sem subempreiteiros registados.</div>'}
+      ${(d.analise||'').trim()?`<h2>Análise e Recomendações</h2><div class="text-block">${esc(d.analise)}</div>`:''}
+      ${docs.length?`<h2>Documentação · ${docs.length}</h2>
+      <table>
+        <thead><tr><th>Id</th><th>Tipo</th><th>Descrição</th><th>Data</th><th>Estado</th><th>Observações</th></tr></thead>
+        <tbody>${docs.map(x=>`<tr>
+          <td>${esc(x.id||'')}</td>
+          <td>${esc(x.tipo||'')}</td>
+          <td>${esc(x.descricao||'')}</td>
+          <td>${x.data?fmtDate(x.data):''}</td>
+          <td>${esc(x.estado||'')}</td>
+          <td>${esc(x.observacoes||'')}</td>
+        </tr>`).join('')}</tbody>
+      </table>`:''}
+      ${(d.outras_info||'').trim()?`<h2>Outras Informações Relevantes</h2><div class="text-block">${esc(d.outras_info)}</div>`:''}
+      ${fotos.length?`<h2>Fotos · ${fotos.length}</h2><div class="photos">${fotos.map(p=>`<a href="${p.url}" target="_blank" rel="noopener" style="background-image:url('${p.url}')" title="${esc(p.name||'')}"></a>`).join('')}</div>`:''}
+    </div>
+    <div class="footer">SEGO · Sistema Externo de Gestão de Obras · ${esc(sigla)} RSO ${num}${rel.criado_em?' · publicado em '+fmtDate(rel.criado_em.split('T')[0]):''}</div>
+  </div>`;
+  document.body.innerHTML=html;
 }
 function rvtRowBtns(r){
   if(!r.conteudo||!r.conteudo.tipo||!r.conteudo.subtipo) return '';
@@ -2292,7 +2419,7 @@ window.rsRefreshKPIAtiv=function(){
   const r=DB.relatorios.find(x=>x.id===relRelId);if(!r)return;
   const k=rsKPIsAtiv(r.conteudo.dados||{});
   const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
-  set('rs-ka-nat',k.nAt); set('rs-ka-nat-tot',k.totalLinhas); set('rs-ka-nat-pct',k.pctAt+'%');
+  set('rs-ka-nat',k.nAt);
   set('rs-ka-p',k.p); set('rs-ka-p-pct',k.pctP+'%');
   set('rs-ka-r',k.r); set('rs-ka-r-pct',k.pctR+'%');
   set('rs-ka-pr',k.pr); set('rs-ka-pr-pct',k.pctPR+'%');
@@ -2317,7 +2444,7 @@ window.rsRefreshKPISub=function(){
   const r=DB.relatorios.find(x=>x.id===relRelId);if(!r)return;
   const k=rsKPIsSub(r.conteudo.dados||{});
   const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
-  set('rs-ks-nsub',k.nSub); set('rs-ks-nsub-tot',k.totalLinhas); set('rs-ks-nsub-pct',k.pctSub+'%');
+  set('rs-ks-nsub',k.nSub);
   set('rs-ks-p',k.totalP);
   set('rs-ks-e',k.totalE);
   set('rs-ks-cob',k.cobertura+'%');
@@ -2559,7 +2686,7 @@ function renderFichaRS(app,r){
       <datalist id="rs-tipos-ativ"><option value="PTQ"><option value="CCiv"><option value="PT"><option value="CE"></datalist>
       <!-- RESUMO ATIVIDADES: 6 KPIs em 2 linhas x 3 colunas -->
       <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-top:12px">
-        <div style="background:var(--bg-card);border-left:3px solid #6B7280;padding:8px 10px;border-radius:3px;border:0.5px solid var(--border-light)"><div style="font-size:9px;color:var(--text-muted);letter-spacing:.5px;font-weight:600">N.º ATIVIDADES</div><div style="display:flex;align-items:baseline;gap:6px;margin-top:2px"><div id="rs-ka-nat" style="font-size:22px;font-weight:700;color:#6B7280;line-height:1">${kA.nAt}</div><div style="font-size:11px;color:var(--text-muted)">/ <span id="rs-ka-nat-tot">${kA.totalLinhas}</span> · <span id="rs-ka-nat-pct">${kA.pctAt}%</span></div></div></div>
+        <div style="background:var(--bg-card);border-left:3px solid #6B7280;padding:8px 10px;border-radius:3px;border:0.5px solid var(--border-light)"><div style="font-size:9px;color:var(--text-muted);letter-spacing:.5px;font-weight:600">N.º ATIVIDADES</div><div style="display:flex;align-items:baseline;gap:6px;margin-top:2px"><div id="rs-ka-nat" style="font-size:22px;font-weight:700;color:#6B7280;line-height:1">${kA.nAt}</div></div></div>
         <div style="background:var(--bg-card);border-left:3px solid #1B4F9B;padding:8px 10px;border-radius:3px;border:0.5px solid var(--border-light)"><div style="font-size:9px;color:var(--text-muted);letter-spacing:.5px;font-weight:600">PREVISTAS [P]</div><div style="display:flex;align-items:baseline;gap:6px;margin-top:2px"><div id="rs-ka-p" style="font-size:22px;font-weight:700;color:#1B4F9B;line-height:1">${kA.p}</div><div style="font-size:11px;color:var(--text-muted)"><span id="rs-ka-p-pct">${kA.pctP}%</span></div></div></div>
         <div style="background:var(--bg-card);border-left:3px solid #1A7A4A;padding:8px 10px;border-radius:3px;border:0.5px solid var(--border-light)"><div style="font-size:9px;color:var(--text-muted);letter-spacing:.5px;font-weight:600">REALIZADAS [R]</div><div style="display:flex;align-items:baseline;gap:6px;margin-top:2px"><div id="rs-ka-r" style="font-size:22px;font-weight:700;color:#1A7A4A;line-height:1">${kA.r}</div><div style="font-size:11px;color:var(--text-muted)"><span id="rs-ka-r-pct">${kA.pctR}%</span></div></div></div>
         <div style="background:var(--bg-card);border-left:3px solid #16A34A;padding:8px 10px;border-radius:3px;border:0.5px solid var(--border-light)"><div style="font-size:9px;color:var(--text-muted);letter-spacing:.5px;font-weight:600">EXECUÇÃO (P∩R)</div><div style="display:flex;align-items:baseline;gap:6px;margin-top:2px"><div id="rs-ka-pr" style="font-size:22px;font-weight:700;color:#16A34A;line-height:1">${kA.pr}</div><div style="font-size:11px;color:var(--text-muted)"><span id="rs-ka-pr-pct">${kA.pctPR}%</span> de P</div></div></div>
@@ -2621,7 +2748,7 @@ function renderFichaRS(app,r){
       }).join(''):empty('Sem registos · clica "+ linha" para adicionar')}
       <!-- RESUMO SUBEMPREITEIROS: 6 KPIs -->
       <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-top:12px">
-        <div style="background:var(--bg-card);border-left:3px solid #6B7280;padding:8px 10px;border-radius:3px;border:0.5px solid var(--border-light)"><div style="font-size:9px;color:var(--text-muted);letter-spacing:.5px;font-weight:600">N.º SUBEMPREITEIROS</div><div style="display:flex;align-items:baseline;gap:6px;margin-top:2px"><div id="rs-ks-nsub" style="font-size:22px;font-weight:700;color:#6B7280;line-height:1">${kS.nSub}</div><div style="font-size:11px;color:var(--text-muted)">/ <span id="rs-ks-nsub-tot">${kS.totalLinhas}</span> · <span id="rs-ks-nsub-pct">${kS.pctSub}%</span></div></div></div>
+        <div style="background:var(--bg-card);border-left:3px solid #6B7280;padding:8px 10px;border-radius:3px;border:0.5px solid var(--border-light)"><div style="font-size:9px;color:var(--text-muted);letter-spacing:.5px;font-weight:600">N.º SUBEMPREITEIROS</div><div style="display:flex;align-items:baseline;gap:6px;margin-top:2px"><div id="rs-ks-nsub" style="font-size:22px;font-weight:700;color:#6B7280;line-height:1">${kS.nSub}</div></div></div>
         <div style="background:var(--bg-card);border-left:3px solid #1B4F9B;padding:8px 10px;border-radius:3px;border:0.5px solid var(--border-light)"><div style="font-size:9px;color:var(--text-muted);letter-spacing:.5px;font-weight:600">PREVISTOS [P]</div><div style="display:flex;align-items:baseline;gap:6px;margin-top:2px"><div id="rs-ks-p" style="font-size:22px;font-weight:700;color:#1B4F9B;line-height:1">${kS.totalP}</div><div style="font-size:11px;color:var(--text-muted)">homens·dia</div></div></div>
         <div style="background:var(--bg-card);border-left:3px solid #1A7A4A;padding:8px 10px;border-radius:3px;border:0.5px solid var(--border-light)"><div style="font-size:9px;color:var(--text-muted);letter-spacing:.5px;font-weight:600">EFETIVOS [E]</div><div style="display:flex;align-items:baseline;gap:6px;margin-top:2px"><div id="rs-ks-e" style="font-size:22px;font-weight:700;color:#1A7A4A;line-height:1">${kS.totalE}</div><div style="font-size:11px;color:var(--text-muted)">homens·dia</div></div></div>
         <div style="background:var(--bg-card);border-left:3px solid #16A34A;padding:8px 10px;border-radius:3px;border:0.5px solid var(--border-light)"><div style="font-size:9px;color:var(--text-muted);letter-spacing:.5px;font-weight:600">COBERTURA</div><div style="display:flex;align-items:baseline;gap:6px;margin-top:2px"><div id="rs-ks-cob" style="font-size:22px;font-weight:700;color:#16A34A;line-height:1">${kS.cobertura}%</div><div style="font-size:11px;color:var(--text-muted)">E / P</div></div></div>
