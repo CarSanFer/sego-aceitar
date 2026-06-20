@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.18.2014</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.19.1441</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -1956,6 +1956,8 @@ window.abrirPublicar=function(relId){
 };
 window.publicarEnviar=async function(relId){
   const rel=DB.relatorios.find(x=>x.id===relId); if(!rel)return;
+  // Limpar linhas em branco antes de publicar
+  if(typeof rsCleanupBlankRows==='function') rsCleanupBlankRows(relId);
   const o=DB.obras.find(x=>x.id===rel.obra_id)||{};
   const _sub=(rel.conteudo&&rel.conteudo.subtipo)||'';
   const _sigla=_sub==='RS'?'RSO':(_sub||'documento');
@@ -2200,15 +2202,58 @@ window.rsAddRow=function(section){
     if(section==='atividades'||section==='subempreiteiros')row.dias=[];
   }
   arr.push(row);
-  // Sincronização: adicionar em Atividades cria também a linha correspondente em Subempreiteiros
+  // Sincronização bidirecional Atividades⇄Subempreiteiros
   if(section==='atividades'){
     r.conteudo.dados.subempreiteiros=r.conteudo.dados.subempreiteiros||[];
     const subId=(r.conteudo.dados.subempreiteiros.length||0)+1;
     r.conteudo.dados.subempreiteiros.push({id:subId,dias:[]});
+  } else if(section==='subempreiteiros'){
+    // Adicionar subempreiteiro também cria linha em branco em atividades (suporta 2+ subempreiteiros mesma atividade)
+    r.conteudo.dados.atividades=r.conteudo.dados.atividades||[];
+    const ativId=(r.conteudo.dados.atividades.length||0)+1;
+    r.conteudo.dados.atividades.push({id:ativId,dias:[]});
   }
   sbRel.patch('relatorios',relRelId,{conteudo:JSON.stringify(r.conteudo)}).catch(console.error);
   render();
 };
+// Limpa linhas completamente em branco em Atividades+Subempreiteiros (chamada ao sair do RSO)
+window.rsCleanupBlankRows=function(relId){
+  relId=relId||relRelId;
+  if(!relId)return;
+  const r=DB.relatorios.find(x=>x.id===relId);if(!r)return;
+  if(r.estado==='disponibilizado')return; // não toca em publicados
+  const d=(r.conteudo&&r.conteudo.dados)||{};
+  const ativs=d.atividades||[];
+  const subs=d.subempreiteiros||[];
+  const maxLen=Math.max(ativs.length,subs.length);
+  function isAtvBlank(a){
+    if(!a)return true;
+    if((a.descricao||'').trim()||(a.localizacao||'').trim())return false;
+    const dias=a.dias||[];
+    if(dias.some(x=>x&&(x.p||x.r)))return false;
+    return true;
+  }
+  function isSubBlank(sub){
+    if(!sub)return true;
+    if((sub.subempreiteiro||'').trim())return false;
+    const dias=sub.dias||[];
+    if(dias.some(x=>x&&((+x.prev)>0||(+x.efet)>0)))return false;
+    return true;
+  }
+  const keepAtv=[],keepSub=[];
+  for(let i=0;i<maxLen;i++){
+    const a=ativs[i],sub=subs[i];
+    if(isAtvBlank(a)&&isSubBlank(sub))continue;
+    keepAtv.push(a||{});
+    keepSub.push(sub||{});
+  }
+  keepAtv.forEach((row,i)=>{row.id=i+1;});
+  keepSub.forEach((row,i)=>{row.id=i+1;});
+  d.atividades=keepAtv;
+  d.subempreiteiros=keepSub;
+  sbRel.patch('relatorios',relId,{conteudo:JSON.stringify(r.conteudo)}).catch(console.error);
+};
+
 window.rsRemoveRow=function(section,idx){
   if(!confirm('Remover esta linha?'))return;
   const r=DB.relatorios.find(x=>x.id===relRelId);if(!r)return;
@@ -2610,7 +2655,7 @@ function renderFichaRS(app,r){
   const colsDocRight=`grid-template-columns:1fr 1fr 4fr${ro?'':' 28px'}`;
   app.innerHTML=`
   ${styleTag}
-  <button class="back-btn" onclick="relRelId=null;render()">← Voltar</button>
+  <button class="back-btn" onclick="rsCleanupBlankRows();relRelId=null;render()">← Voltar</button>
   <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
     <div>
       <div class="page-title"><span class="code-pill" style="font-size:13px">${o.codigo||''}</span>${o.sigla||''} — RSO ${relNumero(r)}</div>
@@ -2704,7 +2749,7 @@ function renderFichaRS(app,r){
           <span style="${sectTitle}">SUBEMPREITEIROS E TRABALHADORES</span>
           <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px;color:var(--text-muted);margin-left:24px">P = Previstos · E = Efetivos · Clica no dia para marcar Feriado</span>
         </div>
-        ${(!ro && !subCollapsed)?`<span style="font-size:10px;color:var(--text-muted);font-style:italic">Adicionar linhas em Atividades</span>`:''}
+        ${(!ro && !subCollapsed)?`<button class="btn btn-outline btn-sm" style="font-size:11px;padding:3px 10px" onclick="event.stopPropagation();rsAddRow('subempreiteiros')">+ linha</button>`:''}
       </div>
       ${subCollapsed?'':`
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:0 0 4px 0;font-size:10px;color:var(--text-muted);font-weight:700;letter-spacing:.3px;border-bottom:0.5px solid var(--border-light)">
