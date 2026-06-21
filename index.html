@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.21.1908</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.21.1932</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -2189,8 +2189,8 @@ function renderPublicRSO(rel,o,conteudo){
         <div><div class="ident-label">Data</div><div class="ident-value">${rel.criado_em?fmtDate(rel.criado_em.split('T')[0]):'—'}</div></div>
         <div><div class="ident-label">Autor</div><div class="ident-value">${esc(d.autor||rel.criado_por_nome||'—')}</div></div>
         <div><div class="ident-label">Obra</div><div class="ident-value">${esc(obraTxt)}</div></div>
-        <div><div class="ident-label">Início da Semana</div><div class="ident-value">${d.semana_ini?fmtDate(d.semana_ini):'—'}</div></div>
-        <div><div class="ident-label">Período</div><div class="ident-value">${esc(d.periodo_desc||fmtMesAno(rel.mes,rel.ano)||'—')}</div></div>
+        <div><div class="ident-label">Início da Semana</div><div class="ident-value">${d.semanaIni?fmtDate(d.semanaIni):'—'}</div></div>
+        <div><div class="ident-label">Período</div><div class="ident-value">${esc(d.semana||fmtMesAno(rel.mes,rel.ano)||'—')}</div></div>
       </div>
       </div><div class="g"><h2>Atividades${kAtv.nAt?' · '+kAtv.nAt:''}</h2>
       ${kAtv.nAt?`<table>
@@ -2277,14 +2277,23 @@ function rvtRowBtns(r){
   const tipo=r.conteudo.tipo, subtipo=r.conteudo.subtipo;
   const lista=DB.relatorios.filter(x=>x.obra_id===r.obra_id&&x.conteudo&&x.conteudo.tipo===tipo&&x.conteudo.subtipo===subtipo);
   const maxNum=lista.length?Math.max(...lista.map(x=>x.numero||0)):0;
+  const sameNum=lista.filter(x=>(x.numero||0)===(r.numero||0));
+  const maxVerNum=sameNum.length?Math.max(...sameNum.map(x=>x.versao||0)):0;
+  const isUltimaVersao=(r.versao||0)===maxVerNum;
+  const isUltimoGlobal=(r.numero||0)===maxNum && isUltimaVersao;
+  const temHistorico=lista.length>1;
+  // Novo e Rever só aparecem no último global E quando há histórico (lista > 1)
+  const podeNovoRever=isUltimoGlobal && temHistorico;
   const S='font-size:10px;padding:2px 7px';
   let b='';
+  // ORDEM: Novo (esquerda) · Publicar/Rever (centro) · Reenviar (direita)
+  if(podeNovoRever && r.estado==='disponibilizado') b+=`<button class="btn btn-outline btn-sm" style="${S}" onclick="event.stopPropagation();criarCOdoUltimo('${r.obra_id}','${tipo}','${subtipo}')">⧉ Novo</button>`;
   if(r.estado==='disponibilizado'){
+    if(podeNovoRever) b+=`<button class="btn btn-outline btn-sm" style="${S}" onclick="event.stopPropagation();criarRevisao('${r.id}')">✎ Rever</button>`;
     b+=`<button class="btn btn-outline btn-sm" style="${S}" onclick="event.stopPropagation();abrirReenviar('${r.id}')">📧 Reenviar</button>`;
-    b+=`<button class="btn btn-outline btn-sm" style="${S}" onclick="event.stopPropagation();criarRevisao('${r.id}')">✎ Rever</button>`;
+  } else {
+    b+=`<button class="btn btn-gold btn-sm" style="${S}" onclick="event.stopPropagation();abrirPublicar('${r.id}')">✓ Publicar</button>`;
   }
-  else b+=`<button class="btn btn-gold btn-sm" style="${S}" onclick="event.stopPropagation();abrirPublicar('${r.id}')">✓ Publicar</button>`;
-  if((r.numero||0)===maxNum) b+=`<button class="btn btn-outline btn-sm" style="${S}" onclick="event.stopPropagation();criarCOdoUltimo('${r.obra_id}','${tipo}','${subtipo}')">⧉ Novo</button>`;
   return b;
 }
 const FISC_TIPOS=[{key:'RS',sigla:'RSO',label:'Relatório Semanal de Obra',icon:`<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="9" y="6" width="30" height="36" rx="2" stroke="currentColor" stroke-width="2.5"/><path d="M16 16h16M16 22h16M16 28h10" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>`}];
