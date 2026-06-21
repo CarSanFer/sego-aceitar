@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.19.1441</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.20.1822</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -1975,7 +1975,12 @@ window.publicarEnviar=async function(relId){
     if(!window.emailjs){ lastErr='EmailJS não carregou (window.emailjs indefinido).'; }
     if(window.emailjs && dest.length){
       for(const d of dest){
-        try{ await emailjs.send(EJS.service, EJS_TPL_RVT, {to_email:d.email,to_name:d.nome||d.email,obra_nome:obraTxt,rvt_ref:_sigla+' '+relNumero(rel),doc_link:link,mensagem:msg,doc_tipo:_sigla}); ok++; }
+        try{
+          const _msgEsc=String(msg||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+          const _linkHTML='<a href="'+link+'" style="color:#1B4F9B;text-decoration:underline">Abrir documento</a>';
+          const _msgHTML='<div style="font-family:Calibri,Arial,sans-serif;font-size:14px;line-height:1.5;color:#333"><p>'+_msgEsc+'</p><p style="margin-top:16px"><strong>Acesso ao documento:</strong> '+_linkHTML+'</p></div>';
+          await emailjs.send(EJS.service, EJS_TPL_RVT, {to_email:d.email,to_name:d.nome||d.email,obra_nome:obraTxt,rvt_ref:_sigla+' '+relNumero(rel),doc_link:link,doc_link_html:_linkHTML,mensagem:msg,mensagem_html:_msgHTML,doc_tipo:_sigla}); ok++;
+        }
         catch(e){ console.error('EmailJS falhou para',d.email,e); fail++; lastErr=(e&&(e.text||e.message))||(typeof e==='string'?e:JSON.stringify(e)); }
       }
     }
@@ -1994,9 +1999,10 @@ async function renderPublicDoc(relId){
   if(!rel){ document.body.innerHTML='<div style="font-family:Calibri,sans-serif;padding:48px;text-align:center;color:#667">Documento não encontrado ou indisponível.</div>'; return; }
   try{ const d=await sb.get('obras',`select=*&id=eq.${encodeURIComponent(rel.obra_id)}&limit=1`); if(d&&d[0]) o=mapObra(d[0]); }catch(e){}
   let conteudo={}; try{ conteudo=typeof rel.conteudo==='string'?JSON.parse(rel.conteudo):(rel.conteudo||{}); }catch(e){}
-  const sub=conteudo.subtipo||'RVT';
-  // RSO: renderiza HTML standalone (não usa template RVT)
-  if(sub==='RS'){ renderPublicRSO(rel,o,conteudo); return; }
+  const sub=conteudo.subtipo||'';
+  const tip=conteudo.tipo||'';
+  // RSO: detecta por subtipo OU por tipo de fiscalização (mais robusto)
+  if(sub==='RS' || tip==='fiscalizacao'){ renderPublicRSO(rel,o,conteudo); return; }
   // RVT (default): iframe com template
   const cfg={url:SUPA_SEGO.url,key:SUPA_SEGO.key,obra_id:String(rel.obra_id),rvt:String(rel.id),readonly:true,meta:{obra:((o.codigo?o.codigo+' — ':'')+(o.nome||'')).trim(),rvt:relNumero(rel),cso:'Clarice Ferreira'}};
   const html=rvtDecode(RVT_TEMPLATE_B64).replace('/*__SEGO_CONFIG__*/', function(){ return 'window.__SEGO__='+JSON.stringify(cfg)+';'; });
@@ -2175,10 +2181,13 @@ window.rsCommit=function(section,idx,key,value){
     if(typeof rsUpdatePillsRow==='function') rsUpdatePillsRow(idx);
     if(typeof rsRefreshKPIAtiv==='function') rsRefreshKPIAtiv();
   }
-  // Espelho: descrição de atividade muda → actualizar input da Ativ. no subempreiteiro do mesmo índice
+  // Espelho cascade: descrição de atividade muda → todos os subs >= idx podem cascatear para esta
   if(section==='atividades' && key==='descricao'){
-    if(typeof rsUpdateSubAtivEspelho==='function') rsUpdateSubAtivEspelho(idx);
-    if(typeof rsUpdateSubInputsRow==='function') rsUpdateSubInputsRow(idx);
+    const subs=((r.conteudo||{}).dados||{}).subempreiteiros||[];
+    for(let _i=0; _i<subs.length; _i++){
+      if(typeof rsUpdateSubAtivEspelho==='function') rsUpdateSubAtivEspelho(_i);
+      if(typeof rsUpdateSubInputsRow==='function') rsUpdateSubInputsRow(_i);
+    }
     if(typeof rsRefreshKPISub==='function') rsRefreshKPISub();
   }
   if(section==='subempreiteiros' && (key==='atividade' || key==='subempreiteiro')){
@@ -2186,6 +2195,25 @@ window.rsCommit=function(section,idx,key,value){
     if(typeof rsRefreshKPISub==='function') rsRefreshKPISub();
   }
 };
+// Inserir linha logo após idx em Atividades+Subempreiteiros (botão "+" do subempreiteiro)
+window.rsAddRowAfter=function(idx){
+  if(!relRelId)return;
+  const r=DB.relatorios.find(x=>x.id===relRelId);if(!r)return;
+  if(r.estado==='disponibilizado')return;
+  r.conteudo=r.conteudo||{tipo:'fiscalizacao',subtipo:'RS',dados:{}};
+  r.conteudo.dados=r.conteudo.dados||{};
+  const ativs=r.conteudo.dados.atividades=r.conteudo.dados.atividades||[];
+  const subs=r.conteudo.dados.subempreiteiros=r.conteudo.dados.subempreiteiros||[];
+  // Inserir linha em branco em ambas, logo após idx
+  ativs.splice(idx+1,0,{id:0,dias:[]});
+  subs.splice(idx+1,0,{id:0,dias:[]});
+  // Renumerar
+  ativs.forEach((row,i)=>{row.id=i+1;});
+  subs.forEach((row,i)=>{row.id=i+1;});
+  sbRel.patch('relatorios',relRelId,{conteudo:JSON.stringify(r.conteudo)}).catch(console.error);
+  render();
+};
+
 window.rsAddRow=function(section){
   const r=DB.relatorios.find(x=>x.id===relRelId);if(!r)return;
   if(r.estado==='disponibilizado')return;
@@ -2217,6 +2245,82 @@ window.rsAddRow=function(section){
   render();
 };
 // Limpa linhas completamente em branco em Atividades+Subempreiteiros (chamada ao sair do RSO)
+// Importar atividades+subempreiteiros de um Excel (formato PTQ Aceitar)
+window.rsImportXLSX=function(file){
+  if(!file||!relRelId)return;
+  const r=DB.relatorios.find(x=>x.id===relRelId);if(!r)return;
+  if(r.estado==='disponibilizado'){alert('Não é possível importar num RSO publicado.');return;}
+  if(!confirm('Substituir as atividades e subempreiteiros existentes pelo conteúdo do Excel?\n\nIsto vai sobrescrever os dados das duas tabelas. Lê colunas I a N (semana 1).'))return;
+  if(typeof loadSheetJS!=='function'){alert('SheetJS não disponível.');return;}
+  loadSheetJS(()=>{
+    const reader=new FileReader();
+    reader.onload=(e)=>{
+      try{
+        const data=new Uint8Array(e.target.result);
+        const wb=XLSX.read(data,{type:'array'});
+        const sheet=wb.Sheets[wb.SheetNames[0]];
+        const aoa=XLSX.utils.sheet_to_json(sheet,{header:1,defval:null});
+        // Procurar secções pelas headers
+        let actStart=-1,subStart=-1;
+        for(let i=0;i<aoa.length;i++){
+          const cB=String((aoa[i]||[])[1]||'').trim();
+          if(actStart<0 && /trabalhos a executar/i.test(cB)) actStart=i+2;
+          if(subStart<0 && /^subempreiteiros$/i.test(cB)) subStart=i+2;
+        }
+        // Parse atividades
+        const atvs=[];
+        if(actStart>0){
+          for(let i=actStart;i<aoa.length;i++){
+            const row=aoa[i]||[];
+            const desc=row[2];
+            if(!desc||typeof desc!=='string'||!desc.trim())break;
+            const dias=[];
+            for(let c=8;c<=13;c++){
+              const v=row[c];
+              const isX=(typeof v==='string'&&v.toLowerCase().trim()==='x');
+              dias.push({p:isX,r:false});
+            }
+            atvs.push({id:atvs.length+1,descricao:desc.trim(),localizacao:'',dias});
+          }
+        }
+        // Parse subempreiteiros
+        const subs=[];
+        if(subStart>0){
+          for(let i=subStart;i<aoa.length;i++){
+            const row=aoa[i]||[];
+            const nome=row[2];
+            if(!nome||typeof nome!=='string'||!nome.trim())break;
+            const dias=[];
+            for(let c=8;c<=13;c++){
+              const v=row[c];
+              const num=(typeof v==='number')?v:(parseFloat(v)||0);
+              dias.push({prev:num,efet:0});
+            }
+            subs.push({id:subs.length+1,subempreiteiro:nome.trim(),dias});
+          }
+        }
+        if(!atvs.length && !subs.length){alert('Nenhuma atividade nem subempreiteiro encontrado no Excel.\n\nVerificar se o ficheiro tem secções "Trabalhos a Executar" e "Subempreiteiros" na coluna B.');return;}
+        // Sincronizar tamanhos das duas tabelas
+        const maxLen=Math.max(atvs.length,subs.length);
+        while(atvs.length<maxLen)atvs.push({id:atvs.length+1,dias:[]});
+        while(subs.length<maxLen)subs.push({id:subs.length+1,dias:[]});
+        // Aplicar
+        r.conteudo=r.conteudo||{tipo:'fiscalizacao',subtipo:'RS',dados:{}};
+        r.conteudo.dados=r.conteudo.dados||{};
+        r.conteudo.dados.atividades=atvs;
+        r.conteudo.dados.subempreiteiros=subs;
+        sbRel.patch('relatorios',relRelId,{conteudo:JSON.stringify(r.conteudo)}).catch(console.error);
+        render();
+        alert('Importação concluída.\n'+atvs.length+' atividades · '+subs.length+' subempreiteiros.\n\nA localização de cada atividade ficou em branco (preenche manualmente).');
+      }catch(err){
+        console.error(err);
+        alert('Erro a importar: '+(err.message||err));
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  });
+};
+
 window.rsCleanupBlankRows=function(relId){
   relId=relId||relRelId;
   if(!relId)return;
@@ -2517,11 +2621,17 @@ window.rsUpdateSubInputsRow=function(idx){
 window.rsUpdateSubAtivEspelho=function(idx){
   if(!relRelId)return;
   const r=DB.relatorios.find(x=>x.id===relRelId);if(!r)return;
-  const desc=((((r.conteudo||{}).dados||{}).atividades||[])[idx]||{}).descricao||'';
+  const ativs=((r.conteudo||{}).dados||{}).atividades||[];
+  // Cascade backwards: procura para trás a descrição preenchida mais próxima
+  let desc='';
+  for(let k=idx;k>=0;k--){
+    const d=((ativs[k]||{}).descricao||'').trim();
+    if(d){desc=d;break;}
+  }
   const inp=document.querySelector('[data-rs="sub-atividade-'+idx+'"]');
   if(inp){
     inp.value=desc;
-    inp.style.fontStyle=desc.trim()?'normal':'italic';
+    inp.style.fontStyle=desc?'normal':'italic';
   }
 };
 window.rsAddPhoto=function(){
@@ -2609,7 +2719,15 @@ function renderFichaRS(app,r){
   const inpRO='width:100%;padding:5px 7px;border:0.5px solid var(--border-light);border-radius:3px;font-size:12px;font-family:inherit;background:#f0f2f5;color:#666;cursor:not-allowed;box-sizing:border-box';
   const lbl='font-size:10px;color:var(--text-muted);margin-bottom:3px;letter-spacing:.3px';
   const sectTitle='font-size:10px;font-weight:700;color:var(--text-muted);letter-spacing:.8px';
-  const removeBtn=(s,i)=>ro?'':`<button onclick="rsRemoveRow('${s}',${i})" style="background:none;border:none;cursor:pointer;color:#B91C1C;font-size:18px;line-height:1" title="Remover">×</button>`;
+  const removeBtn=(s,i)=>{
+    if(ro) return '';
+    const xBtn=`<button onclick="rsRemoveRow('${s}',${i})" style="background:none;border:none;cursor:pointer;color:#B91C1C;font-size:18px;line-height:1;padding:0;margin:0;vertical-align:middle" title="Remover linha">×</button>`;
+    if(s==='subempreiteiros'){
+      const plusBtn=`<button onclick="rsAddRowAfter(${i})" style="background:none;border:none;cursor:pointer;color:#1A7A4A;font-size:16px;line-height:1;padding:0;margin-left:4px;vertical-align:middle;font-weight:700" title="Adicionar sub à mesma atividade">+</button>`;
+      return xBtn+plusBtn;
+    }
+    return xBtn;
+  };
   const empty=(t)=>`<div style="padding:14px;text-align:center;color:var(--text-muted);font-size:12px;font-style:italic">${t}</div>`;
   // estilos das pills P/R (injetados uma vez)
   const styleTag=document.getElementById('rs-style')?'':`<style id="rs-style">
@@ -2650,9 +2768,9 @@ function renderFichaRS(app,r){
   }).join('');
   // colsAt: id, tipo, descricao, localizacao, 6 dias, remove
   const colsAtLeft=`grid-template-columns:36px 1fr 1fr`;
-  const colsAtRight=`grid-template-columns:repeat(6,1fr)${ro?'':' 28px'}`;
+  const colsAtRight=`grid-template-columns:repeat(6,1fr)${ro?'':' 50px'}`;
   const colsDocLeft=`grid-template-columns:1fr 1fr 4fr`;
-  const colsDocRight=`grid-template-columns:1fr 1fr 4fr${ro?'':' 28px'}`;
+  const colsDocRight=`grid-template-columns:1fr 1fr 4fr${ro?'':' 50px'}`;
   app.innerHTML=`
   ${styleTag}
   <button class="back-btn" onclick="rsCleanupBlankRows();relRelId=null;render()">← Voltar</button>
@@ -2687,7 +2805,7 @@ function renderFichaRS(app,r){
           <span style="${sectTitle}">ATIVIDADES</span>
           <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px;color:var(--text-muted);margin-left:24px">P = Previsto · R = Realizado · Clica no dia para marcar Feriado</span>
         </div>
-        ${(!ro && !atvCollapsed)?`<button class="btn btn-outline btn-sm" style="font-size:11px;padding:3px 10px" onclick="event.stopPropagation();rsAddRow('atividades')">+ linha</button>`:''}
+        ${(!ro && !atvCollapsed)?`<span style="display:inline-flex;gap:6px"><button class="btn btn-outline btn-sm" style="font-size:11px;padding:3px 10px" onclick="event.stopPropagation();document.getElementById('rs-import-xlsx-input').click()" title="Importar atividades e subempreiteiros de um ficheiro Excel">⇪ Importar XLSX</button><button class="btn btn-outline btn-sm" style="font-size:11px;padding:3px 10px" onclick="event.stopPropagation();rsAddRow('atividades')">+ linha</button></span><input type="file" id="rs-import-xlsx-input" accept=".xlsx,.xls" style="display:none" onchange="rsImportXLSX(this.files[0]);this.value=''">`:''}
       </div>
       ${atvCollapsed?'':`
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:0 0 4px 0;font-size:10px;color:var(--text-muted);font-weight:700;letter-spacing:.3px;border-bottom:0.5px solid var(--border-light)">
@@ -2782,7 +2900,15 @@ function renderFichaRS(app,r){
         return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;align-items:center;border-bottom:0.5px dashed var(--border-light)">
           <div style="display:grid;${colsAtLeft};gap:6px;align-items:center">
             <div style="font-size:11px;color:var(--text-muted);text-align:center;padding:5px 0">${s.id||(i+1)}</div>
-            <div style="padding:4px 0"><input readonly data-rs="sub-atividade-${i}" value="${esc(((d.atividades||[])[i]||{}).descricao||'')}" placeholder="(preencher descrição na atividade ${i+1})" title="Espelha automaticamente a descrição da atividade ${i+1}" style="${inpS};background:#f5f7fa;color:#374151;cursor:not-allowed;font-style:${(((d.atividades||[])[i]||{}).descricao||'').trim()?'normal':'italic'}"></div>
+            <div style="padding:4px 0">${(()=>{
+              let _desc='', _from=-1;
+              for(let _k=i;_k>=0;_k--){
+                const _d=(((d.atividades||[])[_k]||{}).descricao||'').trim();
+                if(_d){_desc=_d;_from=_k;break;}
+              }
+              const _isCasc=(_from>=0 && _from!==i);
+              return `<input readonly data-rs="sub-atividade-${i}" value="${esc(_desc)}" placeholder="(preencher descrição na atividade ${i+1})" title="${_desc?(_isCasc?'Espelha a descrição da atividade '+(_from+1)+' (linha em branco — pertence à atividade anterior preenchida)':'Espelha a descrição da atividade '+(i+1)):'Sem descrição preenchida acima'}" style="${inpS};background:#f5f7fa;color:#374151;cursor:not-allowed;font-style:${_desc?'normal':'italic'}">`;
+            })()}</div>
             <div style="padding:4px 0"><input value="${esc(s.subempreiteiro)}" ${ro?'readonly':''} oninput="rsCommit('subempreiteiros',${i},'subempreiteiro',this.value)" style="${ro?inpRO:inpS}"></div>
           </div>
           <div style="display:grid;${colsAtRight};gap:6px;align-items:center">
@@ -2916,26 +3042,7 @@ window.criarRevisao=async function(relId){
   }catch(e){ hideLoadingOverlay(); alert('Erro: '+e.message); }
 };
 
-window.criarRelatorio=async function(obraId){
-  const num=parseInt($('nr-num')?.value)||1;
-  const mes=parseInt($('nr-mes')?.value)||1;
-  const ano=parseInt($('nr-ano')?.value)||new Date().getFullYear();
-  const novo={
-    id:uid(), obra_id:obraId, numero:num, versao:0,
-    mes, ano, estado:'rascunho',
-    criado_por:currentUser.id, criado_por_nome:currentUser.nome,
-    criado_em:new Date().toISOString(),
-    conteudo:{trabalhos:{},valores:{cronograma:[],autos:[]},prazo:{},controlo:{},fotos:[]},
-  };
-  try{
-    showLoadingOverlay('A criar...');
-    await sbRel.post('relatorios',{...novo,conteudo:JSON.stringify(novo.conteudo)});
-    DB.relatorios.push(novo);
-    hideLoadingOverlay();
-    closeModal();
-    relRelId=novo.id; relTab='capa'; render();
-  }catch(e){hideLoadingOverlay();alert('Erro: '+e.message);}
-};
+// criarRelatorio removida — função antiga que criava sem tipo/subtipo. Usar criarCO ou criarCOdoUltimo.
 
 // ================================================================
 // RELATÓRIOS — GUARDAR
