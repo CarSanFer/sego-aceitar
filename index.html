@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.21.1932</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.21.1952</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -2879,11 +2879,20 @@ window.rsRemovePhoto=async function(idx){
 function fiscActionBtn(r){
   const lista=DB.relatorios.filter(x=>x.obra_id===r.obra_id&&x.conteudo&&x.conteudo.tipo==='fiscalizacao'&&x.conteudo.subtipo==='RS');
   const maxNum=lista.length?Math.max(...lista.map(x=>x.numero||0)):0;
-  const ehUltimo=(r.numero||0)===maxNum;
+  const sameNum=lista.filter(x=>(x.numero||0)===(r.numero||0));
+  const maxVerNum=sameNum.length?Math.max(...sameNum.map(x=>x.versao||0)):0;
+  const isUltimaVersao=(r.versao||0)===maxVerNum;
+  const isUltimoGlobal=(r.numero||0)===maxNum && isUltimaVersao;
+  const podeNovoRever=isUltimoGlobal && lista.length>1;
   let b='';
-  if(r.estado==='disponibilizado')b+=`<button class="btn btn-outline btn-sm" onclick="criarRevisao('${r.id}')">✎ Criar revisão</button>`;
-  else b+=`<button class="btn btn-gold btn-sm" onclick="abrirPublicar('${r.id}')">✓ Publicar RSO</button>`;
-  if(ehUltimo)b+=` <button class="btn btn-outline btn-sm" onclick="criarCOdoUltimo('${r.obra_id}','fiscalizacao','RS')">⧉ Novo RSO</button>`;
+  // ORDEM: Novo · Publicar/Rever · Reenviar
+  if(podeNovoRever && r.estado==='disponibilizado') b+=`<button class="btn btn-outline btn-sm" onclick="criarCOdoUltimo('${r.obra_id}','fiscalizacao','RS')">⧉ Novo RSO</button>`;
+  if(r.estado==='disponibilizado'){
+    if(podeNovoRever) b+=`<button class="btn btn-outline btn-sm" onclick="criarRevisao('${r.id}')">✎ Criar revisão</button>`;
+    b+=`<button class="btn btn-outline btn-sm" onclick="abrirReenviar('${r.id}')">📧 Reenviar</button>`;
+  } else {
+    b+=`<button class="btn btn-gold btn-sm" onclick="abrirPublicar('${r.id}')">✓ Publicar RSO</button>`;
+  }
   return b;
 }
 const RS_DAY_LETTERS=['S','T','Q','Q','S','S'];
@@ -3225,11 +3234,20 @@ function renderFichaRS(app,r){
 function rvtActionBtn(r){
   const lista=DB.relatorios.filter(x=>x.obra_id===r.obra_id&&x.conteudo&&x.conteudo.tipo==='seguranca'&&x.conteudo.subtipo==='RVT');
   const maxNum=lista.length?Math.max(...lista.map(x=>x.numero||0)):0;
-  const ehUltimo=(r.numero||0)===maxNum;
+  const sameNum=lista.filter(x=>(x.numero||0)===(r.numero||0));
+  const maxVerNum=sameNum.length?Math.max(...sameNum.map(x=>x.versao||0)):0;
+  const isUltimaVersao=(r.versao||0)===maxVerNum;
+  const isUltimoGlobal=(r.numero||0)===maxNum && isUltimaVersao;
+  const podeNovoRever=isUltimoGlobal && lista.length>1;
   let b='';
-  if(r.estado==='disponibilizado') b+=`<button class="btn btn-outline btn-sm" onclick="criarRevisao('${r.id}')">✎ Criar revisão</button>`;
-  else b+=`<button class="btn btn-gold btn-sm" onclick="abrirPublicar('${r.id}')">✓ Publicar RVT</button>`;
-  if(ehUltimo) b+=`<button class="btn btn-outline btn-sm" onclick="criarCOdoUltimo('${r.obra_id}','seguranca','RVT')">⧉ Novo RVT</button>`;
+  // ORDEM: Novo · Publicar/Rever · Reenviar
+  if(podeNovoRever && r.estado==='disponibilizado') b+=`<button class="btn btn-outline btn-sm" onclick="criarCOdoUltimo('${r.obra_id}','seguranca','RVT')">⧉ Novo RVT</button>`;
+  if(r.estado==='disponibilizado'){
+    if(podeNovoRever) b+=`<button class="btn btn-outline btn-sm" onclick="criarRevisao('${r.id}')">✎ Criar revisão</button>`;
+    b+=`<button class="btn btn-outline btn-sm" onclick="abrirReenviar('${r.id}')">📧 Reenviar</button>`;
+  } else {
+    b+=`<button class="btn btn-gold btn-sm" onclick="abrirPublicar('${r.id}')">✓ Publicar RVT</button>`;
+  }
   return b;
 }
 window.mudarEstadoCO=async function(id,novo){
@@ -3870,7 +3888,7 @@ function renderFichaObra(app){
   );
 
   const novoBtn=o.relMensal&&(currentUser?.role==='fiscalizacao'||canAdmin())?`<div style="display:flex;gap:6px;align-items:center"><button class="btn btn-outline btn-sm" style="font-size:11px;padding:3px 10px" onclick="event.stopPropagation();abrirCapaFisc('${o.id}')">Fiscalização</button><button class="btn btn-gold btn-sm" style="font-size:11px;padding:3px 10px" onclick="event.stopPropagation();abrirCapaSeg('${o.id}')">Segurança</button></div>`:'';
-  const coCols='grid-template-columns:62px 1.1fr 1.4fr 0.6fr 2.2fr';
+  const coCols='grid-template-columns:1fr 1fr 1fr 1fr 1fr';
   const coHeader=`<div style="display:grid;${coCols};gap:8px;padding:5px 4px 6px;font-size:9px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--text-muted);border-bottom:0.5px solid var(--border-light)">
     <div>Nº</div>
     <div>Período</div>
@@ -3883,12 +3901,14 @@ function renderFichaObra(app){
     const _s=(r.conteudo&&r.conteudo.subtipo)||'';
     const cat=_c==='seguranca'?'Segurança':(_c==='fiscalizacao'?'Fiscalização':'—');
     const tipo=_s==='RS'?'RSO':(_s||'—');
+    const _d=(r.conteudo&&r.conteudo.dados)||{};
+    const periodo=_d.semana||fmtMesAno(r.mes,r.ano);
     return `<div onclick="relObraId='${o.id}';relRelId='${r.id}';relTab='capa';render()" style="display:grid;${coCols};gap:8px;align-items:center;padding:7px 4px;border-bottom:0.5px solid var(--border-light);cursor:pointer;border-radius:4px;transition:background .1s" onmouseover="this.style.background='var(--bg)'" onmouseout="this.style.background=''">
       <span style="font-size:12px;font-weight:700;font-family:monospace;color:#534AB7">${relNumero(r)}</span>
-      <span style="font-size:12px">${fmtMesAno(r.mes,r.ano)}</span>
+      <span style="font-size:12px">${periodo}</span>
       <span style="font-size:11px;color:var(--text-muted)">${cat}</span>
       <span style="font-size:11px;font-weight:600;color:var(--text)">${tipo}</span>
-      <span style="display:flex;gap:6px;align-items:center;justify-content:flex-end;flex-wrap:wrap">${relBadge(r.estado)}${rvtRowBtns(r)}</span>
+      <span style="display:flex;justify-content:flex-end">${relBadge(r.estado)}</span>
     </div>`;
   }).join('')):`<div style="font-size:12px;color:var(--text-muted);font-style:italic;padding:8px 0">Sem relatórios.</div>`;
 
