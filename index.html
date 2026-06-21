@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.21.1759</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.21.1804</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -874,13 +874,15 @@ window.doLogout=function(){
   showLogin();
 };
 
-// Load data then show login
-loadDB().then(() => {
-  initPwdHashes();
-  showLogin();
-}).catch(e => {
-  console.error(e);
-});
+// Load data then show login — exceto em link público (?doc=)
+if(!new URLSearchParams(location.search).get('doc')){
+  loadDB().then(() => {
+    initPwdHashes();
+    showLogin();
+  }).catch(e => {
+    console.error(e);
+  });
+}
 
 // Allow Enter key on login form
 document.addEventListener('keydown',function(e){
@@ -902,6 +904,7 @@ const now=()=>{ const d=new Date(); return d.toISOString().split('T')[0]+' '+d.t
 const fmt=v=>(v!=null&&v!=='')?v:'—';
 const fmtNum=v=>v!=null?v.toLocaleString('pt-PT')+'€':'—';
 const fmtDate=v=>{if(!v)return'—';const p=v.split('-');return`${p[2]}/${p[1]}/${p[0]}`;};
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 const diffDays=(a,b)=>{if(!a||!b)return'';const d=Math.round((new Date(b)-new Date(a))/86400000);return isNaN(d)?'':d;};
 const obraById=id=>DB.obras.find(o=>o.id===id);
 const clienteById=id=>DB.clientes.find(c=>c.id===id);
