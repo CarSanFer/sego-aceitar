@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.20.1822</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.21.1759</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -2191,6 +2191,7 @@ window.rsCommit=function(section,idx,key,value){
     if(typeof rsRefreshKPISub==='function') rsRefreshKPISub();
   }
   if(section==='subempreiteiros' && (key==='atividade' || key==='subempreiteiro')){
+    if(typeof rsUpdateSubAtivEspelho==='function') rsUpdateSubAtivEspelho(idx);
     if(typeof rsUpdateSubInputsRow==='function') rsUpdateSubInputsRow(idx);
     if(typeof rsRefreshKPISub==='function') rsRefreshKPISub();
   }
@@ -2250,7 +2251,7 @@ window.rsImportXLSX=function(file){
   if(!file||!relRelId)return;
   const r=DB.relatorios.find(x=>x.id===relRelId);if(!r)return;
   if(r.estado==='disponibilizado'){alert('Não é possível importar num RSO publicado.');return;}
-  if(!confirm('Substituir as atividades e subempreiteiros existentes pelo conteúdo do Excel?\n\nIsto vai sobrescrever os dados das duas tabelas. Lê colunas I a N (semana 1).'))return;
+  if(!confirm('Substituir as atividades e subempreiteiros existentes pelo conteúdo do Excel?\n\nIsto vai sobrescrever os dados das duas tabelas. Lê apenas a SEMANA 1 (6 dias: Seg-Sáb).'))return;
   if(typeof loadSheetJS!=='function'){alert('SheetJS não disponível.');return;}
   loadSheetJS(()=>{
     const reader=new FileReader();
@@ -2260,46 +2261,94 @@ window.rsImportXLSX=function(file){
         const wb=XLSX.read(data,{type:'array'});
         const sheet=wb.Sheets[wb.SheetNames[0]];
         const aoa=XLSX.utils.sheet_to_json(sheet,{header:1,defval:null});
-        // Procurar secções pelas headers
-        let actStart=-1,subStart=-1;
-        for(let i=0;i<aoa.length;i++){
-          const cB=String((aoa[i]||[])[1]||'').trim();
-          if(actStart<0 && /trabalhos a executar/i.test(cB)) actStart=i+2;
-          if(subStart<0 && /^subempreiteiros$/i.test(cB)) subStart=i+2;
+        // ---------- Helpers de detecção dinâmica ----------
+        const colLetter=(c)=>{ let s='',n=c; while(n>=0){s=String.fromCharCode(65+(n%26))+s;n=Math.floor(n/26)-1;} return s; };
+        // Encontrar a linha header — procurar texto em QUALQUER coluna
+        function findHeader(re){
+          for(let i=0;i<aoa.length;i++){
+            const row=aoa[i]||[];
+            for(let c=0;c<row.length;c++){
+              if(re.test(String(row[c]||'').trim())) return i;
+            }
+          }
+          return -1;
         }
-        // Parse atividades
+        // Encontrar dayStartCol procurando 'S T Q Q S S' (primeira semana, Seg-Sáb) — procura nas 3 linhas após o header
+        function findDayStartCol(headerRow){
+          for(let off=0;off<=2;off++){
+            const row=aoa[headerRow+off]||[];
+            for(let c=0;c<row.length-5;c++){
+              const seq=[c,c+1,c+2,c+3,c+4,c+5].map(j=>String(row[j]||'').trim().toUpperCase().slice(0,1)).join('');
+              if(seq==='STQQSS') return c;
+            }
+          }
+          return -1;
+        }
+        // Encontrar a coluna da descrição/nome — primeira coluna entre col B e dayStartCol-1 com string longa (>3 chars)
+        function findDescCol(rowIdx, dayCol){
+          const row=aoa[rowIdx]||[];
+          const max=dayCol>0?dayCol:Math.min(row.length,10);
+          for(let c=2;c<max;c++){
+            const v=row[c];
+            if(typeof v==='string' && v.trim().length>3) return c;
+          }
+          return 2; // fallback col C
+        }
+        // ---------- Detectar secções ----------
+        const actHeader=findHeader(/trabalhos a executar/i);
+        const subHeader=findHeader(/^subempreiteiros/i);
+        if(actHeader<0 && subHeader<0){
+          alert('Não encontrei "Trabalhos a Executar" nem "Subempreiteiros" no Excel.');
+          return;
+        }
+        const actDayCol=actHeader>=0?findDayStartCol(actHeader):-1;
+        const subDayCol=subHeader>=0?findDayStartCol(subHeader):-1;
+        // ---------- Parse atividades ----------
         const atvs=[];
-        if(actStart>0){
+        let atvDescCol=-1;
+        if(actHeader>=0){
+          const actStart=actHeader+2; // header + linha totais
+          atvDescCol=findDescCol(actStart, actDayCol);
           for(let i=actStart;i<aoa.length;i++){
             const row=aoa[i]||[];
-            const desc=row[2];
+            const desc=row[atvDescCol];
             if(!desc||typeof desc!=='string'||!desc.trim())break;
             const dias=[];
-            for(let c=8;c<=13;c++){
-              const v=row[c];
-              const isX=(typeof v==='string'&&v.toLowerCase().trim()==='x');
-              dias.push({p:isX,r:false});
+            if(actDayCol>=0){
+              for(let c=actDayCol;c<actDayCol+6;c++){
+                const v=row[c];
+                const isX=(typeof v==='string'&&v.toLowerCase().trim()==='x');
+                dias.push({p:isX,r:false});
+              }
             }
             atvs.push({id:atvs.length+1,descricao:desc.trim(),localizacao:'',dias});
           }
         }
-        // Parse subempreiteiros
+        // ---------- Parse subempreiteiros ----------
         const subs=[];
-        if(subStart>0){
+        let subNomeCol=-1;
+        if(subHeader>=0){
+          const subStart=subHeader+2;
+          subNomeCol=findDescCol(subStart, subDayCol);
           for(let i=subStart;i<aoa.length;i++){
             const row=aoa[i]||[];
-            const nome=row[2];
+            const nome=row[subNomeCol];
             if(!nome||typeof nome!=='string'||!nome.trim())break;
             const dias=[];
-            for(let c=8;c<=13;c++){
-              const v=row[c];
-              const num=(typeof v==='number')?v:(parseFloat(v)||0);
-              dias.push({prev:num,efet:0});
+            if(subDayCol>=0){
+              for(let c=subDayCol;c<subDayCol+6;c++){
+                const v=row[c];
+                const num=(typeof v==='number')?v:(parseFloat(v)||0);
+                dias.push({prev:num,efet:0});
+              }
             }
             subs.push({id:subs.length+1,subempreiteiro:nome.trim(),dias});
           }
         }
-        if(!atvs.length && !subs.length){alert('Nenhuma atividade nem subempreiteiro encontrado no Excel.\n\nVerificar se o ficheiro tem secções "Trabalhos a Executar" e "Subempreiteiros" na coluna B.');return;}
+        if(!atvs.length && !subs.length){alert('Nenhuma atividade nem subempreiteiro encontrado no Excel.');return;}
+        // Aviso se detecção falhou
+        if(actHeader>=0 && actDayCol<0){console.warn('Não encontrei sequência S T Q Q S S após "Trabalhos a Executar"');}
+        if(subHeader>=0 && subDayCol<0){console.warn('Não encontrei sequência S T Q Q S S após "Subempreiteiros"');}
         // Sincronizar tamanhos das duas tabelas
         const maxLen=Math.max(atvs.length,subs.length);
         while(atvs.length<maxLen)atvs.push({id:atvs.length+1,dias:[]});
@@ -2311,7 +2360,9 @@ window.rsImportXLSX=function(file){
         r.conteudo.dados.subempreiteiros=subs;
         sbRel.patch('relatorios',relRelId,{conteudo:JSON.stringify(r.conteudo)}).catch(console.error);
         render();
-        alert('Importação concluída.\n'+atvs.length+' atividades · '+subs.length+' subempreiteiros.\n\nA localização de cada atividade ficou em branco (preenche manualmente).');
+        const infoAtv=atvs.length?(atvs.length+' atividades · descrição col '+colLetter(atvDescCol)+(actDayCol>=0?' · dias col '+colLetter(actDayCol)+'-'+colLetter(actDayCol+5):' · dias NÃO detectados')):'sem atividades';
+        const infoSub=subs.length?(subs.length+' subempreiteiros · nome col '+colLetter(subNomeCol)+(subDayCol>=0?' · dias col '+colLetter(subDayCol)+'-'+colLetter(subDayCol+5):' · dias NÃO detectados')):'sem subempreiteiros';
+        alert('Importação concluída.\n\n'+infoAtv+'\n'+infoSub+'\n\nLocalização ficou em branco (preenche manualmente).');
       }catch(err){
         console.error(err);
         alert('Erro a importar: '+(err.message||err));
@@ -2622,11 +2673,19 @@ window.rsUpdateSubAtivEspelho=function(idx){
   if(!relRelId)return;
   const r=DB.relatorios.find(x=>x.id===relRelId);if(!r)return;
   const ativs=((r.conteudo||{}).dados||{}).atividades||[];
-  // Cascade backwards: procura para trás a descrição preenchida mais próxima
+  const subs=((r.conteudo||{}).dados||{}).subempreiteiros||[];
+  const sub=subs[idx]||{};
+  const hasSub=!!((sub.subempreiteiro||'').trim());
   let desc='';
-  for(let k=idx;k>=0;k--){
-    const d=((ativs[k]||{}).descricao||'').trim();
-    if(d){desc=d;break;}
+  if(hasSub){
+    // Cascade backwards apenas quando há subempreiteiro preenchido
+    for(let k=idx;k>=0;k--){
+      const d=((ativs[k]||{}).descricao||'').trim();
+      if(d){desc=d;break;}
+    }
+  } else {
+    // Sem subempreiteiro — só mostra atividade do mesmo índice (sem cascade)
+    desc=((ativs[idx]||{}).descricao||'').trim();
   }
   const inp=document.querySelector('[data-rs="sub-atividade-'+idx+'"]');
   if(inp){
@@ -2901,13 +2960,21 @@ function renderFichaRS(app,r){
           <div style="display:grid;${colsAtLeft};gap:6px;align-items:center">
             <div style="font-size:11px;color:var(--text-muted);text-align:center;padding:5px 0">${s.id||(i+1)}</div>
             <div style="padding:4px 0">${(()=>{
+              const _hasSub=!!((s.subempreiteiro||'').trim());
               let _desc='', _from=-1;
-              for(let _k=i;_k>=0;_k--){
-                const _d=(((d.atividades||[])[_k]||{}).descricao||'').trim();
-                if(_d){_desc=_d;_from=_k;break;}
+              if(_hasSub){
+                // Cascade backwards apenas quando há subempreiteiro preenchido (intenção de duplicar)
+                for(let _k=i;_k>=0;_k--){
+                  const _d=(((d.atividades||[])[_k]||{}).descricao||'').trim();
+                  if(_d){_desc=_d;_from=_k;break;}
+                }
+              } else {
+                // Sem subempreiteiro — apenas reflete a atividade do mesmo índice
+                _desc=((((d.atividades||[])[i])||{}).descricao||'').trim();
+                if(_desc) _from=i;
               }
               const _isCasc=(_from>=0 && _from!==i);
-              return `<input readonly data-rs="sub-atividade-${i}" value="${esc(_desc)}" placeholder="(preencher descrição na atividade ${i+1})" title="${_desc?(_isCasc?'Espelha a descrição da atividade '+(_from+1)+' (linha em branco — pertence à atividade anterior preenchida)':'Espelha a descrição da atividade '+(i+1)):'Sem descrição preenchida acima'}" style="${inpS};background:#f5f7fa;color:#374151;cursor:not-allowed;font-style:${_desc?'normal':'italic'}">`;
+              return `<input readonly data-rs="sub-atividade-${i}" value="${esc(_desc)}" placeholder="(preencher descrição na atividade ${i+1})" title="${_desc?(_isCasc?'Espelha a descrição da atividade '+(_from+1)+' (subempreiteiro adicional à atividade anterior)':'Espelha a descrição da atividade '+(i+1)):'Sem descrição preenchida'}" style="${inpS};background:#f5f7fa;color:#374151;cursor:not-allowed;font-style:${_desc?'normal':'italic'}">`;
             })()}</div>
             <div style="padding:4px 0"><input value="${esc(s.subempreiteiro)}" ${ro?'readonly':''} oninput="rsCommit('subempreiteiros',${i},'subempreiteiro',this.value)" style="${ro?inpRO:inpS}"></div>
           </div>
