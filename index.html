@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.21.1901</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.21.1908</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -1996,6 +1996,67 @@ window.publicarEnviar=async function(relId){
     }
   }catch(e){ hideLoadingOverlay(); alert('Erro: '+e.message); }
 };
+
+window.abrirReenviar=function(relId){
+  const rel=DB.relatorios.find(x=>x.id===relId); if(!rel){alert('Relatório não encontrado.');return;}
+  const o=DB.obras.find(x=>x.id===rel.obra_id)||{};
+  const _sub=(rel.conteudo&&rel.conteudo.subtipo)||'';
+  const _sigla=_sub==='RS'?'RSO':(_sub||'documento');
+  const roleL={dono_obra:'Dono de Obra',fiscalizacao:'Fiscalização',superadmin:'Fiscalização',empreiteiro:'Empreiteiro',projetista:'Projetista'};
+  const inObra=u=>u.obras==='todas'||(Array.isArray(u.obras)&&u.obras.some(oid=>String(oid)===String(o.id)));
+  const people=(DB.utilizadores||[]).filter(u=>u.email&&roleL[u.role]&&inObra(u));
+  const link=location.origin+'/?doc='+encodeURIComponent(relId);
+  const obraTxt=((o.sigla?o.sigla+' — ':'')+(o.nome||'')).trim();
+  const defMsg='Reenvio do '+_sigla+' '+relNumero(rel)+' | '+obraTxt+'.';
+  const opts=people.length?people.map(u=>`<label style="display:flex;gap:8px;align-items:center;padding:5px 0"><input type="checkbox" class="reenv-cb" value="${u.email}" data-nome="${(u.nome||'').replace(/"/g,'')}"><span style="font-size:13px">${u.nome||u.email} <span style="color:var(--text-muted)">· ${roleL[u.role]} · ${u.email}</span></span></label>`).join(''):'<div style="font-size:12px;color:var(--text-muted)">Sem intervenientes com email nesta obra.</div>';
+  showModal('Reenviar — '+_sigla+' '+relNumero(rel),`
+    <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">Mensagem (parametrizável)</div>
+    <textarea id="reenv-msg" class="form-input" style="width:100%;min-height:90px;margin-bottom:14px">${defMsg}</textarea>
+    <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">Intervenientes — seleccione quem deve receber o reenvio</div>
+    <div style="max-height:170px;overflow:auto;border:1px solid var(--border-light);border-radius:var(--radius);padding:4px 10px;margin-bottom:14px">${opts}</div>
+    <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">Emails adicionais (separados por vírgula)</div>
+    <input id="reenv-extra" class="form-input" style="width:100%" placeholder="ceo@empresa.pt, ...">
+    <div style="font-size:11px;color:var(--text-muted);margin-top:10px">Link do documento: <code style="font-size:11px">${link}</code></div>
+  `,[
+    {label:'Cancelar',cls:'btn-outline',fn:'closeModal()'},
+    {label:'📧 Enviar',cls:'btn-gold',fn:`reenviarEnviar('${relId}')`},
+  ]);
+};
+
+window.reenviarEnviar=async function(relId){
+  const rel=DB.relatorios.find(x=>x.id===relId); if(!rel)return;
+  const o=DB.obras.find(x=>x.id===rel.obra_id)||{};
+  const _sub=(rel.conteudo&&rel.conteudo.subtipo)||'';
+  const _sigla=_sub==='RS'?'RSO':(_sub||'documento');
+  const msg=(document.getElementById('reenv-msg')?.value||'').trim();
+  const checks=[...document.querySelectorAll('.reenv-cb:checked')].map(c=>({email:c.value,nome:c.dataset.nome||''}));
+  const extra=(document.getElementById('reenv-extra')?.value||'').split(/[\n,;]+/).map(x=>x.trim()).filter(x=>x.includes('@')).map(e=>({email:e,nome:''}));
+  const dest=[...checks,...extra];
+  if(!dest.length){alert('Selecione pelo menos um destinatário.');return;}
+  const link=location.origin+'/?doc='+encodeURIComponent(relId);
+  const obraTxt=((o.sigla?o.sigla+' — ':'')+(o.nome||'')).trim();
+  try{
+    showLoadingOverlay('A reenviar...');
+    let ok=0,fail=0,lastErr='';
+    if(!window.emailjs){ lastErr='EmailJS não carregou (window.emailjs indefinido).'; }
+    if(window.emailjs && dest.length){
+      for(const d of dest){
+        try{
+          const _msgEsc=String(msg||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+          const _linkHTML='<a href="'+link+'" style="color:#1B4F9B;text-decoration:underline">Abrir documento</a>';
+          const _msgHTML='<div style="font-family:Calibri,Arial,sans-serif;font-size:14px;line-height:1.5;color:#333"><p>'+_msgEsc+'</p><p style="margin-top:16px"><strong>Acesso ao documento:</strong> '+_linkHTML+'</p></div>';
+          await emailjs.send(EJS.service, EJS_TPL_RVT, {to_email:d.email,to_name:d.nome||d.email,obra_nome:obraTxt,rvt_ref:_sigla+' '+relNumero(rel),doc_link:link,doc_link_html:_linkHTML,mensagem:msg,mensagem_html:_msgHTML,doc_tipo:_sigla}); ok++;
+        }catch(e){ fail++; lastErr=e.message||String(e); }
+      }
+    }
+    hideLoadingOverlay();
+    closeModal();
+    alert('Reenvio concluído.\nEmails enviados: '+ok+(fail?(' · falhas: '+fail+'\n\nÚltimo erro: '+lastErr):''));
+  }catch(e){
+    hideLoadingOverlay();
+    alert('Erro: '+e.message);
+  }
+};
 async function renderPublicDoc(relId){
   document.body.innerHTML='<div style="font-family:Calibri,sans-serif;padding:48px;text-align:center;color:#667">A carregar documento…</div>';
   let rel=null,o={};
@@ -2076,9 +2137,9 @@ function renderPublicRSO(rel,o,conteudo){
     .body{padding:22px 28px}
     .g{background:#dde2e8;padding:24px 28px;border-radius:8px;margin-bottom:22px}
     .g:last-of-type{margin-bottom:0}
-    h2{font-size:12px;text-transform:uppercase;letter-spacing:.8px;border-bottom:2px solid #1F2A44;padding-bottom:8px;margin:0 0 18px;color:#1F2A44;font-weight:700;text-align:center}
+    h2{font-size:12px;text-transform:uppercase;letter-spacing:.8px;border-bottom:2px solid #1F2A44;padding-bottom:8px;margin:0 0 18px;color:#1F2A44;font-weight:700;text-align:left}
     table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px;background:#fff;border:1px solid #d1d5db;border-radius:6px;overflow:hidden}
-    th{background:#f0f2f5;padding:8px 6px;text-align:left;border-bottom:2px solid #1F2A44;font-size:10px;text-transform:uppercase;letter-spacing:.3px;color:#1F2A44}
+    th{background:#f0f2f5;padding:8px 6px;text-align:center;border-bottom:2px solid #1F2A44;font-size:10px;text-transform:uppercase;letter-spacing:.3px;color:#1F2A44}
     th.c{text-align:center}
     td{padding:6px 8px;border-bottom:1px solid #eee;vertical-align:middle}
     td.c{text-align:center;white-space:nowrap}
@@ -2218,7 +2279,10 @@ function rvtRowBtns(r){
   const maxNum=lista.length?Math.max(...lista.map(x=>x.numero||0)):0;
   const S='font-size:10px;padding:2px 7px';
   let b='';
-  if(r.estado==='disponibilizado') b+=`<button class="btn btn-outline btn-sm" style="${S}" onclick="event.stopPropagation();criarRevisao('${r.id}')">✎ Rever</button>`;
+  if(r.estado==='disponibilizado'){
+    b+=`<button class="btn btn-outline btn-sm" style="${S}" onclick="event.stopPropagation();abrirReenviar('${r.id}')">📧 Reenviar</button>`;
+    b+=`<button class="btn btn-outline btn-sm" style="${S}" onclick="event.stopPropagation();criarRevisao('${r.id}')">✎ Rever</button>`;
+  }
   else b+=`<button class="btn btn-gold btn-sm" style="${S}" onclick="event.stopPropagation();abrirPublicar('${r.id}')">✓ Publicar</button>`;
   if((r.numero||0)===maxNum) b+=`<button class="btn btn-outline btn-sm" style="${S}" onclick="event.stopPropagation();criarCOdoUltimo('${r.obra_id}','${tipo}','${subtipo}')">⧉ Novo</button>`;
   return b;
