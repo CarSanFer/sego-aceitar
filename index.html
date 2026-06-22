@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.21.2028</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.21.2320</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -746,6 +746,9 @@ function hashPwd(pwd){
 // EmailJS config
 const EJS={service:'service_2u3z5y5',template:'template_8e782pq',pubkey:'BiTbyfz5BTSKgyq0P'};
 const EJS_TPL_RVT='template_ohytgg4'; // Template ID real do EmailJS (nome: template_rvt_pub)
+// ============ TRADUÇÃO RSO PÚBLICO (Claude API) ============
+// ⚠️ Colar aqui a chave da Anthropic Console (sk-ant-api03-...) antes de deploy
+const ANTHROPIC_API_KEY='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';
 function initEmailJS(){ if(window.emailjs) emailjs.init({publicKey:EJS.pubkey}); }
 
 window.enviarConvite=function(uid){
@@ -873,6 +876,62 @@ window.doLogout=function(){
   currentUser=null;
   showLogin();
 };
+
+// ============ Toggle PT/EN no link público RSO ============
+window.toggleLang=async function(){
+  const btn=document.getElementById('langBtn'); if(!btn)return;
+  const isEn=btn.textContent.trim()==='PT';
+  if(isEn){
+    // Reverter para PT
+    document.querySelectorAll('[data-pt]').forEach(el=>{ el.textContent=el.dataset.pt; });
+    btn.textContent='EN'; return;
+  }
+  // Traduzir para EN
+  if(window._rsoEnCache){
+    document.querySelectorAll('[data-pt]').forEach((el,i)=>{ const t=window._rsoEnCache[i]; if(t!=null) el.textContent=t; });
+    btn.textContent='PT'; return;
+  }
+  if(!window.ANTHROPIC_API_KEY){ alert('Tradução indisponível: chave API não configurada no SEGO.'); return; }
+  btn.textContent='...'; btn.disabled=true;
+  try{
+    const nodes=Array.from(document.querySelectorAll('[data-pt]'));
+    const textos=nodes.map(el=>el.dataset.pt||'');
+    const prompt='Translate Portuguese (Portugal) texts to English.\nEach text is on its own line, indexed as [N].\nRULES:\n- Keep proper nouns, company names, person names, place names unchanged\n- Keep abbreviations unchanged: RSO, RVT, PTQ, PB, PA, PE, QE, AM, TCm, CO\n- Keep dates, numbers, percentages, codes (PIC4, 6E04, S25, etc.) unchanged\n- Translate descriptions, labels, analysis, observations, headers\n- Translate weekdays SEG/TER/QUA/QUI/SEX/SÁB to MON/TUE/WED/THU/FRI/SAT\n- Output ONLY translated lines in format "[N] translation", one per line\n- No explanations, no extra text, no markdown\n\nTexts:\n'+textos.map((t,i)=>'['+i+'] '+t).join('\n');
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'x-api-key':window.ANTHROPIC_API_KEY,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true',
+        'content-type':'application/json'
+      },
+      body:JSON.stringify({
+        model:'claude-haiku-4-5',
+        max_tokens:4096,
+        messages:[{role:'user',content:prompt}]
+      })
+    });
+    if(!res.ok){ const e=await res.text(); throw new Error('HTTP '+res.status+': '+e.slice(0,200)); }
+    const data=await res.json();
+    if(!data.content||!data.content[0]) throw new Error('Resposta inesperada: '+JSON.stringify(data).slice(0,200));
+    const respText=data.content[0].text||'';
+    const lines=respText.split('\n').filter(l=>l.trim());
+    const traducoes=new Array(textos.length).fill(null);
+    lines.forEach(line=>{
+      const m=line.match(/^\[(\d+)\]\s*(.*)$/);
+      if(m){ const idx=parseInt(m[1]); if(idx>=0&&idx<textos.length) traducoes[idx]=m[2]; }
+    });
+    nodes.forEach((el,i)=>{ if(traducoes[i]!=null) el.textContent=traducoes[i]; });
+    window._rsoEnCache=traducoes;
+    btn.textContent='PT';
+  }catch(err){
+    alert('Erro de tradução: '+err.message);
+    btn.textContent='EN';
+  }finally{
+    btn.disabled=false;
+  }
+};
+window.ANTHROPIC_API_KEY=ANTHROPIC_API_KEY;
 
 // Load data then show login — exceto em link público (?doc=)
 if(!new URLSearchParams(location.search).get('doc')){
@@ -2179,28 +2238,29 @@ function renderPublicRSO(rel,o,conteudo){
   <div class="container">
     <div class="header">
       <img src="data:image/png;base64,${LOGO_ACEITAR_B64}" alt="aceitar">
-      <div class="header-title">Relatório Semanal de Obra (RSO)</div>
-      <span class="badge">Disponibilizado</span>
+      <div class="header-title" data-pt="Relatório Semanal de Obra (RSO)">Relatório Semanal de Obra (RSO)</div>
+      <button id="langBtn" onclick="toggleLang()" style="padding:5px 12px;border-radius:14px;font-size:11px;font-weight:700;background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.3);cursor:pointer;letter-spacing:.6px;text-transform:uppercase">EN</button>
+      <span class="badge" data-pt="Disponibilizado">Disponibilizado</span>
     </div>
     <div class="body">
-      <div class="g"><h2>Identificação</h2>
+      <div class="g"><h2 data-pt="Identificação">Identificação</h2>
       <div class="ident">
-        <div><div class="ident-label">RSO Nº</div><div class="ident-value">${num}</div></div>
-        <div><div class="ident-label">Data</div><div class="ident-value">${rel.criado_em?fmtDate(rel.criado_em.split('T')[0]):'—'}</div></div>
-        <div><div class="ident-label">Autor</div><div class="ident-value">${esc(d.autor||rel.criado_por_nome||'—')}</div></div>
-        <div><div class="ident-label">Obra</div><div class="ident-value">${esc(obraTxt)}</div></div>
-        <div><div class="ident-label">Início da Semana</div><div class="ident-value">${d.semanaIni?fmtDate(d.semanaIni):'—'}</div></div>
-        <div><div class="ident-label">Período</div><div class="ident-value">${esc(d.semana||fmtMesAno(rel.mes,rel.ano)||'—')}</div></div>
+        <div><div class="ident-label" data-pt="RSO Nº">RSO Nº</div><div class="ident-value">${num}</div></div>
+        <div><div class="ident-label" data-pt="Data">Data</div><div class="ident-value">${rel.criado_em?fmtDate(rel.criado_em.split('T')[0]):'—'}</div></div>
+        <div><div class="ident-label" data-pt="Autor">Autor</div><div class="ident-value">${esc(d.autor||rel.criado_por_nome||'—')}</div></div>
+        <div><div class="ident-label" data-pt="Obra">Obra</div><div class="ident-value">${esc(obraTxt)}</div></div>
+        <div><div class="ident-label" data-pt="Início da Semana">Início da Semana</div><div class="ident-value">${d.semanaIni?fmtDate(d.semanaIni):'—'}</div></div>
+        <div><div class="ident-label" data-pt="Período">Período</div><div class="ident-value" data-pt="${esc(d.semana||fmtMesAno(rel.mes,rel.ano)||'—')}">${esc(d.semana||fmtMesAno(rel.mes,rel.ano)||'—')}</div></div>
       </div>
-      </div><div class="g"><h2>Atividades${kAtv.nAt?' · '+kAtv.nAt:''}</h2>
+      </div><div class="g"><h2 data-pt="Atividades${kAtv.nAt?' · '+kAtv.nAt:''}">Atividades${kAtv.nAt?' · '+kAtv.nAt:''}</h2>
       ${kAtv.nAt?`<table>
-        <thead><tr><th class="c" style="width:36px">ID</th><th>Descrição</th><th>Localização</th>${DAY.map((l,j)=>`<th class="c ${feriados[j]?'day-fer':''}" style="width:75px">${l}${feriados[j]?'<br><small>Fer</small>':''}</th>`).join('')}</tr></thead>
+        <thead><tr><th class="c" style="width:36px" data-pt="ID">ID</th><th data-pt="Descrição">Descrição</th><th data-pt="Localização">Localização</th>${DAY.map((l,j)=>`<th class="c ${feriados[j]?'day-fer':''}" style="width:75px" data-pt="${l}${feriados[j]?' Fer':''}">${l}${feriados[j]?'<br><small>Fer</small>':''}</th>`).join('')}</tr></thead>
         <tbody>${ativs.map((a,i)=>{
           const dias=a.dias||[];
           return `<tr>
             <td class="c">${a.id||(i+1)}</td>
-            <td>${esc(a.descricao||'')}</td>
-            <td>${esc(a.localizacao||'')}</td>
+            <td data-pt="${esc(a.descricao||'')}">${esc(a.descricao||'')}</td>
+            <td data-pt="${esc(a.localizacao||'')}">${esc(a.localizacao||'')}</td>
             ${[0,1,2,3,4,5].map(j=>{
               const day=dias[j]||{};
               return `<td class="c ${feriados[j]?'day-fer':''}"><span class="pill ${day.p?'p-on':'off'}">P</span><span class="pill ${day.r?'r-on':'off'}">R</span></td>`;
@@ -2209,16 +2269,16 @@ function renderPublicRSO(rel,o,conteudo){
         }).join('')}</tbody>
       </table>
       <div class="kpi-row">
-        <div class="kpi"><div class="kpi-label">N.º Atividades</div><div class="kpi-val">${kAtv.nAt}</div><div class="kpi-sub">total</div></div>
-        <div class="kpi k-prev"><div class="kpi-label">Previstas [P]</div><div class="kpi-val">${kAtv.prev}</div><div class="kpi-sub">${pctPrev}% do período</div></div>
-        <div class="kpi k-real"><div class="kpi-label">Realizadas [R]</div><div class="kpi-val">${kAtv.real}</div><div class="kpi-sub">${pctReal}% do período</div></div>
-        <div class="kpi k-exec"><div class="kpi-label">Execução (P∩R)</div><div class="kpi-val">${kAtv.exec}</div><div class="kpi-sub">${pctExec}% de P</div></div>
-        <div class="kpi k-atraso"><div class="kpi-label">Em Atraso (P¬R)</div><div class="kpi-val">${kAtv.atraso}</div><div class="kpi-sub">${pctAtraso}% de P</div></div>
-        <div class="kpi k-extra"><div class="kpi-label">Extra (¬P∩R)</div><div class="kpi-val">${kAtv.extra}</div><div class="kpi-sub">${pctExtra}% de R</div></div>
-      </div>`:'<div class="empty">Sem atividades registadas.</div>'}
-      </div><div class="g"><h2>Subempreiteiros e Trabalhadores${kSub.nSub?' · '+kSub.nSub:''}</h2>
+        <div class="kpi"><div class="kpi-label" data-pt="N.º Atividades">N.º Atividades</div><div class="kpi-val">${kAtv.nAt}</div><div class="kpi-sub" data-pt="total">total</div></div>
+        <div class="kpi k-prev"><div class="kpi-label" data-pt="Previstas [P]">Previstas [P]</div><div class="kpi-val">${kAtv.prev}</div><div class="kpi-sub" data-pt="${pctPrev}% do período">${pctPrev}% do período</div></div>
+        <div class="kpi k-real"><div class="kpi-label" data-pt="Realizadas [R]">Realizadas [R]</div><div class="kpi-val">${kAtv.real}</div><div class="kpi-sub" data-pt="${pctReal}% do período">${pctReal}% do período</div></div>
+        <div class="kpi k-exec"><div class="kpi-label" data-pt="Execução (P∩R)">Execução (P∩R)</div><div class="kpi-val">${kAtv.exec}</div><div class="kpi-sub" data-pt="${pctExec}% de P">${pctExec}% de P</div></div>
+        <div class="kpi k-atraso"><div class="kpi-label" data-pt="Em Atraso (P¬R)">Em Atraso (P¬R)</div><div class="kpi-val">${kAtv.atraso}</div><div class="kpi-sub" data-pt="${pctAtraso}% de P">${pctAtraso}% de P</div></div>
+        <div class="kpi k-extra"><div class="kpi-label" data-pt="Extra (¬P∩R)">Extra (¬P∩R)</div><div class="kpi-val">${kAtv.extra}</div><div class="kpi-sub" data-pt="${pctExtra}% de R">${pctExtra}% de R</div></div>
+      </div>`:'<div class="empty" data-pt="Sem atividades registadas.">Sem atividades registadas.</div>'}
+      </div><div class="g"><h2 data-pt="Subempreiteiros e Trabalhadores${kSub.nSub?' · '+kSub.nSub:''}">Subempreiteiros e Trabalhadores${kSub.nSub?' · '+kSub.nSub:''}</h2>
       ${kSub.nSub?`<table>
-        <thead><tr><th class="c" style="width:36px">ID</th><th>Atividade</th><th>Subempreiteiro</th>${DAY.map((l,j)=>`<th class="c ${feriados[j]?'day-fer':''}" style="width:80px">${l}${feriados[j]?'<br><small>Fer</small>':''}</th>`).join('')}</tr></thead>
+        <thead><tr><th class="c" style="width:36px" data-pt="ID">ID</th><th data-pt="Atividade">Atividade</th><th data-pt="Subempreiteiro">Subempreiteiro</th>${DAY.map((l,j)=>`<th class="c ${feriados[j]?'day-fer':''}" style="width:80px" data-pt="${l}${feriados[j]?' Fer':''}">${l}${feriados[j]?'<br><small>Fer</small>':''}</th>`).join('')}</tr></thead>
         <tbody>${subs.map((sub,i)=>{
           const origIdx=(subsAll).indexOf(sub);
           // Cascade backwards para encontrar a descrição da atividade
@@ -2230,7 +2290,7 @@ function renderPublicRSO(rel,o,conteudo){
           const dias=sub.dias||[];
           return `<tr>
             <td class="c">${sub.id||(i+1)}</td>
-            <td>${esc(ativDesc)}</td>
+            <td data-pt="${esc(ativDesc)}">${esc(ativDesc)}</td>
             <td>${esc(sub.subempreiteiro||'')}</td>
             ${[0,1,2,3,4,5].map(j=>{
               const day=dias[j]||{};
@@ -2241,31 +2301,31 @@ function renderPublicRSO(rel,o,conteudo){
         }).join('')}</tbody>
       </table>
       <div class="kpi-row">
-        <div class="kpi"><div class="kpi-label">N.º Subempreiteiros</div><div class="kpi-val">${kSub.nSub}</div><div class="kpi-sub">total</div></div>
-        <div class="kpi k-prev"><div class="kpi-label">Previstos [P]</div><div class="kpi-val">${kSub.prev}</div><div class="kpi-sub">homens·dia</div></div>
-        <div class="kpi k-real"><div class="kpi-label">Efetivos [E]</div><div class="kpi-val">${kSub.efet}</div><div class="kpi-sub">homens·dia</div></div>
-        <div class="kpi k-exec"><div class="kpi-label">Cobertura</div><div class="kpi-val">${cobertura}%</div><div class="kpi-sub">E / P</div></div>
-        <div class="kpi k-atraso"><div class="kpi-label">Défice (P&gt;E)</div><div class="kpi-val">${defice}</div><div class="kpi-sub">${pctDefice}% de P</div></div>
-        <div class="kpi k-extra"><div class="kpi-label">Excedente (E&gt;P)</div><div class="kpi-val">${excedente}</div><div class="kpi-sub">${pctExcedente}% de P</div></div>
-      </div>`:'<div class="empty">Sem subempreiteiros registados.</div>'}
-      </div><div class="g"><h2>Análise e Recomendações</h2>
-      ${(d.analise||'').trim()?`<div class="text-block">${esc(d.analise)}</div>`:`<div class="text-block empty">Sem análise registada.</div>`}
-      </div><div class="g"><h2>Documentação${docs.length?' · '+docs.length:''}</h2>
+        <div class="kpi"><div class="kpi-label" data-pt="N.º Subempreiteiros">N.º Subempreiteiros</div><div class="kpi-val">${kSub.nSub}</div><div class="kpi-sub" data-pt="total">total</div></div>
+        <div class="kpi k-prev"><div class="kpi-label" data-pt="Previstos [P]">Previstos [P]</div><div class="kpi-val">${kSub.prev}</div><div class="kpi-sub" data-pt="homens·dia">homens·dia</div></div>
+        <div class="kpi k-real"><div class="kpi-label" data-pt="Efetivos [E]">Efetivos [E]</div><div class="kpi-val">${kSub.efet}</div><div class="kpi-sub" data-pt="homens·dia">homens·dia</div></div>
+        <div class="kpi k-exec"><div class="kpi-label" data-pt="Cobertura">Cobertura</div><div class="kpi-val">${cobertura}%</div><div class="kpi-sub" data-pt="E / P">E / P</div></div>
+        <div class="kpi k-atraso"><div class="kpi-label" data-pt="Défice (P>E)">Défice (P&gt;E)</div><div class="kpi-val">${defice}</div><div class="kpi-sub" data-pt="${pctDefice}% de P">${pctDefice}% de P</div></div>
+        <div class="kpi k-extra"><div class="kpi-label" data-pt="Excedente (E>P)">Excedente (E&gt;P)</div><div class="kpi-val">${excedente}</div><div class="kpi-sub" data-pt="${pctExcedente}% de P">${pctExcedente}% de P</div></div>
+      </div>`:'<div class="empty" data-pt="Sem subempreiteiros registados.">Sem subempreiteiros registados.</div>'}
+      </div><div class="g"><h2 data-pt="Análise e Recomendações">Análise e Recomendações</h2>
+      ${(d.analise||'').trim()?`<div class="text-block" data-pt="${esc(d.analise)}">${esc(d.analise)}</div>`:`<div class="text-block empty" data-pt="Sem análise registada.">Sem análise registada.</div>`}
+      </div><div class="g"><h2 data-pt="Documentação${docs.length?' · '+docs.length:''}">Documentação${docs.length?' · '+docs.length:''}</h2>
       ${docs.length?`<table>
-        <thead><tr><th class="c" style="width:60px">ID</th><th style="width:80px">Tipo</th><th>Descrição</th><th style="width:100px">Data</th><th style="width:110px">Estado</th><th>Observações</th></tr></thead>
+        <thead><tr><th class="c" style="width:60px" data-pt="ID">ID</th><th style="width:80px" data-pt="Tipo">Tipo</th><th data-pt="Descrição">Descrição</th><th style="width:100px" data-pt="Data">Data</th><th style="width:110px" data-pt="Estado">Estado</th><th data-pt="Observações">Observações</th></tr></thead>
         <tbody>${docs.map(x=>`<tr>
           <td class="c">${esc(x.id||'')}</td>
           <td>${esc(x.tipo||'')}</td>
-          <td>${esc(x.descricao||'')}</td>
+          <td data-pt="${esc(x.descricao||'')}">${esc(x.descricao||'')}</td>
           <td>${x.data?fmtDate(x.data):''}</td>
-          <td>${esc(x.estado||'')}</td>
-          <td>${esc(x.observacoes||'')}</td>
+          <td data-pt="${esc(x.estado||'')}">${esc(x.estado||'')}</td>
+          <td data-pt="${esc(x.observacoes||'')}">${esc(x.observacoes||'')}</td>
         </tr>`).join('')}</tbody>
-      </table>`:`<div class="text-block empty">Sem documentação registada.</div>`}
-      </div><div class="g"><h2>Outras Informações Relevantes</h2>
-      ${(d.outras_info||'').trim()?`<div class="text-block">${esc(d.outras_info)}</div>`:`<div class="text-block empty">Sem outras informações.</div>`}
-      </div><div class="g"><h2>Fotos${fotos.length?' · '+fotos.length:''}</h2>
-      ${fotos.length?`<div class="photos">${fotos.map(p=>`<a href="${p.url}" target="_blank" rel="noopener" style="background-image:url('${p.url}')" title="${esc(p.name||'')}"></a>`).join('')}</div>`:`<div class="text-block empty">Sem fotos registadas.</div>`}
+      </table>`:`<div class="text-block empty" data-pt="Sem documentação registada.">Sem documentação registada.</div>`}
+      </div><div class="g"><h2 data-pt="Outras Informações Relevantes">Outras Informações Relevantes</h2>
+      ${(d.outras_info||'').trim()?`<div class="text-block" data-pt="${esc(d.outras_info)}">${esc(d.outras_info)}</div>`:`<div class="text-block empty" data-pt="Sem outras informações.">Sem outras informações.</div>`}
+      </div><div class="g"><h2 data-pt="Fotos${fotos.length?' · '+fotos.length:''}">Fotos${fotos.length?' · '+fotos.length:''}</h2>
+      ${fotos.length?`<div class="photos">${fotos.map(p=>`<a href="${p.url}" target="_blank" rel="noopener" style="background-image:url('${p.url}')" title="${esc(p.name||'')}"></a>`).join('')}</div>`:`<div class="text-block empty" data-pt="Sem fotos registadas.">Sem fotos registadas.</div>`}
       </div>
     </div>
     <div class="footer">SEGO · Sistema Externo de Gestão de Obras · ${esc(sigla)} RSO ${num}${rel.criado_em?' · publicado em '+fmtDate(rel.criado_em.split('T')[0]):''}</div>
@@ -2282,8 +2342,8 @@ function rvtRowBtns(r){
   const isUltimaVersao=(r.versao||0)===maxVerNum;
   const isUltimoGlobal=(r.numero||0)===maxNum && isUltimaVersao;
   const temHistorico=lista.length>1;
-  // Novo e Rever aparecem no último global + histórico (independente do estado)
-  const podeNovoRever=isUltimoGlobal && temHistorico;
+  // Novo e Rever só aparecem no último global + histórico + disponibilizado
+  const podeNovoRever=isUltimoGlobal && temHistorico && r.estado==='disponibilizado';
   const S='font-size:10px;padding:2px 7px';
   let b='';
   // ORDEM: Novo (esquerda) · Rever (centro) · Publicar/Reenviar (direita)
@@ -2883,7 +2943,7 @@ function fiscActionBtn(r){
   const maxVerNum=sameNum.length?Math.max(...sameNum.map(x=>x.versao||0)):0;
   const isUltimaVersao=(r.versao||0)===maxVerNum;
   const isUltimoGlobal=(r.numero||0)===maxNum && isUltimaVersao;
-  const podeNovoRever=isUltimoGlobal && lista.length>1;
+  const podeNovoRever=isUltimoGlobal && lista.length>1 && r.estado==='disponibilizado';
   let b='';
   // ORDEM: Novo · Rever · Publicar/Reenviar
   if(podeNovoRever) b+=`<button class="btn btn-outline btn-sm" onclick="criarCOdoUltimo('${r.obra_id}','fiscalizacao','RS')">⧉ Novo RSO</button>`;
@@ -3238,7 +3298,7 @@ function rvtActionBtn(r){
   const maxVerNum=sameNum.length?Math.max(...sameNum.map(x=>x.versao||0)):0;
   const isUltimaVersao=(r.versao||0)===maxVerNum;
   const isUltimoGlobal=(r.numero||0)===maxNum && isUltimaVersao;
-  const podeNovoRever=isUltimoGlobal && lista.length>1;
+  const podeNovoRever=isUltimoGlobal && lista.length>1 && r.estado==='disponibilizado';
   let b='';
   // ORDEM: Novo · Rever · Publicar/Reenviar
   if(podeNovoRever) b+=`<button class="btn btn-outline btn-sm" onclick="criarCOdoUltimo('${r.obra_id}','seguranca','RVT')">⧉ Novo RVT</button>`;
