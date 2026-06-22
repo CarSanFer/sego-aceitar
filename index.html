@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.22.1239</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.22.1417</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -2102,6 +2102,20 @@ window.reenviarEnviar=async function(relId){
     alert('Erro: '+e.message);
   }
 };
+
+window.reverterParaRascunho=async function(relId){
+  if(!canAdmin()){alert('Apenas o superadmin pode reverter para rascunho.');return;}
+  const rel=DB.relatorios.find(x=>x.id===relId); if(!rel)return;
+  if(rel.estado!=='disponibilizado'){alert('Só é possível reverter relatórios disponibilizados.');return;}
+  if(!confirm('Reverter este relatório para rascunho?\n\nO estado "Disponibilizado" será removido mas o conteúdo é mantido. Os emails já enviados não são afetados.'))return;
+  try{
+    showLoadingOverlay('A reverter...');
+    await sbRel.patch('relatorios',relId,{estado:'rascunho'});
+    rel.estado='rascunho';
+    hideLoadingOverlay();
+    render();
+  }catch(e){hideLoadingOverlay();alert('Erro: '+e.message);}
+};
 async function renderPublicDoc(relId){
   document.body.innerHTML='<div style="font-family:Calibri,sans-serif;padding:48px;text-align:center;color:#667">A carregar documento…</div>';
   let rel=null,o={};
@@ -2936,6 +2950,7 @@ function fiscActionBtn(r){
   if(podeNovoRever) b+=`<button class="btn btn-outline btn-sm" onclick="criarRevisao('${r.id}')">✎ Criar revisão</button>`;
   if(r.estado==='disponibilizado'){
     b+=`<button class="btn btn-outline btn-sm" onclick="abrirReenviar('${r.id}')">📧 Reenviar</button>`;
+    if(canAdmin()) b+=`<button class="btn btn-outline btn-sm" onclick="reverterParaRascunho('${r.id}')" style="color:#B91C1C;border-color:#fca5a5" title="Reverter para rascunho (apenas superadmin)">↩ Reverter</button>`;
   } else {
     b+=`<button class="btn btn-gold btn-sm" onclick="abrirPublicar('${r.id}')">✓ Publicar RSO</button>`;
   }
@@ -3291,6 +3306,7 @@ function rvtActionBtn(r){
   if(podeNovoRever) b+=`<button class="btn btn-outline btn-sm" onclick="criarRevisao('${r.id}')">✎ Criar revisão</button>`;
   if(r.estado==='disponibilizado'){
     b+=`<button class="btn btn-outline btn-sm" onclick="abrirReenviar('${r.id}')">📧 Reenviar</button>`;
+    if(canAdmin()) b+=`<button class="btn btn-outline btn-sm" onclick="reverterParaRascunho('${r.id}')" style="color:#B91C1C;border-color:#fca5a5" title="Reverter para rascunho (apenas superadmin)">↩ Reverter</button>`;
   } else {
     b+=`<button class="btn btn-gold btn-sm" onclick="abrirPublicar('${r.id}')">✓ Publicar RVT</button>`;
   }
