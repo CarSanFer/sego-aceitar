@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.22.1545</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.22.1556</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -1848,6 +1848,130 @@ window.modalNovoSeguranca=function(obraId){
     {label:'← Voltar',cls:'btn-outline',fn:`modalNovoRelatorio('${obraId}')`},
   ]);
 };
+// ============ SOS — Funções globais ============
+function sosSaveDebounced(r){
+  clearTimeout(window._sosSaveT);
+  window._sosSaveT=setTimeout(()=>{sbRel.patch('relatorios',relRelId,{conteudo:JSON.stringify(r.conteudo)}).catch(console.error);},600);
+}
+window.sosCommit=function(field,value){
+  if(!relRelId)return;
+  const r=DB.relatorios.find(x=>x.id===relRelId);if(!r)return;
+  if(r.estado==='disponibilizado')return;
+  r.conteudo=r.conteudo||{tipo:'fiscalizacao',subtipo:'SOS',dados:{}};
+  r.conteudo.dados=r.conteudo.dados||{};
+  r.conteudo.dados[field]=value;
+  sosSaveDebounced(r);
+};
+window.sosCommitTema=function(idx,field,value){
+  if(!relRelId)return;
+  const r=DB.relatorios.find(x=>x.id===relRelId);if(!r)return;
+  if(r.estado==='disponibilizado')return;
+  r.conteudo=r.conteudo||{tipo:'fiscalizacao',subtipo:'SOS',dados:{}};
+  r.conteudo.dados=r.conteudo.dados||{};
+  r.conteudo.dados.temas=r.conteudo.dados.temas||[];
+  if(!r.conteudo.dados.temas[idx])return;
+  r.conteudo.dados.temas[idx][field]=value;
+  sosSaveDebounced(r);
+  // Re-render para reflectir badge de estado e contadores no header colapsado
+  if(field==='estado'||field==='titulo') render();
+};
+window.sosAddTema=function(){
+  if(!relRelId)return;
+  const r=DB.relatorios.find(x=>x.id===relRelId);if(!r)return;
+  if(r.estado==='disponibilizado')return;
+  r.conteudo=r.conteudo||{tipo:'fiscalizacao',subtipo:'SOS',dados:{}};
+  r.conteudo.dados=r.conteudo.dados||{};
+  r.conteudo.dados.temas=r.conteudo.dados.temas||[];
+  const proximoId=r.conteudo.dados.temas.length?Math.max(...r.conteudo.dados.temas.map(t=>t.id||0))+1:1;
+  r.conteudo.dados.temas.push({
+    id:proximoId,titulo:'',anexos:[],observacoes:'',analiseIA:'',estado:'pendente'
+  });
+  window._sosCollapsed=window._sosCollapsed||{};
+  window._sosCollapsed[proximoId]=false; // novo tema fica expandido
+  sosSaveDebounced(r);
+  render();
+};
+window.sosRemoveTema=function(idx){
+  if(!relRelId)return;
+  const r=DB.relatorios.find(x=>x.id===relRelId);if(!r)return;
+  if(r.estado==='disponibilizado')return;
+  const t=r.conteudo&&r.conteudo.dados&&r.conteudo.dados.temas&&r.conteudo.dados.temas[idx];
+  if(!t)return;
+  if(!confirm('Remover tema #'+String(t.id||idx+1).padStart(3,'0')+'? Esta acção não pode ser revertida.'))return;
+  r.conteudo.dados.temas.splice(idx,1);
+  sosSaveDebounced(r);
+  render();
+};
+window.sosToggleTema=function(id){
+  window._sosCollapsed=window._sosCollapsed||{};
+  window._sosCollapsed[id]=!window._sosCollapsed[id];
+  render();
+};
+window.sosUploadAnexos=async function(idxTema,files){
+  if(!relRelId)return;
+  const r=DB.relatorios.find(x=>x.id===relRelId);if(!r)return;
+  if(r.estado==='disponibilizado')return;
+  const t=r.conteudo&&r.conteudo.dados&&r.conteudo.dados.temas&&r.conteudo.dados.temas[idxTema];
+  if(!t)return;
+  t.anexos=t.anexos||[];
+  const filesArr=Array.from(files||[]);
+  if(!filesArr.length)return;
+  const MAX_MB=8;
+  const validos=filesArr.filter(f=>{
+    if(f.size>MAX_MB*1024*1024){
+      alert('O ficheiro "'+f.name+'" excede '+MAX_MB+' MB e não foi carregado.');
+      return false;
+    }
+    return true;
+  });
+  if(!validos.length)return;
+  showLoadingOverlay('A carregar '+validos.length+' ficheiro(s)...');
+  for(const f of validos){
+    try{
+      const safeName=f.name.replace(/[^\w.\-]/g,'_');
+      const path='sos/'+r.obra_id+'/'+r.id+'/'+(t.id||0)+'_'+Date.now()+'_'+safeName;
+      const up=await fetch(SUPA_SEGO.url+'/storage/v1/object/checklist-fotos/'+encodeURI(path),{
+        method:'POST',
+        headers:{
+          'apikey':SUPA_SEGO.key,
+          'Authorization':'Bearer '+SUPA_SEGO.key,
+          'Content-Type':f.type||'application/octet-stream',
+          'x-upsert':'true'
+        },
+        body:f
+      });
+      if(up.ok){
+        const url=SUPA_SEGO.url+'/storage/v1/object/public/checklist-fotos/'+encodeURI(path);
+        t.anexos.push({name:f.name,url,mime:f.type||'',size:f.size});
+      }else{
+        const txt=await up.text().catch(()=>'');
+        console.error('Upload falhou:',f.name,up.status,txt);
+        alert('Falha ao carregar "'+f.name+'": '+up.status+' '+txt.slice(0,200));
+      }
+    }catch(e){
+      console.error(e);
+      alert('Erro ao carregar "'+f.name+'": '+e.message);
+    }
+  }
+  hideLoadingOverlay();
+  sosSaveDebounced(r);
+  render();
+};
+window.sosRemoveAnexo=function(idxTema,idxAnexo){
+  if(!relRelId)return;
+  const r=DB.relatorios.find(x=>x.id===relRelId);if(!r)return;
+  if(r.estado==='disponibilizado')return;
+  const t=r.conteudo&&r.conteudo.dados&&r.conteudo.dados.temas&&r.conteudo.dados.temas[idxTema];
+  if(!t||!Array.isArray(t.anexos))return;
+  const a=t.anexos[idxAnexo];if(!a)return;
+  if(!confirm('Remover anexo "'+(a.name||'(sem nome)')+'"?'))return;
+  t.anexos.splice(idxAnexo,1);
+  sosSaveDebounced(r);
+  render();
+};
+window.sosGerarAnalise=function(idxTema){
+  alert('Geração de análise IA será implementada numa próxima iteração.');
+};
 window.criarCO=async function(obraId,tipo,subtipo){
   const relsAll=DB.relatorios.filter(r=>r.obra_id===obraId);
   // Numeração por (tipo,subtipo) — cada série tem o seu contador
@@ -1859,13 +1983,14 @@ window.criarCO=async function(obraId,tipo,subtipo){
     const prev=sameSerie.slice().sort((a,b)=>(b.numero||0)-(a.numero||0))[0];
     let temas=[];
     if(prev && prev.conteudo && prev.conteudo.dados && Array.isArray(prev.conteudo.dados.temas)){
-      temas=prev.conteudo.dados.temas.filter(t=>t.estado!=='resolvido').map(t=>({
-        id:uid(),
+      // Carry-over: traz todos os temas que NÃO estão fechados, mantendo o id e o estado actual
+      temas=prev.conteudo.dados.temas.filter(t=>t.estado!=='fechado').map(t=>({
+        id:t.id,
         titulo:t.titulo||'',
         anexos:Array.isArray(t.anexos)?t.anexos.slice():[],
         analiseIA:t.analiseIA||'',
         observacoes:t.observacoes||'',
-        estado:'em_curso'
+        estado:t.estado||'pendente'
       }));
     }
     dadosIniciais={semana:'',semanaIni:'',autor:currentUser.nome||'',temas,observacoesGerais:''};
@@ -1989,40 +2114,6 @@ window.criarCOdoUltimo=async function(obraId,tipo,subtipo){
   }catch(e){ hideLoadingOverlay(); alert('Erro: '+e.message); }
 };
 
-// ============ SOS — Situações Operacionais Semanais ============
-window.criarSOS=async function(obraId){
-  const lista=DB.relatorios.filter(r=>r.obra_id===obraId&&r.conteudo&&r.conteudo.tipo==='fiscalizacao'&&r.conteudo.subtipo==='SOS');
-  const proximoNum=(lista.length?Math.max(...lista.map(r=>r.numero||0)):0)+1;
-  const prev=lista.slice().sort((a,b)=>(b.numero||0)-(a.numero||0))[0];
-  // Carry-over: temas em curso (estado !== 'resolvido')
-  let temasClone=[];
-  if(prev&&prev.conteudo&&prev.conteudo.dados&&prev.conteudo.dados.temas){
-    temasClone=prev.conteudo.dados.temas.filter(t=>t.estado!=='resolvido').map(t=>({
-      id:uid(),
-      titulo:t.titulo||'',
-      anexos:Array.isArray(t.anexos)?t.anexos.slice():[],
-      analiseIA:t.analiseIA||'',
-      observacoes:t.observacoes||'',
-      estado:'em_curso'
-    }));
-  }
-  const agora=new Date();
-  const novo={
-    id:uid(), obra_id:obraId, numero:proximoNum, versao:0,
-    mes:agora.getMonth()+1, ano:agora.getFullYear(),
-    estado:'rascunho',
-    criado_por:currentUser.id, criado_por_nome:currentUser.nome,
-    criado_em:agora.toISOString(),
-    conteudo:{tipo:'fiscalizacao',subtipo:'SOS',dados:{semana:'',semanaIni:'',autor:currentUser.nome||'',temas:temasClone,observacoesGerais:''}}
-  };
-  try{
-    showLoadingOverlay(prev?'A copiar último SOS...':'A criar primeiro SOS...');
-    await sbRel.post('relatorios',{...novo,conteudo:JSON.stringify(novo.conteudo)});
-    DB.relatorios.push(novo);
-    relObraId=obraId; relRelId=novo.id; relTab='capa';
-    hideLoadingOverlay(); render();
-  }catch(e){ hideLoadingOverlay(); alert('Erro: '+e.message); }
-};
 
 function sosActionBtn(r){
   const lista=DB.relatorios.filter(x=>x.obra_id===r.obra_id&&x.conteudo&&x.conteudo.tipo==='fiscalizacao'&&x.conteudo.subtipo==='SOS');
@@ -2046,33 +2137,125 @@ function sosActionBtn(r){
 
 function renderFichaSOS(app,r){
   const o=DB.obras.find(x=>x.id===r.obra_id)||{};
-  const d=(r.conteudo&&r.conteudo.dados)||{};
-  const temas=d.temas||[];
-  app.innerHTML=`
-    <button class="back-btn" onclick="relRelId=null;render()">← Voltar a Controlo Operacional</button>
-    <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
-      <div>
-        <div class="page-title"><span class="code-pill" style="font-size:13px">${o.codigo||''}</span>${o.sigla||''} — SOS ${relNumero(r)}</div>
-        <div class="page-count">${o.nome||''} · ${relBadge(r.estado)}</div>
+  r.conteudo=r.conteudo||{tipo:'fiscalizacao',subtipo:'SOS',dados:{}};
+  r.conteudo.dados=r.conteudo.dados||{};
+  const d=r.conteudo.dados;
+  d.temas=d.temas||[];
+  if(!d.autor&&currentUser) d.autor=currentUser.nome;
+  if(!d.data) d.data=new Date().toISOString().slice(0,10);
+  const ro=r.estado==='disponibilizado';
+  if(!window._sosCollapsed) window._sosCollapsed={};
+  // Default: cada tema começa colapsado (excepto quando explicitamente expandido)
+  d.temas.forEach(t=>{ if(window._sosCollapsed[t.id]===undefined) window._sosCollapsed[t.id]=true; });
+  const inpS='width:100%;padding:5px 7px;border:0.5px solid var(--border-light);border-radius:3px;font-size:12px;font-family:inherit;background:#fff;box-sizing:border-box';
+  const inpRO='width:100%;padding:5px 7px;border:0.5px solid var(--border-light);border-radius:3px;font-size:12px;font-family:inherit;background:#f0f2f5;color:#666;cursor:not-allowed;box-sizing:border-box';
+  const lbl='font-size:10px;color:var(--text-muted);margin-bottom:3px;letter-spacing:.3px';
+  const sectTitle='font-size:10px;font-weight:700;color:var(--text-muted);letter-spacing:.8px';
+  const estadoBadge=(est)=>{
+    const map={pendente:{bg:'#FEF3C7',col:'#854F0B',txt:'Pendente'},resolvido:{bg:'#D1FAE5',col:'#065F46',txt:'Resolvido'},fechado:{bg:'#E5E7EB',col:'#374151',txt:'Fechado'}};
+    const m=map[est||'pendente']||map.pendente;
+    return `<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;background:${m.bg};color:${m.col};letter-spacing:.3px">${m.txt}</span>`;
+  };
+  const temaCard=(t,i)=>{
+    const idTema=String(t.id||(i+1)).padStart(3,'0');
+    const collapsed=window._sosCollapsed[t.id]===true;
+    const estadoActual=t.estado||'pendente';
+    const anexos=Array.isArray(t.anexos)?t.anexos:[];
+    const anexosHtml=anexos.length?anexos.map((a,j)=>{
+      const removeBtn=ro?'':`<button onclick="event.stopPropagation();sosRemoveAnexo(${i},${j})" style="background:none;border:none;cursor:pointer;color:#B91C1C;font-size:14px;line-height:1;padding:0 4px;margin-left:6px" title="Remover anexo">×</button>`;
+      return `<div style="display:flex;align-items:center;padding:5px 8px;background:#fff;border:0.5px solid var(--border-light);border-radius:3px;margin-bottom:4px;font-size:12px">
+        <a href="${esc(a.url||'#')}" target="_blank" rel="noopener" style="color:#1B4F9B;text-decoration:none;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(a.name||'')}">📎 ${esc(a.name||'(sem nome)')}</a>
+        <span style="font-size:10px;color:var(--text-muted);margin-left:8px;flex-shrink:0">${a.size?Math.round(a.size/1024)+' KB':''}</span>
+        ${removeBtn}
+      </div>`;
+    }).join(''):'<div style="font-size:11px;color:var(--text-muted);font-style:italic;padding:4px 0">Sem anexos.</div>';
+    const estadoBtns=ro?estadoBadge(estadoActual):['pendente','resolvido','fechado'].map(est=>{
+      const map={pendente:{bg:'#FEF3C7',col:'#854F0B',border:'#FCD34D',txt:'Pendente'},resolvido:{bg:'#D1FAE5',col:'#065F46',border:'#6EE7B7',txt:'Resolvido'},fechado:{bg:'#E5E7EB',col:'#374151',border:'#9CA3AF',txt:'Fechado'}};
+      const m=map[est];
+      const sel=estadoActual===est;
+      return `<button onclick="sosCommitTema(${i},'estado','${est}')" style="font-size:11px;font-weight:600;padding:4px 12px;border-radius:14px;border:1px solid ${sel?m.border:'var(--border-light)'};background:${sel?m.bg:'#fff'};color:${sel?m.col:'#888'};cursor:pointer;letter-spacing:.3px">${m.txt}</button>`;
+    }).join(' ');
+    return `<div style="background:var(--bg-card);border:0.5px solid var(--border-light);border-radius:4px;margin-bottom:8px;overflow:hidden">
+      <div onclick="sosToggleTema(${t.id})" style="display:flex;align-items:center;padding:10px 14px;background:#fafbfc;border-bottom:${collapsed?'0':'0.5px'} solid var(--border-light);cursor:pointer">
+        <span style="font-size:12px;margin-right:10px;color:var(--text-muted);user-select:none;width:12px;display:inline-block">${collapsed?'▶':'▼'}</span>
+        <span style="font-family:monospace;font-size:12px;font-weight:700;color:#B91C1C;margin-right:12px">#${idTema}</span>
+        <span style="flex:1;font-size:13px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(t.titulo||'(sem título)')}</span>
+        <span style="margin-right:10px">${estadoBadge(estadoActual)}</span>
+        ${anexos.length?`<span style="font-size:10px;color:var(--text-muted);margin-right:10px">📎 ${anexos.length}</span>`:''}
+        ${ro?'':`<button onclick="event.stopPropagation();sosRemoveTema(${i})" style="background:none;border:none;cursor:pointer;color:#B91C1C;font-size:16px;line-height:1;padding:0" title="Remover tema">×</button>`}
       </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">${sosActionBtn(r)}</div>
-    </div>
-    <div style="background:var(--bg-card);border:1px solid var(--border-light);border-radius:var(--radius);padding:18px;margin-top:14px">
-      <div style="font-size:11px;font-weight:700;color:#B91C1C;letter-spacing:.6px;text-transform:uppercase;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border-light)">SOS — Situações Operacionais Semanais</div>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px">
-        <div><div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.3px;margin-bottom:3px;font-weight:600">SOS Nº</div><div style="font-size:14px;font-weight:600">${relNumero(r)}</div></div>
-        <div><div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.3px;margin-bottom:3px;font-weight:600">Data</div><div style="font-size:14px;font-weight:600">${r.criado_em?fmtDate(r.criado_em.split('T')[0]):'—'}</div></div>
-        <div><div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.3px;margin-bottom:3px;font-weight:600">Autor</div><div style="font-size:14px;font-weight:600">${esc(d.autor||r.criado_por_nome||'—')}</div></div>
-        <div><div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.3px;margin-bottom:3px;font-weight:600">Obra</div><div style="font-size:14px;font-weight:600">${esc((o.sigla?o.sigla+' — ':'')+(o.nome||''))}</div></div>
-        <div><div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.3px;margin-bottom:3px;font-weight:600">Início da Semana</div><div style="font-size:14px;font-weight:600">${d.semanaIni?fmtDate(d.semanaIni):'—'}</div></div>
-        <div><div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.3px;margin-bottom:3px;font-weight:600">Período</div><div style="font-size:14px;font-weight:600">${esc(d.semana||fmtMesAno(r.mes,r.ano))}</div></div>
-      </div>
-      <div style="background:#FEF9EC;border:1px solid #F0E4C2;border-radius:6px;padding:24px;text-align:center;color:#854F0B">
-        <div style="font-size:14px;font-weight:600;margin-bottom:6px">⚙️ Formulário SOS em desenvolvimento</div>
-        <div style="font-size:12px">Esta secção vai conter a lista de temas/situações operacionais, anexos, análise IA, observações e estado (em curso / resolvido).</div>
-        ${temas.length?`<div style="font-size:11px;margin-top:10px;color:#666">Temas carry-over do SOS anterior: <strong>${temas.length}</strong></div>`:''}
-      </div>
+      ${collapsed?'':`<div style="padding:14px">
+        <div style="margin-bottom:12px">
+          <div style="${lbl}">Título do tema</div>
+          <input value="${esc(t.titulo||'')}" ${ro?'readonly':''} oninput="sosCommitTema(${i},'titulo',this.value)" placeholder="Descreve a situação operacional" style="${ro?inpRO:inpS}">
+        </div>
+        <div style="margin-bottom:12px">
+          <div style="${lbl}">Estado</div>
+          <div style="display:flex;gap:6px;align-items:center">${estadoBtns}</div>
+        </div>
+        <div style="margin-bottom:12px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+            <div style="${lbl};margin-bottom:0">Anexos</div>
+            ${ro?'':`<label style="font-size:11px;color:#1B4F9B;cursor:pointer;font-weight:600">+ Adicionar ficheiro<input type="file" multiple style="display:none" onchange="sosUploadAnexos(${i},this.files);this.value=''"></label>`}
+          </div>
+          <div>${anexosHtml}</div>
+        </div>
+        <div style="margin-bottom:12px">
+          <div style="${lbl}">Observações</div>
+          <textarea ${ro?'readonly':''} oninput="sosCommitTema(${i},'observacoes',this.value)" placeholder="Notas, contexto, ponto de situação..." rows="3" style="${ro?inpRO:inpS};resize:vertical;min-height:60px">${esc(t.observacoes||'')}</textarea>
+        </div>
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+            <div style="${lbl};margin-bottom:0">Análise IA</div>
+            ${ro?'':`<button onclick="sosGerarAnalise(${i})" style="font-size:11px;color:#1B4F9B;background:none;border:0.5px solid #c8ccd1;border-radius:3px;padding:3px 10px;cursor:pointer;font-weight:600" title="Gerar síntese com base nos anexos e observações">🤖 ${t.analiseIA?'Regenerar':'Gerar'} análise</button>`}
+          </div>
+          <div style="background:#f5f7fa;border:0.5px solid var(--border-light);border-radius:3px;padding:10px;font-size:12px;color:var(--text);min-height:40px;white-space:pre-wrap">${t.analiseIA?esc(t.analiseIA):'<span style="color:var(--text-muted);font-style:italic">Sem análise gerada.</span>'}</div>
+        </div>
+      </div>`}
     </div>`;
+  };
+  const temasHtml=d.temas.length?d.temas.map(temaCard).join(''):'<div style="padding:18px;text-align:center;color:var(--text-muted);font-size:12px;font-style:italic">Sem temas registados. Clica em "+ Adicionar tema" para começar.</div>';
+  app.innerHTML=`
+  <button class="back-btn" onclick="relRelId=null;render()">← Voltar</button>
+  <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
+    <div>
+      <div class="page-title"><span class="code-pill" style="font-size:13px">${o.codigo||''}</span>${o.sigla||''} — SOS ${relNumero(r)}</div>
+      <div class="page-count">${o.nome||''} · ${relBadge(r.estado)}</div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">${sosActionBtn(r)}</div>
+  </div>
+  <div style="background:#1E3A5F;color:#fff;padding:9px 0;text-align:center;margin-top:10px;font-size:13px;letter-spacing:.5px;border-radius:6px 6px 0 0">SOS — Situações Operacionais Semanais</div>
+  <div style="background:transparent;padding:14px;border:0.5px solid var(--border-light);border-top:none;border-radius:0 0 6px 6px">
+
+    <!-- IDENTIFICAÇÃO -->
+    <div class="table-card" style="padding:14px;margin-bottom:12px">
+      <div style="${sectTitle};margin-bottom:10px">IDENTIFICAÇÃO</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+        <div><div style="${lbl}">SOS Nº</div><input value="${relNumero(r)}" readonly style="${inpRO}"></div>
+        <div><div style="${lbl}">Data</div><input type="date" value="${d.data||''}" ${ro?'readonly':''} oninput="sosCommit('data',this.value)" style="${ro?inpRO:inpS}"></div>
+        <div><div style="${lbl}">Autor</div><input value="${esc(d.autor||'')}" ${ro?'readonly':''} oninput="sosCommit('autor',this.value)" style="${ro?inpRO:inpS}"></div>
+        <div><div style="${lbl}">Obra</div><input value="${esc((o.sigla||'')+' — '+(o.nome||''))}" readonly style="${inpRO}"></div>
+        <div><div style="${lbl}">Início da semana</div><input type="date" value="${d.semanaIni||''}" ${ro?'readonly':''} oninput="sosCommit('semanaIni',this.value)" style="${ro?inpRO:inpS}"></div>
+        <div><div style="${lbl}">Período (descrição)</div><input value="${esc(d.semana||'')}" placeholder="S22 · 25 a 30/05/2026" ${ro?'readonly':''} oninput="sosCommit('semana',this.value)" style="${ro?inpRO:inpS}"></div>
+      </div>
+    </div>
+
+    <!-- TEMAS / SITUAÇÕES OPERACIONAIS -->
+    <div class="table-card" style="padding:14px;margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div style="${sectTitle}">TEMAS / SITUAÇÕES OPERACIONAIS · ${d.temas.length}</div>
+        ${ro?'':`<button onclick="sosAddTema()" class="btn btn-outline btn-sm" style="font-size:11px;padding:3px 10px">+ Adicionar tema</button>`}
+      </div>
+      ${temasHtml}
+    </div>
+
+    <!-- OBSERVAÇÕES GERAIS -->
+    <div class="table-card" style="padding:14px">
+      <div style="${sectTitle};margin-bottom:8px">OBSERVAÇÕES GERAIS</div>
+      <textarea ${ro?'readonly':''} oninput="sosCommit('observacoesGerais',this.value)" placeholder="Notas gerais sobre o relatório SOS..." rows="3" style="${ro?inpRO:inpS};resize:vertical;min-height:60px">${esc(d.observacoesGerais||'')}</textarea>
+    </div>
+
+  </div>`;
 }
 
 // Renderização pública SOS (link público)
