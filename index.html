@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.21.2320</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.22.1036</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -748,7 +748,7 @@ const EJS={service:'service_2u3z5y5',template:'template_8e782pq',pubkey:'BiTbyfz
 const EJS_TPL_RVT='template_ohytgg4'; // Template ID real do EmailJS (nome: template_rvt_pub)
 // ============ TRADUÇÃO RSO PÚBLICO (Claude API) ============
 // ⚠️ Colar aqui a chave da Anthropic Console (sk-ant-api03-...) antes de deploy
-const ANTHROPIC_API_KEY='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';
+const ANTHROPIC_API_KEY='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';
 function initEmailJS(){ if(window.emailjs) emailjs.init({publicKey:EJS.pubkey}); }
 
 window.enviarConvite=function(uid){
@@ -892,6 +892,17 @@ window.toggleLang=async function(){
     btn.textContent='PT'; return;
   }
   if(!window.ANTHROPIC_API_KEY){ alert('Tradução indisponível: chave API não configurada no SEGO.'); return; }
+  // DEBUG temporário — remover após validar
+  const _k=window.ANTHROPIC_API_KEY||'';
+  console.log('=== DEBUG API KEY ===');
+  console.log('Comprimento:', _k.length);
+  console.log('Começa:', _k.substring(0,25));
+  console.log('Termina em:', _k.substring(_k.length-8));
+  console.log('Char codes do início:', Array.from(_k.substring(0,15)).map(c=>c.charCodeAt(0)).join(','));
+  console.log('Char codes do fim:', Array.from(_k.substring(_k.length-8)).map(c=>c.charCodeAt(0)).join(','));
+  console.log('Tem espaços?', /\s/.test(_k));
+  console.log('Tem aspas curvas?', /[\u2018\u2019]/.test(_k));
+  alert('Chave: '+_k.length+' chars. Início: '+_k.substring(0,20)+' | Fim: '+_k.substring(_k.length-8));
   btn.textContent='...'; btn.disabled=true;
   try{
     const nodes=Array.from(document.querySelectorAll('[data-pt]'));
