@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.22.1556</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.22.2256</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -1872,8 +1872,8 @@ window.sosCommitTema=function(idx,field,value){
   if(!r.conteudo.dados.temas[idx])return;
   r.conteudo.dados.temas[idx][field]=value;
   sosSaveDebounced(r);
-  // Re-render para reflectir badge de estado e contadores no header colapsado
-  if(field==='estado'||field==='titulo') render();
+  // Re-render só quando muda o estado (badge muda). Título e observações actualizam no próximo render natural — não renderizar a cada tecla, senão perde-se o foco do input.
+  if(field==='estado') render();
 };
 window.sosAddTema=function(){
   if(!relRelId)return;
@@ -1969,8 +1969,44 @@ window.sosRemoveAnexo=function(idxTema,idxAnexo){
   sosSaveDebounced(r);
   render();
 };
-window.sosGerarAnalise=function(idxTema){
-  alert('Geração de análise IA será implementada numa próxima iteração.');
+window.sosGerarAnalise=async function(idxTema){
+  if(!relRelId)return;
+  const r=DB.relatorios.find(x=>x.id===relRelId);if(!r)return;
+  if(r.estado==='disponibilizado')return;
+  const t=r.conteudo&&r.conteudo.dados&&r.conteudo.dados.temas&&r.conteudo.dados.temas[idxTema];
+  if(!t)return;
+  if(!(t.titulo||'').trim() && !(t.observacoes||'').trim() && (!t.anexos||!t.anexos.length)){
+    alert('Preenche pelo menos o título, observações ou anexos antes de gerar a análise.');
+    return;
+  }
+  showLoadingOverlay('A gerar análise IA...');
+  try{
+    const resp=await fetch('/api/sos-analise',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        titulo:t.titulo||'',
+        observacoes:t.observacoes||'',
+        anexos:(t.anexos||[]).map(a=>({name:a.name||'',mime:a.mime||'',size:a.size||0}))
+      })
+    });
+    const data=await resp.json().catch(()=>({}));
+    hideLoadingOverlay();
+    if(!resp.ok){
+      alert('Erro ao gerar análise: '+(data.error||('HTTP '+resp.status))+(data.details?'\n\n'+String(data.details).slice(0,300):''));
+      return;
+    }
+    if(!data.analise){
+      alert('A análise veio vazia.');
+      return;
+    }
+    t.analiseIA=data.analise;
+    sosSaveDebounced(r);
+    render();
+  }catch(e){
+    hideLoadingOverlay();
+    alert('Erro de rede: '+e.message);
+  }
 };
 window.criarCO=async function(obraId,tipo,subtipo){
   const relsAll=DB.relatorios.filter(r=>r.obra_id===obraId);
