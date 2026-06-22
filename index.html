@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.22.1117</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.22.1239</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -2017,22 +2017,23 @@ window.publicarEnviar=async function(relId){
     showLoadingOverlay('A publicar...');
     await sbRel.patch('relatorios',relId,{estado:'disponibilizado'});
     rel.estado='disponibilizado';
-    let ok=0,fail=0,lastErr='';
-    if(!window.emailjs){ lastErr='EmailJS não carregou (window.emailjs indefinido).'; }
+    let okEmail=false,emailErr='';
+    if(!window.emailjs){ emailErr='EmailJS não carregou (window.emailjs indefinido).'; }
     if(window.emailjs && dest.length){
-      for(const d of dest){
-        try{
-          const _msgEsc=String(msg||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
-          const _linkHTML='<a href="'+link+'" style="color:#1B4F9B;text-decoration:underline">Abrir documento</a>';
-          const _msgHTML='<div style="font-family:Calibri,Arial,sans-serif;font-size:14px;line-height:1.5;color:#333"><p>'+_msgEsc+'</p><p style="margin-top:16px"><strong>Acesso ao documento:</strong> '+_linkHTML+'</p></div>';
-          await emailjs.send(EJS.service, EJS_TPL_RVT, {to_email:d.email,to_name:d.nome||d.email,obra_nome:obraTxt,rvt_ref:_sigla+' '+relNumero(rel),doc_link:link,doc_link_html:_linkHTML,mensagem:msg,mensagem_html:_msgHTML,doc_tipo:_sigla}); ok++;
-        }
-        catch(e){ console.error('EmailJS falhou para',d.email,e); fail++; lastErr=(e&&(e.text||e.message))||(typeof e==='string'?e:JSON.stringify(e)); }
-      }
+      try{
+        const _msgEsc=String(msg||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+        const _linkHTML='<a href="'+link+'" style="color:#1B4F9B;text-decoration:underline">Abrir documento</a>';
+        const _msgHTML='<div style="font-family:Calibri,Arial,sans-serif;font-size:14px;line-height:1.5;color:#333"><p>'+_msgEsc+'</p><p style="margin-top:16px"><strong>Acesso ao documento:</strong> '+_linkHTML+'</p></div>';
+        const _toEmail=dest.map(d=>d.email).join(',');
+        const _toName=dest.map(d=>d.nome||d.email).join(', ');
+        await emailjs.send(EJS.service, EJS_TPL_RVT, {to_email:_toEmail,to_name:_toName,obra_nome:obraTxt,rvt_ref:_sigla+' '+relNumero(rel),doc_link:link,doc_link_html:_linkHTML,mensagem:msg,mensagem_html:_msgHTML,doc_tipo:_sigla});
+        okEmail=true;
+      }catch(e){ console.error('EmailJS falhou:',e); emailErr=(e&&(e.text||e.message))||(typeof e==='string'?e:JSON.stringify(e)); }
     }
     hideLoadingOverlay(); closeModal(); render();
     if(dest.length){
-      alert(_sigla+' publicado.\nEmails enviados: '+ok+(fail?(' · falhas: '+fail+'\n\nErro EmailJS: '+lastErr+'\n(serviço '+EJS.service+' · template '+EJS_TPL_RVT+')'):''));
+      if(okEmail){ alert(_sigla+' publicado.\nEmail enviado a '+dest.length+' destinatário(s).'); }
+      else { alert(_sigla+' publicado, mas o envio de email FALHOU.\n\nErro: '+emailErr+'\n(serviço '+EJS.service+' · template '+EJS_TPL_RVT+')'); }
     } else {
       alert(_sigla+' publicado.\n(Sem destinatários seleccionados — não foram enviados emails.)');
     }
@@ -2079,21 +2080,23 @@ window.reenviarEnviar=async function(relId){
   const obraTxt=((o.sigla?o.sigla+' — ':'')+(o.nome||'')).trim();
   try{
     showLoadingOverlay('A reenviar...');
-    let ok=0,fail=0,lastErr='';
-    if(!window.emailjs){ lastErr='EmailJS não carregou (window.emailjs indefinido).'; }
+    let okEmail=false,emailErr='';
+    if(!window.emailjs){ emailErr='EmailJS não carregou (window.emailjs indefinido).'; }
     if(window.emailjs && dest.length){
-      for(const d of dest){
-        try{
-          const _msgEsc=String(msg||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
-          const _linkHTML='<a href="'+link+'" style="color:#1B4F9B;text-decoration:underline">Abrir documento</a>';
-          const _msgHTML='<div style="font-family:Calibri,Arial,sans-serif;font-size:14px;line-height:1.5;color:#333"><p>'+_msgEsc+'</p><p style="margin-top:16px"><strong>Acesso ao documento:</strong> '+_linkHTML+'</p></div>';
-          await emailjs.send(EJS.service, EJS_TPL_RVT, {to_email:d.email,to_name:d.nome||d.email,obra_nome:obraTxt,rvt_ref:_sigla+' '+relNumero(rel),doc_link:link,doc_link_html:_linkHTML,mensagem:msg,mensagem_html:_msgHTML,doc_tipo:_sigla}); ok++;
-        }catch(e){ fail++; lastErr=e.message||String(e); }
-      }
+      try{
+        const _msgEsc=String(msg||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+        const _linkHTML='<a href="'+link+'" style="color:#1B4F9B;text-decoration:underline">Abrir documento</a>';
+        const _msgHTML='<div style="font-family:Calibri,Arial,sans-serif;font-size:14px;line-height:1.5;color:#333"><p>'+_msgEsc+'</p><p style="margin-top:16px"><strong>Acesso ao documento:</strong> '+_linkHTML+'</p></div>';
+        const _toEmail=dest.map(d=>d.email).join(',');
+        const _toName=dest.map(d=>d.nome||d.email).join(', ');
+        await emailjs.send(EJS.service, EJS_TPL_RVT, {to_email:_toEmail,to_name:_toName,obra_nome:obraTxt,rvt_ref:_sigla+' '+relNumero(rel),doc_link:link,doc_link_html:_linkHTML,mensagem:msg,mensagem_html:_msgHTML,doc_tipo:_sigla});
+        okEmail=true;
+      }catch(e){ emailErr=e.message||String(e); }
     }
     hideLoadingOverlay();
     closeModal();
-    alert('Reenvio concluído.\nEmails enviados: '+ok+(fail?(' · falhas: '+fail+'\n\nÚltimo erro: '+lastErr):''));
+    if(okEmail){ alert('Reenvio concluído.\nEmail enviado a '+dest.length+' destinatário(s).'); }
+    else { alert('Reenvio FALHOU.\n\nErro: '+emailErr); }
   }catch(e){
     hideLoadingOverlay();
     alert('Erro: '+e.message);
