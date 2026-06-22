@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.22.1525</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.22.1530</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -4190,12 +4190,8 @@ function renderFichaObra(app){
     ${linha1Cards.map(c=>`<div style="min-width:170px;flex:1">${c}</div>`).join('')}
   </div>
 
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-    ${cardIntervenientes}${cardRelatorios}
-  </div>
-
-  <div style="display:grid;grid-template-columns:1fr;gap:10px;margin-top:10px">
-    ${cardSOS}
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+    ${cardIntervenientes}${cardRelatorios}${cardSOS}
   </div>`;
 }
 
