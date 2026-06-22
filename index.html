@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.22.1036</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.22.1117</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -746,9 +746,6 @@ function hashPwd(pwd){
 // EmailJS config
 const EJS={service:'service_2u3z5y5',template:'template_8e782pq',pubkey:'BiTbyfz5BTSKgyq0P'};
 const EJS_TPL_RVT='template_ohytgg4'; // Template ID real do EmailJS (nome: template_rvt_pub)
-// ============ TRADUÇÃO RSO PÚBLICO (Claude API) ============
-// ⚠️ Colar aqui a chave da Anthropic Console (sk-ant-api03-...) antes de deploy
-const ANTHROPIC_API_KEY='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';
 function initEmailJS(){ if(window.emailjs) emailjs.init({publicKey:EJS.pubkey}); }
 
 window.enviarConvite=function(uid){
@@ -878,6 +875,7 @@ window.doLogout=function(){
 };
 
 // ============ Toggle PT/EN no link público RSO ============
+// Chama /api/translate (serverless no Vercel) — a chave fica no servidor, não no HTML
 window.toggleLang=async function(){
   const btn=document.getElementById('langBtn'); if(!btn)return;
   const isEn=btn.textContent.trim()==='PT';
@@ -891,47 +889,22 @@ window.toggleLang=async function(){
     document.querySelectorAll('[data-pt]').forEach((el,i)=>{ const t=window._rsoEnCache[i]; if(t!=null) el.textContent=t; });
     btn.textContent='PT'; return;
   }
-  if(!window.ANTHROPIC_API_KEY){ alert('Tradução indisponível: chave API não configurada no SEGO.'); return; }
-  // DEBUG temporário — remover após validar
-  const _k=window.ANTHROPIC_API_KEY||'';
-  console.log('=== DEBUG API KEY ===');
-  console.log('Comprimento:', _k.length);
-  console.log('Começa:', _k.substring(0,25));
-  console.log('Termina em:', _k.substring(_k.length-8));
-  console.log('Char codes do início:', Array.from(_k.substring(0,15)).map(c=>c.charCodeAt(0)).join(','));
-  console.log('Char codes do fim:', Array.from(_k.substring(_k.length-8)).map(c=>c.charCodeAt(0)).join(','));
-  console.log('Tem espaços?', /\s/.test(_k));
-  console.log('Tem aspas curvas?', /[\u2018\u2019]/.test(_k));
-  alert('Chave: '+_k.length+' chars. Início: '+_k.substring(0,20)+' | Fim: '+_k.substring(_k.length-8));
   btn.textContent='...'; btn.disabled=true;
   try{
     const nodes=Array.from(document.querySelectorAll('[data-pt]'));
     const textos=nodes.map(el=>el.dataset.pt||'');
-    const prompt='Translate Portuguese (Portugal) texts to English.\nEach text is on its own line, indexed as [N].\nRULES:\n- Keep proper nouns, company names, person names, place names unchanged\n- Keep abbreviations unchanged: RSO, RVT, PTQ, PB, PA, PE, QE, AM, TCm, CO\n- Keep dates, numbers, percentages, codes (PIC4, 6E04, S25, etc.) unchanged\n- Translate descriptions, labels, analysis, observations, headers\n- Translate weekdays SEG/TER/QUA/QUI/SEX/SÁB to MON/TUE/WED/THU/FRI/SAT\n- Output ONLY translated lines in format "[N] translation", one per line\n- No explanations, no extra text, no markdown\n\nTexts:\n'+textos.map((t,i)=>'['+i+'] '+t).join('\n');
-    const res=await fetch('https://api.anthropic.com/v1/messages',{
+    const res=await fetch('/api/translate',{
       method:'POST',
-      headers:{
-        'x-api-key':window.ANTHROPIC_API_KEY,
-        'anthropic-version':'2023-06-01',
-        'anthropic-dangerous-direct-browser-access':'true',
-        'content-type':'application/json'
-      },
-      body:JSON.stringify({
-        model:'claude-haiku-4-5',
-        max_tokens:4096,
-        messages:[{role:'user',content:prompt}]
-      })
+      headers:{'content-type':'application/json'},
+      body:JSON.stringify({texts:textos})
     });
-    if(!res.ok){ const e=await res.text(); throw new Error('HTTP '+res.status+': '+e.slice(0,200)); }
+    if(!res.ok){
+      const errBody=await res.text();
+      throw new Error('HTTP '+res.status+': '+errBody.slice(0,300));
+    }
     const data=await res.json();
-    if(!data.content||!data.content[0]) throw new Error('Resposta inesperada: '+JSON.stringify(data).slice(0,200));
-    const respText=data.content[0].text||'';
-    const lines=respText.split('\n').filter(l=>l.trim());
-    const traducoes=new Array(textos.length).fill(null);
-    lines.forEach(line=>{
-      const m=line.match(/^\[(\d+)\]\s*(.*)$/);
-      if(m){ const idx=parseInt(m[1]); if(idx>=0&&idx<textos.length) traducoes[idx]=m[2]; }
-    });
+    if(!data.translations) throw new Error('Resposta sem traduções: '+JSON.stringify(data).slice(0,200));
+    const traducoes=data.translations;
     nodes.forEach((el,i)=>{ if(traducoes[i]!=null) el.textContent=traducoes[i]; });
     window._rsoEnCache=traducoes;
     btn.textContent='PT';
@@ -942,7 +915,6 @@ window.toggleLang=async function(){
     btn.disabled=false;
   }
 };
-window.ANTHROPIC_API_KEY=ANTHROPIC_API_KEY;
 
 // Load data then show login — exceto em link público (?doc=)
 if(!new URLSearchParams(location.search).get('doc')){
