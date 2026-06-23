@@ -1,0 +1,8 @@
+{
+  "name": "sego-api",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "mailparser": "^3.7.1"
+  }
+}
