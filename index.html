@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.22.2256</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.06.22.2315</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -2003,6 +2003,10 @@ window.sosGerarAnalise=async function(idxTema){
     t.analiseIA=data.analise;
     sosSaveDebounced(r);
     render();
+    // Notificar utilizador sobre anexos processados
+    if(Array.isArray(data.naoProcessados) && data.naoProcessados.length){
+      setTimeout(()=>alert('Análise gerada.\n\nAnexos processados: '+(data.processados||0)+'\nNão processados: '+data.naoProcessados.length+'\n\n• '+data.naoProcessados.join('\n• ')),100);
+    }
   }catch(e){
     hideLoadingOverlay();
     alert('Erro de rede: '+e.message);
