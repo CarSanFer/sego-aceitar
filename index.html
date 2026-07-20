@@ -1103,7 +1103,7 @@ function renderCapaObra(app){
   ${createBtn?`<div style="margin-bottom:12px">${createBtn}</div>`:''}
   <!-- Lista de relatórios -->
   <div class="table-card"><div class="table-wrap"><table>
-    <thead><tr><th>Referência</th><th>Período</th><th>Estado</th><th>Criado por</th><th>Data</th><th>Ações</th></tr></thead>
+    <thead><tr><th>Referência</th><th>Período</th><th>Estado</th><th>Criado por</th><th>Data</th><th>Enviado por</th><th>Data/Hora envio</th><th>Ações</th></tr></thead>
     <tbody>${rels.length?rels.map(r=>{
       const rowSigla = capaContext.sigla || (r.conteudo&&r.conteudo.subtipo==='RS'?'RSO':(r.conteudo&&r.conteudo.subtipo)||'');
       return `<tr class="tr-click" onclick="relRelId='${r.id}';relTab='capa';render()">
@@ -1112,11 +1112,19 @@ function renderCapaObra(app){
       <td>${relBadge(r.estado)}</td>
       <td style="font-size:12px;color:var(--text-muted)">${r.criado_por_nome||'—'}</td>
       <td style="font-size:12px">${r.criado_em?fmtDate(r.criado_em.split('T')[0]):'—'}</td>
+      <td style="font-size:12px;color:var(--text-muted)">${(r.conteudo&&r.conteudo.envio&&r.conteudo.envio.nome)||'—'}</td>
+      <td style="font-size:12px">${fmtEnvioDT(r.conteudo&&r.conteudo.envio&&r.conteudo.envio.data)}</td>
       <td onclick="event.stopPropagation()"><div class="actions-cell" style="display:flex;gap:6px;align-items:center;justify-content:flex-end">${rvtRowBtns(r)}${canAdmin()?`<button class="btn-icon del" onclick="confirmDel('relatorio','${r.id}','${relNumero(r)}')">🗑️</button>`:''}</div></td>
     </tr>`;
-    }).join(''):`<tr><td colspan="6" class="empty-state">Sem relatórios para esta obra${filtroLbl?' ('+capaContext.sigla+')':''}.</td></tr>`}
+    }).join(''):`<tr><td colspan="8" class="empty-state">Sem relatórios para esta obra${filtroLbl?' ('+capaContext.sigla+')':''}.</td></tr>`}
     </tbody>
   </table></div></div>`;
+}
+function fmtEnvioDT(iso){
+  if(!iso) return '—';
+  const d=new Date(iso); if(isNaN(d)) return '—';
+  const p=n=>String(n).padStart(2,'0');
+  return p(d.getDate())+'/'+p(d.getMonth()+1)+'/'+d.getFullYear()+' '+p(d.getHours())+':'+p(d.getMinutes());
 }
 function capaField(l,v){return `<div style="border-bottom:1px solid var(--border-light);padding:6px 10px;display:flex;align-items:center;gap:10px"><span style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.4px;min-width:100px">${l}</span><span style="font-size:13px">${v}</span></div>`;}
 
@@ -2406,9 +2414,16 @@ window.publicarEnviar=async function(relId){
         const _msgHTML='<div style="font-family:Calibri,Arial,sans-serif;font-size:14px;line-height:1.5;color:#333"><p>'+_msgEsc+'</p><p style="margin-top:16px"><strong>Acesso ao documento:</strong> '+_linkHTML+'</p></div>';
         const _toEmail=dest.map(d=>d.email).join(',');
         const _toName=dest.map(d=>d.nome||d.email).join(', ');
-        await emailjs.send(EJS.service, EJS_TPL_RVT, {to_email:_toEmail,to_name:_toName,obra_nome:obraTxt,rvt_ref:_sigla+' '+relNumero(rel),doc_link:link,doc_link_html:_linkHTML,mensagem:msg,mensagem_html:_msgHTML,doc_tipo:_sigla});
+        const _fromName=(currentUser&&currentUser.nome)?currentUser.nome:'CSO / Aceitar';
+        const _replyTo=(currentUser&&currentUser.email)?currentUser.email:'info@aceitar.pt';
+        await emailjs.send(EJS.service, EJS_TPL_RVT, {to_email:_toEmail,to_name:_toName,from_name:_fromName,reply_to:_replyTo,obra_nome:obraTxt,rvt_ref:_sigla+' '+relNumero(rel),doc_link:link,doc_link_html:_linkHTML,mensagem:msg,mensagem_html:_msgHTML,doc_tipo:_sigla});
         okEmail=true;
       }catch(e){ console.error('EmailJS falhou:',e); emailErr=(e&&(e.text||e.message))||(typeof e==='string'?e:JSON.stringify(e)); }
+    }
+    if(okEmail){
+      if(!rel.conteudo) rel.conteudo={};
+      rel.conteudo.envio={nome:(currentUser&&currentUser.nome)||'—',email:(currentUser&&currentUser.email)||'',data:new Date().toISOString(),tipo:'inicial'};
+      try{ await sbRel.patch('relatorios',relId,{conteudo:JSON.stringify(rel.conteudo)}); }catch(e){ console.error('Falha a registar envio:',e); }
     }
     hideLoadingOverlay(); closeModal(); render();
     if(dest.length){
@@ -2469,12 +2484,20 @@ window.reenviarEnviar=async function(relId){
         const _msgHTML='<div style="font-family:Calibri,Arial,sans-serif;font-size:14px;line-height:1.5;color:#333"><p>'+_msgEsc+'</p><p style="margin-top:16px"><strong>Acesso ao documento:</strong> '+_linkHTML+'</p></div>';
         const _toEmail=dest.map(d=>d.email).join(',');
         const _toName=dest.map(d=>d.nome||d.email).join(', ');
-        await emailjs.send(EJS.service, EJS_TPL_RVT, {to_email:_toEmail,to_name:_toName,obra_nome:obraTxt,rvt_ref:_sigla+' '+relNumero(rel),doc_link:link,doc_link_html:_linkHTML,mensagem:msg,mensagem_html:_msgHTML,doc_tipo:_sigla});
+        const _fromName=(currentUser&&currentUser.nome)?currentUser.nome:'CSO / Aceitar';
+        const _replyTo=(currentUser&&currentUser.email)?currentUser.email:'info@aceitar.pt';
+        await emailjs.send(EJS.service, EJS_TPL_RVT, {to_email:_toEmail,to_name:_toName,from_name:_fromName,reply_to:_replyTo,obra_nome:obraTxt,rvt_ref:_sigla+' '+relNumero(rel),doc_link:link,doc_link_html:_linkHTML,mensagem:msg,mensagem_html:_msgHTML,doc_tipo:_sigla});
         okEmail=true;
       }catch(e){ emailErr=e.message||String(e); }
     }
+    if(okEmail){
+      if(!rel.conteudo) rel.conteudo={};
+      rel.conteudo.envio={nome:(currentUser&&currentUser.nome)||'—',email:(currentUser&&currentUser.email)||'',data:new Date().toISOString(),tipo:'reenvio'};
+      try{ await sbRel.patch('relatorios',relId,{conteudo:JSON.stringify(rel.conteudo)}); }catch(e){ console.error('Falha a registar reenvio:',e); }
+    }
     hideLoadingOverlay();
     closeModal();
+    render();
     if(okEmail){ alert('Reenvio concluído.\nEmail enviado a '+dest.length+' destinatário(s).'); }
     else { alert('Reenvio FALHOU.\n\nErro: '+emailErr); }
   }catch(e){
