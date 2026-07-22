@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.07.22.1431</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.07.22.1448</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -6329,7 +6329,7 @@ function renderCOPanel(o){
       <div class="co-mrec" id="co-rec-${m.key}">${recHtml}</div>
     </div>`;
   }).join('');
-  return CO_CSS+`<div style="background:var(--bg-card);border:1px solid var(--border-light);border-radius:var(--radius);overflow:hidden">
+  return CO_CSS+`<div style="background:var(--bg-card);border:1px solid var(--border-light);border-radius:var(--radius);overflow:hidden;height:100%;box-sizing:border-box">
     <div style="display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:.5px solid var(--border-light)">
       <div style="width:34px;height:34px;border-radius:var(--radius);background:#EEEDFE;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="18" height="18" viewBox="0 0 48 48" fill="none"><rect x="8" y="10" width="24" height="30" rx="3" stroke="#534AB7" stroke-width="2.5"/><path d="M14 18h12M14 24h8M14 30h10" stroke="#534AB7" stroke-width="2" stroke-linecap="round"/></svg></div>
       <div><div style="font-size:9px;font-weight:700;color:#534AB7;letter-spacing:.7px;text-transform:uppercase">CO</div><div style="font-size:13px;font-weight:500;color:var(--text)">Controlo Operacional</div></div>
@@ -6398,7 +6398,7 @@ function renderFichaObra(app){
       </div>
     </div>`;
 
-  const card=(head,body)=>`<div style="background:var(--bg-card);border:0.5px solid var(--border-light);border-radius:var(--radius);overflow:hidden">${head}<div style="padding:12px 14px">${body}</div></div>`;
+  const card=(head,body)=>`<div style="background:var(--bg-card);border:0.5px solid var(--border-light);border-radius:var(--radius);overflow:hidden;height:100%;box-sizing:border-box">${head}<div style="padding:12px 14px">${body}</div></div>`;
 
   // Avatar com foto ou iniciais coloridas por papel
   const avatarCorPapel=role=>({dono_obra:['#E6F1FB','#185FA5'],fiscalizacao:['#E1F5EE','#0F6E56'],superadmin:['#E1F5EE','#0F6E56'],empreiteiro:['#FCEBEB','#A32D2D'],projetista:['#EEEDFE','#534AB7']}[role]||['var(--bg)','var(--text-muted)']);
@@ -6541,11 +6541,11 @@ function renderFichaObra(app){
     ${o.morada||o.localidade?`<div style="font-size:12px;color:rgba(255,255,255,.55);margin-top:4px">${[o.morada,o.localidade].filter(Boolean).join(' · ')}</div>`:''}
   </div>
 
-  <div style="display:flex;gap:10px;margin-bottom:10px;overflow-x:auto;align-items:flex-start">
-    ${linha1Cards.map(c=>`<div style="min-width:170px;flex:1">${c}</div>`).join('')}
+  <div style="display:grid;grid-template-columns:repeat(${linha1Cards.length},minmax(170px,1fr));gap:10px;margin-bottom:10px;overflow-x:auto">
+    ${linha1Cards.join('')}
   </div>
 
-  <div style="display:grid;grid-template-columns:1fr 4fr;gap:10px;align-items:start">
+  <div style="display:grid;grid-template-columns:1fr 4fr;gap:10px;align-items:stretch">
     ${cardIntervenientes}${renderCOPanel(o)}
   </div>`;
   coFillGpe(o.id,'pe','pedidos_esclarecimento');
