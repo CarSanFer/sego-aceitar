@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.07.22.1038</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.07.22.1055</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -3168,12 +3168,15 @@ function renderListaPE(app){
   app.innerHTML=PE_CSS+`
   <div class="pe-wrap">
     <button class="back-btn" onclick="peVoltarCapa()">← Voltar a Fiscalização</button>
-    <div class="page-header"><div><div class="page-title"><span class="code-pill" style="font-size:13px">${o.codigo}</span> Pedidos de Esclarecimento</div></div></div>
-    <div class="table-card">
-      <div class="pe-toolbar">
-        ${peEEmp()?`<button class="btn btn-gold" onclick="peNovoPedido()">+ Novo pedido</button>`:''}
-        <span class="pe-count">${lst.length} pedido${lst.length===1?'':'s'}</span>
+    <div class="page-header">
+      <div>
+        <div class="page-title"><span class="code-pill" style="font-size:13px">${o.codigo}</span>${o.sigla} — ${o.nome} · PE</div>
+        <div style="margin-top:4px">${estadoBadge(o.estado)} · <span style="font-size:12px;color:var(--text-muted)">Pedidos de Esclarecimento</span></div>
       </div>
+      <div class="page-actions"></div>
+    </div>
+    <div style="margin-bottom:12px">${peEEmp()?`<button class="btn btn-gold btn-sm" onclick="peNovoPedido()">+ Novo pedido</button> `:''}<span class="pe-count">${lst.length} pedido${lst.length===1?'':'s'}</span></div>
+    <div class="table-card">
       ${lst.length?`<table>
         <thead><tr>
           <th style="text-align:left">Id</th><th style="text-align:left">Descrição</th>
@@ -3297,12 +3300,13 @@ function renderFichaPE(app){
 
   app.innerHTML=PE_CSS+`
   <div class="pe-wrap">
-    <button class="back-btn" onclick="peVoltarLista()">← Voltar aos pedidos</button>
-    <div class="pe-actions">
-      <span class="pe-idbig">PE ${d.id}</span>
-      <span class="pe-estpill" style="background:${peEST(d.estado).cor}">${peEST(d.estado).rot}</span>
-      <span class="pe-muted">${esc(peObra()?peObra().nome:d.obraNome)}</span>
-      <span style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap">${acoes.join('')}</span>
+    <button class="back-btn" onclick="peVoltarLista()">← Voltar</button>
+    <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
+      <div>
+        <div class="page-title"><span class="code-pill" style="font-size:13px">${(peObra()||{}).codigo||''}</span>${(peObra()||{}).sigla||''} — PE ${d.id}</div>
+        <div class="page-count">${esc((peObra()||{}).nome||d.obraNome)} · <span class="pe-estpill" style="background:${peEST(d.estado).cor}">${peEST(d.estado).rot}</span></div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">${acoes.join('')}</div>
     </div>
     <div class="pe-fluxo">${fluxo}</div>
     ${notas.length?`<div class="pe-nota">${notas.map(esc).join(' ')}</div>`:''}
