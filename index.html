@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.07.22.0218</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.07.22.1038</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -3078,7 +3078,7 @@ function peHtmlAnexos(lista,podeRemover,chave){
 
 /* ---- CSS scoped do módulo PE (tokens SEGO) ---- */
 const PE_CSS=`<style>
-.pe-wrap{max-width:1100px}
+.pe-wrap{max-width:none;width:100%}
 .pe-toolbar{display:flex;align-items:center;gap:8px;padding:8px 11px;border-bottom:1px solid var(--border-light);flex-wrap:wrap;background:var(--bg-card)}
 .pe-count{font-size:11px;color:var(--text-muted)}
 .pe-search{background:var(--bg);border:1px solid var(--border-light);padding:5px 8px;border-radius:var(--radius);font-size:12px;font-family:inherit;color:var(--text);width:200px}
@@ -3171,8 +3171,8 @@ function renderListaPE(app){
     <div class="page-header"><div><div class="page-title"><span class="code-pill" style="font-size:13px">${o.codigo}</span> Pedidos de Esclarecimento</div></div></div>
     <div class="table-card">
       <div class="pe-toolbar">
+        ${peEEmp()?`<button class="btn btn-gold" onclick="peNovoPedido()">+ Novo pedido</button>`:''}
         <span class="pe-count">${lst.length} pedido${lst.length===1?'':'s'}</span>
-        ${peEEmp()?`<button class="btn btn-gold" style="margin-left:auto" onclick="peNovoPedido()">+ Novo pedido</button>`:''}
       </div>
       ${lst.length?`<table>
         <thead><tr>
@@ -3237,8 +3237,8 @@ function renderFichaPE(app){
     notas.push('O pedido passa a Respondido e o Empreiteiro é notificado.');
   }
   if(d.estado==='respondido'&&peEEmp()){
-    acoes.push(`<button class="pe-btn green" onclick="peFechar()">Fechar pedido ✓</button>`);
-    acoes.push(`<button class="pe-btn" onclick="peRever()">Rever → criar revisão ${peIdFmt(d.num,d.rev+1)}</button>`);
+    acoes.push(`<button class="pe-btn green" onclick="peFechar()">Fechar</button>`);
+    acoes.push(`<button class="pe-btn" onclick="peRever()">Revisão</button>`);
   }
   if(peESuper()) acoes.push(`<button class="pe-btn red" onclick="peEliminar('${d.id}')">Eliminar</button>`);
 
@@ -3249,14 +3249,10 @@ function renderFichaPE(app){
       ${peCampo('Data','f-dataCriacao',d.dataCriacao,'date',eEmp)}
       ${peCampo('Autor','x',d.autorEmp,'text',false)}
     </div>
-    <div class="pe-grid3 pe-mt">
-      ${peCampo('Aberto','x',d.dataEnvio,'date',false)}
-      ${peCampo('Esclarecido','x',d.dataEsclarecido,'date',false)}
-      ${peCampo('Fechado','x',d.dataFecho,'date',false)}
-    </div></div></div>`;
+    </div></div>`;
 
   /* Zona Empreiteiro */
-  const secEmp=`<div class="pe-zone pe-emp"><div class="pe-zh"><span class="pe-zdot"></span><span class="pe-zt">Empreiteiro — Pedido</span><span class="pe-zmeta">${esc(d.autorEmp)||'—'}</span></div>
+  const secEmp=`<div class="pe-zone pe-emp"><div class="pe-zh"><span class="pe-zdot"></span><span class="pe-zt">Empreiteiro — Pedido</span></div>
     <div class="pe-zb">
       ${peCampo('Assunto / Resumo','f-assunto',d.assunto,'text',eEmp)}
       <div class="pe-grid2 pe-mt">
@@ -3278,7 +3274,7 @@ function renderFichaPE(app){
         </div>${d.projEspecialidade?`<div class="pe-mt">${peCampo('Especialidade','x',d.projEspecialidade,'text',false)}</div>`:''}</div></div>` : '';
 
   /* Zona Projetista */
-  const secProj=`<div class="pe-zone pe-proj"><div class="pe-zh"><span class="pe-zdot"></span><span class="pe-zt">Projetista — Esclarecimento</span><span class="pe-zmeta">${d.projDestNome?esc(d.projDestNome):'—'}</span></div>
+  const secProj=`<div class="pe-zone pe-proj"><div class="pe-zh"><span class="pe-zdot"></span><span class="pe-zt">Projetista — Esclarecimento</span></div>
     <div class="pe-zb">
       <div class="pe-grid2">
         ${peCampo('Data','f-proj-data',d.projData||(eProj?peHoje():null),'date',eProj)}
@@ -3290,7 +3286,7 @@ function renderFichaPE(app){
     </div></div>`;
 
   /* Zona Fiscalização — resposta */
-  const secFisc=`<div class="pe-zone pe-fisc"><div class="pe-zh"><span class="pe-zdot"></span><span class="pe-zt">Fiscalização — Resposta ao Empreiteiro</span><span class="pe-zmeta">${eFiscR?'a preencher':(esc(d.autorFiscResp)||'—')}</span></div>
+  const secFisc=`<div class="pe-zone pe-fisc"><div class="pe-zh"><span class="pe-zdot"></span><span class="pe-zt">Fiscalização — Resposta ao Empreiteiro</span></div>
     <div class="pe-zb">
       <div class="pe-grid2">
         ${peCampo('Data','f-fisc-data',d.dataResposta||(eFiscR?peHoje():null),'date',eFiscR)}
