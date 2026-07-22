@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.07.22.1448</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.07.22.1507</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -6329,7 +6329,7 @@ function renderCOPanel(o){
       <div class="co-mrec" id="co-rec-${m.key}">${recHtml}</div>
     </div>`;
   }).join('');
-  return CO_CSS+`<div style="background:var(--bg-card);border:1px solid var(--border-light);border-radius:var(--radius);overflow:hidden;height:100%;box-sizing:border-box">
+  return CO_CSS+`<div style="grid-column:2 / -1;background:var(--bg-card);border:1px solid var(--border-light);border-radius:var(--radius);overflow:hidden;height:100%;box-sizing:border-box">
     <div style="display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:.5px solid var(--border-light)">
       <div style="width:34px;height:34px;border-radius:var(--radius);background:#EEEDFE;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="18" height="18" viewBox="0 0 48 48" fill="none"><rect x="8" y="10" width="24" height="30" rx="3" stroke="#534AB7" stroke-width="2.5"/><path d="M14 18h12M14 24h8M14 30h10" stroke="#534AB7" stroke-width="2" stroke-linecap="round"/></svg></div>
       <div><div style="font-size:9px;font-weight:700;color:#534AB7;letter-spacing:.7px;text-transform:uppercase">CO</div><div style="font-size:13px;font-weight:500;color:var(--text)">Controlo Operacional</div></div>
@@ -6420,7 +6420,7 @@ function renderFichaObra(app){
   const secLbl=t=>`<div style="font-size:9px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.6px;margin:10px 0 4px;padding-bottom:3px;border-bottom:0.5px solid var(--border-light)">${t}</div>`;
 
   const intvSec=(titulo,users,extraFn=u=>u.funcao||u.email||'—')=>
-    secLbl(titulo)+(users.length?users.map(u=>userRow(u,extraFn(u))).join(''):`<div style="font-size:12px;color:var(--text-muted);font-style:italic;padding:4px 0">Não definido</div>`);
+    secLbl(titulo)+(users.length?users.map(u=>row(extraFn(u),u.nome)).join(''):`<div style="font-size:12px;color:var(--text-muted);font-style:italic;padding:4px 0">Não definido</div>`);
 
   // Linha de altura fixa para alinhamento
   const sp=`<div style="height:22px"></div>`;
@@ -6429,12 +6429,8 @@ function renderFichaObra(app){
   // Card Empresa — linha 1: Cliente, linha 2: divider, linha 3: Empreiteiro
   const cardEmpresa=card(
     cardHead('EMP','Empresa',`<svg width="18" height="18" viewBox="0 0 48 48" fill="none"><rect x="8" y="20" width="32" height="22" rx="2" stroke="#185FA5" stroke-width="2.5"/><path d="M16 20v-6a8 8 0 0116 0v6" stroke="#185FA5" stroke-width="2.5" stroke-linecap="round"/><rect x="20" y="28" width="8" height="14" rx="1" fill="#185FA5" opacity=".4"/></svg>`,'#E6F1FB','#185FA5'),
-    sp+rowH+
-    `<div style="font-size:10px;color:var(--text-muted);margin-bottom:2px">Cliente</div>
-     <div style="font-size:12px;font-weight:500;color:#185FA5;margin-bottom:8px">${cli?cli.nome:'—'}</div>
-     <div style="font-size:10px;color:var(--text-muted);margin-bottom:2px">Empreiteiro</div>
-     <div style="font-size:12px;font-weight:500">${empEmpresas.length?empEmpresas.map(e=>e.nome).join(', '):'—'}</div>`+
-    sp
+    row('Cliente', cli?cli.nome:'', '#185FA5')+
+    row('Empreiteiro', empEmpresas.length?empEmpresas.map(e=>e.nome).join(', '):'')
   );
 
   const cardContrato=card(
@@ -6545,7 +6541,7 @@ function renderFichaObra(app){
     ${linha1Cards.join('')}
   </div>
 
-  <div style="display:grid;grid-template-columns:1fr 4fr;gap:10px;align-items:stretch">
+  <div style="display:grid;grid-template-columns:repeat(${linha1Cards.length},minmax(0,1fr));gap:10px;align-items:stretch">
     ${cardIntervenientes}${renderCOPanel(o)}
   </div>`;
   coFillGpe(o.id,'pe','pedidos_esclarecimento');
