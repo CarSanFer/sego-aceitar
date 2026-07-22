@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.07.22.1507</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.07.22.2022</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -1003,6 +1003,8 @@ function render(){
   if(pbObraId){ renderListaPB(app); return; }
   if(ptqFichaId){ renderFichaPTQ(app); return; }
   if(ptqObraId){ renderListaPTQ(app); return; }
+  if(qeFichaId){ renderFichaQE(app); return; }
+  if(qeObraId){ renderListaQE(app); return; }
   if(relRelId){ const _r=DB.relatorios.find(x=>x.id===relRelId); if(_r&&_r.conteudo&&_r.conteudo.tipo==='seguranca'){ renderFichaRVT(app,_r); return; } if(_r&&_r.conteudo&&_r.conteudo.tipo==='fiscalizacao'){ if(_r.conteudo.subtipo==='SOS'){ renderFichaSOS(app,_r); return; } renderFichaRS(app,_r); return; } renderFichaRelatorio(app); return; }
   if(relObraId){ renderCapaObra(app); return; }
   if(fichObraId){ 
@@ -1023,6 +1025,7 @@ let peObraId=null, peFichaId=null, peDocs=[];
 let paObraId=null, paFichaId=null, paDocs=[];
 let pbObraId=null, pbFichaId=null, pbDocs=[];
 let ptqObraId=null, ptqFichaId=null, ptqDocs=[];
+let qeObraId=null, qeFichaId=null, qeDocs=[];
 let capaContext={tipo:null,subtipo:null,sigla:null,label:null,backVar:null};
 function resetCapaContext(){capaContext={tipo:null,subtipo:null,sigla:null,label:null,backVar:null};}
 
@@ -4828,6 +4831,426 @@ function ptqPreencherContagem(obraId){
 
 /* ####################  FIM MÓDULO PTQ  #################### */
 
+/* ####################  MÓDULO QE  #################### */
+/* ================================================================
+   MÓDULO QE — Qualidade de Execução
+   Iniciado pelo FISCAL. Fluxo: Fiscal (rascunho) → Empreiteiro (pendente)
+   → Fiscal (respondido) → Parecer: Aceite (fechado) OU Não Aceite (revisão).
+   Coerente com PE/PA/PB/PTQ: PE_CSS, peCampo, roles, peHoje/peDataPT/peIdFmt,
+   peNomeEsp, esc, sbRel, DB, currentUser, emailjs/EJS, estadoBadge, PE_EJS_TEMPLATE.
+   ================================================================ */
+const QE_MOD={
+  rot:'Qualidade de Execução', sig:'QE', tabela:'qualidade_execucao',
+  estados:{
+    rascunho:{rot:'Rascunho',cor:'#6B7280',posse:'Fiscalização'},
+    pendente:{rot:'Pendente',cor:'var(--warning)',posse:'Empreiteiro'},
+    respondido:{rot:'Respondido',cor:'var(--gold)',posse:'Fiscalização'},
+    reaberto:{rot:'Reaberto',cor:'var(--danger)',posse:'— (aguarda revisão)'},
+    fechado:{rot:'Fechado',cor:'var(--success)',posse:'—'}
+  },
+  ordem:['rascunho','pendente','respondido','fechado']
+};
+const QE_PAR={aceite:{rot:'Correção Aceite',cor:'var(--success)'},nao_aceite:{rot:'Correção Não Aceite',cor:'var(--danger)'}};
+
+function qeEST(e){ return QE_MOD.estados[e]||{rot:e,cor:'#999',posse:'—'}; }
+function qeParPill(k){ if(!k||!QE_PAR[k]) return '<span class="pe-muted">— aguarda —</span>'; return `<span class="pe-estpill" style="background:${QE_PAR[k].cor}">${QE_PAR[k].rot}</span>`; }
+function qeObra(){ return DB.obras.find(o=>o.id===qeObraId); }
+function qePorId(id){ return qeDocs.find(d=>d.id===id); }
+function qeRegistar(d,acao){ d.historico=d.historico||[]; d.historico.push({data:new Date().toLocaleString('pt-PT'),autor:(currentUser?currentUser.nome:'?'),acao}); }
+
+function qeUtilsDaObra(role){
+  const o=qeObra(); if(!o) return [];
+  const oid=String(o.id), ocod=String(o.codigo||''), osig=String(o.sigla||'');
+  const porUtil=(DB.utilizadores||[]).filter(u=>{
+    if(u.ativo===false) return false;
+    if(String(u.role||'')!==role) return false;
+    const refs=(u.obras||[]).map(String);
+    return refs.includes(oid)||(ocod&&refs.includes(ocod))||(osig&&refs.includes(osig));
+  });
+  const campo={fiscalizacao:'intervenientes_fisc',projetista:'intervenientes_proj',empreiteiro:'intervenientes_emp',dono_obra:'intervenientes_do'}[role];
+  const porObra=((campo&&o[campo])||[]).map(id=>(DB.utilizadores||[]).find(u=>String(u.id)===String(id))).filter(u=>u&&u.ativo!==false);
+  const m=new Map(); [...porUtil,...porObra].forEach(u=>m.set(String(u.id),u));
+  return [...m.values()];
+}
+function qeEmails(role){ return qeUtilsDaObra(role).filter(u=>u.email).map(u=>u.email); }
+
+function qeMap(r){
+  return {tipo:'qe',id:r.id,num:r.num,rev:r.rev,obraId:r.obra_id,obraNome:r.obra_nome,estado:r.estado,
+    dataCriacao:r.data_criacao,dataEnvio:r.data_envio,dataResposta:r.data_resposta,dataParecer:r.data_parecer,dataFecho:r.data_fecho,
+    autorFisc:r.autor_fisc||'',especialidade:r.especialidade||'',respostaPretendida:r.resposta_pretendida,
+    descricao:r.descricao||'',anexosFisc:r.anexos_fisc||[],
+    autorEmp:r.autor_empreiteiro||'',origem:r.origem||'',correcao:r.correcao||'',anexosEmp:r.anexos_emp||[],
+    parecer:r.parecer||'',obsFisc:r.observacoes_fisc||'',autorParecer:r.autor_parecer||'',
+    prevId:r.prev_id,nextId:r.next_id,historico:r.historico||[]};
+}
+function qeUnmap(d){
+  return {id:d.id,num:d.num,rev:d.rev,obra_id:d.obraId,obra_nome:d.obraNome,estado:d.estado,
+    data_criacao:d.dataCriacao||null,data_envio:d.dataEnvio||null,data_resposta:d.dataResposta||null,data_parecer:d.dataParecer||null,data_fecho:d.dataFecho||null,
+    autor_fisc:d.autorFisc,especialidade:d.especialidade,resposta_pretendida:d.respostaPretendida||null,
+    descricao:d.descricao,anexos_fisc:d.anexosFisc,
+    autor_empreiteiro:d.autorEmp,origem:d.origem,correcao:d.correcao,anexos_emp:d.anexosEmp,
+    parecer:d.parecer||null,observacoes_fisc:d.obsFisc,autor_parecer:d.autorParecer,
+    prev_id:d.prevId,next_id:d.nextId,historico:d.historico,updated_at:new Date().toISOString()};
+}
+
+async function qeCarregar(){
+  qeDocs=[]; const o=qeObra(); if(!o) return;
+  try{
+    const rows=await sbRel.get('qualidade_execucao',`obra_id=eq.${encodeURIComponent(o.id)}&order=num.desc,rev.desc`);
+    qeDocs=rows.map(qeMap);
+  }catch(e){ console.error(e); alert('Erro ao carregar Qualidade de Execução.\n\n'+e.message+'\n\nJá correu o SQL da tabela qualidade_execucao no Supabase do SEGO?'); }
+}
+async function qePersistir(d){
+  try{
+    const ex=await sbRel.get('qualidade_execucao',`id=eq.${encodeURIComponent(d.id)}&select=id`);
+    if(ex.length) await sbRel.patch('qualidade_execucao',d.id,qeUnmap(d));
+    else await sbRel.post('qualidade_execucao',qeUnmap(d));
+  }catch(e){ console.error(e); alert('Erro ao guardar: '+e.message); }
+}
+function qeLink(d){ return location.href.split('?')[0]+'?qe='+encodeURIComponent(d.id); }
+async function qeNotificar(d,destinos,mensagem,rotulo){
+  const lista=(Array.isArray(destinos)?destinos:[destinos]).filter(Boolean);
+  const et=`Notificação → ${rotulo}${lista.length?' ('+lista.join(', ')+')':''}: ${mensagem}`;
+  if(!lista.length){ qeRegistar(d,et+' [sem destinatário na obra — verifique a ficha no SID]'); return; }
+  let ok=0;
+  for(const to of lista){
+    try{
+      await emailjs.send(EJS.service, PE_EJS_TEMPLATE, {
+        to_email:to,to_name:'',pe_id:'QE '+d.id,obra:(qeObra()?qeObra().nome:d.obraNome),
+        assunto:(d.descricao||'').slice(0,80),estado:qeEST(d.estado).rot,
+        mensagem,link:qeLink(d),password:'',app_url:qeLink(d),role:rotulo});
+      ok++;
+    }catch(e){ console.error('QE notificar falhou:',e); }
+  }
+  qeRegistar(d,et+(ok===lista.length?' [enviada]':` [enviadas ${ok}/${lista.length}]`));
+}
+
+function qeProximoNum(){ const n=qeDocs.map(d=>d.num); return n.length?Math.max(...n)+1:1; }
+function qeDocNovo(num,rev,base){
+  const o=qeObra();
+  return {id:peIdFmt(num,rev),num,rev,tipo:'qe',obraId:o.id,obraNome:o.nome,estado:'rascunho',
+    dataCriacao:peHoje(),dataEnvio:null,dataResposta:null,dataParecer:null,dataFecho:null,
+    autorFisc:(base&&base.autorFisc)||(currentUser?currentUser.nome:''),
+    especialidade:(base&&base.especialidade)||'',respostaPretendida:(base&&base.respostaPretendida)||'',
+    descricao:(base&&base.descricao)||'',anexosFisc:base?(base.anexosFisc||[]).map(a=>({...a})):[],
+    autorEmp:'',origem:'',correcao:'',anexosEmp:[],
+    parecer:'',obsFisc:'',autorParecer:'',
+    prevId:base?base.id:null,nextId:null,historico:[]};
+}
+window.qeNovoPedido=async function(){
+  if(!peEFisc()){ alert('Apenas a Fiscalização inicia registos de Qualidade de Execução.'); return; }
+  const o=qeObra(); if(!o){ alert('Sem obra selecionada.'); return; }
+  const d=qeDocNovo(qeProximoNum(),0,null);
+  qeRegistar(d,'Registo criado pela Fiscalização (rascunho).');
+  qeDocs.unshift(d); await qePersistir(d); qeAbrirFicha(d.id);
+};
+async function qeCriarRevisao(doc,motivo){
+  doc.parecer='nao_aceite'; doc.obsFisc=motivo; doc.autorParecer=currentUser?currentUser.nome:''; doc.dataParecer=peHoje(); doc.estado='reaberto';
+  qeRegistar(doc,'Correção não aceite (motivo: '+motivo+') — passa a Reaberto, gera revisão.');
+  const nova=qeDocNovo(doc.num,doc.rev+1,doc);
+  nova.estado='pendente'; nova.dataEnvio=peHoje(); nova.prevId=doc.id;
+  doc.nextId=nova.id;
+  qeRegistar(nova,'Revisão criada a partir de '+doc.id+' (motivo: '+motivo+'). Enviada ao Empreiteiro.');
+  qeDocs.unshift(nova);
+  await qePersistir(doc); await qePersistir(nova);
+  await qeNotificar(nova,qeEmails('empreiteiro'),'QE '+doc.id+' não aceite ('+motivo+'). Revisão '+nova.id+' aguarda nova correção.','Empreiteiro');
+  await qePersistir(nova);
+  qeAbrirFicha(nova.id);
+  alert('Correção não aceite. Revisão '+nova.id+' criada e enviada ao Empreiteiro.');
+}
+async function qeFecharCadeia(doc){
+  let ant=doc.prevId?qePorId(doc.prevId):null;
+  while(ant){
+    if(ant.estado==='reaberto'){ ant.estado='fechado'; ant.dataFecho=peHoje();
+      qeRegistar(ant,'Fechado automaticamente — revisão '+doc.id+' concluída.'); await qePersistir(ant); }
+    ant=ant.prevId?qePorId(ant.prevId):null;
+  }
+}
+
+function qePodeFisc(d){ return peEFisc()&&d.estado==='rascunho'; }
+function qePodeEmp(d){ return peEEmp()&&d.estado==='pendente'; }
+function qeFichaAtualDoc(){ return qePorId(qeFichaId); }
+function qeLerFormFisc(d){
+  const g=id=>document.getElementById(id);
+  if(g('qe-dataCriacao')) d.dataCriacao=g('qe-dataCriacao').value||d.dataCriacao;
+  if(g('qe-especialidade')) d.especialidade=g('qe-especialidade').value;
+  if(g('qe-resposta')) d.respostaPretendida=g('qe-resposta').value||null;
+  if(g('qe-descricao')) d.descricao=g('qe-descricao').value.trim();
+}
+function qeLerFormEmp(d){
+  const g=id=>document.getElementById(id);
+  if(g('qe-origem')) d.origem=g('qe-origem').value.trim();
+  if(g('qe-correcao')) d.correcao=g('qe-correcao').value.trim();
+}
+
+window.qeGuardarRascunho=async function(){
+  const d=qeFichaAtualDoc(); if(!d) return; qeLerFormFisc(d);
+  qeRegistar(d,'Rascunho guardado.'); await qePersistir(d); qeAbrirFicha(d.id);
+};
+window.qeEnviarEmp=async function(){
+  const d=qeFichaAtualDoc(); if(!d) return; qeLerFormFisc(d);
+  if(!d.especialidade){ alert('Indique a Especialidade.'); return; }
+  if(!d.descricao){ alert('Descreva a falta de Qualidade de Execução.'); return; }
+  d.autorFisc=currentUser?currentUser.nome:''; d.estado='pendente'; d.dataEnvio=peHoje();
+  qeRegistar(d,'Enviado ao Empreiteiro — passa a Pendente.');
+  await qeNotificar(d,qeEmails('empreiteiro'),'Nova Qualidade de Execução '+d.id+' recebida da Fiscalização. Aguarda a sua resposta.','Empreiteiro');
+  await qePersistir(d); qeAbrirFicha(d.id);
+};
+window.qeSubmeterResposta=async function(){
+  const d=qeFichaAtualDoc(); if(!d) return; qeLerFormEmp(d);
+  if(!d.correcao){ alert('Descreva a Correção Efetuada.'); return; }
+  d.autorEmp=currentUser?currentUser.nome:''; d.estado='respondido'; d.dataResposta=peHoje();
+  qeRegistar(d,'Resposta submetida pelo Empreiteiro — passa a Respondido.');
+  await qeNotificar(d,qeEmails('fiscalizacao'),'QE '+d.id+' respondida pelo Empreiteiro. Aguarda parecer da Fiscalização.','Fiscalização');
+  await qePersistir(d); qeAbrirFicha(d.id);
+};
+async function qeConfirmarParecer(parecer,obs){
+  const d=qeFichaAtualDoc(); if(!d) return; qeFecharModal();
+  if(parecer==='aceite'){
+    d.parecer='aceite'; d.obsFisc=obs; d.autorParecer=currentUser?currentUser.nome:''; d.dataParecer=peHoje();
+    d.estado='fechado'; d.dataFecho=peHoje();
+    qeRegistar(d,'Correção aceite pela Fiscalização — processo fechado.');
+    await qeFecharCadeia(d);
+    await qeNotificar(d,qeEmails('empreiteiro'),'QE '+d.id+': Correção Aceite. Processo fechado.','Empreiteiro');
+    await qePersistir(d); qeAbrirFicha(d.id);
+  }else{
+    if(!obs){ alert('Indique o motivo da não aceitação.'); return; }
+    await qeCriarRevisao(d,obs);
+  }
+}
+window.qeEliminar=async function(id){
+  if(!peESuper()){ return; }
+  const d=qePorId(id); if(!d) return;
+  if(!confirm('Eliminar definitivamente o registo '+id+'? Esta acção não pode ser anulada.')) return;
+  try{ await sbRel.delete('qualidade_execucao',id); }catch(e){ alert('Erro ao eliminar: '+e.message); return; }
+  qeDocs=qeDocs.filter(x=>x.id!==id);
+  qeFichaId=null; render();
+};
+
+/* Anexos (fotos) */
+function qeListaAnexos(d,chave){ return chave==='emp'?d.anexosEmp:d.anexosFisc; }
+window.qeAdicionarAnexo=function(chave){
+  const d=qeFichaAtualDoc(); if(!d) return;
+  const input=document.createElement('input'); input.type='file'; input.accept='image/*'; input.multiple=true;
+  input.onchange=()=>{
+    if(chave==='fisc') qeLerFormFisc(d); else qeLerFormEmp(d);
+    const alvo=qeListaAnexos(d,chave);
+    const fs=Array.from(input.files||[]); let pend=fs.length; if(!pend) return;
+    const fim=async()=>{ await qePersistir(d); qeAbrirFicha(d.id); };
+    fs.forEach(f=>{
+      if(f.size>3*1024*1024){ alert('"'+f.name+'" excede 3 MB.'); if(--pend===0) fim(); return; }
+      const r=new FileReader();
+      r.onload=()=>{ alvo.push({nome:f.name,tam:f.size,dados:r.result}); if(--pend===0) fim(); };
+      r.readAsDataURL(f);
+    });
+  };
+  input.click();
+};
+window.qeRemoverAnexo=async function(chave,i){
+  const d=qeFichaAtualDoc(); if(!d) return;
+  qeListaAnexos(d,chave).splice(i,1);
+  await qePersistir(d); qeAbrirFicha(d.id);
+};
+function qeHtmlAnexos(lista,podeRemover,chave){
+  if(!lista||!lista.length) return '<div class="pe-muted">Sem fotos</div>';
+  return '<div class="pe-anexos">'+lista.map((a,i)=>`
+    <span class="pe-anx">📷 <a href="${a.dados}" download="${esc(a.nome)}" target="_blank">${esc(a.nome)}</a>
+      <span class="pe-tam">${(a.tam/1024).toFixed(0)} KB</span>
+      ${podeRemover?`<button class="pe-anx-x" title="Remover" onclick="qeRemoverAnexo('${chave}',${i})">×</button>`:''}</span>`).join('')+'</div>';
+}
+
+/* ---- LISTAGEM ---- */
+function renderListaQE(app){
+  const o=qeObra();
+  if(!o){ qeObraId=null; render(); return; }
+  const M=QE_MOD;
+  const thState=(rot,cor)=>`<th class="pe-th-state" style="--st:${cor}">${rot}</th>`;
+  const tdData=v=>`<td class="pe-dt${v?'':' pe-empty'}">${v?peDataPT(v):'—'}</td>`;
+  const reabertoData=d=>d.nextId?(qePorId(d.nextId)?qePorId(d.nextId).dataCriacao:d.dataParecer):null;
+
+  let lst=qeDocs.slice(); lst.sort((a,b)=>b.num-a.num||b.rev-a.rev);
+
+  const linhas=lst.map(d=>`
+    <tr onclick="qeAbrirFicha('${d.id}')" style="cursor:pointer">
+      <td><span class="pe-idp">${d.id}</span>${d.prevId?`<br><span class="pe-revlink">↳ rev. de ${d.prevId}</span>`:''}${d.nextId?`<br><span class="pe-revlink">↳ revisto por ${d.nextId}</span>`:''}</td>
+      <td style="text-align:center">${esc(peNomeEsp(d.especialidade))||'—'}</td>
+      <td>${d.descricao?esc(d.descricao.length>60?d.descricao.slice(0,60)+'…':d.descricao):'<span class="pe-muted">(sem descrição)</span>'}</td>
+      <td style="text-align:center">${d.respostaPretendida?peDataPT(d.respostaPretendida):'—'}</td>
+      ${tdData(d.dataEnvio)}${tdData(d.dataResposta)}${tdData(d.dataFecho)}${tdData(d.estado==='reaberto'?reabertoData(d):null)}
+      <td style="text-align:center">${d.parecer?qeParPill(d.parecer):'—'}</td>
+      ${peESuper()?`<td style="text-align:center"><button class="pe-x" onclick="event.stopPropagation();qeEliminar('${d.id}')">×</button></td>`:''}
+    </tr>`).join('');
+
+  app.innerHTML=PE_CSS+`
+  <div class="pe-wrap">
+    <button class="back-btn" onclick="qeVoltarCapa()">← Voltar à Obra</button>
+    <div class="page-header">
+      <div>
+        <div class="page-title"><span class="code-pill" style="font-size:13px">${o.codigo}</span>${o.sigla} — ${o.nome} · QE</div>
+        <div style="margin-top:4px">${estadoBadge(o.estado)}</div>
+      </div>
+      <div class="page-actions"></div>
+    </div>
+    <div style="margin-bottom:12px">${peEFisc()?`<button class="btn btn-gold btn-sm" onclick="qeNovoPedido()">+ Novo Registo</button>`:''}</div>
+    <div class="table-card">
+      ${lst.length?`<table>
+        <thead><tr>
+          <th style="text-align:left">Id</th><th style="text-align:center">Especialidade</th><th style="text-align:left">Descrição</th><th style="text-align:center">Resposta Pretendida</th>
+          ${thState('Pendente',M.estados.pendente.cor)}${thState('Respondido',M.estados.respondido.cor)}${thState('Fechado',M.estados.fechado.cor)}${thState('Reaberto',M.estados.reaberto.cor)}
+          <th style="text-align:center">Parecer</th>
+          ${peESuper()?'<th style="text-align:center">×</th>':''}
+        </tr></thead>
+        <tbody>${linhas}</tbody>
+      </table>`:`<div class="pe-vazio">Sem registos de Qualidade de Execução nesta obra.${peEFisc()?' Use “+ Novo Registo”.':''}</div>`}
+    </div>
+  </div>`;
+}
+
+/* ---- FICHA ---- */
+window.qeAbrirFicha=function(id){ qeFichaId=id; render(); };
+window.qeVoltarLista=function(){ qeFichaId=null; render(); };
+window.qeVoltarCapa=function(){ const o=qeObra(); qeFichaId=null; qeObraId=null; fichObraId=o?o.id:null; render(); };
+
+function renderFichaQE(app){
+  const d=qeFichaAtualDoc();
+  if(!d){ qeFichaId=null; render(); return; }
+  const M=QE_MOD;
+  const eFisc=qePodeFisc(d), eEmp=qePodeEmp(d);
+
+  const fluxo=M.ordem.map(k=>{
+    const ref=(d.estado==='reaberto')?'respondido':d.estado;
+    const idx=M.ordem.indexOf(ref), pos=M.ordem.indexOf(k);
+    const cls=k===d.estado?'atual':(pos<idx?'feito':'');
+    const cor=k===d.estado?`style="background:${M.estados[k].cor}"`:'';
+    return `<span class="pe-passo ${cls}" ${cor}>${M.estados[k].rot}</span>`;
+  }).join('<span style="color:#B8BEC7">›</span>');
+
+  const lig=[];
+  if(d.prevId) lig.push(`Revisão do registo <a onclick="qeAbrirFicha('${d.prevId}')">${d.prevId}</a>`);
+  if(d.nextId) lig.push(`Substituído pela revisão <a onclick="qeAbrirFicha('${d.nextId}')">${d.nextId}</a>`);
+  if(d.estado==='reaberto') lig.push('Permanece <b>Reaberto</b> até a revisão ser fechada.');
+
+  const acoes=[],notas=[];
+  if(d.estado==='rascunho'&&peEFisc()){
+    acoes.push(`<button class="pe-btn" onclick="qeGuardarRascunho()">Guardar Rascunho</button>`);
+    acoes.push(`<button class="pe-btn green" onclick="qeEnviarEmp()">Enviar ao Empreiteiro →</button>`);
+  }
+  if(d.estado==='pendente'&&peEEmp()){
+    acoes.push(`<button class="pe-btn gold" onclick="qeSubmeterResposta()">Submeter Resposta →</button>`);
+    notas.push('Indique a Origem e a Correção Efetuada e, se possível, anexe fotos.');
+  }
+  if(d.estado==='respondido'&&peEFisc()){
+    acoes.push(`<button class="pe-btn gold" onclick="qeModalParecer()">Dar Parecer →</button>`);
+    notas.push('Aceite a correção (fecha) ou peça revisão indicando o motivo (gera nova revisão para o Empreiteiro).');
+  }
+  if(peESuper()) acoes.push(`<button class="pe-btn red" onclick="qeEliminar('${d.id}')">Eliminar</button>`);
+
+  const espSel = eFisc
+    ? `<div class="pe-fld"><label>Especialidade</label><select id="qe-especialidade">${'<option value="">— escolher —</option>'+(DB.especialidades||[]).map(e=>`<option value="${esc(e.codigo)}" ${e.codigo===d.especialidade?'selected':''}>${esc(e.nome)}</option>`).join('')}</select></div>`
+    : peCampo('Especialidade','x',peNomeEsp(d.especialidade),'text',false);
+
+  /* Identificação */
+  const secId=`<div class="pe-zone pe-ident"><div class="pe-zh"><span class="pe-zdot"></span><span class="pe-zt">Identificação</span></div>
+    <div class="pe-zb">
+      <div class="pe-grid3">
+        ${peCampo('Id','x',d.id,null,false)}
+        ${peCampo('Data','qe-dataCriacao',d.dataCriacao,'date',eFisc)}
+        ${peCampo('Autor','x',d.autorFisc,'text',false)}
+      </div>
+      <div class="pe-grid3 pe-mt">
+        ${espSel}
+        ${peCampo('Resposta','qe-resposta',d.respostaPretendida,'date',eFisc)}
+        <div></div>
+      </div>
+    </div></div>`;
+
+  /* Fiscalização — Identificação da falta */
+  const secFiscId=`<div class="pe-zone pe-fisc"><div class="pe-zh"><span class="pe-zdot"></span><span class="pe-zt">Fiscalização — Identificação</span></div>
+    <div class="pe-zb">
+      <div>${peCampo('Descrição da Falta de Qualidade de Execução','qe-descricao',d.descricao,'textarea',eFisc)}</div>
+      <div class="pe-mt"><label class="pe-rotanx">Fotos</label>${qeHtmlAnexos(d.anexosFisc,eFisc,'fisc')}
+        ${eFisc?`<button class="pe-btn pe-mt" onclick="qeAdicionarAnexo('fisc')">+ Anexar Foto</button>`:''}</div>
+    </div></div>`;
+
+  /* Empreiteiro — Resposta */
+  const secEmp=(d.dataEnvio)
+    ? `<div class="pe-zone pe-emp"><div class="pe-zh"><span class="pe-zdot"></span><span class="pe-zt">Empreiteiro — Resposta</span></div>
+        <div class="pe-zb">
+          <div class="pe-grid3">
+            ${peCampo('Data','x',d.dataResposta,'date',false)}
+            ${peCampo('Autor','x',d.autorEmp,'text',false)}
+            <div></div>
+          </div>
+          <div class="pe-mt">${peCampo('Origem','qe-origem',d.origem,'textarea',eEmp)}</div>
+          <div class="pe-mt">${peCampo('Correção Efetuada','qe-correcao',d.correcao,'textarea',eEmp)}</div>
+          <div class="pe-mt"><label class="pe-rotanx">Fotos</label>${qeHtmlAnexos(d.anexosEmp,eEmp,'emp')}
+            ${eEmp?`<button class="pe-btn pe-mt" onclick="qeAdicionarAnexo('emp')">+ Anexar Foto</button>`:''}</div>
+        </div></div>` : '';
+
+  /* Fiscalização — Parecer */
+  const secPar=(d.estado==='respondido'||d.parecer||d.estado==='fechado'||d.estado==='reaberto')&&d.dataResposta
+    ? `<div class="pe-zone pe-fisc"><div class="pe-zh"><span class="pe-zdot"></span><span class="pe-zt">Fiscalização — Parecer</span></div>
+        <div class="pe-zb">
+          <div class="pe-grid3">
+            ${peCampo('Data','x',d.dataParecer,'date',false)}
+            ${peCampo('Autor','x',d.autorParecer,'text',false)}
+            <div class="pe-fld"><label>Parecer</label><div class="pe-ro">${qeParPill(d.parecer)}</div></div>
+          </div>
+          <div class="pe-mt">${peCampo(d.parecer==='nao_aceite'?'Motivo da não aceitação':'Observações','x',d.obsFisc,'textarea',false)}</div>
+        </div></div>` : '';
+
+  app.innerHTML=PE_CSS+`
+  <div class="pe-wrap">
+    <button class="back-btn" onclick="qeVoltarLista()">← Voltar</button>
+    <div class="page-header" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+      <div>
+        <div class="page-title"><span class="code-pill" style="font-size:13px">${(qeObra()||{}).codigo||''}</span>${(qeObra()||{}).sigla||''} — QE ${d.id}</div>
+        <div class="page-count">${esc((qeObra()||{}).nome||d.obraNome)} · <span class="pe-estpill" style="background:${qeEST(d.estado).cor}">${qeEST(d.estado).rot}</span></div>
+      </div>
+      <div class="pe-fluxo" style="flex:1;justify-content:center;margin:0">${fluxo}</div>
+      <div class="pe-actbar" style="display:flex;gap:8px;flex-wrap:wrap">${acoes.join('')}</div>
+    </div>
+    ${notas.length?`<div class="pe-nota">${notas.map(esc).join(' ')}</div>`:''}
+    ${lig.length?`<div class="pe-lig">${lig.join(' · ')}</div>`:''}
+    ${secId}${secFiscId}${secEmp}${secPar}
+    <div class="pe-hist"><b>Histórico</b>
+      ${(d.historico||[]).map(h=>`<div>· ${esc(h.data)} — [${esc(h.autor)}] ${esc(h.acao)}</div>`).join('')||'<div>—</div>'}
+    </div>
+  </div>`;
+}
+
+/* ---- Modal parecer ---- */
+function qeFecharModal(){ const v=document.getElementById('pe-veu'); if(v) v.remove(); }
+window.qeModalParecer=function(){
+  const d=qeFichaAtualDoc(); if(!d) return;
+  const veu=document.createElement('div'); veu.className='pe-veu'; veu.id='pe-veu';
+  veu.innerHTML=`<div class="pe-modal"><h3>Parecer da Fiscalização</h3>
+    <div class="pe-mb"><div class="pe-msub">Aceite a correção (fecha o processo) ou peça revisão indicando o motivo (gera a revisão ${peIdFmt(d.num,d.rev+1)} para o Empreiteiro).</div>
+      <table class="pe-seltab"><tbody>
+        <tr onclick="document.getElementById('qep-0').checked=true"><td style="width:28px"><input type="radio" name="qep" id="qep-0" value="aceite" checked></td><td><span class="pe-estpill" style="background:var(--success)">Correção Aceite</span> — fecha o processo</td></tr>
+        <tr onclick="document.getElementById('qep-1').checked=true"><td style="width:28px"><input type="radio" name="qep" id="qep-1" value="nao_aceite"></td><td><span class="pe-estpill" style="background:var(--danger)">Correção Não Aceite</span> — gera revisão</td></tr>
+      </tbody></table>
+      <div class="pe-fld pe-mt"><label>Observações / Motivo</label><textarea id="qep-obs">${esc(d.obsFisc)}</textarea></div></div>
+    <div class="pe-mrod"><button class="pe-btn" onclick="qeFecharModal()">Cancelar</button>
+      <button class="pe-btn gold" onclick="qeSubmeterParecer()">Confirmar e Notificar →</button></div></div>`;
+  document.body.appendChild(veu);
+};
+window.qeSubmeterParecer=function(){
+  const s=document.querySelector('input[name="qep"]:checked');
+  if(!s){ alert('Selecione o parecer.'); return; }
+  qeConfirmarParecer(s.value,(document.getElementById('qep-obs')||{}).value?document.getElementById('qep-obs').value.trim():'');
+};
+
+/* ---- Entrada via card ---- */
+window.qeAbrirModulo=async function(obraId){ qeObraId=obraId; qeFichaId=null; fiscObraId=null; fichObraId=null; await qeCarregar(); render(); };
+function qePreencherContagem(obraId){
+  sbRel.get('qualidade_execucao',`obra_id=eq.${encodeURIComponent(obraId)}&select=id`)
+    .then(rows=>{ const el=document.getElementById('qe-count-card'); if(el) el.textContent=rows.length+' registo'+(rows.length===1?'':'s'); })
+    .catch(()=>{ const el=document.getElementById('qe-count-card'); if(el) el.textContent='—'; });
+}
+
+/* ####################  FIM MÓDULO QE  #################### */
+
 window.rsCommit=function(section,idx,key,value){
   if(!relRelId)return;
   const r=DB.relatorios.find(x=>x.id===relRelId);if(!r)return;
@@ -6294,15 +6717,17 @@ const CO_ICONS={
   pa:`<svg viewBox="0 0 48 48" fill="none"><path d="M12 24l8 8 16-18" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
   pb:`<svg viewBox="0 0 48 48" fill="none"><rect x="7" y="16" width="34" height="18" rx="2" stroke="currentColor" stroke-width="2.5"/><path d="M7 23h34M14 16v-4h20v4" stroke="currentColor" stroke-width="2.5"/></svg>`,
   ptq:`<svg viewBox="0 0 48 48" fill="none"><rect x="8" y="10" width="32" height="30" rx="2" stroke="currentColor" stroke-width="2.5"/><path d="M8 18h32M18 10v30M28 10v30" stroke="currentColor" stroke-width="2"/></svg>`,
+  qe:`<svg viewBox="0 0 48 48" fill="none"><circle cx="21" cy="21" r="12" stroke="currentColor" stroke-width="2.5"/><path d="M30 30l8 8" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><path d="M16 21l4 4 7-8" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
   RVT:`<svg viewBox="0 0 48 48" fill="none"><path d="M24 6l14 6v9c0 9-6 15-14 21-8-6-14-12-14-21v-9l14-6Z" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/></svg>`
 };
 const CO_MODS=[
-  {key:'RS',sigla:'RSO',kind:'rel',tipo:'fiscalizacao',subtipo:'RS',grp:'fisc',label:'Relatório Semanal de Obra'},
-  {key:'SOS',sigla:'SOS',kind:'rel',tipo:'fiscalizacao',subtipo:'SOS',grp:'fisc',label:'Situações Operacionais Semanais'},
+  {key:'ptq',sigla:'PTQ',kind:'gpe',tabela:'planos_quinzenais',grp:'fisc',open:'ptqAbrirModulo'},
+  {key:'pb',sigla:'PB',kind:'gpe',tabela:'pedidos_betonagem',grp:'fisc',open:'pbAbrirModulo'},
   {key:'pe',sigla:'PE',kind:'gpe',tabela:'pedidos_esclarecimento',grp:'fisc',open:'peAbrirModulo'},
   {key:'pa',sigla:'PA',kind:'gpe',tabela:'pedidos_aprovacao',grp:'fisc',open:'paAbrirModulo'},
-  {key:'pb',sigla:'PB',kind:'gpe',tabela:'pedidos_betonagem',grp:'fisc',open:'pbAbrirModulo'},
-  {key:'ptq',sigla:'PTQ',kind:'gpe',tabela:'planos_quinzenais',grp:'fisc',open:'ptqAbrirModulo'},
+  {key:'qe',sigla:'QE',kind:'gpe',tabela:'qualidade_execucao',grp:'fisc',open:'qeAbrirModulo'},
+  {key:'RS',sigla:'RSO',kind:'rel',tipo:'fiscalizacao',subtipo:'RS',grp:'fisc',label:'Relatório Semanal de Obra'},
+  {key:'SOS',sigla:'SOS',kind:'rel',tipo:'fiscalizacao',subtipo:'SOS',grp:'fisc',label:'Situações Operacionais Semanais'},
   {key:'RVT',sigla:'RVT',kind:'rel',tipo:'seguranca',subtipo:'RVT',grp:'seg',label:'Relatório de Visita Técnica'}
 ];
 
@@ -6548,6 +6973,7 @@ function renderFichaObra(app){
   coFillGpe(o.id,'pa','pedidos_aprovacao');
   coFillGpe(o.id,'pb','pedidos_betonagem');
   coFillGpe(o.id,'ptq','planos_quinzenais');
+  coFillGpe(o.id,'qe','qualidade_execucao');
 }
 
 
