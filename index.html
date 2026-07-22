@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.07.22.1212</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.07.22.1317</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -4650,7 +4650,7 @@ const PTQ_CSS=`<style>
 .pq-scroll{overflow-x:auto}
 table.pq-grade{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed}
 table.pq-grade col.c-num{width:34px}table.pq-grade col.c-trab{width:24%}table.pq-grade col.c-sec{width:20%}table.pq-grade col.c-dia{width:42px}table.pq-grade col.c-del{width:26px}
-table.pq-grade th{background:#EEF1F6;border:1px solid var(--border-light);padding:4px 6px;font-size:11.5px;font-weight:700;color:var(--navy)}
+table.pq-grade th{background:#EEF1F6;border:1px solid var(--border-light);padding:4px 6px;font-size:11.5px;font-weight:700;color:var(--navy);text-align:center}
 table.pq-grade thead tr th{height:24px;padding:2px 4px;line-height:1.1}
 table.pq-grade thead tr th[rowspan]{height:auto;padding:4px 6px}
 table.pq-grade td{border:1px solid var(--border-light);padding:4px 6px;vertical-align:middle;overflow:hidden;height:31px}
@@ -4672,6 +4672,8 @@ table.pq-grade td.cel.fp{cursor:default}
 table.pq-grade td.cel.num{cursor:default;padding:2px}
 table.pq-grade td.cel.num input{width:100%;text-align:center;border:1px solid transparent;background:transparent;font-family:inherit;font-size:13px;padding:3px 1px;border-radius:3px}
 table.pq-grade td.cel.num input:focus{border-color:var(--info);background:#fff;outline:none}
+table.pq-grade .pq-numcell{width:100%;height:100%;min-height:23px;display:flex;align-items:center;justify-content:center;cursor:pointer;border-radius:3px;font-size:13px}
+table.pq-grade .pq-numcell:hover{background:var(--danger-bg);color:var(--danger)}
 table.pq-grade td.espelho{color:var(--text)}
 table.pq-grade td.c-del{padding:0;text-align:center}
 .pq-btnx{border:none;background:none;color:var(--danger);cursor:pointer;font-size:14px;font-weight:700;line-height:1;padding:2px 4px}
@@ -4761,14 +4763,14 @@ function renderFichaPTQ(app){
     <td class="nlin">${i+1}</td>
     <td class="espelho">${esc(ativ)||'<span class="pe-muted">—</span>'}</td>
     <td>${ed?`<input id="pq-s-nome-${i}" value="${esc(s.sub)}" onchange="pqLerForm()" placeholder="Subempreiteiro">`:esc(s.sub)||'—'}</td>
-    ${s.dias.map((v,c)=>{ const e=fer(c); if(e) return `<td class="cel num esp-${e} fp">${e==='feriado'?'F':'P'}</td>`; return `<td class="cel num ${dias[c].dow===6?'sab':''}">${ed?`<input type="text" inputmode="numeric" value="${esc(v)}" onchange="pqSetNum('s',${i},${c},this.value)">`:(v===''?'':esc(v))}</td>`; }).join('')}
+    ${s.dias.map((v,c)=>{ const e=fer(c); if(e) return `<td class="cel num esp-${e} fp">${e==='feriado'?'F':'P'}</td>`; return `<td class="cel num ${dias[c].dow===6?'sab':''}">${ed?(v!==''?`<div class="pq-numcell" title="Clique para remover este dia" onmousedown="event.preventDefault();pqSetNum('s',${i},${c},'')">${esc(v)}</div>`:`<input type="text" inputmode="numeric" value="" onchange="pqSetNum('s',${i},${c},this.value)">`):(v===''?'':esc(v))}</td>`; }).join('')}
     <td class="c-del"></td></tr>`; }).join('');
 
   const totE=Array(12).fill(0); (d.equipamentos||[]).forEach(e=>e.dias.forEach((v,c)=>{ const n=Number(v); if(!isNaN(n)) totE[c]+=n; }));
   const linhasE=(d.equipamentos||[]).map((e,i)=>`<tr>
     <td class="nlin">${i+1}</td>
     <td colspan="2">${ed?`<input id="pq-e-desc-${i}" value="${esc(e.desc)}" onchange="pqLerForm()" placeholder="Equipamento">`:esc(e.desc)||'—'}</td>
-    ${e.dias.map((v,c)=>{ const f=fer(c); if(f) return `<td class="cel num esp-${f} fp">${f==='feriado'?'F':'P'}</td>`; return `<td class="cel num ${dias[c].dow===6?'sab':''}">${ed?`<input type="text" inputmode="numeric" value="${esc(v)}" onchange="pqSetNum('e',${i},${c},this.value)">`:(v===''?'':esc(v))}</td>`; }).join('')}
+    ${e.dias.map((v,c)=>{ const f=fer(c); if(f) return `<td class="cel num esp-${f} fp">${f==='feriado'?'F':'P'}</td>`; return `<td class="cel num ${dias[c].dow===6?'sab':''}">${ed?(v!==''?`<div class="pq-numcell" title="Clique para remover este dia" onmousedown="event.preventDefault();pqSetNum('e',${i},${c},'')">${esc(v)}</div>`:`<input type="text" inputmode="numeric" value="" onchange="pqSetNum('e',${i},${c},this.value)">`):(v===''?'':esc(v))}</td>`; }).join('')}
     <td class="c-del">${ed?`<button class="pq-btnx" onclick="pqDelLinha('e',${i})" title="Eliminar linha">×</button>`:''}</td></tr>`).join('');
 
   const secId=`<div class="pe-zone pe-ident"><div class="pe-zh"><span class="pe-zdot"></span><span class="pe-zt">Identificação</span></div>
