@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.07.22.1140</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.07.22.1212</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -999,6 +999,10 @@ function render(){
   if(peObraId){ renderListaPE(app); return; }
   if(paFichaId){ renderFichaPA(app); return; }
   if(paObraId){ renderListaPA(app); return; }
+  if(pbFichaId){ renderFichaPB(app); return; }
+  if(pbObraId){ renderListaPB(app); return; }
+  if(ptqFichaId){ renderFichaPTQ(app); return; }
+  if(ptqObraId){ renderListaPTQ(app); return; }
   if(relRelId){ const _r=DB.relatorios.find(x=>x.id===relRelId); if(_r&&_r.conteudo&&_r.conteudo.tipo==='seguranca'){ renderFichaRVT(app,_r); return; } if(_r&&_r.conteudo&&_r.conteudo.tipo==='fiscalizacao'){ if(_r.conteudo.subtipo==='SOS'){ renderFichaSOS(app,_r); return; } renderFichaRS(app,_r); return; } renderFichaRelatorio(app); return; }
   if(relObraId){ renderCapaObra(app); return; }
   if(fichObraId){ 
@@ -1017,6 +1021,8 @@ let segObraId=null;
 let fiscObraId=null;
 let peObraId=null, peFichaId=null, peDocs=[];
 let paObraId=null, paFichaId=null, paDocs=[];
+let pbObraId=null, pbFichaId=null, pbDocs=[];
+let ptqObraId=null, ptqFichaId=null, ptqDocs=[];
 let capaContext={tipo:null,subtipo:null,sigla:null,label:null,backVar:null};
 function resetCapaContext(){capaContext={tipo:null,subtipo:null,sigla:null,label:null,backVar:null};}
 
@@ -2801,12 +2807,32 @@ function renderCapaFiscalizacao(app){
       <div id="pa-count-card" style="font-size:11px;color:var(--text-muted)">…</div>
     </div>`;
   };
+  const cardPB=()=>{
+    const icon=`<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="7" y="16" width="34" height="18" rx="2" stroke="var(--info)" stroke-width="2.5"/><path d="M7 23h34" stroke="var(--info)" stroke-width="2.5"/><path d="M14 16v-4h20v4" stroke="var(--info)" stroke-width="2.5"/></svg>`;
+    return `<div onclick="pbAbrirModulo('${o.id}')" style="background:var(--bg-card);border:0.5px solid var(--border-light);border-radius:var(--radius);cursor:pointer;transition:all .15s;padding:14px 12px;text-align:center" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border-light)'">
+      <div style="font-size:13px;font-weight:700;color:var(--text);letter-spacing:.5px;margin-bottom:6px">PB</div>
+      <div style="width:44px;height:44px;margin:0 auto 8px">${icon}</div>
+      <div style="font-size:12px;color:var(--text);margin-bottom:4px">Pedidos de Betonagem</div>
+      <div id="pb-count-card" style="font-size:11px;color:var(--text-muted)">…</div>
+    </div>`;
+  };
+  const cardPTQ=()=>{
+    const icon=`<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="8" y="10" width="32" height="30" rx="2" stroke="var(--info)" stroke-width="2.5"/><path d="M8 18h32M18 10v30M28 10v30" stroke="var(--info)" stroke-width="2"/></svg>`;
+    return `<div onclick="ptqAbrirModulo('${o.id}')" style="background:var(--bg-card);border:0.5px solid var(--border-light);border-radius:var(--radius);cursor:pointer;transition:all .15s;padding:14px 12px;text-align:center" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border-light)'">
+      <div style="font-size:13px;font-weight:700;color:var(--text);letter-spacing:.5px;margin-bottom:6px">PTQ</div>
+      <div style="width:44px;height:44px;margin:0 auto 8px">${icon}</div>
+      <div style="font-size:12px;color:var(--text);margin-bottom:4px">Planos Quinzenais</div>
+      <div id="ptq-count-card" style="font-size:11px;color:var(--text-muted)">…</div>
+    </div>`;
+  };
   app.innerHTML=`
   <button class="back-btn" onclick="fiscObraId=null;render()">← Voltar</button>
   <div class="page-header"><div><div class="page-title"><span class="code-pill" style="font-size:13px">${o.codigo}</span>${o.sigla} — ${o.nome}</div></div></div>
-  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:14px">${FISC_TIPOS.map(card).join('')}${cardPE()}${cardPA()}</div>`;
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:14px">${FISC_TIPOS.map(card).join('')}${cardPE()}${cardPA()}${cardPB()}${cardPTQ()}</div>`;
   pePreencherContagem(o.id);
   paPreencherContagem(o.id);
+  pbPreencherContagem(o.id);
+  ptqPreencherContagem(o.id);
 }
 /* ####################  MÓDULO PE (integrado do GPE)  #################### */
 /* ================================================================
@@ -3126,7 +3152,8 @@ td.pe-dt.pe-empty{color:#C7CDD6}
 .pe-grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .pe-grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
 .pe-fld label{display:block;font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:3px}
-.pe-fld input,.pe-fld textarea{width:100%;box-sizing:border-box;border:1px solid var(--border-light);border-radius:var(--radius);padding:6px 8px;font-size:13px;font-family:inherit;color:var(--text)}
+.pe-fld input,.pe-fld select,.pe-fld textarea{width:100%;box-sizing:border-box;border:1px solid var(--border-light);border-radius:var(--radius);padding:6px 8px;font-size:13px;font-family:inherit;color:var(--text);background:#fff}
+.pe-fld input,.pe-fld select{height:31px}
 .pe-fld textarea{min-height:70px;resize:vertical}
 .pe-fld .pe-ro{background:#F5F6F8;border-radius:var(--radius);padding:6px 8px;min-height:30px;font-size:13px}
 .pe-mt{margin-top:10px}
@@ -3189,7 +3216,7 @@ function renderListaPE(app){
       </div>
       <div class="page-actions"></div>
     </div>
-    <div style="margin-bottom:12px">${peEEmp()?`<button class="btn btn-gold btn-sm" onclick="peNovoPedido()">+ Novo pedido</button>`:''}</div>
+    <div style="margin-bottom:12px">${peEEmp()?`<button class="btn btn-gold btn-sm" onclick="peNovoPedido()">+ Novo Pedido</button>`:''}</div>
     <div class="table-card">
       ${lst.length?`<table>
         <thead><tr>
@@ -3198,7 +3225,7 @@ function renderListaPE(app){
           ${peESuper()?'<th style="text-align:center">×</th>':''}
         </tr></thead>
         <tbody>${linhas}</tbody>
-      </table>`:`<div class="pe-vazio">Sem pedidos de esclarecimento nesta obra.${peEEmp()?' Use “+ Novo pedido”.':''}</div>`}
+      </table>`:`<div class="pe-vazio">Sem pedidos de esclarecimento nesta obra.${peEEmp()?' Use “+ Novo Pedido”.':''}</div>`}
     </div>
   </div>`;
 }
@@ -3238,7 +3265,7 @@ function renderFichaPE(app){
 
   const acoes=[],notas=[];
   if(d.estado==='rascunho'&&peEEmp()){
-    acoes.push(`<button class="pe-btn" onclick="peGuardarRascunho()">Guardar rascunho</button>`);
+    acoes.push(`<button class="pe-btn" onclick="peGuardarRascunho()">Guardar Rascunho</button>`);
     acoes.push(`<button class="pe-btn green" onclick="peEnviarFisc()">Enviar à Fiscalização →</button>`);
   }
   if(d.estado==='aberto'&&peEFisc()){
@@ -3246,7 +3273,7 @@ function renderFichaPE(app){
     notas.push('Envia link de acesso ao Projetista; o pedido passa a Pendente.');
   }
   if(d.estado==='pendente'&&peEProj()){
-    acoes.push(`<button class="pe-btn info" onclick="peSubmeterEsclarecimento()">Submeter esclarecimento →</button>`);
+    acoes.push(`<button class="pe-btn info" onclick="peSubmeterEsclarecimento()">Submeter Esclarecimento →</button>`);
     notas.push('Ao submeter, a Fiscalização é notificada e o pedido passa a Esclarecido.');
   }
   if(d.estado==='esclarecido'&&peEFisc()){
@@ -3278,7 +3305,7 @@ function renderFichaPE(app){
       </div>
       <div class="pe-mt">${peCampo('Pedido de Esclarecimento','f-pedidoTexto',d.pedidoTexto,'textarea',eEmp)}</div>
       <div class="pe-mt"><label class="pe-rotanx">Anexos</label>${peHtmlAnexos(d.anexosEmp,eEmp,'emp')}
-        ${eEmp?`<button class="pe-btn pe-mt" onclick="peAdicionarAnexo('emp')">+ Anexar ficheiro</button>`:''}</div>
+        ${eEmp?`<button class="pe-btn pe-mt" onclick="peAdicionarAnexo('emp')">+ Anexar Ficheiro</button>`:''}</div>
     </div></div>`;
 
   /* Zona Envio ao Projetista (só quando ocorreu) */
@@ -3299,7 +3326,7 @@ function renderFichaPE(app){
       </div>
       <div class="pe-mt">${peCampo('Esclarecimento','f-proj-texto',d.esclarecimento,'textarea',eProj)}</div>
       <div class="pe-mt"><label class="pe-rotanx">Anexos</label>${peHtmlAnexos(d.anexosProj,eProj,'proj')}
-        ${eProj?`<button class="pe-btn pe-mt" onclick="peAdicionarAnexo('proj')">+ Anexar ficheiro</button>`:''}</div>
+        ${eProj?`<button class="pe-btn pe-mt" onclick="peAdicionarAnexo('proj')">+ Anexar Ficheiro</button>`:''}</div>
     </div></div>`;
 
   /* Zona Fiscalização — resposta */
@@ -3354,7 +3381,7 @@ window.peAbrirModalProjetista=function(){
     </div>
     <div class="pe-mrod">
       <button class="pe-btn" onclick="peFecharModal()">Cancelar</button>
-      <button class="pe-btn gold" onclick="peSubmeterEscolhaProj()">Enviar link →</button>
+      <button class="pe-btn gold" onclick="peSubmeterEscolhaProj()">Enviar Link →</button>
     </div></div>`;
   document.body.appendChild(veu);
 };
@@ -3670,7 +3697,7 @@ function renderListaPA(app){
       </div>
       <div class="page-actions"></div>
     </div>
-    <div style="margin-bottom:12px">${peEEmp()?`<button class="btn btn-gold btn-sm" onclick="paNovoPedido()">+ Novo pedido</button>`:''}</div>
+    <div style="margin-bottom:12px">${peEEmp()?`<button class="btn btn-gold btn-sm" onclick="paNovoPedido()">+ Novo Pedido</button>`:''}</div>
     <div class="table-card">
       ${lst.length?`<table>
         <thead><tr>
@@ -3680,7 +3707,7 @@ function renderListaPA(app){
           ${peESuper()?'<th style="text-align:center">×</th>':''}
         </tr></thead>
         <tbody>${linhas}</tbody>
-      </table>`:`<div class="pe-vazio">Sem pedidos de aprovação nesta obra.${peEEmp()?' Use “+ Novo pedido”.':''}</div>`}
+      </table>`:`<div class="pe-vazio">Sem pedidos de aprovação nesta obra.${peEEmp()?' Use “+ Novo Pedido”.':''}</div>`}
     </div>
   </div>`;
 }
@@ -3718,20 +3745,20 @@ function renderFichaPA(app){
 
   const acoes=[],notas=[];
   if(d.estado==='rascunho'&&peEEmp()){
-    acoes.push(`<button class="pe-btn" onclick="paGuardarRascunho()">Guardar rascunho</button>`);
+    acoes.push(`<button class="pe-btn" onclick="paGuardarRascunho()">Guardar Rascunho</button>`);
     acoes.push(`<button class="pe-btn green" onclick="paEnviarFisc()">Enviar à Fiscalização →</button>`);
   }
   if(d.estado==='aberto'&&peEFisc()){
     acoes.push(`<button class="pe-btn gold" onclick="paModalProjetista()">Enviar ao Projetista →</button>`);
-    acoes.push(`<button class="pe-btn green" onclick="paModalDecisao(true)">Decidir directamente ✓</button>`);
+    acoes.push(`<button class="pe-btn green" onclick="paModalDecisao(true)">Decidir Diretamente ✓</button>`);
     notas.push('Pode encaminhar para o Projetista da especialidade ou decidir já, sem parecer do Projetista.');
   }
   if(d.estado==='pendente'&&peEProj()){
-    acoes.push(`<button class="pe-btn info" onclick="paModalParecer()">Emitir parecer →</button>`);
+    acoes.push(`<button class="pe-btn info" onclick="paModalParecer()">Dar Parecer →</button>`);
     notas.push('O parecer segue para a Fiscalização, que toma a decisão final.');
   }
   if(d.estado==='analisado'&&peEFisc()){
-    acoes.push(`<button class="pe-btn gold" onclick="paModalDecisao(false)">Decisão final →</button>`);
+    acoes.push(`<button class="pe-btn gold" onclick="paModalDecisao(false)">Decisão Final →</button>`);
     notas.push('A decisão final é comunicada ao Empreiteiro.');
   }
   if(d.estado==='respondido'&&peEEmp()){
@@ -3750,7 +3777,7 @@ function renderFichaPA(app){
       ${peCampo('Id','x',d.id,null,false)}
       ${peCampo('Data','fa-dataCriacao',d.dataCriacao,'date',eEmp)}
       ${peCampo('Autor','x',d.autorEmp,'text',false)}
-    </div><div class="pe-grid3 pe-mt">${espSel}</div></div></div>`;
+    </div></div></div>`;
 
   /* Empreiteiro */
   const tipoSel = eEmp
@@ -3758,18 +3785,21 @@ function renderFichaPA(app){
     : `<div class="pe-fld"><label>Tipo</label><div class="pe-ro">${d.tipoItem==='equipamento'?'Equipamento':'Material'}</div></div>`;
   const secEmp=`<div class="pe-zone pe-emp"><div class="pe-zh"><span class="pe-zdot"></span><span class="pe-zt">Empreiteiro — Pedido</span></div>
     <div class="pe-zb">
-      <div class="pe-grid3">
+      ${peCampo('Designação','fa-material',d.material,'text',eEmp)}
+      <div class="pe-grid2 pe-mt">
         ${tipoSel}
-        ${peCampo('Designação','fa-material',d.material,'text',eEmp)}
-        ${peCampo('Capítulo','fa-capitulo',d.capitulo,'text',eEmp)}
+        ${espSel}
       </div>
       <div class="pe-grid3 pe-mt">
+        ${peCampo('Capítulo','fa-capitulo',d.capitulo,'text',eEmp)}
         ${peCampo('Art.º','fa-artigo',d.artigo,'text',eEmp)}
         ${peCampo('Referência','fa-referencia',d.referencia,'text',eEmp)}
+      </div>
+      <div class="pe-grid2 pe-mt">
+        ${peCampo('Motivo','fa-motivo',d.motivo,'text',eEmp)}
         ${peCampo('Localização','fa-localizacao',d.localizacao,'text',eEmp)}
       </div>
-      <div class="pe-grid3 pe-mt">
-        ${peCampo('Motivo','fa-motivo',d.motivo,'text',eEmp)}
+      <div class="pe-grid2 pe-mt">
         ${peCampo('Previsto','fa-previsto',d.previsto,'text',eEmp)}
         ${peCampo('Proposto','fa-proposto',d.proposto,'text',eEmp)}
       </div>
@@ -3782,7 +3812,7 @@ function renderFichaPA(app){
         </div></div>
       <div class="pe-mt">${peCampo('Observações','fa-obsEmp',d.obsEmp,'textarea',eEmp)}</div>
       <div class="pe-mt"><label class="pe-rotanx">Anexos</label>${paHtmlAnexos(d.anexosEmp,eEmp,'emp')}
-        ${eEmp?`<button class="pe-btn pe-mt" onclick="paAdicionarAnexo('emp')">+ Anexar ficheiro</button>`:''}</div>
+        ${eEmp?`<button class="pe-btn pe-mt" onclick="paAdicionarAnexo('emp')">+ Anexar Ficheiro</button>`:''}</div>
     </div></div>`;
 
   /* Envio ao projetista */
@@ -3867,7 +3897,7 @@ window.paModalProjetista=function(){
     <div class="pe-mb"><div class="pe-msub">${esp?('Especialidade do pedido: <b>'+esc(peNomeEsp(esp))+'</b>. '):''}As especialidades mostradas são as que cada projetista cobre nesta obra.</div>
       <table class="pe-seltab"><tbody>${linhas}</tbody></table></div>
     <div class="pe-mrod"><button class="pe-btn" onclick="paFecharModal()">Cancelar</button>
-      <button class="pe-btn gold" onclick="paSubmeterEscolhaProj()">Enviar link →</button></div></div>`;
+      <button class="pe-btn gold" onclick="paSubmeterEscolhaProj()">Enviar Link →</button></div></div>`;
   document.body.appendChild(veu);
 };
 window.paSubmeterEscolhaProj=function(){
@@ -3883,7 +3913,7 @@ window.paModalParecer=function(){
       <table class="pe-seltab"><tbody>${paOpcoesDecisao('pp')}</tbody></table>
       <div class="pe-fld pe-mt"><label>Observações</label><textarea id="pp-obs">${esc(d.obsProj)}</textarea></div></div>
     <div class="pe-mrod"><button class="pe-btn" onclick="paFecharModal()">Cancelar</button>
-      <button class="pe-btn info" onclick="paSubmeterParecer()">Submeter parecer →</button></div></div>`;
+      <button class="pe-btn info" onclick="paSubmeterParecer()">Submeter Parecer →</button></div></div>`;
   document.body.appendChild(veu);
 };
 window.paSubmeterParecer=function(){
@@ -3893,19 +3923,33 @@ window.paSubmeterParecer=function(){
 };
 window.paModalDecisao=function(direta){
   const d=paFichaAtualDoc(); if(!d) return;
+  const parecerBloco = direta
+    ? `<table class="pe-seltab"><tbody>${paOpcoesDecisao('dec')}</tbody></table>`
+    : `<div class="pe-fld"><label>Parecer (do Projetista — não alterável)</label><div class="pe-ro">${paDecPill(d.projParecer)}</div></div>`;
+  const sub = direta
+    ? 'O pedido é decidido pela Fiscalização <b>sem passar pelo Projetista</b> e segue directamente para o Empreiteiro.'
+    : 'A decisão segue o parecer do Projetista (<b>'+(DEC_PA[d.projParecer]?DEC_PA[d.projParecer].rot:'—')+'</b>). A Fiscalização <b>não pode alterá-lo</b> — pode apenas acrescentar uma nota.';
   const veu=document.createElement('div'); veu.className='pe-veu'; veu.id='pe-veu';
   veu.innerHTML=`<div class="pe-modal"><h3>${direta?'Aprovar directamente':'Decisão final da Fiscalização'}</h3>
-    <div class="pe-mb"><div class="pe-msub">${direta?'O pedido é decidido pela Fiscalização <b>sem passar pelo Projetista</b> e segue directamente para o Empreiteiro.':'Parecer do Projetista: <b>'+(DEC_PA[d.projParecer]?DEC_PA[d.projParecer].rot:'—')+'</b>. A decisão final é da Fiscalização.'}</div>
-      <table class="pe-seltab"><tbody>${paOpcoesDecisao('dec')}</tbody></table>
-      <div class="pe-fld pe-mt"><label>Observações</label><textarea id="dec-obs">${esc(d.obsFisc)}</textarea></div></div>
+    <div class="pe-mb"><div class="pe-msub">${sub}</div>
+      ${parecerBloco}
+      <div class="pe-fld pe-mt"><label>${direta?'Observações':'Nota da Fiscalização'}</label><textarea id="dec-obs">${esc(d.obsFisc)}</textarea></div></div>
     <div class="pe-mrod"><button class="pe-btn" onclick="paFecharModal()">Cancelar</button>
-      <button class="pe-btn gold" onclick="paSubmeterDecisao(${direta?'true':'false'})">Confirmar e notificar →</button></div></div>`;
+      <button class="pe-btn gold" onclick="paSubmeterDecisao(${direta?'true':'false'})">Confirmar e Notificar →</button></div></div>`;
   document.body.appendChild(veu);
 };
 window.paSubmeterDecisao=function(direta){
-  const s=document.querySelector('input[name="dec"]:checked');
-  if(!s){ alert('Selecione a decisão.'); return; }
-  paConfirmarDecisao(s.value,(document.getElementById('dec-obs')||{}).value?document.getElementById('dec-obs').value.trim():'',direta);
+  const d=paFichaAtualDoc(); if(!d) return;
+  let parecer;
+  if(direta){
+    const s=document.querySelector('input[name="dec"]:checked');
+    if(!s){ alert('Selecione a decisão.'); return; }
+    parecer=s.value;
+  } else {
+    parecer=d.projParecer;
+    if(!parecer){ alert('Não há parecer do Projetista para confirmar.'); return; }
+  }
+  paConfirmarDecisao(parecer,(document.getElementById('dec-obs')||{}).value?document.getElementById('dec-obs').value.trim():'',direta);
 };
 
 /* ---- Entrada via card ---- */
@@ -3917,6 +3961,869 @@ function paPreencherContagem(obraId){
 }
 
 /* ####################  FIM MÓDULO PA  #################### */
+
+/* ####################  MÓDULO PB  #################### */
+/* ================================================================
+   MÓDULO PB — Pedidos de Betonagem (integrado do GPE)
+   Coerente com PE/PA: reutiliza PE_CSS, peCampo, roles, peHoje/peDataPT/peIdFmt,
+   esc, sbRel, DB, currentUser, emailjs/EJS, estadoBadge, PE_EJS_TEMPLATE.
+   ================================================================ */
+const PB_MOD={
+  rot:'Pedido de Betonagem', sig:'PB', tabela:'pedidos_betonagem',
+  estados:{
+    rascunho:{rot:'Rascunho',cor:'#6B7280',posse:'Empreiteiro'},
+    aberto:{rot:'Aberto',cor:'var(--info)',posse:'Fiscalização'},
+    fechado:{rot:'Fechado',cor:'var(--success)',posse:'—'},
+    reaberto:{rot:'Reaberto',cor:'var(--danger)',posse:'— (aguarda revisão)'}
+  },
+  ordem:['rascunho','aberto','fechado']
+};
+const VERIF_PB=[
+  {grupo:'Topografia', itens:[['topo_implantacao','Implantação'],['topo_eixo','Eixo de Peças'],['topo_altimetria','Altimetria'],['topo_cofragem','Posicionamento da Cofragem']]},
+  {grupo:'Cofragem', itens:[['cof_montagem','Montagem'],['cof_escoramento','Escoramento'],['cof_limpeza','Limpeza'],['cof_negativos','Negativos'],['cof_juntas','Juntas']]},
+  {grupo:'Armaduras', itens:[['arm_posicionamento','Posicionamento'],['arm_seccoes','Secções'],['arm_espacamentos','Espaçamentos'],['arm_recobrimentos','Recobrimentos'],['arm_empalmes','Empalmes'],['arm_arranques','Arranques']]}
+];
+const CONF_PB={conf:{rot:'Conforme',cor:'var(--success)'},nconf:{rot:'Não Conforme',cor:'var(--danger)'},na:{rot:'Não Aplicável',cor:'#9AA1AC'}};
+
+/* helpers de semana ISO (partilháveis; PTQ reutiliza) */
+function pbDISO(dt){ return dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0'); }
+function pbSemanaISO(iso){
+  if(!iso) return '';
+  const d=new Date(iso+'T00:00:00');
+  const alvo=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));
+  const dn=(alvo.getUTCDay()+6)%7;
+  alvo.setUTCDate(alvo.getUTCDate()-dn+3);
+  const primeira=new Date(Date.UTC(alvo.getUTCFullYear(),0,4));
+  const dnp=(primeira.getUTCDay()+6)%7;
+  primeira.setUTCDate(primeira.getUTCDate()-dnp+3);
+  return 'S'+(1+Math.round((alvo-primeira)/(7*86400000)));
+}
+
+function pbEST(e){ return PB_MOD.estados[e]||{rot:e,cor:'#999',posse:'—'}; }
+function pbDecPill(k){ if(k==='aprovado') return '<span class="pe-estpill" style="background:var(--success)">Aprovado</span>'; if(k==='nao_aprovado') return '<span class="pe-estpill" style="background:var(--danger)">Não Aprovado</span>'; return '<span class="pe-muted">— aguarda —</span>'; }
+function pbObra(){ return DB.obras.find(o=>o.id===pbObraId); }
+function pbPorId(id){ return pbDocs.find(d=>d.id===id); }
+function pbRegistar(d,acao){ d.historico=d.historico||[]; d.historico.push({data:new Date().toLocaleString('pt-PT'),autor:(currentUser?currentUser.nome:'?'),acao}); }
+
+function pbUtilsDaObra(role){
+  const o=pbObra(); if(!o) return [];
+  const oid=String(o.id), ocod=String(o.codigo||''), osig=String(o.sigla||'');
+  const porUtil=(DB.utilizadores||[]).filter(u=>{
+    if(u.ativo===false) return false;
+    if(String(u.role||'')!==role) return false;
+    const refs=(u.obras||[]).map(String);
+    return refs.includes(oid)||(ocod&&refs.includes(ocod))||(osig&&refs.includes(osig));
+  });
+  const campo={fiscalizacao:'intervenientes_fisc',projetista:'intervenientes_proj',empreiteiro:'intervenientes_emp',dono_obra:'intervenientes_do'}[role];
+  const porObra=((campo&&o[campo])||[]).map(id=>(DB.utilizadores||[]).find(u=>String(u.id)===String(id))).filter(u=>u&&u.ativo!==false);
+  const m=new Map(); [...porUtil,...porObra].forEach(u=>m.set(String(u.id),u));
+  return [...m.values()];
+}
+function pbEmails(role){ return pbUtilsDaObra(role).filter(u=>u.email).map(u=>u.email); }
+
+function pbMap(r){
+  return {tipo:'pb',id:r.id,num:r.num,rev:r.rev,obraId:r.obra_id,obraNome:r.obra_nome,estado:r.estado,
+    dataCriacao:r.data_criacao,dataEnvio:r.data_envio,dataDecisao:r.data_decisao,dataFecho:r.data_fecho,
+    autorEmp:r.autor_empreiteiro||'',dataPrevista:r.data_prevista,horaPrevista:r.hora_prevista||'',
+    referencia:r.referencia||'',descarga:r.descarga||'',
+    localizacao:r.localizacao||'',elementos:r.elementos||'',pecas:r.pecas||'',
+    volPrevisto:(r.vol_previsto==null?'':r.vol_previsto),unidade:r.unidade||'m3',tipoClasse:r.tipo_classe||'',
+    consistencia:r.consistencia||'',provetes:r.provetes||'',descofragem:r.descofragem||'',escoramento:r.escoramento||'',
+    verificacoes:(r.verificacoes&&typeof r.verificacoes==='object')?r.verificacoes:{},
+    decisao:r.decisao||'',autorFisc:r.autor_fisc||'',observacoes:r.observacoes||'',anexosEmp:r.anexos_emp||[],
+    prevId:r.prev_id,nextId:r.next_id,historico:r.historico||[]};
+}
+function pbUnmap(d){
+  return {id:d.id,num:d.num,rev:d.rev,obra_id:d.obraId,obra_nome:d.obraNome,estado:d.estado,
+    data_criacao:d.dataCriacao||null,data_envio:d.dataEnvio||null,data_decisao:d.dataDecisao||null,data_fecho:d.dataFecho||null,
+    autor_empreiteiro:d.autorEmp,data_prevista:d.dataPrevista||null,hora_prevista:d.horaPrevista,
+    referencia:d.referencia,descarga:d.descarga,
+    localizacao:d.localizacao,elementos:d.elementos,pecas:d.pecas,
+    vol_previsto:(d.volPrevisto===''||d.volPrevisto===null)?null:Number(d.volPrevisto),
+    unidade:d.unidade,tipo_classe:d.tipoClasse,consistencia:d.consistencia,provetes:d.provetes,
+    descofragem:d.descofragem,escoramento:d.escoramento,verificacoes:d.verificacoes||{},
+    decisao:d.decisao||null,autor_fisc:d.autorFisc,observacoes:d.observacoes,anexos_emp:d.anexosEmp,
+    prev_id:d.prevId,next_id:d.nextId,historico:d.historico,updated_at:new Date().toISOString()};
+}
+
+async function pbCarregar(){
+  pbDocs=[]; const o=pbObra(); if(!o) return;
+  try{
+    const rows=await sbRel.get('pedidos_betonagem',`obra_id=eq.${encodeURIComponent(o.id)}&order=num.desc,rev.desc`);
+    pbDocs=rows.map(pbMap);
+  }catch(e){ console.error(e); alert('Erro ao carregar pedidos de betonagem.\n\n'+e.message+'\n\nJá correu o SQL da tabela pedidos_betonagem no Supabase do SEGO?'); }
+}
+async function pbPersistir(d){
+  try{
+    const ex=await sbRel.get('pedidos_betonagem',`id=eq.${encodeURIComponent(d.id)}&select=id`);
+    if(ex.length) await sbRel.patch('pedidos_betonagem',d.id,pbUnmap(d));
+    else await sbRel.post('pedidos_betonagem',pbUnmap(d));
+  }catch(e){ console.error(e); alert('Erro ao guardar: '+e.message); }
+}
+function pbLink(d){ return location.href.split('?')[0]+'?pb='+encodeURIComponent(d.id); }
+async function pbNotificar(d,destinos,mensagem,rotulo){
+  const lista=(Array.isArray(destinos)?destinos:[destinos]).filter(Boolean);
+  const et=`Notificação → ${rotulo}${lista.length?' ('+lista.join(', ')+')':''}: ${mensagem}`;
+  if(!lista.length){ pbRegistar(d,et+' [sem destinatário na obra — verifique a ficha no SID]'); return; }
+  let ok=0;
+  for(const to of lista){
+    try{
+      await emailjs.send(EJS.service, PE_EJS_TEMPLATE, {
+        to_email:to,to_name:'',pe_id:'PB '+d.id,obra:(pbObra()?pbObra().nome:d.obraNome),
+        assunto:d.localizacao||'',estado:pbEST(d.estado).rot,
+        mensagem,link:pbLink(d),password:'',app_url:pbLink(d),role:rotulo});
+      ok++;
+    }catch(e){ console.error('PB notificar falhou:',e); }
+  }
+  pbRegistar(d,et+(ok===lista.length?' [enviada]':` [enviadas ${ok}/${lista.length}]`));
+}
+
+function pbProximoNum(){ const n=pbDocs.map(d=>d.num); return n.length?Math.max(...n)+1:1; }
+function pbDocNovo(num,rev,base){
+  const o=pbObra();
+  return {id:peIdFmt(num,rev),num,rev,tipo:'pb',obraId:o.id,obraNome:o.nome,estado:'rascunho',
+    dataCriacao:peHoje(),dataEnvio:null,dataDecisao:null,dataFecho:null,
+    autorEmp:(base&&base.autorEmp)||(currentUser?currentUser.nome:''),
+    dataPrevista:'',horaPrevista:(base&&base.horaPrevista)||'',
+    referencia:(base&&base.referencia)||'',descarga:(base&&base.descarga)||'',
+    localizacao:(base&&base.localizacao)||'',elementos:(base&&base.elementos)||'',pecas:(base&&base.pecas)||'',
+    volPrevisto:(base&&base.volPrevisto)||'',unidade:(base&&base.unidade)||'m3',tipoClasse:(base&&base.tipoClasse)||'',
+    consistencia:(base&&base.consistencia)||'',provetes:(base&&base.provetes)||'',
+    descofragem:(base&&base.descofragem)||'',escoramento:(base&&base.escoramento)||'',
+    verificacoes:{},decisao:'',autorFisc:'',observacoes:'',anexosEmp:[],
+    prevId:base?base.id:null,nextId:null,historico:[]};
+}
+window.pbNovoPedido=async function(){
+  if(!peEEmp()){ alert('Apenas o Empreiteiro cria pedidos.'); return; }
+  const o=pbObra(); if(!o){ alert('Sem obra selecionada.'); return; }
+  const d=pbDocNovo(pbProximoNum(),0,null);
+  pbRegistar(d,'Pedido criado (rascunho).');
+  pbDocs.unshift(d); await pbPersistir(d); pbAbrirFicha(d.id);
+};
+async function pbCriarRevisao(doc){
+  doc.estado='reaberto';
+  pbRegistar(doc,'Não aprovado — passa a Reaberto, aguarda revisão.');
+  const nova=pbDocNovo(doc.num,doc.rev+1,doc);
+  doc.nextId=nova.id;
+  pbRegistar(nova,'Revisão criada a partir de '+doc.id+'.');
+  pbDocs.unshift(nova);
+  await pbPersistir(doc); await pbPersistir(nova);
+  pbAbrirFicha(nova.id);
+  alert('Revisão '+nova.id+' criada. '+doc.id+' fica Reaberto até esta fechar.');
+}
+async function pbFecharCadeia(doc){
+  let ant=doc.prevId?pbPorId(doc.prevId):null;
+  while(ant){
+    if(ant.estado==='reaberto'){ ant.estado='fechado'; ant.dataFecho=peHoje();
+      pbRegistar(ant,'Fechado automaticamente — revisão '+doc.id+' concluída.'); await pbPersistir(ant); }
+    ant=ant.prevId?pbPorId(ant.prevId):null;
+  }
+}
+
+function pbPodeEmp(d){ return peEEmp()&&d.estado==='rascunho'; }
+function pbFichaAtualDoc(){ return pbPorId(pbFichaId); }
+function pbLerFormEmp(d){
+  const g=id=>document.getElementById(id);
+  if(g('fb-dataPrevista')) d.dataPrevista=g('fb-dataPrevista').value||null;
+  if(g('fb-unidade')) d.unidade=g('fb-unidade').value;
+  ['horaPrevista','referencia','descarga','localizacao','elementos','pecas','volPrevisto','tipoClasse','consistencia','provetes','descofragem','escoramento'].forEach(k=>{ if(g('fb-'+k)) d[k]=g('fb-'+k).value.trim(); });
+}
+function pbLerVerificacoes(d){
+  VERIF_PB.forEach(g=>g.itens.forEach(([k])=>{
+    const el=document.querySelector(`input[name="vb-${k}"]:checked`);
+    if(el){ d.verificacoes=d.verificacoes||{}; d.verificacoes[k]=el.value; }
+  }));
+}
+
+window.pbGuardarRascunho=async function(){
+  const d=pbFichaAtualDoc(); if(!d) return; pbLerFormEmp(d);
+  pbRegistar(d,'Rascunho guardado.'); await pbPersistir(d); pbAbrirFicha(d.id);
+};
+window.pbEnviarFisc=async function(){
+  const d=pbFichaAtualDoc(); if(!d) return; pbLerFormEmp(d);
+  if(!d.dataPrevista){ alert('Indique a Data prevista da betonagem.'); return; }
+  if(!d.localizacao&&!d.elementos){ alert('Indique a Localização ou os Elementos a betonar.'); return; }
+  d.autorEmp=currentUser?currentUser.nome:''; d.estado='aberto'; d.dataEnvio=peHoje();
+  pbRegistar(d,'Enviado à Fiscalização — passa a Aberto.');
+  await pbNotificar(d,pbEmails('fiscalizacao'),'Novo Pedido de Betonagem '+d.id+' recebido do Empreiteiro.','Fiscalização');
+  await pbPersistir(d); pbAbrirFicha(d.id);
+};
+async function pbConfirmarDecisao(decisao,obs){
+  const d=pbFichaAtualDoc(); if(!d) return; pbFecharModal();
+  d.autorFisc=currentUser?currentUser.nome:''; d.decisao=decisao; d.observacoes=obs; d.dataDecisao=peHoje();
+  if(decisao==='aprovado'){
+    d.estado='fechado'; d.dataFecho=peHoje();
+    pbRegistar(d,'Aprovado pela Fiscalização — pedido fechado.');
+    await pbNotificar(d,pbEmails('empreiteiro'),'Plano de Betonagem '+d.id+': Aprovado.','Empreiteiro');
+    await pbPersistir(d); pbAbrirFicha(d.id);
+  }else{
+    pbRegistar(d,'Não aprovado pela Fiscalização — gera revisão.');
+    await pbNotificar(d,pbEmails('empreiteiro'),'Plano de Betonagem '+d.id+': Não Aprovado. Foi criada uma revisão para correcção.','Empreiteiro');
+    await pbCriarRevisao(d);
+  }
+}
+window.pbEliminar=async function(id){
+  if(!peESuper()){ return; }
+  const d=pbPorId(id); if(!d) return;
+  if(!confirm('Eliminar definitivamente o pedido '+id+'? Esta acção não pode ser anulada.')) return;
+  try{ await sbRel.delete('pedidos_betonagem',id); }catch(e){ alert('Erro ao eliminar: '+e.message); return; }
+  pbDocs=pbDocs.filter(x=>x.id!==id);
+  pbFichaId=null; render();
+};
+
+/* Anexos (só empreiteiro) */
+window.pbAdicionarAnexo=function(){
+  const d=pbFichaAtualDoc(); if(!d) return;
+  const input=document.createElement('input'); input.type='file'; input.multiple=true;
+  input.onchange=()=>{
+    pbLerFormEmp(d);
+    const fs=Array.from(input.files||[]); let pend=fs.length; if(!pend) return;
+    const fim=async()=>{ await pbPersistir(d); pbAbrirFicha(d.id); };
+    fs.forEach(f=>{
+      if(f.size>3*1024*1024){ alert('"'+f.name+'" excede 3 MB.'); if(--pend===0) fim(); return; }
+      const r=new FileReader();
+      r.onload=()=>{ d.anexosEmp.push({nome:f.name,tam:f.size,dados:r.result}); if(--pend===0) fim(); };
+      r.readAsDataURL(f);
+    });
+  };
+  input.click();
+};
+window.pbRemoverAnexo=async function(i){
+  const d=pbFichaAtualDoc(); if(!d) return;
+  d.anexosEmp.splice(i,1);
+  await pbPersistir(d); pbAbrirFicha(d.id);
+};
+function pbHtmlAnexos(lista,podeRemover){
+  if(!lista||!lista.length) return '<div class="pe-muted">Sem anexos</div>';
+  return '<div class="pe-anexos">'+lista.map((a,i)=>`
+    <span class="pe-anx">📎 <a href="${a.dados}" download="${esc(a.nome)}">${esc(a.nome)}</a>
+      <span class="pe-tam">${(a.tam/1024).toFixed(0)} KB</span>
+      ${podeRemover?`<button class="pe-anx-x" title="Remover" onclick="pbRemoverAnexo(${i})">×</button>`:''}</span>`).join('')+'</div>';
+}
+
+/* ---- LISTAGEM ---- */
+function renderListaPB(app){
+  const o=pbObra();
+  if(!o){ pbObraId=null; render(); return; }
+  const M=PB_MOD;
+  const thState=(rot,cor)=>`<th class="pe-th-state" style="--st:${cor}">${rot}</th>`;
+  const tdData=v=>`<td class="pe-dt${v?'':' pe-empty'}">${v?peDataPT(v):'—'}</td>`;
+  const reabertoData=d=>d.nextId?(pbPorId(d.nextId)?pbPorId(d.nextId).dataCriacao:d.dataDecisao):null;
+
+  let lst=pbDocs.slice();
+  lst.sort((a,b)=>b.num-a.num||b.rev-a.rev);
+
+  const linhas=lst.map(d=>{
+    const vs=Object.values(d.verificacoes||{});
+    const nc=vs.filter(v=>v==='conf').length, nn=vs.filter(v=>v==='nconf').length, na=vs.filter(v=>v==='na').length;
+    return `<tr onclick="pbAbrirFicha('${d.id}')" style="cursor:pointer">
+      <td><span class="pe-idp">${d.id}</span>${d.prevId?`<br><span class="pe-revlink">↳ rev. de ${d.prevId}</span>`:''}${d.nextId?`<br><span class="pe-revlink">↳ revisto por ${d.nextId}</span>`:''}</td>
+      <td style="text-align:center">${peDataPT(d.dataPrevista)}</td>
+      <td style="text-align:center">${esc(d.horaPrevista)||'—'}</td>
+      <td style="text-align:center">${d.volPrevisto!==''&&d.volPrevisto!=null?esc(d.volPrevisto+' '+d.unidade):'—'}</td>
+      <td style="text-align:center">${esc(d.descarga)||'—'}</td>
+      <td>${esc(d.localizacao)||'—'}</td>
+      <td>${esc(d.elementos)||'—'}</td>
+      <td style="text-align:center">${d.dataPrevista?pbSemanaISO(d.dataPrevista):'—'}</td>
+      <td style="text-align:center">${nc||'—'}</td>
+      <td style="text-align:center">${nn||'—'}</td>
+      <td style="text-align:center">${na||'—'}</td>
+      ${tdData(d.dataEnvio)}${tdData(d.dataDecisao)}${tdData(d.dataFecho)}${tdData(d.estado==='reaberto'?reabertoData(d):null)}
+      ${peESuper()?`<td style="text-align:center"><button class="pe-x" onclick="event.stopPropagation();pbEliminar('${d.id}')">×</button></td>`:''}
+    </tr>`;}).join('');
+
+  app.innerHTML=PE_CSS+`
+  <div class="pe-wrap">
+    <button class="back-btn" onclick="pbVoltarCapa()">← Voltar a Fiscalização</button>
+    <div class="page-header">
+      <div>
+        <div class="page-title"><span class="code-pill" style="font-size:13px">${o.codigo}</span>${o.sigla} — ${o.nome} · PB</div>
+        <div style="margin-top:4px">${estadoBadge(o.estado)}</div>
+      </div>
+      <div class="page-actions"></div>
+    </div>
+    <div style="margin-bottom:12px">${peEEmp()?`<button class="btn btn-gold btn-sm" onclick="pbNovoPedido()">+ Novo Pedido</button>`:''}</div>
+    <div class="table-card" style="overflow-x:auto">
+      ${lst.length?`<table>
+        <thead><tr>
+          <th style="text-align:left">Id</th><th style="text-align:center">Previsto</th><th style="text-align:center">Hora</th><th style="text-align:center">Vol. Previsto</th><th style="text-align:center">Descarga</th><th style="text-align:left">Localização</th><th style="text-align:left">Elementos a Betonar</th><th style="text-align:center">Período</th><th style="text-align:center">Conf.</th><th style="text-align:center">N/Conf.</th><th style="text-align:center">N/Aplic.</th>
+          ${thState('Aberto',M.estados.aberto.cor)}${thState('Decisão',M.estados.fechado.cor)}${thState('Fechado',M.estados.fechado.cor)}${thState('Reaberto',M.estados.reaberto.cor)}
+          ${peESuper()?'<th style="text-align:center">×</th>':''}
+        </tr></thead>
+        <tbody>${linhas}</tbody>
+      </table>`:`<div class="pe-vazio">Sem pedidos de betonagem nesta obra.${peEEmp()?' Use “+ Novo Pedido”.':''}</div>`}
+    </div>
+  </div>`;
+}
+
+/* ---- FICHA ---- */
+window.pbAbrirFicha=function(id){ pbFichaId=id; render(); };
+window.pbVoltarLista=function(){ pbFichaId=null; render(); };
+window.pbVoltarCapa=function(){ const o=pbObra(); pbFichaId=null; pbObraId=null; fiscObraId=o?o.id:null; render(); };
+
+function renderFichaPB(app){
+  const d=pbFichaAtualDoc();
+  if(!d){ pbFichaId=null; render(); return; }
+  const M=PB_MOD;
+  const eEmp=pbPodeEmp(d);
+  const editVerif = peEFisc() && d.estado==='aberto';
+
+  const fluxo=M.ordem.map(k=>{
+    const ref=(d.estado==='reaberto')?'fechado':d.estado;
+    const idx=M.ordem.indexOf(ref), pos=M.ordem.indexOf(k);
+    const cls=k===d.estado?'atual':(pos<idx?'feito':'');
+    const cor=k===d.estado?`style="background:${M.estados[k].cor}"`:'';
+    return `<span class="pe-passo ${cls}" ${cor}>${M.estados[k].rot}</span>`;
+  }).join('<span style="color:#B8BEC7">›</span>');
+
+  const lig=[];
+  if(d.prevId) lig.push(`Revisão do pedido <a onclick="pbAbrirFicha('${d.prevId}')">${d.prevId}</a>`);
+  if(d.nextId) lig.push(`Substituído pela revisão <a onclick="pbAbrirFicha('${d.nextId}')">${d.nextId}</a>`);
+  if(d.estado==='reaberto') lig.push('Permanece <b>Reaberto</b> até a revisão ser fechada.');
+
+  const acoes=[],notas=[];
+  if(d.estado==='rascunho'&&peEEmp()){
+    acoes.push(`<button class="pe-btn" onclick="pbGuardarRascunho()">Guardar Rascunho</button>`);
+    acoes.push(`<button class="pe-btn green" onclick="pbEnviarFisc()">Enviar à Fiscalização →</button>`);
+  }
+  if(d.estado==='aberto'&&peEFisc()){
+    acoes.push(`<button class="pe-btn gold" onclick="pbModalDecisao()">Decidir →</button>`);
+    notas.push('Preencha as verificações e decida: Aprovado fecha o pedido; Não Aprovado gera revisão para o Empreiteiro.');
+  }
+  if(peESuper()) acoes.push(`<button class="pe-btn red" onclick="pbEliminar('${d.id}')">Eliminar</button>`);
+
+  /* Identificação */
+  const secId=`<div class="pe-zone pe-ident"><div class="pe-zh"><span class="pe-zdot"></span><span class="pe-zt">Identificação</span></div>
+    <div class="pe-zb"><div class="pe-grid3">
+      ${peCampo('Id','x',d.id,null,false)}
+      ${peCampo('Data prevista','fb-dataPrevista',d.dataPrevista,'date',eEmp)}
+      ${peCampo('Hora prevista','fb-horaPrevista',d.horaPrevista,'text',eEmp)}
+    </div><div class="pe-grid3 pe-mt">
+      ${peCampo('Ref.ª / Desenho','fb-referencia',d.referencia,'text',eEmp)}
+      ${peCampo('Descarga','fb-descarga',d.descarga,'text',eEmp)}
+      ${peCampo('Autor','x',d.autorEmp,'text',false)}
+    </div></div></div>`;
+
+  /* Empreiteiro — plano de betonagem */
+  const secEmp=`<div class="pe-zone pe-emp"><div class="pe-zh"><span class="pe-zdot"></span><span class="pe-zt">Empreiteiro — Plano de Betonagem</span></div>
+    <div class="pe-zb">
+      <div class="pe-grid3">
+        ${peCampo('Localização','fb-localizacao',d.localizacao,'text',eEmp)}
+        ${peCampo('Elementos a Betonar','fb-elementos',d.elementos,'text',eEmp)}
+        ${peCampo('Peças a Betonar','fb-pecas',d.pecas,'text',eEmp)}
+      </div>
+      <div class="pe-grid3 pe-mt">
+        ${peCampo('Vol. Previsto ('+esc(d.unidade)+')','fb-volPrevisto',d.volPrevisto,'number',eEmp)}
+        ${peCampo('Tipo / Classe','fb-tipoClasse',d.tipoClasse,'text',eEmp)}
+        ${peCampo('Consistência','fb-consistencia',d.consistencia,'text',eEmp)}
+      </div>
+      <div class="pe-grid3 pe-mt">
+        ${peCampo('Provetes','fb-provetes',d.provetes,'text',eEmp)}
+        ${peCampo('Descofragem','fb-descofragem',d.descofragem,'text',eEmp)}
+        ${peCampo('Escoramento','fb-escoramento',d.escoramento,'text',eEmp)}
+      </div>
+      <div class="pe-mt"><label class="pe-rotanx">Anexos</label>${pbHtmlAnexos(d.anexosEmp,eEmp)}
+        ${eEmp?`<button class="pe-btn pe-mt" onclick="pbAdicionarAnexo()">+ Anexar Ficheiro</button>`:''}</div>
+    </div></div>`;
+
+  /* Verificações da Fiscalização */
+  const cel=(k,v,val)=>editVerif
+    ? `<td style="text-align:center"><input type="radio" name="vb-${k}" value="${v}" ${val===v?'checked':''}></td>`
+    : `<td style="text-align:center">${val===v?'<b style="color:'+CONF_PB[v].cor+'">●</b>':'<span class="pe-muted">·</span>'}</td>`;
+  const secVerif=`<div class="pe-zone pe-fisc"><div class="pe-zh"><span class="pe-zdot"></span><span class="pe-zt">Elementos a Verificar pela Fiscalização</span></div>
+    <div class="pe-zb"><table style="width:100%;border-collapse:collapse;font-size:13px">
+      <thead><tr style="background:var(--navy)"><th style="text-align:left;color:#fff;padding:6px 8px">Grupo</th><th style="text-align:left;color:#fff;padding:6px 8px">Item</th><th style="text-align:center;color:#fff;padding:6px 8px">Conforme</th><th style="text-align:center;color:#fff;padding:6px 8px">Não Conforme</th><th style="text-align:center;color:#fff;padding:6px 8px">Não Aplicável</th></tr></thead>
+      <tbody>${VERIF_PB.map(g=>g.itens.map(([k,rot],i)=>{
+        const val=(d.verificacoes||{})[k]||'';
+        return `<tr><td style="padding:6px 8px;border-bottom:1px solid var(--border-light)">${i===0?'<b>'+esc(g.grupo)+'</b>':''}</td><td style="padding:6px 8px;border-bottom:1px solid var(--border-light)">${esc(rot)}</td>${cel(k,'conf',val)}${cel(k,'nconf',val)}${cel(k,'na',val)}</tr>`;
+      }).join('')).join('')}</tbody>
+    </table></div></div>`;
+
+  /* Decisão */
+  const secDec=`<div class="pe-zone pe-fisc"><div class="pe-zh"><span class="pe-zdot"></span><span class="pe-zt">Fiscalização — Decisão</span></div>
+    <div class="pe-zb"><div class="pe-grid3">
+      ${peCampo('Data','x',d.dataDecisao,'date',false)}
+      ${peCampo('Autor','x',d.autorFisc,'text',false)}
+      <div class="pe-fld"><label>Decisão</label><div class="pe-ro">${pbDecPill(d.decisao)}</div></div>
+    </div><div class="pe-mt">${peCampo('Observações','x',d.observacoes,'textarea',false)}</div></div></div>`;
+
+  app.innerHTML=PE_CSS+`
+  <div class="pe-wrap">
+    <button class="back-btn" onclick="pbVoltarLista()">← Voltar</button>
+    <div class="page-header" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+      <div>
+        <div class="page-title"><span class="code-pill" style="font-size:13px">${(pbObra()||{}).codigo||''}</span>${(pbObra()||{}).sigla||''} — PB ${d.id}</div>
+        <div class="page-count">${esc((pbObra()||{}).nome||d.obraNome)} · <span class="pe-estpill" style="background:${pbEST(d.estado).cor}">${pbEST(d.estado).rot}</span></div>
+      </div>
+      <div class="pe-fluxo" style="flex:1;justify-content:center;margin:0">${fluxo}</div>
+      <div class="pe-actbar" style="display:flex;gap:8px;flex-wrap:wrap">${acoes.join('')}</div>
+    </div>
+    ${notas.length?`<div class="pe-nota">${notas.map(esc).join(' ')}</div>`:''}
+    ${lig.length?`<div class="pe-lig">${lig.join(' · ')}</div>`:''}
+    ${secId}${secEmp}${secVerif}${secDec}
+    <div class="pe-hist"><b>Histórico</b>
+      ${(d.historico||[]).map(h=>`<div>· ${esc(h.data)} — [${esc(h.autor)}] ${esc(h.acao)}</div>`).join('')||'<div>—</div>'}
+    </div>
+  </div>`;
+}
+
+/* ---- Modal decisão ---- */
+function pbFecharModal(){ const v=document.getElementById('pe-veu'); if(v) v.remove(); }
+window.pbModalDecisao=function(){
+  const d=pbFichaAtualDoc(); if(!d) return;
+  pbLerVerificacoes(d);
+  const naoConf=Object.values(d.verificacoes||{}).filter(v=>v==='nconf').length;
+  const veu=document.createElement('div'); veu.className='pe-veu'; veu.id='pe-veu';
+  veu.innerHTML=`<div class="pe-modal"><h3>Decisão da Fiscalização</h3>
+    <div class="pe-mb"><div class="pe-msub">${naoConf?('<b style="color:var(--danger)">'+naoConf+' item(ns) não conforme(s).</b> Se não aprovar, é criada automaticamente uma revisão para o Empreiteiro corrigir.'):'Sem itens não conformes registados. Se não aprovar, é criada automaticamente uma revisão.'}</div>
+      <table class="pe-seltab"><tbody>
+        <tr onclick="document.getElementById('pbd-0').checked=true"><td style="width:28px"><input type="radio" name="pbd" id="pbd-0" value="aprovado" checked></td><td><span class="pe-estpill" style="background:var(--success)">Aprovado</span> — a betonagem avança e o pedido fecha</td></tr>
+        <tr onclick="document.getElementById('pbd-1').checked=true"><td style="width:28px"><input type="radio" name="pbd" id="pbd-1" value="nao_aprovado"></td><td><span class="pe-estpill" style="background:var(--danger)">Não Aprovado</span> — gera revisão para correcção</td></tr>
+      </tbody></table>
+      <div class="pe-fld pe-mt"><label>Observações</label><textarea id="pbd-obs">${esc(d.observacoes)}</textarea></div></div>
+    <div class="pe-mrod"><button class="pe-btn" onclick="pbFecharModal()">Cancelar</button>
+      <button class="pe-btn gold" onclick="pbSubmeterDecisao()">Confirmar e Notificar →</button></div></div>`;
+  document.body.appendChild(veu);
+};
+window.pbSubmeterDecisao=function(){
+  const s=document.querySelector('input[name="pbd"]:checked');
+  if(!s){ alert('Selecione a decisão.'); return; }
+  pbConfirmarDecisao(s.value,(document.getElementById('pbd-obs')||{}).value?document.getElementById('pbd-obs').value.trim():'');
+};
+
+/* ---- Entrada via card ---- */
+window.pbAbrirModulo=async function(obraId){ pbObraId=obraId; pbFichaId=null; fiscObraId=null; await pbCarregar(); render(); };
+function pbPreencherContagem(obraId){
+  sbRel.get('pedidos_betonagem',`obra_id=eq.${encodeURIComponent(obraId)}&select=id`)
+    .then(rows=>{ const el=document.getElementById('pb-count-card'); if(el) el.textContent=rows.length+' registo'+(rows.length===1?'':'s'); })
+    .catch(()=>{ const el=document.getElementById('pb-count-card'); if(el) el.textContent='—'; });
+}
+
+/* ####################  FIM MÓDULO PB  #################### */
+
+/* ####################  MÓDULO PTQ  #################### */
+/* ================================================================
+   MÓDULO PTQ — Planos Quinzenais de Trabalho (integrado do GPE)
+   Coerente com PE/PA/PB (PE_CSS, peCampo, roles, peHoje/peDataPT/peIdFmt,
+   esc, sbRel, DB, currentUser, emailjs/EJS, estadoBadge, PE_EJS_TEMPLATE, pbDISO).
+   Motor de calendário: grelha 12 dias (seg-sáb x2, sem domingos), feriados/pontes,
+   espelhamento sub<->atividade, totais.
+   ================================================================ */
+const PTQ_MOD={
+  rot:'Plano Quinzenal de Trabalho', sig:'PTQ', tabela:'planos_quinzenais',
+  estados:{
+    rascunho:{rot:'Rascunho',cor:'#6B7280',posse:'Empreiteiro'},
+    enviado:{rot:'Enviado',cor:'var(--success)',posse:'Fiscalização'}
+  },
+  ordem:['rascunho','enviado']
+};
+const PTQ_MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const PTQ_LETRA=['D','S','T','Q','Q','S','S'];
+
+/* ---- helpers calendário ---- */
+function pqDiasDoPlano(inicio){
+  if(!inicio) return [];
+  const out=[]; const d=new Date(inicio+'T00:00:00');
+  while(out.length<12){
+    if(d.getDay()!==0) out.push({iso:pbDISO(d),letra:PTQ_LETRA[d.getDay()],
+      dm:String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0'),dow:d.getDay()});
+    d.setDate(d.getDate()+1);
+  }
+  return out;
+}
+function pqProximaSegunda(base){
+  const d=base?new Date(base+'T00:00:00'):new Date();
+  const dow=d.getDay();
+  const soma=(dow===1)?7:((8-dow)%7||7);
+  d.setDate(d.getDate()+soma);
+  return pbDISO(d);
+}
+function pqSemanaNum(iso){
+  if(!iso) return 0;
+  const d=new Date(iso+'T00:00:00');
+  const alvo=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));
+  const dn=(alvo.getUTCDay()+6)%7;
+  alvo.setUTCDate(alvo.getUTCDate()-dn+3);
+  const primeira=new Date(Date.UTC(alvo.getUTCFullYear(),0,4));
+  const dnp=(primeira.getUTCDay()+6)%7;
+  primeira.setUTCDate(primeira.getUTCDate()-dnp+3);
+  return 1+Math.round((alvo-primeira)/(7*86400000));
+}
+function pqPeriodoTexto(inicio){
+  if(!inicio) return '';
+  const a=new Date(inicio+'T00:00:00'); const b=new Date(inicio+'T00:00:00'); b.setDate(b.getDate()+13);
+  return String(a.getDate()).padStart(2,'0')+' '+PTQ_MESES[a.getMonth()]+' a '+String(b.getDate()).padStart(2,'0')+' '+PTQ_MESES[b.getMonth()];
+}
+function pqSemanasTexto(inicio){
+  if(!inicio) return '';
+  const b=new Date(inicio+'T00:00:00'); b.setDate(b.getDate()+7);
+  return pqSemanaNum(inicio)+'-'+pqSemanaNum(pbDISO(b));
+}
+function pqSegundaSeguinte(iso){
+  if(!iso) return iso;
+  const d=new Date(iso+'T00:00:00');
+  if(isNaN(d)) return iso;
+  while(d.getDay()!==1) d.setDate(d.getDate()+1);
+  return pbDISO(d);
+}
+function pqReindexar(d){ d.periodo=pqPeriodoTexto(d.inicioPlano); d.semanas=pqSemanasTexto(d.inicioPlano); }
+function pqLinhaAtiv(){ return {desc:'',local:'',dias:Array(12).fill(0)}; }
+function pqLinhaSub(){ return {sub:'',dias:Array(12).fill(''),auto:Array(12).fill(false)}; }
+function pqLinhaEquip(){ return {desc:'',dias:Array(12).fill(''),auto:Array(12).fill(false)}; }
+
+function ptqEST(e){ return PTQ_MOD.estados[e]||{rot:e,cor:'#999',posse:'—'}; }
+function ptqObra(){ return DB.obras.find(o=>o.id===ptqObraId); }
+function ptqPorId(id){ return ptqDocs.find(d=>d.id===id); }
+function ptqRegistar(d,acao){ d.historico=d.historico||[]; d.historico.push({data:new Date().toLocaleString('pt-PT'),autor:(currentUser?currentUser.nome:'?'),acao}); }
+function ptqEmails(role){
+  const o=ptqObra(); if(!o) return [];
+  const oid=String(o.id), ocod=String(o.codigo||''), osig=String(o.sigla||'');
+  const porUtil=(DB.utilizadores||[]).filter(u=>{
+    if(u.ativo===false) return false;
+    if(String(u.role||'')!==role) return false;
+    const refs=(u.obras||[]).map(String);
+    return refs.includes(oid)||(ocod&&refs.includes(ocod))||(osig&&refs.includes(osig));
+  });
+  const campo={fiscalizacao:'intervenientes_fisc',empreiteiro:'intervenientes_emp'}[role];
+  const porObra=((campo&&o[campo])||[]).map(id=>(DB.utilizadores||[]).find(u=>String(u.id)===String(id))).filter(u=>u&&u.ativo!==false);
+  const m=new Map(); [...porUtil,...porObra].forEach(u=>m.set(String(u.id),u));
+  return [...m.values()].filter(u=>u.email).map(u=>u.email);
+}
+
+function ptqMap(r){
+  const ini=pqSegundaSeguinte(r.inicio_plano||'');
+  return {tipo:'ptq',id:r.id,num:r.num,rev:r.rev,obraId:r.obra_id,obraNome:r.obra_nome,estado:r.estado,
+    dataCriacao:r.data_criacao,dataEnvio:r.data_envio,
+    inicioPlano:ini,periodo:pqPeriodoTexto(ini)||r.periodo||'',semanas:pqSemanasTexto(ini)||r.semanas||'',
+    autorEmp:r.autor_empreiteiro||'',entidade:r.entidade_executante||'',
+    feriados:(r.feriados&&typeof r.feriados==='object')?r.feriados:{},
+    atividades:Array.isArray(r.atividades)?r.atividades:[],
+    subs:Array.isArray(r.subempreiteiros)?r.subempreiteiros:[],
+    equipamentos:Array.isArray(r.equipamentos)?r.equipamentos:[],
+    observacoes:r.observacoes||'',anexosEmp:r.anexos_emp||[],historico:r.historico||[]};
+}
+function ptqUnmap(d){
+  return {id:d.id,num:d.num,rev:d.rev,obra_id:d.obraId,obra_nome:d.obraNome,estado:d.estado,
+    data_criacao:d.dataCriacao||null,data_envio:d.dataEnvio||null,inicio_plano:d.inicioPlano||null,
+    periodo:d.periodo,semanas:d.semanas,autor_empreiteiro:d.autorEmp,entidade_executante:d.entidade,
+    feriados:d.feriados||{},atividades:d.atividades||[],subempreiteiros:d.subs||[],equipamentos:d.equipamentos||[],
+    observacoes:d.observacoes,anexos_emp:d.anexosEmp,historico:d.historico,updated_at:new Date().toISOString()};
+}
+
+async function ptqCarregar(){
+  ptqDocs=[]; const o=ptqObra(); if(!o) return;
+  try{
+    const rows=await sbRel.get('planos_quinzenais',`obra_id=eq.${encodeURIComponent(o.id)}&order=num.desc`);
+    ptqDocs=rows.map(ptqMap);
+  }catch(e){ console.error(e); alert('Erro ao carregar planos quinzenais.\n\n'+e.message+'\n\nJá correu o SQL da tabela planos_quinzenais no Supabase do SEGO?'); }
+}
+async function ptqPersistir(d){
+  try{
+    const ex=await sbRel.get('planos_quinzenais',`id=eq.${encodeURIComponent(d.id)}&select=id`);
+    if(ex.length) await sbRel.patch('planos_quinzenais',d.id,ptqUnmap(d));
+    else await sbRel.post('planos_quinzenais',ptqUnmap(d));
+  }catch(e){ console.error(e); alert('Erro ao guardar: '+e.message); }
+}
+function ptqLink(d){ return location.href.split('?')[0]+'?ptq='+encodeURIComponent(d.id); }
+async function ptqNotificar(d,destinos,mensagem,rotulo){
+  const lista=(Array.isArray(destinos)?destinos:[destinos]).filter(Boolean);
+  const et=`Notificação → ${rotulo}${lista.length?' ('+lista.join(', ')+')':''}: ${mensagem}`;
+  if(!lista.length){ ptqRegistar(d,et+' [sem destinatário na obra — verifique a ficha no SID]'); return; }
+  let ok=0;
+  for(const to of lista){
+    try{
+      await emailjs.send(EJS.service, PE_EJS_TEMPLATE, {
+        to_email:to,to_name:'',pe_id:'PTQ '+d.id,obra:(ptqObra()?ptqObra().nome:d.obraNome),
+        assunto:d.periodo||'',estado:ptqEST(d.estado).rot,mensagem,link:ptqLink(d),password:'',app_url:ptqLink(d),role:rotulo});
+      ok++;
+    }catch(e){ console.error('PTQ notificar falhou:',e); }
+  }
+  ptqRegistar(d,et+(ok===lista.length?' [enviada]':` [enviadas ${ok}/${lista.length}]`));
+}
+
+function ptqProximoNum(){ const n=ptqDocs.map(d=>d.num); return n.length?Math.max(...n)+1:1; }
+function ptqDocNovo(num){
+  const o=ptqObra(); const ini=pqProximaSegunda(peHoje());
+  return {id:peIdFmt(num,0),num,rev:0,tipo:'ptq',obraId:o.id,obraNome:o.nome,estado:'rascunho',
+    dataCriacao:peHoje(),dataEnvio:null,inicioPlano:ini,periodo:pqPeriodoTexto(ini),semanas:pqSemanasTexto(ini),
+    autorEmp:(currentUser?currentUser.nome:''),entidade:'',feriados:{},
+    atividades:Array.from({length:5},pqLinhaAtiv),subs:Array.from({length:5},pqLinhaSub),equipamentos:Array.from({length:5},pqLinhaEquip),
+    observacoes:'',anexosEmp:[],historico:[]};
+}
+window.ptqNovoPedido=async function(){
+  if(!peEEmp()){ alert('Apenas o Empreiteiro cria planos.'); return; }
+  const o=ptqObra(); if(!o){ alert('Sem obra selecionada.'); return; }
+  const d=ptqDocNovo(ptqProximoNum());
+  ptqRegistar(d,'Plano criado (rascunho).');
+  ptqDocs.unshift(d); await ptqPersistir(d); ptqAbrirFicha(d.id);
+};
+window.ptqEliminar=async function(id){
+  if(!peESuper()){ return; }
+  const d=ptqPorId(id); if(!d) return;
+  if(!confirm('Eliminar definitivamente o plano '+id+'? Esta acção não pode ser anulada.')) return;
+  try{ await sbRel.delete('planos_quinzenais',id); }catch(e){ alert('Erro ao eliminar: '+e.message); return; }
+  ptqDocs=ptqDocs.filter(x=>x.id!==id);
+  ptqFichaId=null; render();
+};
+
+/* ---- interações do calendário ---- */
+function ptqFichaAtualDoc(){ return ptqPorId(ptqFichaId); }
+function pqEditavel(d){ return peEEmp() && d.estado==='rascunho'; }
+function pqDias(d){ return pqDiasDoPlano(d.inicioPlano); }
+function pqEhSabado(dias,c){ return dias[c] && dias[c].dow===6; }
+function pqEhFeriado(d,dias,c){ return dias[c] && !!(d.feriados||{})[dias[c].iso]; }
+function pqSeguintesDaSemana(d,dias,c){
+  const semana=c<6?0:1, out=[];
+  for(let i=c+1;i<(semana===0?6:12);i++){ if(pqEhSabado(dias,i)||pqEhFeriado(d,dias,i)) continue; out.push(i); }
+  return out;
+}
+window.pqLerForm=function(){
+  const d=ptqFichaAtualDoc(); if(!d) return;
+  const g=id=>document.getElementById(id);
+  if(g('pq-obs')) d.observacoes=g('pq-obs').value.trim();
+  (d.atividades||[]).forEach((a,i)=>{ if(g('pq-a-desc-'+i)) a.desc=g('pq-a-desc-'+i).value.trim(); if(g('pq-a-local-'+i)) a.local=g('pq-a-local-'+i).value.trim(); });
+  (d.subs||[]).forEach((s,i)=>{ if(g('pq-s-nome-'+i)) s.sub=g('pq-s-nome-'+i).value.trim(); });
+  (d.equipamentos||[]).forEach((e,i)=>{ if(g('pq-e-desc-'+i)) e.desc=g('pq-e-desc-'+i).value.trim(); });
+};
+async function pqRefrescar(){ const d=ptqFichaAtualDoc(); await ptqPersistir(d); ptqAbrirFicha(d.id); }
+window.pqAlterarInicio=function(v){
+  const d=ptqFichaAtualDoc(); if(!d) return; pqLerForm();
+  let iso=v||'';
+  if(iso){ const dt=new Date(iso+'T00:00:00'); if(dt.getDay()!==1){ const soma=(8-dt.getDay())%7||1; dt.setDate(dt.getDate()+soma); iso=pbDISO(dt); alert('O plano começa sempre à segunda-feira — ajustado para '+peDataPT(iso)+'.'); } }
+  d.inicioPlano=iso; pqReindexar(d);
+  const validos=new Set(pqDias(d).map(x=>x.iso));
+  Object.keys(d.feriados||{}).forEach(k=>{ if(!validos.has(k)) delete d.feriados[k]; });
+  ptqRegistar(d,'Início do plano alterado para '+peDataPT(d.inicioPlano)+' (período '+d.periodo+', semanas '+d.semanas+').');
+  pqRefrescar();
+};
+window.pqCicloDiaEspecial=function(c){
+  const d=ptqFichaAtualDoc(); if(!d) return; pqLerForm();
+  const dias=pqDias(d); const iso=dias[c].iso; d.feriados=d.feriados||{};
+  const atual=d.feriados[iso];
+  if(!atual) d.feriados[iso]='feriado'; else if(atual==='feriado') d.feriados[iso]='ponte'; else delete d.feriados[iso];
+  if(d.feriados[iso]){ (d.atividades||[]).forEach(a=>a.dias[c]=0); (d.subs||[]).forEach(s=>{ s.dias[c]=''; s.auto[c]=false; }); (d.equipamentos||[]).forEach(e=>{ e.dias[c]=''; e.auto[c]=false; }); }
+  pqRefrescar();
+};
+window.pqToggleAtividade=function(i,c){
+  const d=ptqFichaAtualDoc(); if(!d) return; pqLerForm();
+  const a=d.atividades[i]; const dias=pqDias(d);
+  if(!a.desc||!a.local){ alert('Preencha a Descrição e a Localização antes de marcar os dias.'); return; }
+  if(pqEhFeriado(d,dias,c)){ alert('Dia marcado como feriado/ponte.'); return; }
+  if(a.dias[c]){ a.dias[c]=0; } else { a.dias[c]=1; pqSeguintesDaSemana(d,dias,c).forEach(j=>{ if(!a.dias[j]) a.dias[j]=2; }); }
+  pqRefrescar();
+};
+window.pqSetNum=function(tipo,i,c,valor){
+  const d=ptqFichaAtualDoc(); if(!d) return; pqLerForm();
+  const arr=(tipo==='s')?d.subs:d.equipamentos; const linha=arr[i]; const dias=pqDias(d);
+  const v=(valor===''||valor===null)?'':String(valor).replace(',','.');
+  linha.dias[c]=v; linha.auto[c]=false;
+  if(v!==''){ pqSeguintesDaSemana(d,dias,c).forEach(j=>{ if(linha.dias[j]===''||linha.auto[j]){ linha.dias[j]=v; linha.auto[j]=true; } }); }
+  pqRefrescar();
+};
+window.pqAddLinha=function(tipo){
+  const d=ptqFichaAtualDoc(); if(!d) return; pqLerForm();
+  if(tipo==='a'){ d.atividades.push(pqLinhaAtiv()); d.subs.push(pqLinhaSub()); } else if(tipo==='e'){ d.equipamentos.push(pqLinhaEquip()); }
+  pqRefrescar();
+};
+window.pqDelLinha=function(tipo,i){
+  const d=ptqFichaAtualDoc(); if(!d) return; pqLerForm();
+  if(tipo==='a'){ d.atividades.splice(i,1); d.subs.splice(i,1); } else if(tipo==='e'){ d.equipamentos.splice(i,1); }
+  pqRefrescar();
+};
+window.ptqGuardarRascunho=async function(){
+  const d=ptqFichaAtualDoc(); if(!d) return; pqLerForm();
+  ptqRegistar(d,'Rascunho guardado.'); await ptqPersistir(d); ptqAbrirFicha(d.id);
+};
+window.ptqEnviar=async function(){
+  const d=ptqFichaAtualDoc(); if(!d) return; pqLerForm();
+  if(!d.inicioPlano){ alert('Indique o início do plano.'); return; }
+  const comAtiv=(d.atividades||[]).filter(a=>a.desc&&a.local);
+  if(!comAtiv.length){ alert('Preencha pelo menos uma actividade com descrição e localização.'); return; }
+  d.autorEmp=currentUser?currentUser.nome:''; d.estado='enviado'; d.dataEnvio=peHoje();
+  ptqRegistar(d,'Plano enviado à Fiscalização — passa a Enviado.');
+  await ptqNotificar(d,ptqEmails('fiscalizacao'),'Plano Quinzenal '+d.id+' ('+d.periodo+', semanas '+d.semanas+') enviado pelo Empreiteiro.','Fiscalização');
+  await ptqPersistir(d); ptqAbrirFicha(d.id);
+};
+
+/* ---- CSS da grelha (tokens SEGO) ---- */
+const PTQ_CSS=`<style>
+.pq-scroll{overflow-x:auto}
+table.pq-grade{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed}
+table.pq-grade col.c-num{width:34px}table.pq-grade col.c-trab{width:24%}table.pq-grade col.c-sec{width:20%}table.pq-grade col.c-dia{width:42px}table.pq-grade col.c-del{width:26px}
+table.pq-grade th{background:#EEF1F6;border:1px solid var(--border-light);padding:4px 6px;font-size:11.5px;font-weight:700;color:var(--navy)}
+table.pq-grade thead tr th{height:24px;padding:2px 4px;line-height:1.1}
+table.pq-grade thead tr th[rowspan]{height:auto;padding:4px 6px}
+table.pq-grade td{border:1px solid var(--border-light);padding:4px 6px;vertical-align:middle;overflow:hidden;height:31px}
+table.pq-grade input[type=text],table.pq-grade input:not([type]){width:100%;border:1px solid transparent;background:transparent;font-family:inherit;font-size:13px;padding:4px 6px;border-radius:4px}
+table.pq-grade input:focus{border-color:var(--info);background:#fff;outline:none}
+table.pq-grade input::-webkit-outer-spin-button,table.pq-grade input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+table.pq-grade .nlin{text-align:center;color:var(--text-muted);font-size:12px}
+table.pq-grade th.dia-cab{font-size:12px;color:var(--navy)}
+table.pq-grade th.dia-cab.clic{cursor:pointer}
+table.pq-grade th.dia-cab.clic:hover{background:#E2E8F0}
+table.pq-grade th.dia-cab .d-data{display:block}
+table.pq-grade th.dia-let{font-size:12px}
+table.pq-grade th.sab,table.pq-grade td.sab{background:#F7F8FA}
+table.pq-grade th.esp-feriado,table.pq-grade td.esp-feriado{background:#FDE7E7}
+table.pq-grade th.esp-ponte,table.pq-grade td.esp-ponte{background:#FFF6E0}
+table.pq-grade tr.lin-tot th{background:#E4E9EF;color:var(--text);font-size:12px;font-weight:700}
+table.pq-grade td.cel{text-align:center;cursor:pointer;user-select:none;color:var(--text);padding:4px 2px;font-size:13px;height:31px}
+table.pq-grade td.cel.fp{cursor:default}
+table.pq-grade td.cel.num{cursor:default;padding:2px}
+table.pq-grade td.cel.num input{width:100%;text-align:center;border:1px solid transparent;background:transparent;font-family:inherit;font-size:13px;padding:3px 1px;border-radius:3px}
+table.pq-grade td.cel.num input:focus{border-color:var(--info);background:#fff;outline:none}
+table.pq-grade td.espelho{color:var(--text)}
+table.pq-grade td.c-del{padding:0;text-align:center}
+.pq-btnx{border:none;background:none;color:var(--danger);cursor:pointer;font-size:14px;font-weight:700;line-height:1;padding:2px 4px}
+.pq-btnmais{margin-left:auto;border:1px solid var(--info);background:#fff;color:var(--info);cursor:pointer;border-radius:4px;width:24px;height:22px;font-weight:700;line-height:1}
+.pq-obs{width:100%;box-sizing:border-box;min-height:60px;border:1px solid var(--border-light);border-radius:var(--radius);padding:6px 8px;font-family:inherit;font-size:13px}
+</style>`;
+
+/* ---- LISTAGEM ---- */
+function renderListaPTQ(app){
+  const o=ptqObra();
+  if(!o){ ptqObraId=null; render(); return; }
+  let lst=ptqDocs.slice(); lst.sort((a,b)=>b.num-a.num);
+  const linhas=lst.map(d=>`
+    <tr onclick="ptqAbrirFicha('${d.id}')" style="cursor:pointer">
+      <td><span class="pe-idp">${d.id}</span></td>
+      <td class="pe-dt${d.dataEnvio?'':' pe-empty'}">${d.dataEnvio?peDataPT(d.dataEnvio):'—'}</td>
+      <td style="text-align:center">${peDataPT(d.inicioPlano)}</td>
+      <td>${esc(d.periodo)||'<span class="pe-muted">(sem período)</span>'}</td>
+      <td style="text-align:center">${esc(d.semanas)||'—'}</td>
+      <td style="text-align:center">${(d.atividades||[]).filter(a=>a.desc).length}</td>
+      <td style="text-align:center">${(d.subs||[]).filter(s=>s.sub).length}</td>
+      <td style="text-align:center">${(d.equipamentos||[]).filter(e=>e.desc).length}</td>
+      ${peESuper()?`<td style="text-align:center"><button class="pe-x" onclick="event.stopPropagation();ptqEliminar('${d.id}')">×</button></td>`:''}
+    </tr>`).join('');
+  app.innerHTML=PE_CSS+`
+  <div class="pe-wrap">
+    <button class="back-btn" onclick="ptqVoltarCapa()">← Voltar a Fiscalização</button>
+    <div class="page-header">
+      <div>
+        <div class="page-title"><span class="code-pill" style="font-size:13px">${o.codigo}</span>${o.sigla} — ${o.nome} · PTQ</div>
+        <div style="margin-top:4px">${estadoBadge(o.estado)}</div>
+      </div>
+      <div class="page-actions"></div>
+    </div>
+    <div style="margin-bottom:12px">${peEEmp()?`<button class="btn btn-gold btn-sm" onclick="ptqNovoPedido()">+ Novo Plano</button>`:''}</div>
+    <div class="table-card">
+      ${lst.length?`<table>
+        <thead><tr><th style="text-align:left">Id</th><th class="pe-th-state" style="--st:var(--success)">Enviado</th><th style="text-align:center">Início</th><th style="text-align:left">Período</th><th style="text-align:center">Semanas</th><th style="text-align:center">Actividades</th><th style="text-align:center">Subempreiteiros</th><th style="text-align:center">Equipamentos</th>${peESuper()?'<th style="text-align:center">×</th>':''}</tr></thead>
+        <tbody>${linhas}</tbody></table>`:`<div class="pe-vazio">Sem planos quinzenais nesta obra.${peEEmp()?' Use “+ Novo Plano”.':''}</div>`}
+    </div>
+  </div>`;
+}
+
+/* ---- FICHA ---- */
+window.ptqAbrirFicha=function(id){ ptqFichaId=id; render(); };
+window.ptqVoltarLista=function(){ ptqFichaId=null; render(); };
+window.ptqVoltarCapa=function(){ const o=ptqObra(); ptqFichaId=null; ptqObraId=null; fiscObraId=o?o.id:null; render(); };
+
+function renderFichaPTQ(app){
+  const d=ptqFichaAtualDoc();
+  if(!d){ ptqFichaId=null; render(); return; }
+  const M=PTQ_MOD;
+  const ed=pqEditavel(d);
+  const dias=pqDias(d);
+  const fer=c=>(d.feriados||{})[dias[c]?dias[c].iso:''];
+
+  const fluxo=M.ordem.map(k=>{
+    const idx=M.ordem.indexOf(d.estado), pos=M.ordem.indexOf(k);
+    const cls=k===d.estado?'atual':(pos<idx?'feito':'');
+    const cor=k===d.estado?`style="background:${M.estados[k].cor}"`:'';
+    return `<span class="pe-passo ${cls}" ${cor}>${M.estados[k].rot}</span>`;
+  }).join('<span style="color:#B8BEC7">›</span>');
+
+  const acoes=[],notas=[];
+  if(d.estado==='rascunho'&&peEEmp()){
+    acoes.push(`<button class="pe-btn" onclick="ptqGuardarRascunho()">Guardar Rascunho</button>`);
+    acoes.push(`<button class="pe-btn green" onclick="ptqEnviar()">Enviar à Fiscalização →</button>`);
+  }
+  if(peESuper()) acoes.push(`<button class="pe-btn red" onclick="ptqEliminar('${d.id}')">Eliminar</button>`);
+
+  const cg=`<colgroup><col class="c-num"><col class="c-trab"><col class="c-sec">`+dias.map(()=>'<col class="c-dia">').join('')+`<col class="c-del"></colgroup>`;
+  const cabDatas=dias.map((x,c)=>{ const e=fer(c); return `<th class="dia-cab ${e?'esp-'+e:''} ${x.dow===6?'sab':''} ${ed?'clic':''}" ${ed?`onclick="pqCicloDiaEspecial(${c})"`:''} title="${ed?'Clique para marcar Feriado / Ponte':''}"><span class="d-data">${x.dm}</span></th>`; }).join('');
+  const cabLetras=`<tr>${dias.map((x,c)=>`<th class="dia-let ${x.dow===6?'sab':''} ${fer(c)?'esp-'+fer(c):''}">${x.letra}</th>`).join('')}</tr>`;
+  const cabTotais=t=>`<tr class="lin-tot">${t.map((v,c)=>`<th class="${fer(c)?'esp-'+fer(c):''} ${dias[c].dow===6?'sab':''}">${v||''}</th>`).join('')}</tr>`;
+  const btnMais=(tipo)=>ed?`<button class="pq-btnmais" onclick="event.stopPropagation();pqAddLinha('${tipo}')" title="Acrescentar linha">+</button>`:'';
+
+  const totA=Array(12).fill(0); (d.atividades||[]).forEach(a=>a.dias.forEach((v,c)=>{ if(v) totA[c]++; }));
+  const linhasA=(d.atividades||[]).map((a,i)=>`<tr>
+    <td class="nlin">${i+1}</td>
+    <td>${ed?`<input id="pq-a-desc-${i}" value="${esc(a.desc)}" onchange="pqLerForm()" placeholder="Trabalho a executar">`:esc(a.desc)||'—'}</td>
+    <td>${ed?`<input id="pq-a-local-${i}" value="${esc(a.local)}" onchange="pqLerForm()" placeholder="Localização">`:esc(a.local)||'—'}</td>
+    ${a.dias.map((v,c)=>{ const e=fer(c); if(e) return `<td class="cel esp-${e} fp">${e==='feriado'?'F':'P'}</td>`; const cls=(dias[c].dow===6?'sab':''); return `<td class="cel ${cls}" ${ed?`onclick="pqToggleAtividade(${i},${c})"`:''}>${v?'✕':''}</td>`; }).join('')}
+    <td class="c-del">${ed?`<button class="pq-btnx" onclick="pqDelLinha('a',${i})" title="Eliminar linha">×</button>`:''}</td></tr>`).join('');
+
+  const totS=Array(12).fill(0); (d.subs||[]).forEach(s=>s.dias.forEach((v,c)=>{ const n=Number(v); if(!isNaN(n)) totS[c]+=n; }));
+  const linhasS=(d.subs||[]).map((s,i)=>{ const ativ=((d.atividades||[])[i]||{}).desc||''; return `<tr>
+    <td class="nlin">${i+1}</td>
+    <td class="espelho">${esc(ativ)||'<span class="pe-muted">—</span>'}</td>
+    <td>${ed?`<input id="pq-s-nome-${i}" value="${esc(s.sub)}" onchange="pqLerForm()" placeholder="Subempreiteiro">`:esc(s.sub)||'—'}</td>
+    ${s.dias.map((v,c)=>{ const e=fer(c); if(e) return `<td class="cel num esp-${e} fp">${e==='feriado'?'F':'P'}</td>`; return `<td class="cel num ${dias[c].dow===6?'sab':''}">${ed?`<input type="text" inputmode="numeric" value="${esc(v)}" onchange="pqSetNum('s',${i},${c},this.value)">`:(v===''?'':esc(v))}</td>`; }).join('')}
+    <td class="c-del"></td></tr>`; }).join('');
+
+  const totE=Array(12).fill(0); (d.equipamentos||[]).forEach(e=>e.dias.forEach((v,c)=>{ const n=Number(v); if(!isNaN(n)) totE[c]+=n; }));
+  const linhasE=(d.equipamentos||[]).map((e,i)=>`<tr>
+    <td class="nlin">${i+1}</td>
+    <td colspan="2">${ed?`<input id="pq-e-desc-${i}" value="${esc(e.desc)}" onchange="pqLerForm()" placeholder="Equipamento">`:esc(e.desc)||'—'}</td>
+    ${e.dias.map((v,c)=>{ const f=fer(c); if(f) return `<td class="cel num esp-${f} fp">${f==='feriado'?'F':'P'}</td>`; return `<td class="cel num ${dias[c].dow===6?'sab':''}">${ed?`<input type="text" inputmode="numeric" value="${esc(v)}" onchange="pqSetNum('e',${i},${c},this.value)">`:(v===''?'':esc(v))}</td>`; }).join('')}
+    <td class="c-del">${ed?`<button class="pq-btnx" onclick="pqDelLinha('e',${i})" title="Eliminar linha">×</button>`:''}</td></tr>`).join('');
+
+  const secId=`<div class="pe-zone pe-ident"><div class="pe-zh"><span class="pe-zdot"></span><span class="pe-zt">Identificação</span></div>
+    <div class="pe-zb"><div class="pe-grid3">
+      ${peCampo('Id','x',d.id,null,false)}
+      ${peCampo('Data','x',d.dataCriacao,'date',false)}
+      ${peCampo('Autor','x',d.autorEmp,'text',false)}
+    </div><div class="pe-grid3 pe-mt">
+      <div class="pe-fld"><label>Início do plano (segunda)</label>${ed?`<input type="date" value="${esc(d.inicioPlano)}" onchange="pqAlterarInicio(this.value)">`:`<div class="pe-ro">${peDataPT(d.inicioPlano)}</div>`}</div>
+      ${peCampo('Período','x',d.periodo,'text',false)}
+      ${peCampo('Semanas','x',d.semanas,'text',false)}
+    </div></div></div>`;
+
+  const zona=(titulo,mais,cab,corpo)=>`<div class="pe-zone pe-emp"><div class="pe-zh"><span class="pe-zdot"></span><span class="pe-zt">${titulo}</span>${mais}</div>
+    <div class="pe-zb"><div class="pq-scroll"><table class="pq-grade">${cg}<thead>${cab}</thead><tbody>${corpo}</tbody></table></div></div></div>`;
+
+  const cabA=`<tr><th rowspan="3" class="nlin">#</th><th rowspan="3">Trabalhos a Executar</th><th rowspan="3">Localização</th>${cabDatas}<th rowspan="3"></th></tr>${cabLetras}${cabTotais(totA)}`;
+  const cabS=`<tr><th rowspan="3" class="nlin">#</th><th rowspan="3">Trabalhos a Executar</th><th rowspan="3">Subempreiteiro</th>${cabDatas}<th rowspan="3"></th></tr>${cabLetras}${cabTotais(totS)}`;
+  const cabE=`<tr><th rowspan="3" class="nlin">#</th><th rowspan="3" colspan="2">Equipamento</th>${cabDatas}<th rowspan="3"></th></tr>${cabLetras}${cabTotais(totE)}`;
+
+  const secObs=`<div class="pe-zone pe-emp"><div class="pe-zh"><span class="pe-zdot"></span><span class="pe-zt">Observações</span></div>
+    <div class="pe-zb">${ed?`<textarea id="pq-obs" class="pq-obs" onchange="pqLerForm()">${esc(d.observacoes)}</textarea>`:`<div class="pe-ro" style="min-height:60px">${esc(d.observacoes)||'—'}</div>`}</div></div>`;
+
+  app.innerHTML=PE_CSS+PTQ_CSS+`
+  <div class="pe-wrap">
+    <button class="back-btn" onclick="ptqVoltarLista()">← Voltar</button>
+    <div class="page-header" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+      <div>
+        <div class="page-title"><span class="code-pill" style="font-size:13px">${(ptqObra()||{}).codigo||''}</span>${(ptqObra()||{}).sigla||''} — PTQ ${d.id}</div>
+        <div class="page-count">${esc((ptqObra()||{}).nome||d.obraNome)} · <span class="pe-estpill" style="background:${ptqEST(d.estado).cor}">${ptqEST(d.estado).rot}</span></div>
+      </div>
+      <div class="pe-fluxo" style="flex:1;justify-content:center;margin:0">${fluxo}</div>
+      <div class="pe-actbar" style="display:flex;gap:8px;flex-wrap:wrap">${acoes.join('')}</div>
+    </div>
+    ${ed?`<div class="pe-nota">Clique num dia (cabeçalho) para marcar Feriado (F) / Ponte (P). Nas Actividades, clique nos dias para marcar (✕ = marcado; sugestão preenche os dias seguintes da semana). Mão de Obra e Equipamentos: escreva o número.</div>`:''}
+    ${secId}
+    ${zona('Actividades',btnMais('a'),cabA,linhasA)}
+    ${zona('Carga de Mão de Obra',btnMais('a'),cabS,linhasS)}
+    ${zona('Carga de Equipamentos',btnMais('e'),cabE,linhasE)}
+    ${secObs}
+    <div class="pe-hist"><b>Histórico</b>
+      ${(d.historico||[]).map(h=>`<div>· ${esc(h.data)} — [${esc(h.autor)}] ${esc(h.acao)}</div>`).join('')||'<div>—</div>'}
+    </div>
+  </div>`;
+}
+
+/* ---- Entrada via card ---- */
+window.ptqAbrirModulo=async function(obraId){ ptqObraId=obraId; ptqFichaId=null; fiscObraId=null; await ptqCarregar(); render(); };
+function ptqPreencherContagem(obraId){
+  sbRel.get('planos_quinzenais',`obra_id=eq.${encodeURIComponent(obraId)}&select=id`)
+    .then(rows=>{ const el=document.getElementById('ptq-count-card'); if(el) el.textContent=rows.length+' registo'+(rows.length===1?'':'s'); })
+    .catch(()=>{ const el=document.getElementById('ptq-count-card'); if(el) el.textContent='—'; });
+}
+
+/* ####################  FIM MÓDULO PTQ  #################### */
 
 window.rsCommit=function(section,idx,key,value){
   if(!relRelId)return;
