@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.07.22.2022</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.08.06.1409</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -1124,7 +1124,7 @@ function renderCapaObra(app){
       const rowSigla = capaContext.sigla || (r.conteudo&&r.conteudo.subtipo==='RS'?'RSO':(r.conteudo&&r.conteudo.subtipo)||'');
       return `<tr class="tr-click" onclick="relRelId='${r.id}';relTab='capa';render()">
       <td><strong>${rowSigla?rowSigla+' ':''}${relNumero(r)}</strong></td>
-      <td>${fmtMesAno(r.mes,r.ano)}</td>
+      <td>${(function(){var _d=r.conteudo&&r.conteudo.dados;if(_d&&_d.semanaIni)return esc(rsoPeriodo(_d.semanaIni));if(_d&&_d.semana)return esc(_d.semana);return fmtMesAno(r.mes,r.ano);})()}</td>
       <td>${relBadge(r.estado)}</td>
       <td style="font-size:12px;color:var(--text-muted)">${r.criado_por_nome||'—'}</td>
       <td style="font-size:12px">${r.criado_em?fmtDate(r.criado_em.split('T')[0]):'—'}</td>
@@ -2723,8 +2723,8 @@ function renderPublicRSO(rel,o,conteudo){
       </table>
       <div class="kpi-row">
         <div class="kpi"><div class="kpi-label" data-pt="N.º Subempreiteiros">N.º Subempreiteiros</div><div class="kpi-val">${kSub.nSub}</div><div class="kpi-sub" data-pt="total">total</div></div>
-        <div class="kpi k-prev"><div class="kpi-label" data-pt="Previstos [P]">Previstos [P]</div><div class="kpi-val">${kSub.prev}</div><div class="kpi-sub" data-pt="homens·dia">homens·dia</div></div>
-        <div class="kpi k-real"><div class="kpi-label" data-pt="Efetivos [E]">Efetivos [E]</div><div class="kpi-val">${kSub.efet}</div><div class="kpi-sub" data-pt="homens·dia">homens·dia</div></div>
+        <div class="kpi k-prev"><div class="kpi-label" data-pt="Previstos [P]">Previstos [P]</div><div class="kpi-val">${kSub.prev}</div><div class="kpi-sub" data-pt="homens·semana">homens·semana</div></div>
+        <div class="kpi k-real"><div class="kpi-label" data-pt="Efetivos [E]">Efetivos [E]</div><div class="kpi-val">${kSub.efet}</div><div class="kpi-sub" data-pt="homens·semana">homens·semana</div></div>
         <div class="kpi k-exec"><div class="kpi-label" data-pt="Cobertura">Cobertura</div><div class="kpi-val">${cobertura}%</div><div class="kpi-sub" data-pt="E / P">E / P</div></div>
         <div class="kpi k-atraso"><div class="kpi-label" data-pt="Défice (P>E)">Défice (P&gt;E)</div><div class="kpi-val">${defice}</div><div class="kpi-sub" data-pt="${pctDefice}% de P">${pctDefice}% de P</div></div>
         <div class="kpi k-extra"><div class="kpi-label" data-pt="Excedente (E>P)">Excedente (E&gt;P)</div><div class="kpi-val">${excedente}</div><div class="kpi-sub" data-pt="${pctExcedente}% de P">${pctExcedente}% de P</div></div>
@@ -2746,7 +2746,7 @@ function renderPublicRSO(rel,o,conteudo){
       </div><div class="g"><h2 data-pt="Outras Informações Relevantes">Outras Informações Relevantes</h2>
       ${(d.outras_info||'').trim()?`<div class="text-block" data-pt="${esc(d.outras_info)}">${esc(d.outras_info)}</div>`:`<div class="text-block empty" data-pt="Sem outras informações.">Sem outras informações.</div>`}
       </div><div class="g"><h2 data-pt="Fotos${fotos.length?' · '+fotos.length:''}">Fotos${fotos.length?' · '+fotos.length:''}</h2>
-      ${fotos.length?`<div class="photos">${fotos.map(p=>`<a href="${p.url}" target="_blank" rel="noopener" style="background-image:url('${p.url}')" title="${esc(p.name||'')}"></a>`).join('')}</div>`:`<div class="text-block empty" data-pt="Sem fotos registadas.">Sem fotos registadas.</div>`}
+      ${fotos.length?`<div class="photos">${fotos.map(p=>`<a href="${p.url}" target="_blank" rel="noopener" style="background-image:url('${p.url}')" title="${esc(p.legenda||p.name||'')}"></a>`).join('')}</div>`:`<div class="text-block empty" data-pt="Sem fotos registadas.">Sem fotos registadas.</div>`}
       </div>
     </div>
     <div class="footer">SEGO · Sistema Externo de Gestão de Obras · ${esc(sigla)} RSO ${num}${rel.criado_em?' · publicado em '+fmtDate(rel.criado_em.split('T')[0]):''}</div>
@@ -5116,6 +5116,7 @@ function renderFichaQE(app){
   if(!d){ qeFichaId=null; render(); return; }
   const M=QE_MOD;
   const eFisc=qePodeFisc(d), eEmp=qePodeEmp(d);
+  const eParecer=peEFisc()&&d.estado==='respondido';
 
   const fluxo=M.ordem.map(k=>{
     const ref=(d.estado==='reaberto')?'respondido':d.estado;
@@ -5154,7 +5155,7 @@ function renderFichaQE(app){
     <div class="pe-zb">
       <div class="pe-grid3">
         ${peCampo('Id','x',d.id,null,false)}
-        ${peCampo('Data','qe-dataCriacao',d.dataCriacao,'date',eFisc)}
+        ${peCampo('Data','x',d.dataCriacao,'date',false)}
         ${peCampo('Autor','x',d.autorFisc,'text',false)}
       </div>
       <div class="pe-grid3 pe-mt">
@@ -5177,8 +5178,8 @@ function renderFichaQE(app){
     ? `<div class="pe-zone pe-emp"><div class="pe-zh"><span class="pe-zdot"></span><span class="pe-zt">Empreiteiro — Resposta</span></div>
         <div class="pe-zb">
           <div class="pe-grid3">
-            ${peCampo('Data','x',d.dataResposta,'date',false)}
-            ${peCampo('Autor','x',d.autorEmp,'text',false)}
+            ${peCampo('Data','x',d.dataResposta||(eEmp?peHoje():''),'date',false)}
+            ${peCampo('Autor','x',d.autorEmp||(eEmp?(currentUser?currentUser.nome:''):''),'text',false)}
             <div></div>
           </div>
           <div class="pe-mt">${peCampo('Origem','qe-origem',d.origem,'textarea',eEmp)}</div>
@@ -5192,8 +5193,8 @@ function renderFichaQE(app){
     ? `<div class="pe-zone pe-fisc"><div class="pe-zh"><span class="pe-zdot"></span><span class="pe-zt">Fiscalização — Parecer</span></div>
         <div class="pe-zb">
           <div class="pe-grid3">
-            ${peCampo('Data','x',d.dataParecer,'date',false)}
-            ${peCampo('Autor','x',d.autorParecer,'text',false)}
+            ${peCampo('Data','x',d.dataParecer||(eParecer?peHoje():''),'date',false)}
+            ${peCampo('Autor','x',d.autorParecer||(eParecer?(currentUser?currentUser.nome:''):''),'text',false)}
             <div class="pe-fld"><label>Parecer</label><div class="pe-ro">${qeParPill(d.parecer)}</div></div>
           </div>
           <div class="pe-mt">${peCampo(d.parecer==='nao_aceite'?'Motivo da não aceitação':'Observações','x',d.obsFisc,'textarea',false)}</div>
@@ -5280,6 +5281,18 @@ window.rsCommit=function(section,idx,key,value){
     if(typeof rsUpdateSubInputsRow==='function') rsUpdateSubInputsRow(idx);
     if(typeof rsRefreshKPISub==='function') rsRefreshKPISub();
   }
+};
+window.rsSetSemanaIni=function(value){
+  if(!relRelId) return;
+  const r=DB.relatorios.find(x=>x.id===relRelId); if(!r) return;
+  if(r.estado==='disponibilizado') return;
+  r.conteudo=r.conteudo||{tipo:'fiscalizacao',subtipo:'RS',dados:{}};
+  r.conteudo.dados=r.conteudo.dados||{};
+  r.conteudo.dados.semanaIni=value;
+  r.conteudo.dados.semana=rsoPeriodo(value);
+  if(value){ const dt=new Date(value+'T00:00:00'); if(!isNaN(dt)){ r.mes=dt.getMonth()+1; r.ano=dt.getFullYear(); } }
+  sbRel.patch('relatorios',r.id,{conteudo:JSON.stringify(r.conteudo),mes:r.mes,ano:r.ano}).catch(console.error);
+  render();
 };
 // Inserir linha logo após idx em Atividades+Subempreiteiros (botão "+" do subempreiteiro)
 window.rsAddRowAfter=function(idx){
@@ -5802,6 +5815,13 @@ window.rsAddPhoto=function(){
   };
   inp.click();
 };
+window.rsSetFotoLegenda=function(i,val){
+  if(!relRelId) return;
+  const r=DB.relatorios.find(x=>x.id===relRelId); if(!r) return;
+  if(r.estado==='disponibilizado') return;
+  const fs=((r.conteudo||{}).dados||{}).fotos||[];
+  if(fs[i]){ fs[i].legenda=val; rsSaveDebounced(r); }
+};
 window.rsRemovePhoto=async function(idx){
   if(!confirm('Remover esta foto?'))return;
   const r=DB.relatorios.find(x=>x.id===relRelId);if(!r)return;
@@ -5832,6 +5852,17 @@ function fiscActionBtn(r){
 }
 const RS_DAY_LETTERS=['S','T','Q','Q','S','S'];
 const RS_DAY_NAMES=['Seg','Ter','Qua','Qui','Sex','Sáb'];
+function rsoPeriodo(semanaIni){
+  if(!semanaIni) return '';
+  const ini=new Date(semanaIni+'T00:00:00'); if(isNaN(ini)) return '';
+  const fim=new Date(ini); fim.setDate(fim.getDate()+5); // Seg..Sáb = 6 dias
+  const dd=x=>String(x.getDate()).padStart(2,'0');
+  const mm=x=>String(x.getMonth()+1).padStart(2,'0');
+  const w=(typeof pbSemanaISO==='function')?pbSemanaISO(semanaIni):'';
+  const mesmo=ini.getMonth()===fim.getMonth()&&ini.getFullYear()===fim.getFullYear();
+  const rng=mesmo?`${dd(ini)} a ${dd(fim)}/${mm(fim)}/${fim.getFullYear()}`:`${dd(ini)}/${mm(ini)} a ${dd(fim)}/${mm(fim)}/${fim.getFullYear()}`;
+  return (w?w+' · ':'')+rng;
+}
 function rsDayDate(semanaIni,dayIdx){
   if(!semanaIni)return '';
   const d=new Date(semanaIni+'T00:00:00');if(isNaN(d))return '';
@@ -5946,8 +5977,8 @@ function renderFichaRS(app,r){
         <div><div style="${lbl}">Data</div><input type="date" value="${d.data||''}" ${ro?'readonly':''} oninput="rsCommit(null,null,'data',this.value)" style="${ro?inpRO:inpS}"></div>
         <div><div style="${lbl}">Autor</div><input value="${esc(d.autor)}" ${ro?'readonly':''} oninput="rsCommit(null,null,'autor',this.value)" style="${ro?inpRO:inpS}"></div>
         <div><div style="${lbl}">Obra</div><input value="${esc((o.sigla||'')+' — '+(o.nome||''))}" readonly style="${inpRO}"></div>
-        <div><div style="${lbl}">Início da semana</div><input type="date" value="${d.semanaIni||''}" ${ro?'readonly':''} onchange="rsCommit(null,null,'semanaIni',this.value);render()" style="${ro?inpRO:inpS}"></div>
-        <div><div style="${lbl}">Período (descrição)</div><input value="${esc(d.semana)}" placeholder="S22 · 25 a 30/05/2026" ${ro?'readonly':''} oninput="rsCommit(null,null,'semana',this.value)" style="${ro?inpRO:inpS}"></div>
+        <div><div style="${lbl}">Início da semana</div><input type="date" value="${d.semanaIni||''}" ${ro?'readonly':''} onchange="rsSetSemanaIni(this.value)" style="${ro?inpRO:inpS}"></div>
+        <div><div style="${lbl}">Período</div><input value="${esc(rsoPeriodo(d.semanaIni)||d.semana||'')}" readonly style="${inpRO}"></div>
       </div>
     </div>
 
@@ -6082,8 +6113,8 @@ function renderFichaRS(app,r){
       <!-- RESUMO SUBEMPREITEIROS: 6 KPIs -->
       <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-top:12px">
         <div style="background:var(--bg-card);border-left:3px solid #6B7280;padding:8px 10px;border-radius:3px;border:0.5px solid var(--border-light)"><div style="font-size:9px;color:var(--text-muted);letter-spacing:.5px;font-weight:600">N.º SUBEMPREITEIROS</div><div style="display:flex;align-items:baseline;gap:6px;margin-top:2px"><div id="rs-ks-nsub" style="font-size:22px;font-weight:700;color:#6B7280;line-height:1">${kS.nSub}</div></div></div>
-        <div style="background:var(--bg-card);border-left:3px solid #1B4F9B;padding:8px 10px;border-radius:3px;border:0.5px solid var(--border-light)"><div style="font-size:9px;color:var(--text-muted);letter-spacing:.5px;font-weight:600">PREVISTOS [P]</div><div style="display:flex;align-items:baseline;gap:6px;margin-top:2px"><div id="rs-ks-p" style="font-size:22px;font-weight:700;color:#1B4F9B;line-height:1">${kS.totalP}</div><div style="font-size:11px;color:var(--text-muted)">homens·dia</div></div></div>
-        <div style="background:var(--bg-card);border-left:3px solid #1A7A4A;padding:8px 10px;border-radius:3px;border:0.5px solid var(--border-light)"><div style="font-size:9px;color:var(--text-muted);letter-spacing:.5px;font-weight:600">EFETIVOS [E]</div><div style="display:flex;align-items:baseline;gap:6px;margin-top:2px"><div id="rs-ks-e" style="font-size:22px;font-weight:700;color:#1A7A4A;line-height:1">${kS.totalE}</div><div style="font-size:11px;color:var(--text-muted)">homens·dia</div></div></div>
+        <div style="background:var(--bg-card);border-left:3px solid #1B4F9B;padding:8px 10px;border-radius:3px;border:0.5px solid var(--border-light)"><div style="font-size:9px;color:var(--text-muted);letter-spacing:.5px;font-weight:600">PREVISTOS [P]</div><div style="display:flex;align-items:baseline;gap:6px;margin-top:2px"><div id="rs-ks-p" style="font-size:22px;font-weight:700;color:#1B4F9B;line-height:1">${kS.totalP}</div><div style="font-size:11px;color:var(--text-muted)">homens·semana</div></div></div>
+        <div style="background:var(--bg-card);border-left:3px solid #1A7A4A;padding:8px 10px;border-radius:3px;border:0.5px solid var(--border-light)"><div style="font-size:9px;color:var(--text-muted);letter-spacing:.5px;font-weight:600">EFETIVOS [E]</div><div style="display:flex;align-items:baseline;gap:6px;margin-top:2px"><div id="rs-ks-e" style="font-size:22px;font-weight:700;color:#1A7A4A;line-height:1">${kS.totalE}</div><div style="font-size:11px;color:var(--text-muted)">homens·semana</div></div></div>
         <div style="background:var(--bg-card);border-left:3px solid #16A34A;padding:8px 10px;border-radius:3px;border:0.5px solid var(--border-light)"><div style="font-size:9px;color:var(--text-muted);letter-spacing:.5px;font-weight:600">COBERTURA</div><div style="display:flex;align-items:baseline;gap:6px;margin-top:2px"><div id="rs-ks-cob" style="font-size:22px;font-weight:700;color:#16A34A;line-height:1">${kS.cobertura}%</div><div style="font-size:11px;color:var(--text-muted)">E / P</div></div></div>
         <div style="background:var(--bg-card);border-left:3px solid #DC2626;padding:8px 10px;border-radius:3px;border:0.5px solid var(--border-light)"><div style="font-size:9px;color:var(--text-muted);letter-spacing:.5px;font-weight:600">DÉFICE (P > E)</div><div style="display:flex;align-items:baseline;gap:6px;margin-top:2px"><div id="rs-ks-defice" style="font-size:22px;font-weight:700;color:#DC2626;line-height:1">${kS.defice}</div><div style="font-size:11px;color:var(--text-muted)"><span id="rs-ks-defice-pct">${kS.pctDefice}%</span> de P</div></div></div>
         <div style="background:var(--bg-card);border-left:3px solid #C9922A;padding:8px 10px;border-radius:3px;border:0.5px solid var(--border-light)"><div style="font-size:9px;color:var(--text-muted);letter-spacing:.5px;font-weight:600">EXCEDENTE (E > P)</div><div style="display:flex;align-items:baseline;gap:6px;margin-top:2px"><div id="rs-ks-excedente" style="font-size:22px;font-weight:700;color:#C9922A;line-height:1">${kS.excedente}</div><div style="font-size:11px;color:var(--text-muted)"><span id="rs-ks-excedente-pct">${kS.pctExcedente}%</span> de P</div></div></div>
@@ -6161,7 +6192,10 @@ function renderFichaRS(app,r){
         ${(!ro && !fotCollapsed)?`<button class="btn btn-outline btn-sm" style="font-size:11px;padding:3px 10px" onclick="event.stopPropagation();rsAddPhoto()">+ anexar</button>`:''}
       </div>
       ${fotCollapsed?'':(d.fotos.length?`<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px">
-        ${d.fotos.map((p,i)=>`<div style="position:relative;aspect-ratio:1;background:url('${p.url}') center/cover #f0f2f5;border-radius:3px;border:0.5px solid var(--border-light)" title="${esc(p.name)}">${ro?'':`<button onclick="rsRemovePhoto(${i})" style="position:absolute;top:2px;right:2px;background:rgba(255,255,255,.9);border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;color:#B91C1C;font-size:12px;line-height:1;display:flex;align-items:center;justify-content:center" title="Remover">×</button>`}</div>`).join('')}
+        ${d.fotos.map((p,i)=>`<div>
+          <div style="position:relative;aspect-ratio:1;background:url('${p.url}') center/cover #f0f2f5;border-radius:3px;border:0.5px solid var(--border-light)" title="${esc(p.legenda||p.name||'')}">${ro?'':`<button onclick="rsRemovePhoto(${i})" style="position:absolute;top:2px;right:2px;background:rgba(255,255,255,.9);border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;color:#B91C1C;font-size:12px;line-height:1;display:flex;align-items:center;justify-content:center" title="Remover">×</button>`}</div>
+          ${ro?(p.legenda?`<div style="font-size:10px;color:var(--text-muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(p.legenda)}">${esc(p.legenda)}</div>`:''):`<input value="${esc(p.legenda||'')}" placeholder="Título (opcional)" onchange="rsSetFotoLegenda(${i},this.value)" style="width:100%;box-sizing:border-box;margin-top:3px;font-size:10px;padding:2px 4px;border:1px solid var(--border-light);border-radius:3px">`}
+        </div>`).join('')}
       </div>`:empty('Sem fotos'))}
     </div>
   </div>`;
