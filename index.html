@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.08.06.1409</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.08.11.0044</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -1102,7 +1102,7 @@ function renderCapaObra(app){
   else if(capaContext.backVar==='ficha'){ backOnclick=`relObraId=null;fichObraId='${o.id}';resetCapaContext();render()`; backLabel='← Voltar à Obra'; }
   // Botão criar — usa capaContext se houver, senão default RVT
   const createBtn = canCreate ? (capaContext.tipo && capaContext.subtipo
-    ? `<button class="btn btn-gold btn-sm" onclick="criarCO('${o.id}','${capaContext.tipo}','${capaContext.subtipo}')">+ Novo ${capaContext.sigla}</button>`
+    ? `<button class="btn btn-gold btn-sm" onclick="${capaContext.subtipo==='RS'?`rsoNovoModal('${o.id}')`:`criarCO('${o.id}','${capaContext.tipo}','${capaContext.subtipo}')`}">+ Novo ${capaContext.sigla}</button>`
     : `<button class="btn btn-gold btn-sm" onclick="criarCO('${o.id}','seguranca','RVT')">+ Novo RVT</button>`) : '';
   // Sub-título indicando o filtro activo
   const filtroLbl = capaContext.sigla ? ` · ${capaContext.sigla}` : '';
@@ -4504,14 +4504,14 @@ function ptqMap(r){
     atividades:Array.isArray(r.atividades)?r.atividades:[],
     subs:Array.isArray(r.subempreiteiros)?r.subempreiteiros:[],
     equipamentos:Array.isArray(r.equipamentos)?r.equipamentos:[],
-    observacoes:r.observacoes||'',anexosEmp:r.anexos_emp||[],historico:r.historico||[]};
+    observacoes:r.observacoes||'',anexosEmp:r.anexos_emp||[],rsosRef:Array.isArray(r.rsos_ref)?r.rsos_ref:[],historico:r.historico||[]};
 }
 function ptqUnmap(d){
   return {id:d.id,num:d.num,rev:d.rev,obra_id:d.obraId,obra_nome:d.obraNome,estado:d.estado,
     data_criacao:d.dataCriacao||null,data_envio:d.dataEnvio||null,inicio_plano:d.inicioPlano||null,
     periodo:d.periodo,semanas:d.semanas,autor_empreiteiro:d.autorEmp,entidade_executante:d.entidade,
     feriados:d.feriados||{},atividades:d.atividades||[],subempreiteiros:d.subs||[],equipamentos:d.equipamentos||[],
-    observacoes:d.observacoes,anexos_emp:d.anexosEmp,historico:d.historico,updated_at:new Date().toISOString()};
+    observacoes:d.observacoes,anexos_emp:d.anexosEmp,rsos_ref:d.rsosRef||[],historico:d.historico,updated_at:new Date().toISOString()};
 }
 
 async function ptqCarregar(){
@@ -4810,6 +4810,7 @@ function renderFichaPTQ(app){
       <div class="pe-actbar" style="display:flex;gap:8px;flex-wrap:wrap">${acoes.join('')}</div>
     </div>
     ${ed?`<div class="pe-nota">Clique num dia (cabeçalho) para marcar Feriado (F) / Ponte (P). Nas Actividades, clique nos dias para marcar (✕ = marcado; sugestão preenche os dias seguintes da semana). Mão de Obra e Equipamentos: escreva o número.</div>`:''}
+    ${(d.rsosRef&&d.rsosRef.length)?`<div class="pe-lig">Referenciado em: ${d.rsosRef.map(x=>`<a onclick="rsoAbrirRSOref('${d.obraId}','${x.relId}')">RSO ${esc(x.numero)}${x.semana?' (S'+x.semana+')':''}</a>`).join(' · ')}</div>`:''}
     ${secId}
     ${zona('Actividades',btnMais('a'),cabA,linhasA)}
     ${zona('Carga de Mão de Obra',btnMais('a'),cabS,linhasS)}
@@ -5981,6 +5982,7 @@ function renderFichaRS(app,r){
         <div><div style="${lbl}">Período</div><input value="${esc(rsoPeriodo(d.semanaIni)||d.semana||'')}" readonly style="${inpRO}"></div>
       </div>
     </div>
+    ${d.ptqRef?`<div style="background:#EDE9FE;border:1px solid #C4B5FD;border-radius:6px;padding:8px 12px;margin:0 0 10px;font-size:12px;color:#5B21B6;display:flex;align-items:center;gap:8px;flex-wrap:wrap"><b>Importado do PTQ ${esc(d.ptqRef.id)}</b>${d.ptqRef.semana?' · Semana '+d.ptqRef.semana:''}${d.ptqRef.periodo?' · '+esc(d.ptqRef.periodo):''}<a onclick="rsoAbrirPTQref('${r.obra_id}','${esc(d.ptqRef.id)}')" style="color:#5B21B6;text-decoration:underline;cursor:pointer;margin-left:auto">Abrir PTQ →</a></div>`:''}
 
     <!-- ATIVIDADES -->
     <div class="table-card" style="padding:14px;margin-bottom:12px">
@@ -6719,6 +6721,126 @@ function renderObras(app){
 // ================================================================
 // FICHA DE OBRA — READ ONLY
 // ================================================================
+/* ####### RSO<-PTQ IMPORT ####### */
+/* ============================================================
+   RSO ← PTQ : criar RSO importando um Plano Quinzenal
+   Fluxo: "+ Novo RSO" -> escolher (Novo em branco / Importar PTQ)
+          -> lista de PTQ -> escolher semana -> copia campos.
+   Marca o PTQ de referência no RSO e regista o RSO no PTQ.
+   ============================================================ */
+
+window.rsoNovoModal=function(obraId){
+  const body=`<div style="padding:4px 0">
+    <div style="color:var(--text-muted);font-size:13px;margin-bottom:14px">Criar um RSO novo em branco, ou importar os dados de um Plano Quinzenal (PTQ)?</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn btn-gold" onclick="closeModal();criarCO('${obraId}','fiscalizacao','RS')">Criar Novo (em Branco)</button>
+      <button class="btn btn-outline" onclick="rsoImportarPTQ('${obraId}')">Importar de um PTQ →</button>
+    </div>
+  </div>`;
+  showModal('Novo RSO',body,[{cls:'btn-outline',fn:'closeModal()',label:'Cancelar'}]);
+};
+
+window.rsoImportarPTQ=async function(obraId){
+  let rows=[];
+  try{ showLoadingOverlay('A carregar PTQs...'); rows=await sbRel.get('planos_quinzenais',`obra_id=eq.${encodeURIComponent(obraId)}&order=num.desc,rev.desc`); hideLoadingOverlay(); }
+  catch(e){ hideLoadingOverlay(); alert('Erro ao carregar PTQs: '+e.message); return; }
+  if(!rows.length){
+    showModal('Importar de PTQ','<div style="padding:8px;color:var(--text-muted)">Esta obra não tem Planos Quinzenais (PTQ) para importar.</div>',[{cls:'btn-outline',fn:'closeModal()',label:'Fechar'}]);
+    return;
+  }
+  const linhas=rows.map(r=>{
+    const p=ptqMap(r);
+    const nAtiv=(p.atividades||[]).filter(a=>a.desc).length;
+    return `<div style="border:1px solid var(--border-light);border-radius:6px;padding:10px 12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <div style="flex:1;min-width:200px">
+        <div style="font-weight:700">PTQ ${p.id}</div>
+        <div style="font-size:12px;color:var(--text-muted)">${esc(p.periodo||'—')}${p.semanas?' · semanas '+esc(p.semanas):''} · ${nAtiv} atividade(s)</div>
+      </div>
+      <button class="btn btn-gold btn-sm" onclick="rsoCriarDePTQ('${obraId}','${p.id}',1)">Importar Semana 1</button>
+      <button class="btn btn-outline btn-sm" onclick="rsoCriarDePTQ('${obraId}','${p.id}',2)">Importar Semana 2</button>
+    </div>`;
+  }).join('');
+  showModal('Importar de PTQ','<div style="max-height:60vh;overflow:auto">'+linhas+'</div>',[{cls:'btn-outline',fn:'closeModal()',label:'Cancelar'}]);
+};
+
+window.rsoCriarDePTQ=async function(obraId,ptqId,semana){
+  closeModal();
+  try{
+    showLoadingOverlay('A importar do PTQ...');
+    let ptqRow;
+    try{ const rr=await sbRel.get('planos_quinzenais',`id=eq.${encodeURIComponent(ptqId)}&obra_id=eq.${encodeURIComponent(obraId)}&limit=1`); ptqRow=rr&&rr[0]; }catch(e){}
+    if(!ptqRow){ hideLoadingOverlay(); alert('PTQ não encontrado.'); return; }
+    const ptq=ptqMap(ptqRow);
+    const off=(semana===2)?6:0;
+    const dias12=pqDiasDoPlano(ptq.inicioPlano); // 12 dias com iso
+    let semIni=ptq.inicioPlano||'';
+    if(off===6 && dias12[6]) semIni=dias12[6].iso;
+
+    // atividades: desc/local + previsto da semana escolhida
+    const ativs=(ptq.atividades||[]).filter(a=>a.desc||a.local).map(a=>({
+      id:uid(), descricao:a.desc||'', localizacao:a.local||'',
+      dias:Array.from({length:6},(_,c)=>({p:((a.dias&&a.dias[off+c])||0)>0, r:false}))
+    }));
+    // subempreiteiros: espelham a atividade (por índice); prev = nº da semana escolhida
+    const subs=(ptq.subs||[]).map((s,i)=>({
+      id:uid(),
+      atividade:((ptq.atividades&&ptq.atividades[i]&&ptq.atividades[i].desc)||''),
+      subempreiteiro:s.sub||'',
+      dias:Array.from({length:6},(_,c)=>({prev:(parseFloat(String((s.dias&&s.dias[off+c])||'').replace(',','.'))||0), efet:0}))
+    })).filter(s=> s.subempreiteiro || s.atividade || s.dias.some(x=>x.prev));
+    // feriados (por índice de dia 0..5) a partir dos iso do PTQ
+    const feriados=[];
+    for(let c=0;c<6;c++){ const dd=dias12[off+c]; feriados[c]=!!(dd && ptq.feriados && ptq.feriados[dd.iso]); }
+
+    const dados={
+      data:'', semanaIni:semIni, semana:(typeof rsoPeriodo==='function'?rsoPeriodo(semIni):''),
+      autor:currentUser.nome||'',
+      atividades:ativs, subempreiteiros:subs, feriados, documentacao:[], analise:'', outras_info:'', fotos:[],
+      ptqRef:{ id:ptq.id, periodo:ptq.periodo||'', semana:(off===6?2:1) }
+    };
+
+    const sameSerie=DB.relatorios.filter(r=>r.obra_id===obraId && r.conteudo && r.conteudo.tipo==='fiscalizacao' && r.conteudo.subtipo==='RS');
+    const proximoNum=(sameSerie.length?Math.max(...sameSerie.map(r=>r.numero||0)):0)+1;
+    const agora=new Date();
+    let mes=agora.getMonth()+1, ano=agora.getFullYear();
+    if(semIni){ const dt=new Date(semIni+'T00:00:00'); if(!isNaN(dt)){ mes=dt.getMonth()+1; ano=dt.getFullYear(); } }
+    const novo={ id:uid(), obra_id:obraId, numero:proximoNum, versao:0, mes, ano, estado:'rascunho',
+      criado_por:currentUser.id, criado_por_nome:currentUser.nome, criado_em:agora.toISOString(),
+      conteudo:{tipo:'fiscalizacao',subtipo:'RS',dados} };
+    await sbRel.post('relatorios',{...novo,conteudo:JSON.stringify(novo.conteudo)});
+    DB.relatorios.push(novo);
+
+    // marcar referência no PTQ
+    const refs=Array.isArray(ptq.rsosRef)?ptq.rsosRef:[];
+    refs.push({ relId:novo.id, numero:novo.numero+'.'+novo.versao, semana:(off===6?2:1), data:agora.toISOString().slice(0,10) });
+    try{ await sbRel.patch('planos_quinzenais',ptq.id,{rsos_ref:refs}); }catch(e){ console.error('Falha ao marcar PTQ:',e); }
+    const pdMem=(typeof ptqDocs!=='undefined')&&ptqDocs.find?ptqDocs.find(x=>x.id===ptq.id):null; if(pdMem) pdMem.rsosRef=refs;
+
+    hideLoadingOverlay();
+    // abrir o RSO criado
+    segObraId=null; fiscObraId=null; ptqObraId=null; ptqFichaId=null; peObraId=null; paObraId=null; pbObraId=null; qeObraId=null;
+    if(!capaContext||capaContext.subtipo!=='RS') capaContext={tipo:'fiscalizacao',subtipo:'RS',sigla:'RSO',label:'Relatório Semanal de Obra',backVar:'ficha'};
+    relObraId=obraId; relRelId=novo.id; relTab='form'; render();
+  }catch(e){ hideLoadingOverlay(); console.error(e); alert('Erro ao importar do PTQ: '+e.message); }
+};
+
+/* navegação cruzada RSO <-> PTQ */
+window.rsoAbrirPTQref=async function(obraId,ptqId){
+  relObraId=null; relRelId=null; fichObraId=null; fiscObraId=null; segObraId=null;
+  peObraId=null; paObraId=null; pbObraId=null; qeObraId=null;
+  ptqObraId=obraId; ptqFichaId=null;
+  try{ await ptqCarregar(); }catch(e){}
+  ptqFichaId=ptqId; render();
+};
+window.rsoAbrirRSOref=function(obraId,relId){
+  ptqObraId=null; ptqFichaId=null; peObraId=null; paObraId=null; pbObraId=null; qeObraId=null;
+  fichObraId=null; fiscObraId=null; segObraId=null;
+  capaContext={tipo:'fiscalizacao',subtipo:'RS',sigla:'RSO',label:'Relatório Semanal de Obra',backVar:'ficha'};
+  relObraId=obraId; relRelId=relId; relTab='form'; render();
+};
+
+/* ####### FIM RSO<-PTQ IMPORT ####### */
+
 /* ####### CO EMBUTIDO ####### */
 /* ============================================================
    CO — Controlo Operacional embutido na ficha da obra
