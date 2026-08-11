@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.08.11.0044</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.08.11.0103</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -2567,6 +2567,8 @@ function renderPublicRSO(rel,o,conteudo){
   const docs=(d.documentacao||[]).filter(x=>(x.descricao||'').trim()||(x.id||'').toString().trim()||(x.tipo||'').trim());
   const fotos=d.fotos||[];
   const feriados=d.feriados||{};
+  const ferCls=j=>{const v=feriados[j];return v==='ponte'?'day-pon':(v?'day-fer':'');};
+  const ferLbl=j=>{const v=feriados[j];return v==='ponte'?'Pon':(v?'Fer':'');};
   const DAY=['SEG','TER','QUA','QUI','SEX','SÁB'];
   // ----- KPIs Atividades -----
   let kAtv={nAt:0, prev:0, real:0, exec:0, atraso:0, extra:0};
@@ -2630,7 +2632,8 @@ function renderPublicRSO(rel,o,conteudo){
     .pill.p-on{background:#E5EFFA;color:#1B4F9B;border-color:#1B4F9B}
     .pill.r-on{background:#E5F4EC;color:#1A7A4A;border-color:#1A7A4A}
     .pill.off{background:#fafafa;color:#bbb}
-    .day-fer{background:#FEEFEF !important;color:#B91C1C}
+    .day-fer{background:#FDE7E7 !important;color:#B91C1C}
+    .day-pon{background:#FFF6E0 !important;color:#7C5E0A}
     .kpi-row{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin:10px 0 18px}
     .kpi{background:#fff;border:1px solid #d1d5db;border-radius:5px;padding:11px 13px;position:relative}
     .kpi::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:#6B7280;border-radius:3px 0 0 3px}
@@ -2675,7 +2678,7 @@ function renderPublicRSO(rel,o,conteudo){
       </div>
       </div><div class="g"><h2 data-pt="Atividades${kAtv.nAt?' · '+kAtv.nAt:''}">Atividades${kAtv.nAt?' · '+kAtv.nAt:''}</h2>
       ${kAtv.nAt?`<table>
-        <thead><tr><th class="c" style="width:36px" data-pt="ID">ID</th><th data-pt="Descrição">Descrição</th><th data-pt="Localização">Localização</th>${DAY.map((l,j)=>`<th class="c ${feriados[j]?'day-fer':''}" style="width:75px" data-pt="${l}${feriados[j]?' Fer':''}">${l}${feriados[j]?'<br><small>Fer</small>':''}</th>`).join('')}</tr></thead>
+        <thead><tr><th class="c" style="width:36px" data-pt="ID">ID</th><th data-pt="Descrição">Descrição</th><th data-pt="Localização">Localização</th>${DAY.map((l,j)=>`<th class="c ${ferCls(j)}" style="width:75px" data-pt="${l}${ferLbl(j)?' '+ferLbl(j):''}">${l}${ferLbl(j)?'<br><small>'+ferLbl(j)+'</small>':''}</th>`).join('')}</tr></thead>
         <tbody>${ativs.map((a,i)=>{
           const dias=a.dias||[];
           return `<tr>
@@ -2684,7 +2687,7 @@ function renderPublicRSO(rel,o,conteudo){
             <td data-pt="${esc(a.localizacao||'')}">${esc(a.localizacao||'')}</td>
             ${[0,1,2,3,4,5].map(j=>{
               const day=dias[j]||{};
-              return `<td class="c ${feriados[j]?'day-fer':''}"><span class="pill ${day.p?'p-on':'off'}">P</span><span class="pill ${day.r?'r-on':'off'}">R</span></td>`;
+              return `<td class="c ${ferCls(j)}"><span class="pill ${day.p?'p-on':'off'}">P</span><span class="pill ${day.r?'r-on':'off'}">R</span></td>`;
             }).join('')}
           </tr>`;
         }).join('')}</tbody>
@@ -2699,7 +2702,7 @@ function renderPublicRSO(rel,o,conteudo){
       </div>`:'<div class="empty" data-pt="Sem atividades registadas.">Sem atividades registadas.</div>'}
       </div><div class="g"><h2 data-pt="Subempreiteiros e Trabalhadores${kSub.nSub?' · '+kSub.nSub:''}">Subempreiteiros e Trabalhadores${kSub.nSub?' · '+kSub.nSub:''}</h2>
       ${kSub.nSub?`<table>
-        <thead><tr><th class="c" style="width:36px" data-pt="ID">ID</th><th data-pt="Atividade">Atividade</th><th data-pt="Subempreiteiro">Subempreiteiro</th>${DAY.map((l,j)=>`<th class="c ${feriados[j]?'day-fer':''}" style="width:80px" data-pt="${l}${feriados[j]?' Fer':''}">${l}${feriados[j]?'<br><small>Fer</small>':''}</th>`).join('')}</tr></thead>
+        <thead><tr><th class="c" style="width:36px" data-pt="ID">ID</th><th data-pt="Atividade">Atividade</th><th data-pt="Subempreiteiro">Subempreiteiro</th>${DAY.map((l,j)=>`<th class="c ${ferCls(j)}" style="width:80px" data-pt="${l}${ferLbl(j)?' '+ferLbl(j):''}">${l}${ferLbl(j)?'<br><small>'+ferLbl(j)+'</small>':''}</th>`).join('')}</tr></thead>
         <tbody>${subs.map((sub,i)=>{
           const origIdx=(subsAll).indexOf(sub);
           // Cascade backwards para encontrar a descrição da atividade
@@ -2716,7 +2719,7 @@ function renderPublicRSO(rel,o,conteudo){
             ${[0,1,2,3,4,5].map(j=>{
               const day=dias[j]||{};
               const hasP=(+day.prev)>0, hasE=(+day.efet)>0;
-              return `<td class="c ${feriados[j]?'day-fer':''}"><span class="pill ${hasP?'p-on':'off'}">${day.prev||'—'}</span><span class="pill ${hasE?'r-on':'off'}">${day.efet||'—'}</span></td>`;
+              return `<td class="c ${ferCls(j)}"><span class="pill ${hasP?'p-on':'off'}">${day.prev||'—'}</span><span class="pill ${hasE?'r-on':'off'}">${day.efet||'—'}</span></td>`;
             }).join('')}
           </tr>`;
         }).join('')}</tbody>
@@ -5636,7 +5639,10 @@ window.rsToggleFeriado=function(dayIdx){
   r.conteudo=r.conteudo||{tipo:'fiscalizacao',subtipo:'RS',dados:{}};
   r.conteudo.dados=r.conteudo.dados||{};
   r.conteudo.dados.feriados=r.conteudo.dados.feriados||{};
-  r.conteudo.dados.feriados[dayIdx]=!r.conteudo.dados.feriados[dayIdx];
+  const _cur=r.conteudo.dados.feriados[dayIdx];
+  if(!_cur) r.conteudo.dados.feriados[dayIdx]='feriado';
+  else if(_cur==='ponte') r.conteudo.dados.feriados[dayIdx]=false;
+  else r.conteudo.dados.feriados[dayIdx]='ponte';
   sbRel.patch('relatorios',relRelId,{conteudo:JSON.stringify(r.conteudo)}).catch(console.error);
   render();
 };
@@ -5945,12 +5951,15 @@ function renderFichaRS(app,r){
   </style>`;
   // grelha cabeçalho dias
   const dayHeader=RS_DAY_LETTERS.map((L,i)=>{
-    const F=!!d.feriados[i];
+    const Fv=d.feriados[i]; const F=Fv==='ponte'?'ponte':(Fv?'feriado':'');
     const wrapBase='box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;cursor:pointer;user-select:none;border-radius:3px;';
-    const wrapStyle=wrapBase+(F?'background:#B91C1C;color:#fff;padding:4px 2px;':'padding:4px 2px;');
-    const letStyle='display:block;width:100%;text-align:center;font-weight:700;font-size:11px;line-height:1.2;'+(F?'color:#fff;':'color:#1E3A5F;');
-    const dateStyle='display:block;width:100%;text-align:center;font-size:9px;'+(F?'color:#FFE0E0;':'color:var(--text-muted);opacity:.7;');
-    return `<div class="rs-day-h" style="${wrapStyle}" onclick="rsToggleFeriado(${i})" title="${F?'Feriado · clica para desmarcar':'Clica para marcar '+RS_DAY_NAMES[i]+' como feriado'}"><div class="rs-day-letter" style="${letStyle}">${L}</div><div class="rs-day-date" style="${dateStyle}">${rsDayDate(d.semanaIni,i)}</div></div>`;
+    const bg=F==='feriado'?'background:#FDE7E7;':(F==='ponte'?'background:#FFF6E0;':'');
+    const fg=F==='feriado'?'#B91C1C':(F==='ponte'?'#7C5E0A':'#1E3A5F');
+    const wrapStyle=wrapBase+bg+'padding:4px 2px;';
+    const letStyle='display:block;width:100%;text-align:center;font-weight:700;font-size:11px;line-height:1.2;color:'+fg+';';
+    const dateStyle='display:block;width:100%;text-align:center;font-size:9px;'+(F?('color:'+fg+';opacity:.8;'):'color:var(--text-muted);opacity:.7;');
+    const tit=F==='feriado'?'Feriado · clica para marcar Ponte':(F==='ponte'?'Ponte · clica para desmarcar':'Clica para marcar '+RS_DAY_NAMES[i]+' como Feriado / Ponte');
+    return `<div class="rs-day-h" style="${wrapStyle}" onclick="rsToggleFeriado(${i})" title="${tit}"><div class="rs-day-letter" style="${letStyle}">${L}${F?' <small>'+(F==='feriado'?'F':'P')+'</small>':''}</div><div class="rs-day-date" style="${dateStyle}">${rsDayDate(d.semanaIni,i)}</div></div>`;
   }).join('');
   // colsAt: id, tipo, descricao, localizacao, 6 dias, remove
   const colsAtLeft=`grid-template-columns:36px 1fr 1fr`;
@@ -5982,7 +5991,7 @@ function renderFichaRS(app,r){
         <div><div style="${lbl}">Período</div><input value="${esc(rsoPeriodo(d.semanaIni)||d.semana||'')}" readonly style="${inpRO}"></div>
       </div>
     </div>
-    ${d.ptqRef?`<div style="background:#EDE9FE;border:1px solid #C4B5FD;border-radius:6px;padding:8px 12px;margin:0 0 10px;font-size:12px;color:#5B21B6;display:flex;align-items:center;gap:8px;flex-wrap:wrap"><b>Importado do PTQ ${esc(d.ptqRef.id)}</b>${d.ptqRef.semana?' · Semana '+d.ptqRef.semana:''}${d.ptqRef.periodo?' · '+esc(d.ptqRef.periodo):''}<a onclick="rsoAbrirPTQref('${r.obra_id}','${esc(d.ptqRef.id)}')" style="color:#5B21B6;text-decoration:underline;cursor:pointer;margin-left:auto">Abrir PTQ →</a></div>`:''}
+    ${d.ptqRef?`<div style="font-size:12px;color:var(--info);margin:0 0 10px">Importado do <a onclick="rsoAbrirPTQref('${r.obra_id}','${esc(d.ptqRef.id)}')" style="color:var(--info);text-decoration:underline;cursor:pointer">PTQ ${esc(d.ptqRef.id)}</a>${d.ptqRef.semana?' (S'+d.ptqRef.semana+')':''}${d.ptqRef.periodo?' · '+esc(d.ptqRef.periodo):''}</div>`:''}
 
     <!-- ATIVIDADES -->
     <div class="table-card" style="padding:14px;margin-bottom:12px">
@@ -6790,7 +6799,7 @@ window.rsoCriarDePTQ=async function(obraId,ptqId,semana){
     })).filter(s=> s.subempreiteiro || s.atividade || s.dias.some(x=>x.prev));
     // feriados (por índice de dia 0..5) a partir dos iso do PTQ
     const feriados=[];
-    for(let c=0;c<6;c++){ const dd=dias12[off+c]; feriados[c]=!!(dd && ptq.feriados && ptq.feriados[dd.iso]); }
+    for(let c=0;c<6;c++){ const dd=dias12[off+c]; feriados[c]=(dd && ptq.feriados && ptq.feriados[dd.iso])||false; }
 
     const dados={
       data:'', semanaIni:semIni, semana:(typeof rsoPeriodo==='function'?rsoPeriodo(semIni):''),
