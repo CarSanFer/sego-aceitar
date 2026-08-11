@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.08.11.0103</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.08.11.0111</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -5934,7 +5934,7 @@ function renderFichaRS(app,r){
     .rs-pill:disabled{cursor:not-allowed;opacity:.6}
     .rs-day-h{cursor:pointer;text-align:center;padding:4px 2px;font-size:10px;color:var(--text-muted);letter-spacing:.3px;user-select:none;border-radius:3px;transition:background .12s;display:flex;flex-direction:column;align-items:center;justify-content:center;box-sizing:border-box}
     .rs-day-h:hover{background:#F1F5F9}
-    .rs-day-h.fer{background:#B91C1C !important;color:#fff !important;border-radius:3px}
+    
     .rs-day-h.fer:hover{background:#A01818 !important}
     .rs-day-letter{font-weight:700;font-size:11px;color:#1E3A5F}
     .rs-day-h.fer .rs-day-letter{color:#fff !important}
@@ -5943,11 +5943,13 @@ function renderFichaRS(app,r){
     .rs-fer-btn{display:block;width:20px;height:18px;border:0.5px solid #c8ccd1;background:#fff;font-size:9px;font-weight:700;cursor:pointer;border-radius:3px;color:#B91C1C;padding:0;margin:3px auto 0;line-height:1}
     .rs-fer-btn.on{background:#fff !important;color:#B91C1C !important;border-color:#fff !important;font-weight:900}
     .rs-day-cell{padding:6px 2px;display:flex;justify-content:center;align-items:center;gap:14px;box-sizing:border-box}
-    .rs-day-cell.fer{}
+    .rs-day-cell.feriado{background:#FDE7E7;border-radius:3px}
+    .rs-day-cell.ponte{background:#FFF6E0;border-radius:3px}
     .rs-num{width:34px;padding:2px 4px;border:0.5px solid var(--border-light);border-radius:3px;font-size:11px;font-family:inherit;text-align:center;background:#fff;box-sizing:border-box}
     .rs-num:disabled,.rs-num[readonly]{background:#f0f2f5;color:#666}
     .rs-sub-day{display:flex;flex-direction:column;gap:2px;padding:3px 2px;box-sizing:border-box}
-    .rs-sub-day.fer{}
+    .rs-sub-day.feriado{background:#FDE7E7;border-radius:3px}
+    .rs-sub-day.ponte{background:#FFF6E0;border-radius:3px}
   </style>`;
   // grelha cabeçalho dias
   const dayHeader=RS_DAY_LETTERS.map((L,i)=>{
@@ -5959,7 +5961,7 @@ function renderFichaRS(app,r){
     const letStyle='display:block;width:100%;text-align:center;font-weight:700;font-size:11px;line-height:1.2;color:'+fg+';';
     const dateStyle='display:block;width:100%;text-align:center;font-size:9px;'+(F?('color:'+fg+';opacity:.8;'):'color:var(--text-muted);opacity:.7;');
     const tit=F==='feriado'?'Feriado · clica para marcar Ponte':(F==='ponte'?'Ponte · clica para desmarcar':'Clica para marcar '+RS_DAY_NAMES[i]+' como Feriado / Ponte');
-    return `<div class="rs-day-h" style="${wrapStyle}" onclick="rsToggleFeriado(${i})" title="${tit}"><div class="rs-day-letter" style="${letStyle}">${L}${F?' <small>'+(F==='feriado'?'F':'P')+'</small>':''}</div><div class="rs-day-date" style="${dateStyle}">${rsDayDate(d.semanaIni,i)}</div></div>`;
+    return `<div class="rs-day-h" style="${wrapStyle}" onclick="rsToggleFeriado(${i})" title="${tit}"><div class="rs-day-letter" style="${letStyle}">${L}</div><div class="rs-day-date" style="${dateStyle}">${rsDayDate(d.semanaIni,i)}</div></div>`;
   }).join('');
   // colsAt: id, tipo, descricao, localizacao, 6 dias, remove
   const colsAtLeft=`grid-template-columns:36px 1fr 1fr`;
@@ -6024,7 +6026,7 @@ function renderFichaRS(app,r){
         const tR=isRowValid?'Realizado':'Preencher Descrição e Localização para registar P/R';
         const dayCells=RS_DAY_LETTERS.map((_,j)=>{
           const day=dias[j]||{p:false,r:false};
-          const fer=d.feriados[j]?'fer':'';
+          const _fv=d.feriados[j]; const fer=_fv==='ponte'?'ponte':(_fv?'feriado':'');
           return `<div class="rs-day-cell ${fer}" style="display:flex;justify-content:center;align-items:center;gap:14px;padding:6px 2px;box-sizing:border-box">
             <button class="rs-pill p ${day.p?'on':''}" data-rs="atv-${i}-${j}-p" onclick="rsToggleDay(this,${i},${j},'p')" title="${tP}" style="width:28px;height:26px;border:1px solid #c8ccd1;border-radius:4px;background:${day.p?'#E5EFFA':'#fff'};color:${day.p?'#1B4F9B':'#888'};font-size:12px;font-weight:700;cursor:${pillCur};padding:0;display:inline-flex;align-items:center;justify-content:center;opacity:${pillOp}">P</button>
             <button class="rs-pill r ${day.r?'on':''}" data-rs="atv-${i}-${j}-r" onclick="rsToggleDay(this,${i},${j},'r')" title="${tR}" style="width:28px;height:26px;border:1px solid #c8ccd1;border-radius:4px;background:${day.r?'#E5F4EC':'#fff'};color:${day.r?'#1A7A4A':'#888'};font-size:12px;font-weight:700;cursor:${pillCur};padding:0;display:inline-flex;align-items:center;justify-content:center;opacity:${pillOp}">R</button>
@@ -6032,7 +6034,7 @@ function renderFichaRS(app,r){
         }).join('');
         return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;align-items:center;border-bottom:0.5px dashed var(--border-light)">
           <div style="display:grid;${colsAtLeft};gap:6px;align-items:center">
-            <div style="font-size:11px;color:var(--text-muted);text-align:center;padding:5px 0">${a.id||(i+1)}</div>
+            <div style="font-size:11px;color:var(--text-muted);text-align:center;padding:5px 0">${i+1}</div>
             <div style="padding:4px 0"><input value="${esc(a.descricao)}" ${ro?'readonly':''} oninput="rsCommit('atividades',${i},'descricao',this.value)" style="${ro?inpRO:inpS}"></div>
             <div style="padding:4px 0"><input value="${esc(a.localizacao)}" ${ro?'readonly':''} oninput="rsCommit('atividades',${i},'localizacao',this.value)" style="${ro?inpRO:inpS}"></div>
           </div>
@@ -6086,7 +6088,7 @@ function renderFichaRS(app,r){
         const tE=isRowValid?'Efetivos':'Preencher Ativ. e Subempreiteiro para registar P/E';
         const dayCells=RS_DAY_LETTERS.map((_,j)=>{
           const day=dias[j]||{prev:0,efet:0};
-          const fer=d.feriados[j]?'fer':'';
+          const _fv=d.feriados[j]; const fer=_fv==='ponte'?'ponte':(_fv?'feriado':'');
           const hasP=(+day.prev)>0, hasE=(+day.efet)>0;
           return `<div class="rs-day-cell ${fer}" style="display:flex;justify-content:center;align-items:center;gap:14px;padding:6px 2px;box-sizing:border-box">
             <input type="number" min="0" inputmode="numeric" value="${day.prev||''}" placeholder="P" data-rs="sub-${i}-${j}-prev" ${!isRowValid?'disabled':''} ${ro?'readonly':''} oninput="rsSetWorkerDay(${i},${j},'prev',this.value)" onchange="rsReplicateWorkerDay(${i},${j},'prev',this.value)" title="${tP}" style="width:40px;height:26px;border:1px solid #c8ccd1;border-radius:4px;font-size:12px;text-align:center;font-weight:700;padding:0;font-family:inherit;box-sizing:border-box;background:${hasP?'#E5EFFA':'#fff'};color:${hasP?'#1B4F9B':'#888'};opacity:${inpOp};cursor:${inpCur}">
@@ -6095,7 +6097,7 @@ function renderFichaRS(app,r){
         }).join('');
         return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;align-items:center;border-bottom:0.5px dashed var(--border-light)">
           <div style="display:grid;${colsAtLeft};gap:6px;align-items:center">
-            <div style="font-size:11px;color:var(--text-muted);text-align:center;padding:5px 0">${s.id||(i+1)}</div>
+            <div style="font-size:11px;color:var(--text-muted);text-align:center;padding:5px 0">${i+1}</div>
             <div style="padding:4px 0">${(()=>{
               const _hasSub=!!((s.subempreiteiro||'').trim());
               let _desc='', _from=-1;
