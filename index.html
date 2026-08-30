@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.08.19.1614</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.08.30.1758</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -2671,7 +2671,9 @@ function renderPublicRSO(rel,o,conteudo){
     .text-block{background:#fff;border:1px solid #d1d5db;border-radius:6px;padding:14px;white-space:pre-wrap;font-size:13px;line-height:1.6;color:#333;min-height:30px}
     .text-block.empty{color:#9ca3af;font-style:italic;font-size:12px}
     .photos{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
-    .photos a{display:block;aspect-ratio:1;background-size:cover;background-position:center;border-radius:6px;border:1px solid #ddd;text-decoration:none;background-color:#f0f0f0}
+    .photos a{display:block;text-decoration:none;color:inherit}
+    .photos a img{display:block;width:100%;aspect-ratio:1;object-fit:cover;border-radius:6px;border:1px solid #ddd;background:#f0f0f0}
+    .photos .ph-leg{font-size:10px;color:#666;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     .footer{margin-top:36px;padding:18px 28px;border-top:1px solid #e5e7eb;font-size:11px;color:#888;text-align:center;background:#fafbfc}
     .empty{font-style:italic;color:#9ca3af;padding:8px 0;font-size:12px}
     @media print {body{background:#fff} .container{box-shadow:none;max-width:none}}
@@ -2767,7 +2769,7 @@ function renderPublicRSO(rel,o,conteudo){
       </div><div class="g"><h2 data-pt="Outras Informações Relevantes">Outras Informações Relevantes</h2>
       ${(d.outras_info||'').trim()?`<div class="text-block" data-pt="${esc(d.outras_info)}">${esc(d.outras_info)}</div>`:`<div class="text-block empty" data-pt="Sem outras informações.">Sem outras informações.</div>`}
       </div><div class="g"><h2 data-pt="Fotos${fotos.length?' · '+fotos.length:''}">Fotos${fotos.length?' · '+fotos.length:''}</h2>
-      ${fotos.length?`<div class="photos">${fotos.map(p=>`<a href="${p.url}" target="_blank" rel="noopener" style="background-image:url('${p.url}')" title="${esc(p.legenda||p.name||'')}"></a>`).join('')}</div>`:`<div class="text-block empty" data-pt="Sem fotos registadas.">Sem fotos registadas.</div>`}
+      ${fotos.length?`<div class="photos">${fotos.map(p=>`<a href="${p.url}" target="_blank" rel="noopener" title="${esc(p.legenda||p.name||'')}"><img src="${p.url}" alt="${esc(p.legenda||p.name||'')}" loading="lazy">${p.legenda?`<div class="ph-leg">${esc(p.legenda)}</div>`:''}</a>`).join('')}</div>`:`<div class="text-block empty" data-pt="Sem fotos registadas.">Sem fotos registadas.</div>`}
       </div>
     </div>
     <div class="footer">SEGO · Sistema Externo de Gestão de Obras · ${esc(sigla)} RSO ${num}${rel.criado_em?' · publicado em '+fmtDate(rel.criado_em.split('T')[0]):''}</div>
