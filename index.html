@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.09.12.1209</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.09.12.1226</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -3076,7 +3076,7 @@ async function peConfirmarEnvioProj(projId,coment){
   d.projDestId=p.id; d.projDestNome=p.nome; d.projDestEmail=p.email;
   d.projEspecialidade=(p.especialidades||[]).map(peNomeEsp).join(', ');
   peRegistar(d,'Enviado ao Projetista '+p.nome+' — passa a Pendente.'+(coment?' Comentário: '+coment:''));
-  await peNotificar(d,p.email,'Pedido de Esclarecimento '+d.id+' aguarda o seu esclarecimento.'+(coment?'\n\nComentário da Fiscalização: '+coment:''),'Projetista');
+  await peNotificar(d,p.email,'Pedido de Esclarecimento '+d.id+' aguarda o seu esclarecimento.'+(coment?'<br><br><strong style="font-weight:700">Comentário da Fiscalização:</strong> '+esc(coment):''),'Projetista');
   await pePersistir(d); peAbrirFicha(d.id);
 }
 window.peSubmeterEsclarecimento=async function(){
@@ -3494,7 +3494,7 @@ function paMap(r){
     motivo:r.motivo||'',localizacao:r.localizacao||'',previsto:r.previsto||'',proposto:r.proposto||'',
     temAmostras:!!r.tem_amostras,temFichas:!!r.tem_fichas,temConformidade:!!r.tem_conformidade,temOutros:!!r.tem_outros,
     obsEmp:r.observacoes_emp||'',anexosEmp:r.anexos_emp||[],
-    autorFiscEnvio:r.autor_fisc_envio||'',projDestId:r.proj_dest_id||'',projDestNome:r.proj_dest_nome||'',projDestEmail:r.proj_dest_email||'',
+    autorFiscEnvio:r.autor_fisc_envio||'',comentFiscEnvio:r.comentario_fisc_envio||'',projDestId:r.proj_dest_id||'',projDestNome:r.proj_dest_nome||'',projDestEmail:r.proj_dest_email||'',
     autorProj:r.autor_projetista||'',projData:r.proj_data,projParecer:r.proj_parecer||'',obsProj:r.proj_observacoes||'',anexosProj:r.anexos_proj||[],
     autorFiscResp:r.autor_fisc_resp||'',fiscParecer:r.fisc_parecer||'',obsFisc:r.fisc_observacoes||'',anexosFisc:r.anexos_fisc||[],
     viaDireta:!!r.via_direta,prevId:r.prev_id,nextId:r.next_id,historico:r.historico||[]};
@@ -3508,7 +3508,7 @@ function paUnmap(d){
     motivo:d.motivo,localizacao:d.localizacao,previsto:d.previsto,proposto:d.proposto,
     tem_amostras:d.temAmostras,tem_fichas:d.temFichas,tem_conformidade:d.temConformidade,tem_outros:d.temOutros,
     observacoes_emp:d.obsEmp,anexos_emp:d.anexosEmp,
-    autor_fisc_envio:d.autorFiscEnvio,proj_dest_id:d.projDestId||null,proj_dest_nome:d.projDestNome||null,proj_dest_email:d.projDestEmail||null,
+    autor_fisc_envio:d.autorFiscEnvio,comentario_fisc_envio:d.comentFiscEnvio||null,proj_dest_id:d.projDestId||null,proj_dest_nome:d.projDestNome||null,proj_dest_email:d.projDestEmail||null,
     autor_projetista:d.autorProj,proj_data:d.projData||null,proj_parecer:d.projParecer||null,proj_observacoes:d.obsProj,anexos_proj:d.anexosProj,
     autor_fisc_resp:d.autorFiscResp,fisc_parecer:d.fiscParecer||null,fisc_observacoes:d.obsFisc,anexos_fisc:d.anexosFisc,
     via_direta:d.viaDireta,prev_id:d.prevId,next_id:d.nextId,historico:d.historico,updated_at:new Date().toISOString()};
@@ -3557,7 +3557,7 @@ function paDocNovo(num,rev,base){
     motivo:(base&&base.motivo)||'',localizacao:(base&&base.localizacao)||'',previsto:(base&&base.previsto)||'',proposto:(base&&base.proposto)||'',
     temAmostras:false,temFichas:false,temConformidade:false,temOutros:false,
     obsEmp:base?('(Revisão de '+base.id+')\n\n'+(base.obsEmp||'')):'',anexosEmp:[],
-    autorFiscEnvio:'',projDestId:'',projDestNome:'',projDestEmail:'',
+    autorFiscEnvio:'',comentFiscEnvio:'',projDestId:'',projDestNome:'',projDestEmail:'',
     autorProj:'',projData:null,projParecer:'',obsProj:'',anexosProj:[],
     autorFiscResp:'',fiscParecer:'',obsFisc:'',anexosFisc:[],viaDireta:false,
     prevId:base?base.id:null,nextId:null,historico:[]};
@@ -3616,16 +3616,17 @@ window.paEnviarFisc=async function(){
   await paNotificar(d,paEmails('fiscalizacao'),'Novo Pedido de Aprovação '+d.id+' recebido do Empreiteiro.','Fiscalização');
   await paPersistir(d); paAbrirFicha(d.id);
 };
-async function paConfirmarEnvioProj(projId){
+async function paConfirmarEnvioProj(projId,coment){
   const d=paFichaAtualDoc(); if(!d) return;
   const p=paProjetistas().find(x=>String(x.id)===String(projId));
   if(!p){ alert('Projetista inválido.'); return; }
   if(!p.email){ alert('O projetista escolhido não tem email no SID.'); return; }
   paFecharModal();
   d.autorFiscEnvio=currentUser?currentUser.nome:''; d.estado='pendente'; d.dataEnvioProj=peHoje();
+  d.comentFiscEnvio=coment||'';
   d.projDestId=p.id; d.projDestNome=p.nome; d.projDestEmail=p.email;
-  paRegistar(d,'Enviado ao Projetista '+p.nome+' — passa a Pendente.');
-  await paNotificar(d,p.email,'Pedido de Aprovação '+d.id+' aguarda o seu parecer.','Projetista');
+  paRegistar(d,'Enviado ao Projetista '+p.nome+' — passa a Pendente.'+(coment?' Comentário: '+coment:''));
+  await paNotificar(d,p.email,'Pedido de Aprovação '+d.id+' aguarda o seu parecer.'+(coment?'<br><br><strong style="font-weight:700">Comentário da Fiscalização:</strong> '+esc(coment):''),'Projetista');
   await paPersistir(d); paAbrirFicha(d.id);
 }
 async function paConfirmarParecerProj(parecer,obs){
@@ -3854,7 +3855,7 @@ function renderFichaPA(app){
           ${peCampo('Data de envio','x',d.dataEnvioProj,'date',false)}
           ${peCampo('Autor','x',d.autorFiscEnvio,'text',false)}
           ${peCampo('Projetista','x',d.projDestNome,'text',false)}
-        </div></div></div>` : '';
+        </div>${d.comentFiscEnvio?`<div class="pe-mt">${peCampo('Comentário','x',d.comentFiscEnvio,'textarea',false)}</div>`:''}</div></div>` : '';
 
   /* Projetista — parecer */
   const secProj=(d.dataEnvioProj||d.projParecer)
@@ -3927,7 +3928,8 @@ window.paModalProjetista=function(){
   const veu=document.createElement('div'); veu.className='pe-veu'; veu.id='pe-veu';
   veu.innerHTML=`<div class="pe-modal"><h3>Enviar ao Projetista</h3>
     <div class="pe-mb"><div class="pe-msub">${esp?('Especialidade do pedido: <b>'+esc(peNomeEsp(esp))+'</b>. '):''}As especialidades mostradas são as que cada projetista cobre nesta obra.</div>
-      <table class="pe-seltab"><tbody>${linhas}</tbody></table></div>
+      <table class="pe-seltab"><tbody>${linhas}</tbody></table>
+      <div class="pe-fld pe-mt"><label>Comentário ao Projetista (opcional)</label><textarea id="pa-coment-envio" placeholder="Comentário a incluir na notificação"></textarea></div></div>
     <div class="pe-mrod"><button class="pe-btn" onclick="paFecharModal()">Cancelar</button>
       <button class="pe-btn gold" onclick="paSubmeterEscolhaProj()">Enviar Link →</button></div></div>`;
   document.body.appendChild(veu);
@@ -3935,7 +3937,8 @@ window.paModalProjetista=function(){
 window.paSubmeterEscolhaProj=function(){
   const s=document.querySelector('input[name="pa-rp"]:checked');
   if(!s){ alert('Selecione um projetista.'); return; }
-  paConfirmarEnvioProj(s.value);
+  const c=document.getElementById('pa-coment-envio');
+  paConfirmarEnvioProj(s.value,(c&&c.value?c.value.trim():''));
 };
 window.paModalParecer=function(){
   const d=paFichaAtualDoc(); if(!d) return;
