@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.08.30.1820</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.09.12.1209</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -2933,7 +2933,7 @@ function peMap(r){
     dataResposta:r.data_resposta,dataFecho:r.data_fecho,
     autorEmp:r.autor_empreiteiro||'',assunto:r.assunto||'',artigos:r.artigos||'',desenho:r.desenho||'',
     pedidoTexto:r.pedido_texto||'',anexosEmp:r.anexos_emp||[],
-    autorFiscEnvio:r.autor_fisc_envio||'',dataEnvioProj:r.data_envio_proj,
+    autorFiscEnvio:r.autor_fisc_envio||'',dataEnvioProj:r.data_envio_proj,comentFiscEnvio:r.comentario_fisc_envio||'',
     projDestId:r.proj_dest_id||'',projDestNome:r.proj_dest_nome||'',projDestEmail:r.proj_dest_email||'',projEspecialidade:r.proj_especialidade||'',
     autorProj:r.autor_projetista||'',projData:r.proj_data,esclarecimento:r.esclarecimento||'',anexosProj:r.anexos_proj||[],
     autorFiscResp:r.autor_fisc_resp||'',observacoes:r.observacoes||'',
@@ -2945,7 +2945,7 @@ function peUnmap(d){
     data_resposta:d.dataResposta||null,data_fecho:d.dataFecho||null,
     autor_empreiteiro:d.autorEmp,assunto:d.assunto,artigos:d.artigos,desenho:d.desenho,
     pedido_texto:d.pedidoTexto,anexos_emp:d.anexosEmp,
-    autor_fisc_envio:d.autorFiscEnvio,data_envio_proj:d.dataEnvioProj||null,
+    autor_fisc_envio:d.autorFiscEnvio,data_envio_proj:d.dataEnvioProj||null,comentario_fisc_envio:d.comentFiscEnvio||null,
     proj_dest_id:d.projDestId||null,proj_dest_nome:d.projDestNome||null,proj_dest_email:d.projDestEmail||null,proj_especialidade:d.projEspecialidade||null,
     autor_projetista:d.autorProj,proj_data:d.projData||null,esclarecimento:d.esclarecimento,anexos_proj:d.anexosProj,
     autor_fisc_resp:d.autorFiscResp,observacoes:d.observacoes,
@@ -2997,7 +2997,7 @@ function peDocNovo(num,rev,base){
     autorEmp:(base&&base.autorEmp)||(currentUser?currentUser.nome:''),
     assunto:(base&&base.assunto)||'',artigos:(base&&base.artigos)||'',desenho:(base&&base.desenho)||'',
     pedidoTexto:base?('(Revisão de '+base.id+')\n\n'+(base.pedidoTexto||'')):'',anexosEmp:[],
-    autorFiscEnvio:'',dataEnvioProj:null,projDestId:'',projDestNome:'',projDestEmail:'',projEspecialidade:'',
+    autorFiscEnvio:'',dataEnvioProj:null,comentFiscEnvio:'',projDestId:'',projDestNome:'',projDestEmail:'',projEspecialidade:'',
     autorProj:'',projData:null,esclarecimento:'',anexosProj:[],
     autorFiscResp:'',observacoes:'',
     prevId:base?base.id:null,nextId:null,historico:[]};
@@ -3065,17 +3065,18 @@ window.peEnviarFisc=async function(){
   await peNotificar(d,peEmails('fiscalizacao'),'Novo Pedido de Esclarecimento '+d.id+' recebido do Empreiteiro.','Fiscalização');
   await pePersistir(d); peAbrirFicha(d.id);
 };
-async function peConfirmarEnvioProj(projId){
+async function peConfirmarEnvioProj(projId,coment){
   const d=peFichaAtualDoc(); if(!d) return;
   const p=peProjetistas().find(x=>String(x.id)===String(projId));
   if(!p){ alert('Projetista inválido.'); return; }
   if(!p.email){ alert('O projetista escolhido não tem email no SID.'); return; }
   peFecharModal();
   d.autorFiscEnvio=currentUser?currentUser.nome:''; d.estado='pendente'; d.dataEnvioProj=peHoje();
+  d.comentFiscEnvio=coment||'';
   d.projDestId=p.id; d.projDestNome=p.nome; d.projDestEmail=p.email;
   d.projEspecialidade=(p.especialidades||[]).map(peNomeEsp).join(', ');
-  peRegistar(d,'Enviado ao Projetista '+p.nome+' — passa a Pendente.');
-  await peNotificar(d,p.email,'Pedido de Esclarecimento '+d.id+' aguarda o seu esclarecimento.','Projetista');
+  peRegistar(d,'Enviado ao Projetista '+p.nome+' — passa a Pendente.'+(coment?' Comentário: '+coment:''));
+  await peNotificar(d,p.email,'Pedido de Esclarecimento '+d.id+' aguarda o seu esclarecimento.'+(coment?'\n\nComentário da Fiscalização: '+coment:''),'Projetista');
   await pePersistir(d); peAbrirFicha(d.id);
 }
 window.peSubmeterEsclarecimento=async function(){
@@ -3343,7 +3344,7 @@ function renderFichaPE(app){
           ${peCampo('Data de envio','x',d.dataEnvioProj,'date',false)}
           ${peCampo('Autor','x',d.autorFiscEnvio,'text',false)}
           ${peCampo('Projetista','x',d.projDestNome,'text',false)}
-        </div>${d.projEspecialidade?`<div class="pe-mt">${peCampo('Especialidade','x',d.projEspecialidade,'text',false)}</div>`:''}</div></div>` : '';
+        </div>${d.projEspecialidade?`<div class="pe-mt">${peCampo('Especialidade','x',d.projEspecialidade,'text',false)}</div>`:''}${d.comentFiscEnvio?`<div class="pe-mt">${peCampo('Comentário','x',d.comentFiscEnvio,'textarea',false)}</div>`:''}</div></div>` : '';
 
   /* Zona Projetista */
   const secProj=`<div class="pe-zone pe-proj"><div class="pe-zh"><span class="pe-zdot"></span><span class="pe-zt">Projetista — Esclarecimento</span></div>
@@ -3406,6 +3407,7 @@ window.peAbrirModalProjetista=function(){
     <div class="pe-mb">
       <div class="pe-msub">As especialidades mostradas são as que cada projetista cobre nesta obra.</div>
       <table class="pe-seltab"><tbody>${linhas}</tbody></table>
+      <div class="pe-fld pe-mt"><label>Comentário ao Projetista (opcional)</label><textarea id="pe-coment-envio" placeholder="Comentário a incluir na notificação"></textarea></div>
     </div>
     <div class="pe-mrod">
       <button class="pe-btn" onclick="peFecharModal()">Cancelar</button>
@@ -3416,7 +3418,8 @@ window.peAbrirModalProjetista=function(){
 window.peSubmeterEscolhaProj=function(){
   const s=document.querySelector('input[name="pe-rp"]:checked');
   if(!s){ alert('Selecione um projetista.'); return; }
-  peConfirmarEnvioProj(s.value);
+  const c=document.getElementById('pe-coment-envio');
+  peConfirmarEnvioProj(s.value,(c&&c.value?c.value.trim():''));
 };
 
 /* ---- Entrada a partir do card na capa Fiscalização ---- */
