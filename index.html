@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.09.13.1235</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.09.13.1305</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -3314,7 +3314,7 @@ function renderFichaPE(app){
     acoes.push(`<button class="pe-btn green" onclick="peFechar()">Fechar</button>`);
     acoes.push(`<button class="pe-btn" onclick="peRever()">Revisão</button>`);
   }
-  if(peESuper()) acoes.push(`<button class="pe-btn red" onclick="peEliminar('${d.id}')">Eliminar</button>`);
+  if(peESuper()){ acoes.push(`<button class="pe-btn" onclick="gpeAdmEditar('pe','${d.id}')">Editar (Admin)</button>`); acoes.push(`<button class="pe-btn red" onclick="peEliminar('${d.id}')">Eliminar</button>`); }
 
   /* Zona Identificação */
   const secId=`<div class="pe-zone pe-ident"><div class="pe-zh"><span class="pe-zdot"></span><span class="pe-zt">Identificação</span></div>
@@ -3799,7 +3799,7 @@ function renderFichaPA(app){
     acoes.push(`<button class="pe-btn green" onclick="paFechar()">Fechar</button>`);
     acoes.push(`<button class="pe-btn" onclick="paRever()">Revisão</button>`);
   }
-  if(peESuper()) acoes.push(`<button class="pe-btn red" onclick="paEliminar('${d.id}')">Eliminar</button>`);
+  if(peESuper()){ acoes.push(`<button class="pe-btn" onclick="gpeAdmEditar('pa','${d.id}')">Editar (Admin)</button>`); acoes.push(`<button class="pe-btn red" onclick="paEliminar('${d.id}')">Eliminar</button>`); }
 
   const espSel = eEmp
     ? `<div class="pe-fld"><label>Especialidade</label><select id="fa-especialidade">${'<option value="">— escolher —</option>'+(DB.especialidades||[]).map(e=>`<option value="${esc(e.codigo)}" ${e.codigo===d.especialidade?'selected':''}>${esc(e.nome)}</option>`).join('')}</select></div>`
@@ -4327,7 +4327,7 @@ function renderFichaPB(app){
     acoes.push(`<button class="pe-btn gold" onclick="pbModalDecisao()">Decidir →</button>`);
     notas.push('Preencha as verificações e decida: Aprovado fecha o pedido; Não Aprovado gera revisão para o Empreiteiro.');
   }
-  if(peESuper()) acoes.push(`<button class="pe-btn red" onclick="pbEliminar('${d.id}')">Eliminar</button>`);
+  if(peESuper()){ acoes.push(`<button class="pe-btn" onclick="gpeAdmEditar('pb','${d.id}')">Editar (Admin)</button>`); acoes.push(`<button class="pe-btn red" onclick="pbEliminar('${d.id}')">Eliminar</button>`); }
 
   /* Identificação */
   const secId=`<div class="pe-zone pe-ident"><div class="pe-zh"><span class="pe-zdot"></span><span class="pe-zt">Identificação</span></div>
@@ -4780,7 +4780,7 @@ function renderFichaPTQ(app){
     acoes.push(`<button class="pe-btn" onclick="ptqGuardarRascunho()">Guardar Rascunho</button>`);
     acoes.push(`<button class="pe-btn green" onclick="ptqEnviar()">Enviar à Fiscalização →</button>`);
   }
-  if(peESuper()) acoes.push(`<button class="pe-btn red" onclick="ptqEliminar('${d.id}')">Eliminar</button>`);
+  if(peESuper()){ acoes.push(`<button class="pe-btn" onclick="gpeAdmEditar('ptq','${d.id}')">Editar (Admin)</button>`); acoes.push(`<button class="pe-btn red" onclick="ptqEliminar('${d.id}')">Eliminar</button>`); }
 
   const cg=`<colgroup><col class="c-num"><col class="c-trab"><col class="c-sec">`+dias.map(()=>'<col class="c-dia">').join('')+`<col class="c-del"></colgroup>`;
   const cabDatas=dias.map((x,c)=>{ const e=fer(c); return `<th class="dia-cab ${e?'esp-'+e:''} ${x.dow===6?'sab':''} ${ed?'clic':''}" ${ed?`onclick="pqCicloDiaEspecial(${c})"`:''} title="${ed?'Clique para marcar Feriado / Ponte':''}"><span class="d-data">${x.dm}</span></th>`; }).join('');
@@ -5180,7 +5180,7 @@ function renderFichaQE(app){
     acoes.push(`<button class="pe-btn gold" onclick="qeModalParecer()">Dar Parecer →</button>`);
     notas.push('Aceite a correção (fecha) ou peça revisão indicando o motivo (gera nova revisão para o Empreiteiro).');
   }
-  if(peESuper()) acoes.push(`<button class="pe-btn red" onclick="qeEliminar('${d.id}')">Eliminar</button>`);
+  if(peESuper()){ acoes.push(`<button class="pe-btn" onclick="gpeAdmEditar('qe','${d.id}')">Editar (Admin)</button>`); acoes.push(`<button class="pe-btn red" onclick="qeEliminar('${d.id}')">Eliminar</button>`); }
 
   const espSel = eFisc
     ? `<div class="pe-fld"><label>Especialidade</label><select id="qe-especialidade">${'<option value="">— escolher —</option>'+(DB.especialidades||[]).map(e=>`<option value="${esc(e.codigo)}" ${e.codigo===d.especialidade?'selected':''}>${esc(e.nome)}</option>`).join('')}</select></div>`
@@ -5397,6 +5397,71 @@ window.gpeAdmImportar=function(mod){
     });
   };
   input.click();
+};
+
+
+/* Editor Admin — todos os campos do registo (superadmin) */
+let gpeAdmEditCtx=null;
+window.gpeAdmEditar=async function(mod,id){
+  if(!peESuper()) return;
+  const cfg=GPE_ADM[mod]; const obra=cfg&&cfg.obra(); if(!obra) return;
+  let rows;
+  try{ rows=await sbRel.get(cfg.tab,`id=eq.${encodeURIComponent(id)}&obra_id=eq.${encodeURIComponent(obra.id)}&limit=1`); }
+  catch(e){ alert('Erro a ler: '+e.message); return; }
+  const r=rows&&rows[0]; if(!r){ alert('Registo não encontrado.'); return; }
+  gpeAdmEditCtx={mod,id,obraId:obra.id};
+  const RO=['id','obra_id','created_at'];
+  const isDateKey=k=>/^data(_|$)|_data$|^resposta_pretendida$|^descofragem$/.test(k);
+  const campos=Object.keys(r).map(k=>{
+    const v=r[k];
+    const ro=RO.includes(k);
+    const lb=`<label style="font-size:11px;font-weight:700;color:#5A6472;text-transform:uppercase;letter-spacing:.3px">${esc(k)}</label>`;
+    if(ro) return `<div>${lb}<div class="pe-ro" style="font-size:12px">${esc(v==null?'—':String(v))}</div></div>`;
+    if(typeof v==='boolean') return `<div>${lb}<div><input type="checkbox" id="adm-f-${k}" data-tipo="bool" ${v?'checked':''}></div></div>`;
+    if(typeof v==='number') return `<div>${lb}<input id="adm-f-${k}" data-tipo="num" type="number" value="${v}" style="width:100%;box-sizing:border-box;height:31px;padding:4px 8px;border:1px solid var(--border-light);border-radius:4px;font-size:13px"></div>`;
+    if(v!==null&&typeof v==='object') return `<div style="grid-column:1/-1">${lb}<textarea id="adm-f-${k}" data-tipo="json" style="width:100%;box-sizing:border-box;min-height:70px;padding:6px 8px;border:1px solid var(--border-light);border-radius:4px;font-size:11px;font-family:monospace">${esc(JSON.stringify(v,null,1))}</textarea></div>`;
+    if(isDateKey(k)&&(v==null||/^\d{4}-\d{2}-\d{2}/.test(String(v)))) return `<div>${lb}<input id="adm-f-${k}" data-tipo="date" type="date" value="${v?String(v).slice(0,10):''}" style="width:100%;box-sizing:border-box;height:31px;padding:4px 8px;border:1px solid var(--border-light);border-radius:4px;font-size:13px"></div>`;
+    const txt=v==null?'':String(v);
+    if(txt.length>60||/\n/.test(txt)) return `<div style="grid-column:1/-1">${lb}<textarea id="adm-f-${k}" data-tipo="txt" style="width:100%;box-sizing:border-box;min-height:56px;padding:6px 8px;border:1px solid var(--border-light);border-radius:4px;font-size:13px">${esc(txt)}</textarea></div>`;
+    return `<div>${lb}<input id="adm-f-${k}" data-tipo="txt" value="${esc(txt)}" style="width:100%;box-sizing:border-box;height:31px;padding:4px 8px;border:1px solid var(--border-light);border-radius:4px;font-size:13px"></div>`;
+  }).join('');
+  const veu=document.createElement('div'); veu.className='pe-veu'; veu.id='pe-veu';
+  veu.innerHTML=`<div class="pe-modal" style="max-width:860px;width:94vw">
+    <h3>Edição Admin — ${cfg.sig} ${esc(id)} · ${esc(obra.sigla)}</h3>
+    <div class="pe-mb" style="max-height:64vh;overflow:auto">
+      <div style="font-size:11px;color:#B45309;background:#FFF6E0;border:1px solid #F0DCA0;border-radius:4px;padding:6px 10px;margin-bottom:10px">Edição direta na base de dados, sem validações de fluxo. Os campos de listas (histórico, anexos, verificações) estão em formato JSON — alterar com cuidado.</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">${campos}</div>
+    </div>
+    <div class="pe-mrod">
+      <button class="pe-btn" onclick="document.getElementById('pe-veu').remove()">Cancelar</button>
+      <button class="pe-btn green" onclick="gpeAdmEditarGravar()">Gravar Alterações</button>
+    </div></div>`;
+  document.body.appendChild(veu);
+};
+window.gpeAdmEditarGravar=async function(){
+  const ctx=gpeAdmEditCtx; if(!ctx||!peESuper()) return;
+  const cfg=GPE_ADM[ctx.mod];
+  const dados={};
+  const els=document.querySelectorAll('[id^="adm-f-"]');
+  for(const el of els){
+    const k=el.id.slice(6), t=el.getAttribute('data-tipo');
+    if(t==='bool') dados[k]=el.checked;
+    else if(t==='num') dados[k]=el.value===''?null:Number(el.value);
+    else if(t==='date') dados[k]=el.value||null;
+    else if(t==='json'){
+      try{ dados[k]=el.value.trim()===''?null:JSON.parse(el.value); }
+      catch(e){ alert('JSON inválido no campo "'+k+'": '+e.message); return; }
+    }
+    else dados[k]=el.value===''?null:el.value;
+  }
+  try{
+    await sbRel.patchWhere(cfg.tab,`id=eq.${encodeURIComponent(ctx.id)}&obra_id=eq.${encodeURIComponent(ctx.obraId)}`,dados);
+  }catch(e){ alert('Erro ao gravar: '+e.message); return; }
+  const v=document.getElementById('pe-veu'); if(v) v.remove();
+  gpeAdmEditCtx=null;
+  try{ await cfg.reload(); }catch(e){}
+  render();
+  alert('Alterações gravadas.');
 };
 
 /* ####################  FIM MÓDULO QE  #################### */
