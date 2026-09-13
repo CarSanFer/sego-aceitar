@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.09.12.1226</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.09.12.1425</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -2928,7 +2928,7 @@ function peNomeEsp(cod){ if(!cod) return ''; const e=(DB.especialidades||[]).fin
 
 /* Map/unmap coluna<->objecto (idêntico ao GPE mapPE/unmapPE) */
 function peMap(r){
-  return {tipo:'pe',id:r.id,num:r.num,rev:r.rev,obraId:r.obra_id,obraNome:r.obra_nome,estado:r.estado,
+  return {tipo:'pe',id:r.id,num:r.num,rev:r.rev,obraId:r.obra_id,obraNome:r.obra_nome,estado:r.estado,histImport:!!r.historico_import,
     dataCriacao:r.data_criacao,dataEnvio:r.data_envio,dataEsclarecido:r.data_esclarecido,
     dataResposta:r.data_resposta,dataFecho:r.data_fecho,
     autorEmp:r.autor_empreiteiro||'',assunto:r.assunto||'',artigos:r.artigos||'',desenho:r.desenho||'',
@@ -2940,7 +2940,7 @@ function peMap(r){
     prevId:r.prev_id,nextId:r.next_id,historico:r.historico||[]};
 }
 function peUnmap(d){
-  return {id:d.id,num:d.num,rev:d.rev,obra_id:d.obraId,obra_nome:d.obraNome,estado:d.estado,
+  return {id:d.id,num:d.num,rev:d.rev,obra_id:d.obraId,obra_nome:d.obraNome,estado:d.estado,historico_import:!!d.histImport,
     data_criacao:d.dataCriacao||null,data_envio:d.dataEnvio||null,data_esclarecido:d.dataEsclarecido||null,
     data_resposta:d.dataResposta||null,data_fecho:d.dataFecho||null,
     autor_empreiteiro:d.autorEmp,assunto:d.assunto,artigos:d.artigos,desenho:d.desenho,
@@ -3166,7 +3166,8 @@ td.pe-dt.pe-empty{color:#C7CDD6}
 .pe-passo.feito{background:#E6F4ED;color:var(--success)}
 .pe-passo.atual{color:#fff}
 .pe-nota{font-size:12px;color:var(--text-muted);background:var(--warning-bg);border-radius:var(--radius);padding:6px 10px;margin-bottom:10px}
-.pe-lig{font-size:12px;color:var(--info);margin-bottom:10px}
+.pe-histrow td,.pe-histrow td *{color:#B91C1C !important}
+  .pe-lig{font-size:12px;color:var(--info);margin-bottom:10px}
 .pe-lig a{color:var(--info);cursor:pointer;text-decoration:underline}
 .pe-zone{background:var(--bg-card);border:1px solid var(--border-light);border-left:4px solid var(--zc,var(--navy));border-radius:var(--radius);margin-bottom:12px;overflow:hidden}
 .pe-zh{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--zbg,#EEF1F6);border-bottom:1px solid var(--border-light)}
@@ -3228,7 +3229,7 @@ function renderListaPE(app){
   lst.sort((a,b)=>b.num-a.num||b.rev-a.rev);
 
   const linhas=lst.map(d=>`
-    <tr onclick="peAbrirFicha('${d.id}')" style="cursor:pointer">
+    <tr class="${d.histImport?'pe-histrow':''}" onclick="peAbrirFicha('${d.id}')" style="cursor:pointer">
       <td><span class="pe-idp">${d.id}</span>${d.prevId?`<br><span class="pe-revlink">↳ rev. de ${d.prevId}</span>`:''}${d.nextId?`<br><span class="pe-revlink">↳ revisto por ${d.nextId}</span>`:''}</td>
       <td>${esc(d.assunto)||'<span class="pe-muted">(sem descrição)</span>'}</td>
       ${tdData(d.dataEnvio)}${tdData(d.dataEnvioProj)}${tdData(d.dataEsclarecido)}${tdData(d.dataResposta)}${tdData(d.dataFecho)}${tdData(d.estado==='reaberto'?reabertoData(d):null)}
@@ -3486,7 +3487,7 @@ function paProjetistas(){
 }
 
 function paMap(r){
-  return {tipo:'pa',id:r.id,num:r.num,rev:r.rev,obraId:r.obra_id,obraNome:r.obra_nome,estado:r.estado,
+  return {tipo:'pa',id:r.id,num:r.num,rev:r.rev,obraId:r.obra_id,obraNome:r.obra_nome,estado:r.estado,histImport:!!r.historico_import,
     dataCriacao:r.data_criacao,dataEnvio:r.data_envio,dataEnvioProj:r.data_envio_proj,
     dataAnalisado:r.data_analisado,dataResposta:r.data_resposta,dataFecho:r.data_fecho,
     autorEmp:r.autor_empreiteiro||'',especialidade:r.especialidade||'',
@@ -3500,7 +3501,7 @@ function paMap(r){
     viaDireta:!!r.via_direta,prevId:r.prev_id,nextId:r.next_id,historico:r.historico||[]};
 }
 function paUnmap(d){
-  return {id:d.id,num:d.num,rev:d.rev,obra_id:d.obraId,obra_nome:d.obraNome,estado:d.estado,
+  return {id:d.id,num:d.num,rev:d.rev,obra_id:d.obraId,obra_nome:d.obraNome,estado:d.estado,historico_import:!!d.histImport,
     data_criacao:d.dataCriacao||null,data_envio:d.dataEnvio||null,data_envio_proj:d.dataEnvioProj||null,
     data_analisado:d.dataAnalisado||null,data_resposta:d.dataResposta||null,data_fecho:d.dataFecho||null,
     autor_empreiteiro:d.autorEmp,especialidade:d.especialidade,
@@ -3709,7 +3710,7 @@ function renderListaPA(app){
   lst.sort((a,b)=>b.num-a.num||b.rev-a.rev);
 
   const linhas=lst.map(d=>`
-    <tr onclick="paAbrirFicha('${d.id}')" style="cursor:pointer">
+    <tr class="${d.histImport?'pe-histrow':''}" onclick="paAbrirFicha('${d.id}')" style="cursor:pointer">
       <td><span class="pe-idp">${d.id}</span>${d.prevId?`<br><span class="pe-revlink">↳ rev. de ${d.prevId}</span>`:''}${d.nextId?`<br><span class="pe-revlink">↳ revisto por ${d.nextId}</span>`:''}</td>
       <td style="text-align:center">${esc(peNomeEsp(d.especialidade))||'—'}</td>
       <td>${d.material?('<span class="pe-muted">'+(d.tipoItem==='equipamento'?'Equip.':'Mat.')+'</span> '+esc(d.material)):'<span class="pe-muted">(sem designação)</span>'}</td>
@@ -4057,7 +4058,7 @@ function pbUtilsDaObra(role){
 function pbEmails(role){ return pbUtilsDaObra(role).filter(u=>u.email).map(u=>u.email); }
 
 function pbMap(r){
-  return {tipo:'pb',id:r.id,num:r.num,rev:r.rev,obraId:r.obra_id,obraNome:r.obra_nome,estado:r.estado,
+  return {tipo:'pb',id:r.id,num:r.num,rev:r.rev,obraId:r.obra_id,obraNome:r.obra_nome,estado:r.estado,histImport:!!r.historico_import,
     dataCriacao:r.data_criacao,dataEnvio:r.data_envio,dataDecisao:r.data_decisao,dataFecho:r.data_fecho,
     autorEmp:r.autor_empreiteiro||'',dataPrevista:r.data_prevista,horaPrevista:r.hora_prevista||'',
     referencia:r.referencia||'',descarga:r.descarga||'',
@@ -4069,7 +4070,7 @@ function pbMap(r){
     prevId:r.prev_id,nextId:r.next_id,historico:r.historico||[]};
 }
 function pbUnmap(d){
-  return {id:d.id,num:d.num,rev:d.rev,obra_id:d.obraId,obra_nome:d.obraNome,estado:d.estado,
+  return {id:d.id,num:d.num,rev:d.rev,obra_id:d.obraId,obra_nome:d.obraNome,estado:d.estado,historico_import:!!d.histImport,
     data_criacao:d.dataCriacao||null,data_envio:d.dataEnvio||null,data_decisao:d.dataDecisao||null,data_fecho:d.dataFecho||null,
     autor_empreiteiro:d.autorEmp,data_prevista:d.dataPrevista||null,hora_prevista:d.horaPrevista,
     referencia:d.referencia,descarga:d.descarga,
@@ -4252,7 +4253,7 @@ function renderListaPB(app){
   const linhas=lst.map(d=>{
     const vs=Object.values(d.verificacoes||{});
     const nc=vs.filter(v=>v==='conf').length, nn=vs.filter(v=>v==='nconf').length, na=vs.filter(v=>v==='na').length;
-    return `<tr onclick="pbAbrirFicha('${d.id}')" style="cursor:pointer">
+    return `<tr class="${d.histImport?'pe-histrow':''}" onclick="pbAbrirFicha('${d.id}')" style="cursor:pointer">
       <td><span class="pe-idp">${d.id}</span>${d.prevId?`<br><span class="pe-revlink">↳ rev. de ${d.prevId}</span>`:''}${d.nextId?`<br><span class="pe-revlink">↳ revisto por ${d.nextId}</span>`:''}</td>
       <td style="text-align:center">${peDataPT(d.dataPrevista)}</td>
       <td style="text-align:center">${esc(d.horaPrevista)||'—'}</td>
@@ -4528,7 +4529,7 @@ function ptqEmails(role){
 
 function ptqMap(r){
   const ini=pqSegundaSeguinte(r.inicio_plano||'');
-  return {tipo:'ptq',id:r.id,num:r.num,rev:r.rev,obraId:r.obra_id,obraNome:r.obra_nome,estado:r.estado,
+  return {tipo:'ptq',id:r.id,num:r.num,rev:r.rev,obraId:r.obra_id,obraNome:r.obra_nome,estado:r.estado,histImport:!!r.historico_import,
     dataCriacao:r.data_criacao,dataEnvio:r.data_envio,
     inicioPlano:ini,periodo:pqPeriodoTexto(ini)||r.periodo||'',semanas:pqSemanasTexto(ini)||r.semanas||'',
     autorEmp:r.autor_empreiteiro||'',entidade:r.entidade_executante||'',
@@ -4539,7 +4540,7 @@ function ptqMap(r){
     observacoes:r.observacoes||'',anexosEmp:r.anexos_emp||[],rsosRef:Array.isArray(r.rsos_ref)?r.rsos_ref:[],historico:r.historico||[]};
 }
 function ptqUnmap(d){
-  return {id:d.id,num:d.num,rev:d.rev,obra_id:d.obraId,obra_nome:d.obraNome,estado:d.estado,
+  return {id:d.id,num:d.num,rev:d.rev,obra_id:d.obraId,obra_nome:d.obraNome,estado:d.estado,historico_import:!!d.histImport,
     data_criacao:d.dataCriacao||null,data_envio:d.dataEnvio||null,inicio_plano:d.inicioPlano||null,
     periodo:d.periodo,semanas:d.semanas,autor_empreiteiro:d.autorEmp,entidade_executante:d.entidade,
     feriados:d.feriados||{},atividades:d.atividades||[],subempreiteiros:d.subs||[],equipamentos:d.equipamentos||[],
@@ -4724,7 +4725,7 @@ function renderListaPTQ(app){
   if(!o){ ptqObraId=null; render(); return; }
   let lst=ptqDocs.slice(); lst.sort((a,b)=>b.num-a.num);
   const linhas=lst.map(d=>`
-    <tr onclick="ptqAbrirFicha('${d.id}')" style="cursor:pointer">
+    <tr class="${d.histImport?'pe-histrow':''}" onclick="ptqAbrirFicha('${d.id}')" style="cursor:pointer">
       <td><span class="pe-idp">${d.id}</span></td>
       <td class="pe-dt${d.dataEnvio?'':' pe-empty'}">${d.dataEnvio?peDataPT(d.dataEnvio):'—'}</td>
       <td style="text-align:center">${peDataPT(d.inicioPlano)}</td>
@@ -4909,7 +4910,7 @@ function qeUtilsDaObra(role){
 function qeEmails(role){ return qeUtilsDaObra(role).filter(u=>u.email).map(u=>u.email); }
 
 function qeMap(r){
-  return {tipo:'qe',id:r.id,num:r.num,rev:r.rev,obraId:r.obra_id,obraNome:r.obra_nome,estado:r.estado,
+  return {tipo:'qe',id:r.id,num:r.num,rev:r.rev,obraId:r.obra_id,obraNome:r.obra_nome,estado:r.estado,histImport:!!r.historico_import,
     dataCriacao:r.data_criacao,dataEnvio:r.data_envio,dataResposta:r.data_resposta,dataParecer:r.data_parecer,dataFecho:r.data_fecho,
     autorFisc:r.autor_fisc||'',especialidade:r.especialidade||'',respostaPretendida:r.resposta_pretendida,
     descricao:r.descricao||'',anexosFisc:r.anexos_fisc||[],
@@ -4918,7 +4919,7 @@ function qeMap(r){
     prevId:r.prev_id,nextId:r.next_id,historico:r.historico||[]};
 }
 function qeUnmap(d){
-  return {id:d.id,num:d.num,rev:d.rev,obra_id:d.obraId,obra_nome:d.obraNome,estado:d.estado,
+  return {id:d.id,num:d.num,rev:d.rev,obra_id:d.obraId,obra_nome:d.obraNome,estado:d.estado,historico_import:!!d.histImport,
     data_criacao:d.dataCriacao||null,data_envio:d.dataEnvio||null,data_resposta:d.dataResposta||null,data_parecer:d.dataParecer||null,data_fecho:d.dataFecho||null,
     autor_fisc:d.autorFisc,especialidade:d.especialidade,resposta_pretendida:d.respostaPretendida||null,
     descricao:d.descricao,anexos_fisc:d.anexosFisc,
@@ -5106,7 +5107,7 @@ function renderListaQE(app){
   let lst=qeDocs.slice(); lst.sort((a,b)=>b.num-a.num||b.rev-a.rev);
 
   const linhas=lst.map(d=>`
-    <tr onclick="qeAbrirFicha('${d.id}')" style="cursor:pointer">
+    <tr class="${d.histImport?'pe-histrow':''}" onclick="qeAbrirFicha('${d.id}')" style="cursor:pointer">
       <td><span class="pe-idp">${d.id}</span>${d.prevId?`<br><span class="pe-revlink">↳ rev. de ${d.prevId}</span>`:''}${d.nextId?`<br><span class="pe-revlink">↳ revisto por ${d.nextId}</span>`:''}</td>
       <td style="text-align:center">${esc(peNomeEsp(d.especialidade))||'—'}</td>
       <td>${d.descricao?esc(d.descricao.length>60?d.descricao.slice(0,60)+'…':d.descricao):'<span class="pe-muted">(sem descrição)</span>'}</td>
