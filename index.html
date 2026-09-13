@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.09.13.1305</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.09.13.1952</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -3596,7 +3596,8 @@ function paFichaAtualDoc(){ return paPorId(paFichaId); }
 function paLerFormEmp(d){
   const g=id=>document.getElementById(id);
   if(g('fa-dataCriacao')) d.dataCriacao=g('fa-dataCriacao').value||d.dataCriacao;
-  ['material','capitulo','artigo','referencia','motivo','localizacao','previsto','proposto'].forEach(k=>{ if(g('fa-'+k)) d[k]=g('fa-'+k).value.trim(); });
+  ['material','capitulo','referencia','localizacao','previsto','proposto'].forEach(k=>{ if(g('fa-'+k)) d[k]=g('fa-'+k).value.trim(); });
+  if(g('fa-capitulo')) d.artigo=''; // Id LPU absorve Capítulo+Art.º num só campo
   if(g('fa-tipoItem')) d.tipoItem=g('fa-tipoItem').value;
   if(g('fa-especialidade')) d.especialidade=g('fa-especialidade').value;
   if(g('fa-obsEmp')) d.obsEmp=g('fa-obsEmp').value.trim();
@@ -3712,8 +3713,9 @@ function renderListaPA(app){
   const linhas=lst.map(d=>`
     <tr class="${d.histImport?'pe-histrow':''}" onclick="paAbrirFicha('${d.id}')" style="cursor:pointer">
       <td><span class="pe-idp">${d.id}</span>${d.prevId?`<br><span class="pe-revlink">↳ rev. de ${d.prevId}</span>`:''}${d.nextId?`<br><span class="pe-revlink">↳ revisto por ${d.nextId}</span>`:''}</td>
-      <td style="text-align:center">${esc(peNomeEsp(d.especialidade))||'—'}</td>
-      <td>${d.material?('<span class="pe-muted">'+(d.tipoItem==='equipamento'?'Equip.':'Mat.')+'</span> '+esc(d.material)):'<span class="pe-muted">(sem designação)</span>'}</td>
+      <td style="text-align:center" title="${d.tipoItem==='equipamento'?'Equipamento':'Material'}">${d.tipoItem==='equipamento'?'E':'M'}</td>
+      <td style="text-align:center" title="${esc(peNomeEsp(d.especialidade))}">${esc(d.especialidade)||'—'}</td>
+      <td>${d.material?esc(d.material):'<span class="pe-muted">(sem designação)</span>'}</td>
       <td>${esc(d.previsto)||'—'}</td>
       <td>${esc(d.proposto)||'—'}</td>
       ${tdData(d.dataEnvio)}${tdData(d.dataEnvioProj)}${tdData(d.dataAnalisado)}${tdData(d.dataResposta)}${tdData(d.dataFecho)}${tdData(d.estado==='reaberto'?reabertoData(d):null)}
@@ -3735,7 +3737,7 @@ function renderListaPA(app){
     <div class="table-card">
       ${lst.length?`<table>
         <thead><tr>
-          <th style="text-align:left">Id</th><th style="text-align:center">Especialidade</th><th style="text-align:left">Material / Equipamento</th><th style="text-align:left">Previsto</th><th style="text-align:left">Proposta</th>
+          <th style="text-align:left">Id</th><th style="text-align:center" title="Material / Equipamento">M | E</th><th style="text-align:center" title="Especialidade">Esp</th><th style="text-align:left">Descrição</th><th style="text-align:left">Previsto</th><th style="text-align:left">Proposto</th>
           ${thState('Aberto',M.estados.aberto.cor)}${thState('Pendente',M.estados.pendente.cor)}${thState('Analisado',M.estados.analisado.cor)}${thState('Respondido',M.estados.respondido.cor)}${thState('Fechado',M.estados.fechado.cor)}${thState('Reaberto',M.estados.reaberto.cor)}
           <th style="text-align:center">Parecer</th>
           ${peESuper()?'<th style="text-align:center">×</th>':''}
@@ -3819,23 +3821,21 @@ function renderFichaPA(app){
     : `<div class="pe-fld"><label>Tipo</label><div class="pe-ro">${d.tipoItem==='equipamento'?'Equipamento':'Material'}</div></div>`;
   const secEmp=`<div class="pe-zone pe-emp"><div class="pe-zh"><span class="pe-zdot"></span><span class="pe-zt">Empreiteiro — Pedido</span></div>
     <div class="pe-zb">
-      ${peCampo('Designação','fa-material',d.material,'text',eEmp)}
+      <div class="pe-grid2">
+        ${peCampo('Designação','fa-material',d.material,'text',eEmp)}
+        ${peCampo('Localização (Indicar a Localização do Material ou Equipamento)','fa-localizacao',d.localizacao,'text',eEmp)}
+      </div>
       <div class="pe-grid2 pe-mt">
         ${tipoSel}
         ${espSel}
       </div>
-      <div class="pe-grid3 pe-mt">
-        ${peCampo('Capítulo','fa-capitulo',d.capitulo,'text',eEmp)}
-        ${peCampo('Art.º','fa-artigo',d.artigo,'text',eEmp)}
-        ${peCampo('Referência','fa-referencia',d.referencia,'text',eEmp)}
+      <div class="pe-grid2 pe-mt">
+        ${peCampo('Id LPU','fa-capitulo',(d.capitulo||'')+(d.artigo?(d.capitulo?' · ':'')+d.artigo:''),'text',eEmp)}
+        ${peCampo('Referências (Memória Descritiva, Condições Técnicas, Peças Desenhadas, …)','fa-referencia',d.referencia,'text',eEmp)}
       </div>
       <div class="pe-grid2 pe-mt">
-        ${peCampo('Motivo','fa-motivo',d.motivo,'text',eEmp)}
-        ${peCampo('Localização','fa-localizacao',d.localizacao,'text',eEmp)}
-      </div>
-      <div class="pe-grid2 pe-mt">
-        ${peCampo('Previsto','fa-previsto',d.previsto,'text',eEmp)}
-        ${peCampo('Proposto','fa-proposto',d.proposto,'text',eEmp)}
+        ${peCampo('Previsto (Indicar Marca e Modelo)','fa-previsto',d.previsto,'text',eEmp)}
+        ${peCampo('Proposta (Indicar Marca e Modelo)','fa-proposto',d.proposto,'text',eEmp)}
       </div>
       <div class="pe-mt"><label class="pe-rotanx">Documentação entregue</label>
         <div style="display:flex;gap:18px;flex-wrap:wrap">
