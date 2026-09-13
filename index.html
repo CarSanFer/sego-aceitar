@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.09.13.1952</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.09.13.2259</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -5289,14 +5289,14 @@ function qePreencherContagem(obraId){
 
 /* ####################  ADMIN GPE — Renumerar / Importar Histórico  #################### */
 const GPE_ADM={
-  pe:{tab:'pedidos_esclarecimento',sig:'PE',campo:'assunto',obra:()=>peObra(),reload:()=>peCarregar(),
+  pe:{tab:'pedidos_esclarecimento',sig:'PE',campo:'assunto',esp:true,parecer:null,obra:()=>peObra(),reload:()=>peCarregar(),
       datas:[['aberto',['data_criacao','data_envio'],'aberto'],['pendente',['data_envio_proj'],'pendente'],['esclarecido',['data_esclarecido'],'esclarecido'],['respondido',['data_resposta'],'respondido'],['fechado',['data_fecho'],'fechado']]},
-  pa:{tab:'pedidos_aprovacao',sig:'PA',campo:'material',obra:()=>paObra(),reload:()=>paCarregar(),
+  pa:{tab:'pedidos_aprovacao',sig:'PA',campo:'material',esp:true,parecer:{col:'fisc_parecer',mapa:{aprovado:'aprovado',aprovadocomrestricoes:'restricoes',restricoes:'restricoes',naoaprovado:'nao_aprovado'}},obra:()=>paObra(),reload:()=>paCarregar(),
       datas:[['aberto',['data_criacao','data_envio'],'aberto'],['pendente',['data_envio_proj'],'pendente'],['analisado',['data_analisado'],'analisado'],['respondido',['data_resposta'],'respondido'],['fechado',['data_fecho'],'fechado']]},
-  pb:{tab:'pedidos_betonagem',sig:'PB',campo:'localizacao',obra:()=>pbObra(),reload:()=>pbCarregar(),
+  pb:{tab:'pedidos_betonagem',sig:'PB',campo:'localizacao',esp:false,parecer:{col:'decisao',mapa:{aprovado:'aprovado',naoaprovado:'nao_aprovado'}},obra:()=>pbObra(),reload:()=>pbCarregar(),
       datas:[['aberto',['data_criacao','data_envio'],'aberto'],['decisao',['data_decisao'],'aberto'],['fechado',['data_fecho'],'fechado']]},
   ptq:{tab:'planos_quinzenais',sig:'PTQ',campo:null,obra:()=>ptqObra(),reload:()=>ptqCarregar(),datas:[]},
-  qe:{tab:'qualidade_execucao',sig:'QE',campo:'descricao',obra:()=>qeObra(),reload:()=>qeCarregar(),
+  qe:{tab:'qualidade_execucao',sig:'QE',campo:'descricao',esp:true,parecer:{col:'parecer',mapa:{correcaoaceite:'aceite',aceite:'aceite',correcaonaoaceite:'nao_aceite',naoaceite:'nao_aceite'}},obra:()=>qeObra(),reload:()=>qeCarregar(),
       datas:[['pendente',['data_criacao','data_envio'],'pendente'],['respondido',['data_resposta'],'respondido'],['fechado',['data_fecho'],'fechado']]}
 };
 function gpeAdmFmt(n,r){ return String(n).padStart(3,'0')+'.'+(r||0); }
@@ -5357,9 +5357,11 @@ window.gpeAdmImportar=function(mod){
         const kDesc=achar('descricao','assunto','designacao','localizacao');
         if(!kId||!kDesc){ alert('Cabeçalhos em falta: Id e Descrição.\nEncontrados: '+chaves.join(', ')); return; }
         const kDatas=cfg.datas.map(([rot])=>achar(rot));
+        const kEsp=cfg.esp?achar('esp','especialidade'):null;
+        const kPar=cfg.parecer?achar('parecer','decisao'):null;
         const exist=await sbRel.get(cfg.tab,`obra_id=eq.${encodeURIComponent(obra.id)}&select=id`);
         const jaHa=new Set(exist.map(r=>r.id));
-        const linhas=[]; const saltadas=[];
+        const linhas=[]; const saltadas=[]; const saltavisos=[];
         for(const r of raw){
           const bruto=String(r[kId]).trim();
           const mm=bruto.match(/^(\d+)(?:[.,](\d+))?$/);
@@ -5371,6 +5373,12 @@ window.gpeAdmImportar=function(mod){
             historico_import:true,
             historico:[{data:new Date().toLocaleString('pt-PT'),autor:'Sistema',acao:'Registo histórico importado (anterior ao SEGO).'}] };
           linha[cfg.campo]=String(r[kDesc]||'').trim();
+          if(kEsp&&r[kEsp]) linha.especialidade=String(r[kEsp]).trim();
+          if(kPar&&r[kPar]){
+            const pv=cfg.parecer.mapa[norm(r[kPar])];
+            if(pv) linha[cfg.parecer.col]=pv;
+            else if(String(r[kPar]).trim()) saltavisos.push(id+': parecer "'+r[kPar]+'" não reconhecido — ignorado');
+          }
           let estado=null;
           cfg.datas.forEach(([rot,cols,est],ix)=>{
             const v=kDatas[ix]?dataISO(r[kDatas[ix]]):null;
@@ -5382,6 +5390,7 @@ window.gpeAdmImportar=function(mod){
         }
         if(!linhas.length){ alert('Nada para importar.'+(saltadas.length?'\nSaltadas:\n'+saltadas.slice(0,15).join('\n'):'')); return; }
         if(saltadas.length) console.warn('Saltadas:',saltadas);
+        if(saltavisos.length) console.warn('Avisos:',saltavisos);
         if(!confirm(`Importar ${linhas.length} registos históricos de ${cfg.sig} para ${obra.sigla}?`+
             (saltadas.length?`\n(${saltadas.length} linhas saltadas — ver consola)`:'')+
             `\n\n`+linhas.slice(0,10).map(l=>`  ${l.id} · ${l.estado} · ${l[cfg.campo]}`).join('\n')+(linhas.length>10?'\n  …':''))) return;
