@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.09.12.1425</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.09.13.1235</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -3246,7 +3246,7 @@ function renderListaPE(app){
       </div>
       <div class="page-actions"></div>
     </div>
-    <div style="margin-bottom:12px">${peEEmp()?`<button class="btn btn-gold btn-sm" onclick="peNovoPedido()">+ Novo Pedido</button>`:''}</div>
+    <div style="margin-bottom:12px;display:flex;gap:8px;align-items:center">${peEEmp()?`<button class="btn btn-gold btn-sm" onclick="peNovoPedido()">+ Novo Pedido</button>`:''}${peESuper()?`<span style="margin-left:auto;display:flex;gap:8px"><button class="btn btn-sm" style="border:1px solid var(--border-light);background:#fff" onclick="gpeAdmRenumerar('pe')">Renumerar</button><button class="btn btn-sm" style="border:1px solid var(--border-light);background:#fff" onclick="gpeAdmImportar('pe')">Importar Histórico</button></span>`:''}</div>
     <div class="table-card">
       ${lst.length?`<table>
         <thead><tr>
@@ -3731,7 +3731,7 @@ function renderListaPA(app){
       </div>
       <div class="page-actions"></div>
     </div>
-    <div style="margin-bottom:12px">${peEEmp()?`<button class="btn btn-gold btn-sm" onclick="paNovoPedido()">+ Novo Pedido</button>`:''}</div>
+    <div style="margin-bottom:12px;display:flex;gap:8px;align-items:center">${peEEmp()?`<button class="btn btn-gold btn-sm" onclick="paNovoPedido()">+ Novo Pedido</button>`:''}${peESuper()?`<span style="margin-left:auto;display:flex;gap:8px"><button class="btn btn-sm" style="border:1px solid var(--border-light);background:#fff" onclick="gpeAdmRenumerar('pa')">Renumerar</button><button class="btn btn-sm" style="border:1px solid var(--border-light);background:#fff" onclick="gpeAdmImportar('pa')">Importar Histórico</button></span>`:''}</div>
     <div class="table-card">
       ${lst.length?`<table>
         <thead><tr>
@@ -4279,7 +4279,7 @@ function renderListaPB(app){
       </div>
       <div class="page-actions"></div>
     </div>
-    <div style="margin-bottom:12px">${peEEmp()?`<button class="btn btn-gold btn-sm" onclick="pbNovoPedido()">+ Novo Pedido</button>`:''}</div>
+    <div style="margin-bottom:12px;display:flex;gap:8px;align-items:center">${peEEmp()?`<button class="btn btn-gold btn-sm" onclick="pbNovoPedido()">+ Novo Pedido</button>`:''}${peESuper()?`<span style="margin-left:auto;display:flex;gap:8px"><button class="btn btn-sm" style="border:1px solid var(--border-light);background:#fff" onclick="gpeAdmRenumerar('pb')">Renumerar</button><button class="btn btn-sm" style="border:1px solid var(--border-light);background:#fff" onclick="gpeAdmImportar('pb')">Importar Histórico</button></span>`:''}</div>
     <div class="table-card" style="overflow-x:auto">
       ${lst.length?`<table>
         <thead><tr>
@@ -4746,7 +4746,7 @@ function renderListaPTQ(app){
       </div>
       <div class="page-actions"></div>
     </div>
-    <div style="margin-bottom:12px">${peEEmp()?`<button class="btn btn-gold btn-sm" onclick="ptqNovoPedido()">+ Novo Plano</button>`:''}</div>
+    <div style="margin-bottom:12px;display:flex;gap:8px;align-items:center">${peEEmp()?`<button class="btn btn-gold btn-sm" onclick="ptqNovoPedido()">+ Novo Plano</button>`:''}${peESuper()?`<span style="margin-left:auto;display:flex;gap:8px"><button class="btn btn-sm" style="border:1px solid var(--border-light);background:#fff" onclick="gpeAdmRenumerar('ptq')">Renumerar</button></span>`:''}</div>
     <div class="table-card">
       ${lst.length?`<table>
         <thead><tr><th style="text-align:left">Id</th><th class="pe-th-state" style="--st:var(--success)">Enviado</th><th style="text-align:center">Início</th><th style="text-align:left">Período</th><th style="text-align:center">Semanas</th><th style="text-align:center">Actividades</th><th style="text-align:center">Subempreiteiros</th><th style="text-align:center">Equipamentos</th>${peESuper()?'<th style="text-align:center">×</th>':''}</tr></thead>
@@ -5127,7 +5127,7 @@ function renderListaQE(app){
       </div>
       <div class="page-actions"></div>
     </div>
-    <div style="margin-bottom:12px">${peEFisc()?`<button class="btn btn-gold btn-sm" onclick="qeNovoPedido()">+ Novo Registo</button>`:''}</div>
+    <div style="margin-bottom:12px;display:flex;gap:8px;align-items:center">${peEFisc()?`<button class="btn btn-gold btn-sm" onclick="qeNovoPedido()">+ Novo Registo</button>`:''}${peESuper()?`<span style="margin-left:auto;display:flex;gap:8px"><button class="btn btn-sm" style="border:1px solid var(--border-light);background:#fff" onclick="gpeAdmRenumerar('qe')">Renumerar</button><button class="btn btn-sm" style="border:1px solid var(--border-light);background:#fff" onclick="gpeAdmImportar('qe')">Importar Histórico</button></span>`:''}</div>
     <div class="table-card">
       ${lst.length?`<table>
         <thead><tr>
@@ -5285,6 +5285,119 @@ function qePreencherContagem(obraId){
     .then(rows=>{ const el=document.getElementById('qe-count-card'); if(el) el.textContent=rows.length+' registo'+(rows.length===1?'':'s'); })
     .catch(()=>{ const el=document.getElementById('qe-count-card'); if(el) el.textContent='—'; });
 }
+
+
+/* ####################  ADMIN GPE — Renumerar / Importar Histórico  #################### */
+const GPE_ADM={
+  pe:{tab:'pedidos_esclarecimento',sig:'PE',campo:'assunto',obra:()=>peObra(),reload:()=>peCarregar(),
+      datas:[['aberto',['data_criacao','data_envio'],'aberto'],['pendente',['data_envio_proj'],'pendente'],['esclarecido',['data_esclarecido'],'esclarecido'],['respondido',['data_resposta'],'respondido'],['fechado',['data_fecho'],'fechado']]},
+  pa:{tab:'pedidos_aprovacao',sig:'PA',campo:'material',obra:()=>paObra(),reload:()=>paCarregar(),
+      datas:[['aberto',['data_criacao','data_envio'],'aberto'],['pendente',['data_envio_proj'],'pendente'],['analisado',['data_analisado'],'analisado'],['respondido',['data_resposta'],'respondido'],['fechado',['data_fecho'],'fechado']]},
+  pb:{tab:'pedidos_betonagem',sig:'PB',campo:'localizacao',obra:()=>pbObra(),reload:()=>pbCarregar(),
+      datas:[['aberto',['data_criacao','data_envio'],'aberto'],['decisao',['data_decisao'],'aberto'],['fechado',['data_fecho'],'fechado']]},
+  ptq:{tab:'planos_quinzenais',sig:'PTQ',campo:null,obra:()=>ptqObra(),reload:()=>ptqCarregar(),datas:[]},
+  qe:{tab:'qualidade_execucao',sig:'QE',campo:'descricao',obra:()=>qeObra(),reload:()=>qeCarregar(),
+      datas:[['pendente',['data_criacao','data_envio'],'pendente'],['respondido',['data_resposta'],'respondido'],['fechado',['data_fecho'],'fechado']]}
+};
+function gpeAdmFmt(n,r){ return String(n).padStart(3,'0')+'.'+(r||0); }
+window.gpeAdmRenumerar=async function(mod){
+  if(!peESuper()) return;
+  const cfg=GPE_ADM[mod]; const obra=cfg&&cfg.obra(); if(!obra) return;
+  const desvio=parseInt(prompt('Desvio a somar aos números atuais (ex.: 10 se vai importar 10 registos antigos):'),10);
+  if(!desvio||isNaN(desvio)){ return; }
+  let rows;
+  try{ rows=await sbRel.get(cfg.tab,`obra_id=eq.${encodeURIComponent(obra.id)}&order=num.asc,rev.asc`); }
+  catch(e){ alert('Erro a ler: '+e.message); return; }
+  if(!rows.length){ alert('Sem registos de '+cfg.sig+' nesta obra.'); return; }
+  const mapa={}; rows.forEach(r=>{ mapa[r.id]=gpeAdmFmt(r.num+desvio,r.rev); });
+  if(rows.some(r=>r.num+desvio<1)){ alert('Desvio inválido: geraria números menores que 001.'); return; }
+  const plano=rows.map(r=>`  ${r.id} → ${mapa[r.id]}`);
+  if(mod==='ptq'&&rows.some(r=>(r.rsos_ref||[]).length)) console.warn('⚠️ Há PTQ referenciados em RSO — as referências nos RSO manterão o número antigo.');
+  if(!confirm(`Renumerar ${rows.length} registos de ${cfg.sig} da obra ${obra.sigla} (desvio ${desvio>0?'+':''}${desvio})?\n\n`+plano.slice(0,12).join('\n')+(rows.length>12?'\n  …':''))) return;
+  const ordem=rows.slice().sort((a,b)=>desvio>0?(b.num-a.num||b.rev-a.rev):(a.num-b.num||a.rev-b.rev));
+  let n=0,erros=0;
+  for(const r of ordem){
+    try{
+      await sbRel.patchWhere(cfg.tab,`id=eq.${encodeURIComponent(r.id)}&obra_id=eq.${encodeURIComponent(obra.id)}`,{
+        id:mapa[r.id], num:r.num+desvio,
+        prev_id:r.prev_id?(mapa[r.prev_id]||r.prev_id):null,
+        next_id:r.next_id?(mapa[r.next_id]||r.next_id):null });
+      n++;
+    }catch(e){ console.error('Falhou',r.id,e); erros++; }
+  }
+  try{ await cfg.reload(); }catch(e){}
+  render();
+  alert(`Renumeração concluída: ${n}/${rows.length} registos.`+(erros?`\n${erros} com erro (ver consola).`:''));
+};
+window.gpeAdmImportar=function(mod){
+  if(!peESuper()) return;
+  const cfg=GPE_ADM[mod]; const obra=cfg&&cfg.obra(); if(!obra||!cfg.campo) return;
+  const input=document.createElement('input'); input.type='file'; input.accept='.xlsx,.xls,.csv';
+  input.onchange=()=>{
+    const f=input.files[0]; if(!f) return;
+    loadSheetJS(async ()=>{
+      try{
+        const buf=await f.arrayBuffer();
+        const wb=XLSX.read(buf,{cellDates:true});
+        const ws=wb.Sheets[wb.SheetNames[0]];
+        const raw=XLSX.utils.sheet_to_json(ws,{defval:''});
+        if(!raw.length){ alert('Folha vazia.'); return; }
+        const norm=t=>String(t||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,'');
+        const dataISO=v=>{
+          if(v==null||v==='') return null;
+          if(v instanceof Date&&!isNaN(v)) return v.toISOString().slice(0,10);
+          if(typeof v==='number'){ const d=new Date(Math.round((v-25569)*86400*1000)); return isNaN(d)?null:d.toISOString().slice(0,10); }
+          const m=String(v).trim().match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})$/);
+          if(m){ const a=m[3].length===2?'20'+m[3]:m[3]; return `${a}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`; }
+          const d=new Date(v); return isNaN(d)?null:d.toISOString().slice(0,10);
+        };
+        const chaves=Object.keys(raw[0]);
+        const achar=(...alvos)=>chaves.find(k=>alvos.includes(norm(k)));
+        const kId=achar('id','n','no','num','numero');
+        const kDesc=achar('descricao','assunto','designacao','localizacao');
+        if(!kId||!kDesc){ alert('Cabeçalhos em falta: Id e Descrição.\nEncontrados: '+chaves.join(', ')); return; }
+        const kDatas=cfg.datas.map(([rot])=>achar(rot));
+        const exist=await sbRel.get(cfg.tab,`obra_id=eq.${encodeURIComponent(obra.id)}&select=id`);
+        const jaHa=new Set(exist.map(r=>r.id));
+        const linhas=[]; const saltadas=[];
+        for(const r of raw){
+          const bruto=String(r[kId]).trim();
+          const mm=bruto.match(/^(\d+)(?:[.,](\d+))?$/);
+          if(!mm){ saltadas.push(JSON.stringify(bruto)+' (Id inválido)'); continue; }
+          const num=parseInt(mm[1],10), rev=mm[2]?parseInt(mm[2],10):0;
+          const id=gpeAdmFmt(num,rev);
+          if(jaHa.has(id)){ saltadas.push(id+' (já existe)'); continue; }
+          const linha={ id, num, rev, obra_id:obra.id, obra_nome:obra.nome,
+            historico_import:true,
+            historico:[{data:new Date().toLocaleString('pt-PT'),autor:'Sistema',acao:'Registo histórico importado (anterior ao SEGO).'}] };
+          linha[cfg.campo]=String(r[kDesc]||'').trim();
+          let estado=null;
+          cfg.datas.forEach(([rot,cols,est],ix)=>{
+            const v=kDatas[ix]?dataISO(r[kDatas[ix]]):null;
+            if(v){ cols.forEach(c=>linha[c]=v); estado=est; }
+          });
+          if(!estado){ saltadas.push(id+' (sem nenhuma data)'); continue; }
+          linha.estado=estado;
+          linhas.push(linha);
+        }
+        if(!linhas.length){ alert('Nada para importar.'+(saltadas.length?'\nSaltadas:\n'+saltadas.slice(0,15).join('\n'):'')); return; }
+        if(saltadas.length) console.warn('Saltadas:',saltadas);
+        if(!confirm(`Importar ${linhas.length} registos históricos de ${cfg.sig} para ${obra.sigla}?`+
+            (saltadas.length?`\n(${saltadas.length} linhas saltadas — ver consola)`:'')+
+            `\n\n`+linhas.slice(0,10).map(l=>`  ${l.id} · ${l.estado} · ${l[cfg.campo]}`).join('\n')+(linhas.length>10?'\n  …':''))) return;
+        let n=0,erros=0;
+        for(const l of linhas){
+          try{ await sbRel.post(cfg.tab,l); n++; }
+          catch(e){ console.error('Falhou',l.id,e); erros++; }
+        }
+        try{ await cfg.reload(); }catch(e){}
+        render();
+        alert(`Importação concluída: ${n} registos.`+(erros?`\n${erros} com erro (ver consola).`:''));
+      }catch(e){ console.error(e); alert('Erro na importação: '+e.message); }
+    });
+  };
+  input.click();
+};
 
 /* ####################  FIM MÓDULO QE  #################### */
 
