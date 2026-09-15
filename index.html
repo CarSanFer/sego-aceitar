@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.09.13.2327</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.09.15.1128</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -2979,7 +2979,7 @@ async function peNotificar(d,destinos,mensagem,rotulo){
   for(const to of lista){
     try{
       await emailjs.send(EJS.service, PE_EJS_TEMPLATE, {
-        to_email:to,to_name:'',pe_id:'PE '+d.id,obra:(peObra()?peObra().nome:d.obraNome),
+        to_email:to,to_name:'',from_name:(currentUser&&currentUser.nome?currentUser.nome:'SEGO'),reply_to:(currentUser&&currentUser.email?currentUser.email:''),pe_id:'PE '+d.id,obra:(peObra()?peObra().nome:d.obraNome),
         assunto:d.assunto||'',estado:peEST(d.estado).rot,
         mensagem,link:peLink(d),password:'',app_url:peLink(d),role:rotulo});
       ok++;
@@ -3540,7 +3540,7 @@ async function paNotificar(d,destinos,mensagem,rotulo){
   for(const to of lista){
     try{
       await emailjs.send(EJS.service, PE_EJS_TEMPLATE, {
-        to_email:to,to_name:'',pe_id:'PA '+d.id,obra:(paObra()?paObra().nome:d.obraNome),
+        to_email:to,to_name:'',from_name:(currentUser&&currentUser.nome?currentUser.nome:'SEGO'),reply_to:(currentUser&&currentUser.email?currentUser.email:''),pe_id:'PA '+d.id,obra:(paObra()?paObra().nome:d.obraNome),
         assunto:d.material||'',estado:paEST(d.estado).rot,
         mensagem,link:paLink(d),password:'',app_url:paLink(d),role:rotulo});
       ok++;
@@ -4107,7 +4107,7 @@ async function pbNotificar(d,destinos,mensagem,rotulo){
   for(const to of lista){
     try{
       await emailjs.send(EJS.service, PE_EJS_TEMPLATE, {
-        to_email:to,to_name:'',pe_id:'PB '+d.id,obra:(pbObra()?pbObra().nome:d.obraNome),
+        to_email:to,to_name:'',from_name:(currentUser&&currentUser.nome?currentUser.nome:'SEGO'),reply_to:(currentUser&&currentUser.email?currentUser.email:''),pe_id:'PB '+d.id,obra:(pbObra()?pbObra().nome:d.obraNome),
         assunto:d.localizacao||'',estado:pbEST(d.estado).rot,
         mensagem,link:pbLink(d),password:'',app_url:pbLink(d),role:rotulo});
       ok++;
@@ -4572,7 +4572,7 @@ async function ptqNotificar(d,destinos,mensagem,rotulo){
   for(const to of lista){
     try{
       await emailjs.send(EJS.service, PE_EJS_TEMPLATE, {
-        to_email:to,to_name:'',pe_id:'PTQ '+d.id,obra:(ptqObra()?ptqObra().nome:d.obraNome),
+        to_email:to,to_name:'',from_name:(currentUser&&currentUser.nome?currentUser.nome:'SEGO'),reply_to:(currentUser&&currentUser.email?currentUser.email:''),pe_id:'PTQ '+d.id,obra:(ptqObra()?ptqObra().nome:d.obraNome),
         assunto:d.periodo||'',estado:ptqEST(d.estado).rot,mensagem,link:ptqLink(d),password:'',app_url:ptqLink(d),role:rotulo});
       ok++;
     }catch(e){ console.error('PTQ notificar falhou:',e); }
@@ -4953,7 +4953,7 @@ async function qeNotificar(d,destinos,mensagem,rotulo){
   for(const to of lista){
     try{
       await emailjs.send(EJS.service, PE_EJS_TEMPLATE, {
-        to_email:to,to_name:'',pe_id:'QE '+d.id,obra:(qeObra()?qeObra().nome:d.obraNome),
+        to_email:to,to_name:'',from_name:(currentUser&&currentUser.nome?currentUser.nome:'SEGO'),reply_to:(currentUser&&currentUser.email?currentUser.email:''),pe_id:'QE '+d.id,obra:(qeObra()?qeObra().nome:d.obraNome),
         assunto:(d.descricao||'').slice(0,80),estado:qeEST(d.estado).rot,
         mensagem,link:qeLink(d),password:'',app_url:qeLink(d),role:rotulo});
       ok++;
