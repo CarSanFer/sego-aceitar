@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.09.15.1128</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.09.23.1023</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -4589,6 +4589,34 @@ function ptqDocNovo(num){
     atividades:Array.from({length:5},pqLinhaAtiv),subs:Array.from({length:5},pqLinhaSub),equipamentos:Array.from({length:5},pqLinhaEquip),
     observacoes:'',anexosEmp:[],historico:[]};
 }
+function pqQuinzenaSeguinte(iso){
+  const d=new Date((iso||'')+'T00:00:00');
+  if(isNaN(d)) return pqProximaSegunda(peHoje());
+  d.setDate(d.getDate()+14);
+  return d.toISOString().slice(0,10);
+}
+function ptqEhUltimo(d){
+  return !ptqDocs.some(x=>x.num>d.num||(x.num===d.num&&x.rev>d.rev));
+}
+window.ptqDuplicar=async function(){
+  if(!peEEmp()){ alert('Apenas o Empreiteiro cria planos.'); return; }
+  const base=ptqPorId(ptqFichaId); if(!base) return;
+  if(base.estado!=='enviado'||!ptqEhUltimo(base)) return;
+  const num=ptqProximoNum();
+  if(!confirm('Duplicar o PTQ '+base.id+' para o plano '+peIdFmt(num,0)+' (quinzena seguinte)?\n\nCopia as atividades, subempreiteiros e equipamentos (descrições); os dias e as quantidades ficam por preencher.')) return;
+  const d=ptqDocNovo(num);
+  d.inicioPlano=pqQuinzenaSeguinte(base.inicioPlano);
+  d.periodo=pqPeriodoTexto(d.inicioPlano); d.semanas=pqSemanasTexto(d.inicioPlano);
+  d.entidade=base.entidade||'';
+  d.atividades=(base.atividades||[]).map(a=>({desc:a.desc||'',local:a.local||'',dias:Array(12).fill(0)}));
+  d.subs=(base.subs||[]).map(x=>({sub:x.sub||'',dias:Array(12).fill(''),auto:Array(12).fill(false)}));
+  d.equipamentos=(base.equipamentos||[]).map(x=>({desc:x.desc||'',dias:Array(12).fill(''),auto:Array(12).fill(false)}));
+  if(!d.atividades.length) d.atividades=Array.from({length:5},pqLinhaAtiv);
+  if(!d.subs.length) d.subs=Array.from({length:5},pqLinhaSub);
+  if(!d.equipamentos.length) d.equipamentos=Array.from({length:5},pqLinhaEquip);
+  ptqRegistar(d,'Criado por duplicação do PTQ '+base.id+' (descrições copiadas; dias e quantidades por preencher).');
+  ptqDocs.unshift(d); await ptqPersistir(d); ptqAbrirFicha(d.id);
+};
 window.ptqNovoPedido=async function(){
   if(!peEEmp()){ alert('Apenas o Empreiteiro cria planos.'); return; }
   const o=ptqObra(); if(!o){ alert('Sem obra selecionada.'); return; }
@@ -4780,6 +4808,9 @@ function renderFichaPTQ(app){
   if(d.estado==='rascunho'&&peEEmp()){
     acoes.push(`<button class="pe-btn" onclick="ptqGuardarRascunho()">Guardar Rascunho</button>`);
     acoes.push(`<button class="pe-btn green" onclick="ptqEnviar()">Enviar à Fiscalização →</button>`);
+  }
+  if(d.estado==='enviado'&&peEEmp()&&ptqEhUltimo(d)){
+    acoes.push(`<button class="pe-btn gold" onclick="ptqDuplicar()">Duplicar →</button>`);
   }
   if(peESuper()){ acoes.push(`<button class="pe-btn" onclick="gpeAdmEditar('ptq','${d.id}')">Editar (Admin)</button>`); acoes.push(`<button class="pe-btn red" onclick="ptqEliminar('${d.id}')">Eliminar</button>`); }
 
