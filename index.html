@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.09.23.1023</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.09.23.1501</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -2971,9 +2971,10 @@ async function pePersistir(d){
 
 /* Notificação (EmailJS — falha tolerada, estado no histórico) */
 function peLink(d){ return location.href.split('?')[0]+'?pe='+encodeURIComponent(d.id); }
-async function peNotificar(d,destinos,mensagem,rotulo){
+async function peNotificar(d,destinos,mensagem,rotulo,cc){
   const lista=(Array.isArray(destinos)?destinos:[destinos]).filter(Boolean);
-  const et=`Notificação → ${rotulo}${lista.length?' ('+lista.join(', ')+')':''}: ${mensagem}`;
+  const ccLista=(Array.isArray(cc)?cc:[]).filter(Boolean);
+  const et=`Notificação → ${rotulo}${lista.length?' ('+lista.join(', ')+')':''}${ccLista.length?' · Cc: '+ccLista.join(', '):''}: ${mensagem}`;
   if(!lista.length){ peRegistar(d,et+' [sem destinatário na obra — verifique a ficha no SID]'); return; }
   let ok=0;
   for(const to of lista){
@@ -2981,7 +2982,7 @@ async function peNotificar(d,destinos,mensagem,rotulo){
       await emailjs.send(EJS.service, PE_EJS_TEMPLATE, {
         to_email:to,to_name:'',from_name:(currentUser&&currentUser.nome?currentUser.nome:'SEGO'),reply_to:(currentUser&&currentUser.email?currentUser.email:''),pe_id:'PE '+d.id,obra:(peObra()?peObra().nome:d.obraNome),
         assunto:d.assunto||'',estado:peEST(d.estado).rot,
-        mensagem,link:peLink(d),password:'',app_url:peLink(d),role:rotulo});
+        mensagem,link:peLink(d),password:'',app_url:peLink(d),role:rotulo,cc:(ccLista.length?ccLista.join(', '):'')});
       ok++;
     }catch(e){ console.error('PE notificar falhou:',e); }
   }
@@ -3065,7 +3066,7 @@ window.peEnviarFisc=async function(){
   await peNotificar(d,peEmails('fiscalizacao'),'Novo Pedido de Esclarecimento '+d.id+' recebido do Empreiteiro.','Fiscalização');
   await pePersistir(d); peAbrirFicha(d.id);
 };
-async function peConfirmarEnvioProj(projId,coment){
+async function peConfirmarEnvioProj(projId,coment,cc){
   const d=peFichaAtualDoc(); if(!d) return;
   const p=peProjetistas().find(x=>String(x.id)===String(projId));
   if(!p){ alert('Projetista inválido.'); return; }
@@ -3075,8 +3076,9 @@ async function peConfirmarEnvioProj(projId,coment){
   d.comentFiscEnvio=coment||'';
   d.projDestId=p.id; d.projDestNome=p.nome; d.projDestEmail=p.email;
   d.projEspecialidade=(p.especialidades||[]).map(peNomeEsp).join(', ');
-  peRegistar(d,'Enviado ao Projetista '+p.nome+' — passa a Pendente.'+(coment?' Comentário: '+coment:''));
-  await peNotificar(d,p.email,'Pedido de Esclarecimento '+d.id+' aguarda o seu esclarecimento.'+(coment?'<br><br><strong style="font-weight:700">Comentário da Fiscalização:</strong> '+esc(coment):''),'Projetista');
+  const ccFinal=[...new Set((cc||[]).filter(e=>e&&e!==p.email))];
+  peRegistar(d,'Enviado ao Projetista '+p.nome+' — passa a Pendente.'+(coment?' Comentário: '+coment:'')+(ccFinal.length?' Cc: '+ccFinal.join(', ')+'.':''));
+  await peNotificar(d,p.email,'Pedido de Esclarecimento '+d.id+' aguarda o seu esclarecimento.'+(coment?'<br><br><strong style="font-weight:700">Comentário da Fiscalização:</strong> '+esc(coment):''),'Projetista',ccFinal);
   await pePersistir(d); peAbrirFicha(d.id);
 }
 window.peSubmeterEsclarecimento=async function(){
@@ -3335,8 +3337,8 @@ function renderFichaPE(app){
         ${peCampo('Desenho N.º','f-desenho',d.desenho,'text',eEmp)}
       </div>
       <div class="pe-mt">${peCampo('Pedido de Esclarecimento','f-pedidoTexto',d.pedidoTexto,'textarea',eEmp)}</div>
-      <div class="pe-mt"><label class="pe-rotanx">Anexos</label>${peHtmlAnexos(d.anexosEmp,eEmp,'emp')}
-        ${eEmp?`<button class="pe-btn pe-mt" onclick="peAdicionarAnexo('emp')">+ Anexar Ficheiro</button>`:''}</div>
+      <div class="pe-mt"><label class="pe-rotanx">Anexos</label>${peHtmlAnexos(d.anexosEmp,(eEmp||peESuper()),'emp')}
+        ${(eEmp||peESuper())?`<button class="pe-btn pe-mt" onclick="peAdicionarAnexo('emp')">+ Anexar Ficheiro</button>`:''}</div>
     </div></div>`;
 
   /* Zona Envio ao Projetista (só quando ocorreu) */
@@ -3356,8 +3358,8 @@ function renderFichaPE(app){
         ${peCampo('Autor','x',eProj?(currentUser?currentUser.nome:''):d.autorProj,'text',false)}
       </div>
       <div class="pe-mt">${peCampo('Esclarecimento','f-proj-texto',d.esclarecimento,'textarea',eProj)}</div>
-      <div class="pe-mt"><label class="pe-rotanx">Anexos</label>${peHtmlAnexos(d.anexosProj,eProj,'proj')}
-        ${eProj?`<button class="pe-btn pe-mt" onclick="peAdicionarAnexo('proj')">+ Anexar Ficheiro</button>`:''}</div>
+      <div class="pe-mt"><label class="pe-rotanx">Anexos</label>${peHtmlAnexos(d.anexosProj,(eProj||peESuper()),'proj')}
+        ${(eProj||peESuper())?`<button class="pe-btn pe-mt" onclick="peAdicionarAnexo('proj')">+ Anexar Ficheiro</button>`:''}</div>
     </div></div>`;
 
   /* Zona Fiscalização — resposta */
@@ -3410,6 +3412,14 @@ window.peAbrirModalProjetista=function(){
       <div class="pe-msub">As especialidades mostradas são as que cada projetista cobre nesta obra.</div>
       <table class="pe-seltab"><tbody>${linhas}</tbody></table>
       <div class="pe-fld pe-mt"><label>Comentário ao Projetista (opcional)</label><textarea id="pe-coment-envio" placeholder="Comentário a incluir na notificação"></textarea></div>
+      ${(function(){
+        const eq=[...peUtilsDaObra('fiscalizacao').map(u=>({...u,papel:'Fiscalização'})),...peUtilsDaObra('projetista').map(u=>({...u,papel:'Projetista'}))].filter(u=>u.email);
+        if(!eq.length) return '';
+        return `<div class="pe-fld pe-mt"><label>Com Conhecimento — Cc (opcional)</label>
+          <table class="pe-seltab"><tbody>${eq.map((u,i)=>`<tr onclick="var c=document.getElementById('pe-cc-${i}');c.checked=!c.checked">
+            <td style="width:28px"><input type="checkbox" class="pe-ccx" id="pe-cc-${i}" value="${esc(u.email)}" onclick="event.stopPropagation()"></td>
+            <td><b>${esc(u.nome)}</b> <span class="pe-muted">(${u.papel})</span><br><span class="pe-muted">${esc(u.email)}</span></td></tr>`).join('')}</tbody></table></div>`;
+      })()}
     </div>
     <div class="pe-mrod">
       <button class="pe-btn" onclick="peFecharModal()">Cancelar</button>
@@ -3421,7 +3431,8 @@ window.peSubmeterEscolhaProj=function(){
   const s=document.querySelector('input[name="pe-rp"]:checked');
   if(!s){ alert('Selecione um projetista.'); return; }
   const c=document.getElementById('pe-coment-envio');
-  peConfirmarEnvioProj(s.value,(c&&c.value?c.value.trim():''));
+  const cc=Array.from(document.querySelectorAll('.pe-ccx:checked')).map(x=>x.value);
+  peConfirmarEnvioProj(s.value,(c&&c.value?c.value.trim():''),cc);
 };
 
 /* ---- Entrada a partir do card na capa Fiscalização ---- */
