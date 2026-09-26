@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.09.23.1501</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.09.26.0846</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -3647,7 +3647,9 @@ async function paConfirmarParecerProj(parecer,obs){
   const d=paFichaAtualDoc(); if(!d) return; paFecharModal();
   d.autorProj=currentUser?currentUser.nome:''; d.projParecer=parecer; d.obsProj=obs;
   d.projData=d.projData||peHoje(); d.dataAnalisado=peHoje(); d.estado='analisado';
-  paRegistar(d,'Parecer do Projetista: '+DEC_PA[parecer].rot+' — passa a Analisado.');
+  if(paModalAnexos.length){ d.anexosProj=[...(d.anexosProj||[]),...paModalAnexos]; }
+  paRegistar(d,'Parecer do Projetista: '+DEC_PA[parecer].rot+' — passa a Analisado.'+(paModalAnexos.length?' ('+paModalAnexos.length+' anexo'+(paModalAnexos.length>1?'s':'')+')':''));
+  paModalAnexos=[];
   await paNotificar(d,paEmails('fiscalizacao'),'Pedido '+d.id+' analisado pelo Projetista: '+DEC_PA[parecer].rot+'.','Fiscalização');
   await paPersistir(d); paAbrirFicha(d.id);
 }
@@ -3656,7 +3658,9 @@ async function paConfirmarDecisao(parecer,obs,direta){
   d.autorFiscResp=currentUser?currentUser.nome:''; d.fiscParecer=parecer; d.obsFisc=obs;
   d.dataResposta=peHoje(); d.estado='respondido';
   if(direta) d.viaDireta=true;
-  paRegistar(d,(direta?'Aprovação directa pela Fiscalização (sem Projetista): ':'Decisão da Fiscalização: ')+DEC_PA[parecer].rot+' — passa a Respondido.');
+  if(paModalAnexos.length){ d.anexosFisc=[...(d.anexosFisc||[]),...paModalAnexos]; }
+  paRegistar(d,(direta?'Aprovação directa pela Fiscalização (sem Projetista): ':'Decisão da Fiscalização: ')+DEC_PA[parecer].rot+' — passa a Respondido.'+(paModalAnexos.length?' ('+paModalAnexos.length+' anexo'+(paModalAnexos.length>1?'s':'')+')':''));
+  paModalAnexos=[];
   await paNotificar(d,paEmails('empreiteiro'),'Pedido '+d.id+': '+DEC_PA[parecer].rot+'. Reveja e feche ou submeta revisão.','Empreiteiro');
   await paPersistir(d); paAbrirFicha(d.id);
 }
@@ -3953,13 +3957,39 @@ window.paSubmeterEscolhaProj=function(){
   const c=document.getElementById('pa-coment-envio');
   paConfirmarEnvioProj(s.value,(c&&c.value?c.value.trim():''));
 };
+let paModalAnexos=[];
+function paModalAnexosHtml(){
+  return `<div class="pe-fld pe-mt"><label>Anexos (opcional)</label>
+    <div id="pa-modal-anx">${paModalAnexos.length?'<div class="pe-anexos">'+paModalAnexos.map((a,i)=>`<span class="pe-anx">📎 ${esc(a.nome)} <span class="pe-tam">${(a.tam/1024).toFixed(0)} KB</span><button class="pe-anx-x" title="Remover" onclick="paModalRmAnexo(${i})">×</button></span>`).join('')+'</div>':'<div class="pe-muted">Sem anexos</div>'}</div>
+    <button class="pe-btn pe-mt" onclick="paModalAddAnexo()">+ Anexar Ficheiro</button></div>`;
+}
+function paModalRefreshAnx(){
+  const el=document.getElementById('pa-modal-anx'); if(!el) return;
+  el.innerHTML=paModalAnexos.length?'<div class="pe-anexos">'+paModalAnexos.map((a,i)=>`<span class="pe-anx">📎 ${esc(a.nome)} <span class="pe-tam">${(a.tam/1024).toFixed(0)} KB</span><button class="pe-anx-x" title="Remover" onclick="paModalRmAnexo(${i})">×</button></span>`).join('')+'</div>':'<div class="pe-muted">Sem anexos</div>';
+}
+window.paModalAddAnexo=function(){
+  const input=document.createElement('input'); input.type='file'; input.multiple=true;
+  input.onchange=()=>{
+    const fs=Array.from(input.files||[]); let pend=fs.length; if(!pend) return;
+    fs.forEach(f=>{
+      if(f.size>3*1024*1024){ alert('"'+f.name+'" excede 3 MB.'); if(--pend===0) paModalRefreshAnx(); return; }
+      const r=new FileReader();
+      r.onload=()=>{ paModalAnexos.push({nome:f.name,tam:f.size,dados:r.result}); if(--pend===0) paModalRefreshAnx(); };
+      r.readAsDataURL(f);
+    });
+  };
+  input.click();
+};
+window.paModalRmAnexo=function(i){ paModalAnexos.splice(i,1); paModalRefreshAnx(); };
 window.paModalParecer=function(){
   const d=paFichaAtualDoc(); if(!d) return;
+  paModalAnexos=[];
   const veu=document.createElement('div'); veu.className='pe-veu'; veu.id='pe-veu';
   veu.innerHTML=`<div class="pe-modal"><h3>Parecer do Projetista</h3>
     <div class="pe-mb"><div class="pe-msub">O parecer segue para a Fiscalização, que toma a decisão final.</div>
       <table class="pe-seltab"><tbody>${paOpcoesDecisao('pp')}</tbody></table>
-      <div class="pe-fld pe-mt"><label>Observações</label><textarea id="pp-obs">${esc(d.obsProj)}</textarea></div></div>
+      <div class="pe-fld pe-mt"><label>Observações</label><textarea id="pp-obs">${esc(d.obsProj)}</textarea></div>
+      ${paModalAnexosHtml()}</div>
     <div class="pe-mrod"><button class="pe-btn" onclick="paFecharModal()">Cancelar</button>
       <button class="pe-btn info" onclick="paSubmeterParecer()">Submeter Parecer →</button></div></div>`;
   document.body.appendChild(veu);
@@ -3977,11 +4007,13 @@ window.paModalDecisao=function(direta){
   const sub = direta
     ? 'O pedido é decidido pela Fiscalização <b>sem passar pelo Projetista</b> e segue directamente para o Empreiteiro.'
     : 'A decisão segue o parecer do Projetista (<b>'+(DEC_PA[d.projParecer]?DEC_PA[d.projParecer].rot:'—')+'</b>). A Fiscalização <b>não pode alterá-lo</b> — pode apenas acrescentar uma nota.';
+  paModalAnexos=[];
   const veu=document.createElement('div'); veu.className='pe-veu'; veu.id='pe-veu';
   veu.innerHTML=`<div class="pe-modal"><h3>${direta?'Aprovar directamente':'Decisão final da Fiscalização'}</h3>
     <div class="pe-mb"><div class="pe-msub">${sub}</div>
       ${parecerBloco}
-      <div class="pe-fld pe-mt"><label>${direta?'Observações':'Nota da Fiscalização'}</label><textarea id="dec-obs">${esc(d.obsFisc)}</textarea></div></div>
+      <div class="pe-fld pe-mt"><label>${direta?'Observações':'Nota da Fiscalização'}</label><textarea id="dec-obs">${esc(d.obsFisc)}</textarea></div>
+      ${paModalAnexosHtml()}</div>
     <div class="pe-mrod"><button class="pe-btn" onclick="paFecharModal()">Cancelar</button>
       <button class="pe-btn gold" onclick="paSubmeterDecisao(${direta?'true':'false'})">Confirmar e Notificar →</button></div></div>`;
   document.body.appendChild(veu);
