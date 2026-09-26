@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.09.26.0846</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.09.26.0931</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -1023,6 +1023,7 @@ function render(){
   if(ptqObraId){ renderListaPTQ(app); return; }
   if(qeFichaId){ renderFichaQE(app); return; }
   if(qeObraId){ renderListaQE(app); return; }
+  if(amObraId){ renderListaAM(app); return; }
   if(relRelId){ const _r=DB.relatorios.find(x=>x.id===relRelId); if(_r&&_r.conteudo&&_r.conteudo.tipo==='seguranca'){ renderFichaRVT(app,_r); return; } if(_r&&_r.conteudo&&_r.conteudo.tipo==='fiscalizacao'){ if(_r.conteudo.subtipo==='SOS'){ renderFichaSOS(app,_r); return; } renderFichaRS(app,_r); return; } renderFichaRelatorio(app); return; }
   if(relObraId){ renderCapaObra(app); return; }
   if(fichObraId){ 
@@ -1044,6 +1045,7 @@ let paObraId=null, paFichaId=null, paDocs=[];
 let pbObraId=null, pbFichaId=null, pbDocs=[];
 let ptqObraId=null, ptqFichaId=null, ptqDocs=[];
 let qeObraId=null, qeFichaId=null, qeDocs=[];
+let amObraId=null, amVista='autos', amDocs=[], amLPU=[], amLpuCap='', amLpuPesq='';
 let capaContext={tipo:null,subtipo:null,sigla:null,label:null,backVar:null};
 function resetCapaContext(){capaContext={tipo:null,subtipo:null,sigla:null,label:null,backVar:null};}
 
@@ -5550,6 +5552,224 @@ window.gpeAdmEditarGravar=async function(){
 
 /* ####################  FIM MÓDULO QE  #################### */
 
+/* ####################  MÓDULO AM  #################### */
+/* ================================================================
+   MÓDULO AM — Autos Mensais (Trabalhos Normais) — FASE 1
+   LPU da obra: importação do Excel (com pré-visualização) e consulta
+   por capítulos. A criação/medição dos Autos chega na Fase 2;
+   fluxo Emp→Fisc→DO e PDF nas fases seguintes.
+   ================================================================ */
+const AM_MOD={
+  rot:'Autos Mensais', sig:'AM', tabela:'autos_mensais',
+  estados:{
+    rascunho:{rot:'Rascunho',cor:'#6B7280',posse:'Empreiteiro'},
+    enviado:{rot:'Enviado',cor:'var(--warning)',posse:'Fiscalização'},
+    verificado:{rot:'Verificado',cor:'var(--info)',posse:'Dono de Obra'},
+    aprovado:{rot:'Aprovado',cor:'var(--gold)',posse:'Empreiteiro'},
+    fechado:{rot:'Fechado',cor:'var(--success)',posse:'—'},
+    reaberto:{rot:'Reaberto',cor:'var(--danger)',posse:'— (aguarda revisão)'}
+  },
+  ordem:['rascunho','enviado','verificado','aprovado','fechado']
+};
+function amEST(e){ return AM_MOD.estados[e]||{rot:e,cor:'#999',posse:'—'}; }
+function amObra(){ return DB.obras.find(o=>o.id===amObraId); }
+
+/* números: milhares com espaço, decimais com vírgula */
+function amFmt(n,casas){
+  if(n==null||isNaN(n)) return '—';
+  const c=(casas==null)?2:casas;
+  const p=Number(n).toFixed(c).split('.');
+  p[0]=p[0].replace(/\B(?=(\d{3})+(?!\d))/g,'\u202F');
+  return p.length>1?p[0]+','+p[1]:p[0];
+}
+function amNum(v){
+  if(v==null||v==='') return null;
+  if(typeof v==='number') return isNaN(v)?null:v;
+  const n=parseFloat(String(v).replace(/\s|\u202F/g,'').replace(',','.'));
+  return isNaN(n)?null:n;
+}
+
+/* ---- dados ---- */
+async function amCarregar(){
+  amDocs=[]; amLPU=[];
+  const o=amObra(); if(!o) return;
+  try{
+    amDocs=(await sbRel.get('autos_mensais',`obra_id=eq.${encodeURIComponent(o.id)}&order=num.desc,rev.desc`)).map(r=>r);
+  }catch(e){ console.error(e); alert('Erro ao carregar Autos Mensais.\n\n'+e.message+'\n\nJá correu o SQL das tabelas dos AM no Supabase do SEGO?'); return; }
+  try{
+    // paginação (a LPU pode exceder o limite de 1000 linhas por pedido)
+    let off=0;
+    while(true){
+      const pag=await sbRel.get('lpu_obra',`obra_id=eq.${encodeURIComponent(o.id)}&order=ordem.asc&limit=1000&offset=${off}`);
+      amLPU=amLPU.concat(pag);
+      if(pag.length<1000) break;
+      off+=1000;
+    }
+  }catch(e){ console.error(e); }
+}
+window.amAbrirModulo=async function(obraId){
+  amObraId=obraId; amVista='autos'; amLpuCap=''; amLpuPesq='';
+  fiscObraId=null; fichObraId=null;
+  await amCarregar(); render();
+};
+window.amVoltarCapa=function(){ const o=amObra(); amObraId=null; fichObraId=o?o.id:null; render(); };
+window.amVerVista=function(v){ amVista=v; render(); };
+window.amSetLpuCap=function(v){ amLpuCap=v; render(); };
+window.amSetLpuPesq=function(v){ amLpuPesq=v; render(); };
+
+/* ---- importação da LPU ---- */
+window.amImportarLPU=function(){
+  if(!(peEFisc()||peESuper())){ alert('Apenas a Fiscalização importa a LPU.'); return; }
+  const o=amObra(); if(!o) return;
+  if(amDocs.length){ alert('Esta obra já tem Autos Mensais criados — a LPU não pode ser substituída.'); return; }
+  if(amLPU.length && !confirm('Esta obra já tem uma LPU importada ('+amLPU.length+' linhas).\n\nSubstituir pela nova? A LPU atual será eliminada.')) return;
+  const input=document.createElement('input'); input.type='file'; input.accept='.xlsx,.xls,.csv';
+  input.onchange=()=>{
+    const f=input.files[0]; if(!f) return;
+    loadSheetJS(async ()=>{
+      try{
+        const buf=await f.arrayBuffer();
+        const wb=XLSX.read(buf,{cellDates:false});
+        const ws=wb.Sheets[wb.SheetNames[0]];
+        const raw=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+        const norm=t=>String(t||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,'');
+        // localizar a linha de cabeçalho (tem "Id" e "Descrição")
+        let hr=-1,ci=-1,cd=-1;
+        for(let r=0;r<Math.min(raw.length,20);r++){
+          const row=raw[r]||[];
+          const i=row.findIndex(c=>norm(c)==='id');
+          const dIx=row.findIndex(c=>norm(c).startsWith('descri'));
+          if(i>=0&&dIx>=0){ hr=r; ci=i; cd=dIx; break; }
+        }
+        if(hr<0){ alert('Não encontrei o cabeçalho (colunas "Id" e "Descrição") nas primeiras 20 linhas.'); return; }
+        const head=raw[hr];
+        const achar=(...alvos)=>{ for(let i=cd+1;i<Math.min(head.length,cd+12);i++){ if(alvos.includes(norm(head[i]))) return i; } return -1; };
+        const cq=achar('qt','qtd','quant','quantidade');
+        const cu=achar('un','und','unidade');
+        const cp=achar('prunit','pu','precounit','precounitario','punit');
+        const ct=achar('total','valortotal');
+        if(cq<0||cu<0||cp<0){ alert('Cabeçalho incompleto — preciso de Qt, Un e Pr Unit a seguir à Descrição.\nEncontrado: '+head.slice(ci,ci+10).join(' | ')); return; }
+
+        const linhas=[]; let ordem=0;
+        for(let r=hr+1;r<raw.length;r++){
+          const row=raw[r]||[];
+          const idRaw=String(row[ci]==null?'':row[ci]).trim();
+          const desc=String(row[cd]==null?'':row[cd]).trim();
+          if(!idRaw&&!desc) continue;
+          const nid=norm(idRaw);
+          if(nid==='nota') continue;                       // notas não se importam
+          if(nid==='t'||norm(desc)==='total') continue;    // linha de totais
+          if(!idRaw) continue;
+          const un=String(row[cu]==null?'':row[cu]).trim();
+          const qt=amNum(row[cq]), pu=amNum(row[cp]);
+          let total=ct>=0?amNum(row[ct]):null;
+          const tipo=un?'linha':'capitulo';
+          if(tipo==='linha'&&(total==null)&&qt!=null&&pu!=null) total=Math.round(qt*pu*100)/100;
+          linhas.push({ id:uid(), obra_id:o.id, ordem:ordem++,
+            item_id:idRaw.replace(/\s+/g,' '), nivel:idRaw.split('.').length,
+            tipo, descricao:desc, un:tipo==='linha'?un:null,
+            qt:tipo==='linha'?qt:null, pu:tipo==='linha'?pu:null,
+            total:tipo==='linha'?total:null });
+        }
+        const nLin=linhas.filter(l=>l.tipo==='linha').length;
+        const nCap=linhas.filter(l=>l.tipo==='capitulo').length;
+        const totG=linhas.reduce((s,l)=>s+(l.tipo==='linha'&&l.total?l.total:0),0);
+        if(!nLin){ alert('Não encontrei linhas medíveis (com Un e Preço).'); return; }
+        if(!confirm(`Importar a LPU para ${o.sigla}?\n\n`+
+          `Capítulos / agrupadores: ${nCap}\nLinhas medíveis: ${nLin}\nTotal: ${amFmt(totG)} €\n\n`+
+          `Primeiras linhas:\n`+linhas.slice(0,6).map(l=>`  ${l.item_id} · ${l.descricao.slice(0,40)}${l.tipo==='linha'?' · '+amFmt(l.total)+' €':''}`).join('\n')+
+          (linhas.length>6?'\n  …':''))) return;
+
+        showLoadingOverlay('A importar LPU...');
+        try{ await sbRel.deleteWhere('lpu_obra',`obra_id=eq.${encodeURIComponent(o.id)}`); }catch(e){}
+        for(let i=0;i<linhas.length;i+=200){
+          await sbRel.post('lpu_obra',linhas.slice(i,i+200));
+        }
+        hideLoadingOverlay();
+        await amCarregar(); amVista='lpu'; render();
+        alert('LPU importada: '+nLin+' linhas medíveis em '+nCap+' capítulos.\nTotal: '+amFmt(totG)+' €');
+      }catch(e){ hideLoadingOverlay(); console.error(e); alert('Erro na importação: '+e.message); }
+    });
+  };
+  input.click();
+};
+
+/* ---- render ---- */
+function renderListaAM(app){
+  const o=amObra();
+  if(!o){ amObraId=null; render(); return; }
+  const podeImp=peEFisc()||peESuper();
+  const caps=amLPU.filter(l=>l.nivel===1&&l.tipo==='capitulo');
+
+  let corpo='';
+  if(amVista==='lpu'){
+    let lst=amLPU;
+    if(amLpuCap) lst=lst.filter(l=>l.item_id===amLpuCap||String(l.item_id).startsWith(amLpuCap+'.'));
+    if(amLpuPesq){
+      const q=amLpuPesq.toLowerCase();
+      lst=lst.filter(l=>String(l.item_id).toLowerCase().includes(q)||String(l.descricao||'').toLowerCase().includes(q));
+    }
+    const totalG=amLPU.reduce((s,l)=>s+(l.tipo==='linha'&&l.total?Number(l.total):0),0);
+    corpo=`
+      <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px;flex-wrap:wrap">
+        <select onchange="amSetLpuCap(this.value)" style="height:31px;padding:4px 8px;border:1px solid var(--border-light);border-radius:4px;font-size:13px">
+          <option value="">Todos os Capítulos</option>
+          ${caps.map(c=>`<option value="${esc(c.item_id)}" ${amLpuCap===c.item_id?'selected':''}>${esc(c.item_id)} — ${esc((c.descricao||'').slice(0,50))}</option>`).join('')}
+        </select>
+        <input value="${esc(amLpuPesq)}" placeholder="Pesquisar Id ou descrição…" oninput="amLpuPesq=this.value" onchange="amSetLpuPesq(this.value)" style="height:31px;padding:4px 8px;border:1px solid var(--border-light);border-radius:4px;font-size:13px;min-width:240px">
+        <span class="pe-muted" style="margin-left:auto;font-size:12px">Total da LPU: <b>${amFmt(totalG)} €</b></span>
+      </div>
+      <div class="table-card">
+        ${lst.length?`<table>
+          <thead><tr>
+            <th style="text-align:left;width:90px">Id</th><th style="text-align:left">Descrição</th>
+            <th style="text-align:center;width:50px">Un</th><th style="text-align:right;width:90px">Qt</th>
+            <th style="text-align:right;width:100px">Pr Unit</th><th style="text-align:right;width:110px">Total</th>
+          </tr></thead>
+          <tbody>${lst.map(l=>l.tipo==='capitulo'
+            ?`<tr style="background:#EEF1F5"><td style="font-weight:700">${esc(l.item_id)}</td><td colspan="5" style="font-weight:700">${esc(l.descricao)}</td></tr>`
+            :`<tr><td>${esc(l.item_id)}</td><td>${esc(l.descricao)}</td><td style="text-align:center">${esc(l.un||'')}</td><td style="text-align:right">${amFmt(l.qt)}</td><td style="text-align:right">${amFmt(l.pu)}</td><td style="text-align:right">${amFmt(l.total)}</td></tr>`).join('')}
+          </tbody>
+        </table>`:`<div class="pe-vazio">${amLPU.length?'Sem resultados para o filtro.':'Sem LPU importada nesta obra.'+(podeImp?' Use "Importar LPU".':'')}</div>`}
+      </div>`;
+  } else {
+    corpo=`<div class="table-card">
+      ${amDocs.length?`<table>
+        <thead><tr><th style="text-align:left">Id</th><th style="text-align:center">Mês de Referência</th><th style="text-align:center">Estado</th><th style="text-align:center">Criado</th><th style="text-align:center">Enviado</th></tr></thead>
+        <tbody>${amDocs.map(d=>`<tr>
+          <td><span class="pe-idp">${esc(d.id)}</span></td>
+          <td style="text-align:center">${esc(d.mes_ref||'—')}</td>
+          <td style="text-align:center"><span class="pe-estpill" style="background:${amEST(d.estado).cor}">${amEST(d.estado).rot}</span></td>
+          <td class="pe-dt">${d.data_criacao?peDataPT(d.data_criacao):'—'}</td>
+          <td class="pe-dt">${d.data_envio?peDataPT(d.data_envio):'—'}</td></tr>`).join('')}
+        </tbody></table>`
+      :`<div class="pe-vazio">${amLPU.length
+          ?'Sem Autos Mensais nesta obra. A criação e medição dos Autos chega na Fase 2.'
+          :'Comece por importar a LPU da obra'+(podeImp?' com o botão "Importar LPU".':'.')}</div>`}
+    </div>`;
+  }
+
+  app.innerHTML=PE_CSS+`
+  <div class="pe-wrap">
+    <button class="back-btn" onclick="amVoltarCapa()">← Voltar à Obra</button>
+    <div class="page-header">
+      <div>
+        <div class="page-title"><span class="code-pill" style="font-size:13px">${o.codigo}</span>${o.sigla} — ${o.nome} · AM</div>
+        <div style="margin-top:4px">${estadoBadge(o.estado)}</div>
+      </div>
+      <div class="page-actions"></div>
+    </div>
+    <div style="margin-bottom:12px;display:flex;gap:8px;align-items:center">
+      <button class="btn btn-sm ${amVista!=='lpu'?'btn-gold':''}" style="${amVista!=='lpu'?'':'border:1px solid var(--border-light);background:#fff'}" onclick="amVerVista('autos')">Autos</button>
+      <button class="btn btn-sm ${amVista==='lpu'?'btn-gold':''}" style="${amVista==='lpu'?'':'border:1px solid var(--border-light);background:#fff'}" onclick="amVerVista('lpu')">LPU${amLPU.length?' ('+amLPU.filter(l=>l.tipo==='linha').length+')':''}</button>
+      ${podeImp?`<span style="margin-left:auto"><button class="btn btn-sm" style="border:1px solid var(--border-light);background:#fff" onclick="amImportarLPU()">Importar LPU</button></span>`:''}
+    </div>
+    ${corpo}
+  </div>`;
+}
+
+/* ####################  FIM MÓDULO AM  #################### */
+
 window.rsCommit=function(section,idx,key,value){
   if(!relRelId)return;
   const r=DB.relatorios.find(x=>x.id===relRelId);if(!r)return;
@@ -7181,6 +7401,7 @@ const CO_ICONS={
   pb:`<svg viewBox="0 0 48 48" fill="none"><rect x="7" y="16" width="34" height="18" rx="2" stroke="currentColor" stroke-width="2.5"/><path d="M7 23h34M14 16v-4h20v4" stroke="currentColor" stroke-width="2.5"/></svg>`,
   ptq:`<svg viewBox="0 0 48 48" fill="none"><rect x="8" y="10" width="32" height="30" rx="2" stroke="currentColor" stroke-width="2.5"/><path d="M8 18h32M18 10v30M28 10v30" stroke="currentColor" stroke-width="2"/></svg>`,
   qe:`<svg viewBox="0 0 48 48" fill="none"><circle cx="21" cy="21" r="12" stroke="currentColor" stroke-width="2.5"/><path d="M30 30l8 8" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><path d="M16 21l4 4 7-8" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  am:`<svg viewBox="0 0 48 48" fill="none"><rect x="10" y="6" width="28" height="36" rx="3" stroke="currentColor" stroke-width="2.5"/><path d="M28 17c-1.2-1.4-3-2.2-4.8-2.2-3.4 0-6.2 2.9-6.2 6.5s2.8 6.5 6.2 6.5c1.8 0 3.6-.8 4.8-2.2M14.5 20h9M14.5 24h9" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M16 36h16" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>`,
   RVT:`<svg viewBox="0 0 48 48" fill="none"><path d="M24 6l14 6v9c0 9-6 15-14 21-8-6-14-12-14-21v-9l14-6Z" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/></svg>`
 };
 const CO_MODS=[
@@ -7189,6 +7410,7 @@ const CO_MODS=[
   {key:'pe',sigla:'PE',kind:'gpe',tabela:'pedidos_esclarecimento',grp:'fisc',open:'peAbrirModulo'},
   {key:'pa',sigla:'PA',kind:'gpe',tabela:'pedidos_aprovacao',grp:'fisc',open:'paAbrirModulo'},
   {key:'qe',sigla:'QE',kind:'gpe',tabela:'qualidade_execucao',grp:'fisc',open:'qeAbrirModulo'},
+  {key:'am',sigla:'AM',kind:'gpe',tabela:'autos_mensais',grp:'fisc',open:'amAbrirModulo'},
   {key:'RS',sigla:'RSO',kind:'rel',tipo:'fiscalizacao',subtipo:'RS',grp:'fisc',label:'Relatório Semanal de Obra'},
   {key:'SOS',sigla:'SOS',kind:'rel',tipo:'fiscalizacao',subtipo:'SOS',grp:'fisc',label:'Situações Operacionais Semanais'},
   {key:'RVT',sigla:'RVT',kind:'rel',tipo:'seguranca',subtipo:'RVT',grp:'seg',label:'Relatório de Visita Técnica'}
@@ -7437,6 +7659,7 @@ function renderFichaObra(app){
   coFillGpe(o.id,'pb','pedidos_betonagem');
   coFillGpe(o.id,'ptq','planos_quinzenais');
   coFillGpe(o.id,'qe','qualidade_execucao');
+  coFillGpe(o.id,'am','autos_mensais');
 }
 
 
