@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.09.27.1237</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.09.27.1924</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -5786,14 +5786,20 @@ function renderListaAM(app){
       // totais por agrupador (soma sequencial das linhas descendentes)
       const tot={};
       seq.forEach(({l,anc})=>{ if(l.tipo==='linha'&&l.total){ anc.forEach(a=>{ tot[a]=(tot[a]||0)+Number(l.total); }); } });
+      // níveis do Resumo = níveis de agrupamento acima do nível onde começam os artigos
+      const nivArt=amLPU.filter(l=>l.tipo==='linha'&&!/^L\d+$/.test(String(l.item_id))).map(l=>l.nivel);
+      const nivRes=Math.max(1,(nivArt.length?Math.min.apply(null,nivArt):3)-1);
+      const nomesPeso=nivRes===1?['Peso']:(nivRes===2?['Peso Cap.','Peso Sub.']:(nivRes===3?['Peso Grupo','Peso Cap.','Peso Sub.']:Array.from({length:nivRes},(_,i)=>'Peso N'+(i+1))));
+      const pesoCels=l=>nomesPeso.map((_,c)=>`<td style="text-align:right;font-weight:${l.nivel===1?'700':'400'}">${(c+1)===l.nivel&&totalG?amFmt((tot[l.item_id]||0)/totalG*100)+'%':''}</td>`).join('');
       corpo=`<div class="table-card"><table>
-        <thead><tr><th style="width:90px">Id</th><th>Descrição</th><th style="width:130px">Total</th></tr></thead>
+        <thead><tr><th style="width:90px">Id</th><th>Descrição</th><th style="width:120px">Total</th>${nomesPeso.map(nm=>`<th style="width:86px">${nm}</th>`).join('')}</tr></thead>
         <tbody>
-          ${amLPU.filter(l=>l.tipo==='capitulo').map(l=>`<tr ${l.nivel===1?'style="background:#EEF1F5"':''}>
+          ${amLPU.filter(l=>l.tipo==='capitulo'&&l.nivel<=nivRes).map(l=>`<tr ${l.nivel===1?'style="background:#EEF1F5"':''}>
             <td style="font-weight:${l.nivel===1?'700':'400'}">${esc(l.item_id)}</td>
             <td class="am-desc" style="padding-left:${(l.nivel-1)*18+8}px;font-weight:${l.nivel===1?'700':'400'}">${esc(l.descricao)}</td>
-            <td style="text-align:right;font-weight:${l.nivel===1?'700':'400'}">${amFmt(tot[l.item_id]||0)}</td></tr>`).join('')}
-          <tr style="background:#1E3A5F;color:#fff"><td style="font-weight:700">T</td><td style="font-weight:700">Total</td><td style="text-align:right;font-weight:700">${amFmt(totalG)}</td></tr>
+            <td style="text-align:right;font-weight:${l.nivel===1?'700':'400'}">${amFmt(tot[l.item_id]||0)}</td>
+            ${pesoCels(l)}</tr>`).join('')}
+          <tr style="background:#1E3A5F;color:#fff"><td style="font-weight:700">T</td><td style="font-weight:700">Total</td><td style="text-align:right;font-weight:700">${amFmt(totalG)}</td>${nomesPeso.map(()=>'<td></td>').join('')}</tr>
         </tbody></table>
         ${amLPU.length?'':'<div class="pe-vazio">Sem LPU importada nesta obra.'+(peESuper()?' Use "Importar LPU".':'')+'</div>'}
       </div>`;
@@ -5815,7 +5821,7 @@ function renderListaAM(app){
             <td class="am-desc" colspan="5" style="padding-left:${(l.nivel-1)*18+8}px">${esc(l.descricao)}</td></tr>`;
         }
         if(l.tipo==='nota'){
-          return `<tr><td class="am-nota-id">NOTA</td><td class="am-desc" colspan="5">${esc(l.descricao)}</td></tr>`;
+          return `<tr><td class="am-nota-id">NOTA</td><td class="am-desc">${esc(l.descricao)}</td><td></td><td></td><td></td><td></td></tr>`;
         }
         const disc=amDisc(l);
         return `<tr>
