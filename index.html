@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.09.27.2052</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.09.27.2212</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -5678,13 +5678,14 @@ window.amImportarLPU=function(){
         if(hr<0){ hideLoadingOverlay(); alert('Não encontrei o cabeçalho (colunas "Id" e "Descrição") nas primeiras 20 linhas.'); return; }
         const head=raw[hr];
         const achar=(...alvos)=>{ for(let i=cd+1;i<Math.min(head.length,cd+12);i++){ if(alvos.includes(norm(head[i]))) return i; } return -1; };
+        let cn=-1; for(let i=0;i<head.length;i++){ if(['nivel','niv','nv'].includes(norm(head[i]))){ cn=i; break; } }
         const cu=achar('un','und','unidade');
         const cq=achar('qt','qtd','quant','quantidade');
         const cp=achar('prunit','pu','precounit','precounitario','punit','punitario');
         const ct=achar('total','valortotal');
         if(cq<0||cu<0||cp<0){ hideLoadingOverlay(); alert('Cabeçalho incompleto — preciso de Un, Qt e Pr Unit a seguir à Descrição.\nEncontrado: '+head.slice(ci,ci+10).join(' | ')); return; }
 
-        const linhas=[]; let ordem=0;
+        const linhas=[]; let ordem=0, ultimoNivCap=0;
         for(let r=hr+1;r<raw.length;r++){
           const row=raw[r]||[];
           const linhaExcel=r+1; // 1-based
@@ -5696,6 +5697,7 @@ window.amImportarLPU=function(){
           const un=String(row[cu]==null?'':row[cu]).trim();
           const qt=amNum(row[cq]), pu=amNum(row[cp]);
           let total=ct>=0?amNum(row[ct]):null;
+          const nivCol=cn>=0?amNum(row[cn]):null;
           let tipo,item_id=idRaw,nivel;
           if(nid==='nota'||(!idRaw&&!un&&qt==null&&pu==null)){
             tipo='nota'; item_id='NOTA'; nivel=0;
@@ -5703,10 +5705,12 @@ window.amImportarLPU=function(){
           }else if(un){
             tipo='linha';
             if(!item_id) item_id='L'+linhaExcel;
-            nivel=item_id.split('.').length;
+            nivel=(nivCol&&nivCol>=1)?Math.round(nivCol):(/^L\d+$/.test(item_id)?ultimoNivCap+1:item_id.split('.').length);
             if(total==null&&qt!=null&&pu!=null) total=Math.round(qt*pu*100)/100;
           }else{
-            tipo='capitulo'; nivel=item_id.split('.').length;
+            tipo='capitulo';
+            nivel=(nivCol&&nivCol>=1)?Math.round(nivCol):item_id.split('.').length;
+            ultimoNivCap=nivel;
           }
           linhas.push({ id:uid(), obra_id:o.id, ordem:ordem++, item_id, nivel, tipo,
             descricao:desc, un:tipo==='linha'?un:null,
@@ -5763,10 +5767,12 @@ function amSequencia(){
   for(const l of amLPU){
     if(l.tipo==='capitulo'){
       while(stack.length&&stack[stack.length-1].nivel>=l.nivel) stack.pop();
-      out.push({l,anc:stack.map(s=>s.item_id)});
+      out.push({l,anc:stack.slice()});
       stack.push({item_id:l.item_id,nivel:l.nivel});
+    }else if(l.tipo==='linha'){
+      out.push({l,anc:stack.filter(s=>s.nivel<l.nivel)});
     }else{
-      out.push({l,anc:stack.map(s=>s.item_id)});
+      out.push({l,anc:stack.slice()}); // notas seguem o contexto completo
     }
   }
   return out;
@@ -5787,8 +5793,7 @@ function renderListaAM(app){
       // totais por agrupador (soma sequencial das linhas descendentes)
       const tot={}; let foraCap=0;
       seq.forEach(({l,anc})=>{ if(l.tipo==='linha'&&l.total){
-        const meus=anc.filter(a=>String(l.item_id)===a||String(l.item_id).startsWith(a+'.'));
-        if(meus.length) meus.forEach(a=>{ tot[a]=(tot[a]||0)+Number(l.total); });
+        if(anc.length) anc.forEach(a=>{ tot[a.item_id]=(tot[a.item_id]||0)+Number(l.total); });
         else foraCap+=Number(l.total);
       } });
       // Resumo: profundidade à escolha do utilizador (1..máximo de níveis de agrupadores da LPU)
@@ -5816,13 +5821,13 @@ function renderListaAM(app){
     }else{
       // DETALHE
       let visiveis=seq;
-      if(amLpuCap) visiveis=visiveis.filter(({l,anc})=>l.item_id===amLpuCap||anc.includes(amLpuCap));
+      if(amLpuCap) visiveis=visiveis.filter(({l,anc})=>l.item_id===amLpuCap||anc.some(a=>a.item_id===amLpuCap));
       if(amLpuPesq){
         const q=amLpuPesq.toLowerCase();
         visiveis=visiveis.filter(({l})=>String(l.item_id).toLowerCase().includes(q)||String(l.descricao||'').toLowerCase().includes(q));
       }
       if(amSoDisc) visiveis=visiveis.filter(({l})=>amDisc(l));
-      if(!amLpuPesq&&!amSoDisc) visiveis=visiveis.filter(({l,anc})=>!anc.some(a=>amColapso[a]));
+      if(!amLpuPesq&&!amSoDisc) visiveis=visiveis.filter(({l,anc})=>!anc.some(a=>amColapso[a.item_id]));
       const rows=visiveis.map(({l})=>{
         if(l.tipo==='capitulo'){
           const col=!!amColapso[l.item_id];
