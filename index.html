@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.09.27.2212</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.09.27.2223</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -5641,6 +5641,15 @@ window.amVoltarCapa=function(){ const o=amObra(); amObraId=null; fichObraId=o?o.
 window.amVerVista=function(v){ amVista=v; render(); };
 window.amVerSub=function(v){ amSub=v; render(); };
 window.amSetResNiv=function(n){ amResNiv=n; render(); };
+window.amEditarRotulo=async function(itemId){
+  if(!peESuper()) return;
+  const l=amLPU.find(x=>x.tipo==='capitulo'&&x.item_id===itemId); if(!l) return;
+  const v=prompt('Descrição curta para o capítulo '+itemId+' (vazio = voltar à descrição original):', l.rotulo||'');
+  if(v===null) return;
+  const rot=v.trim()||null;
+  try{ await sbRel.patch('lpu_obra', l.id, {rotulo:rot}); l.rotulo=rot; render(); }
+  catch(e){ alert('Erro ao gravar o rótulo: '+e.message+'\n\nJá correu o SQL da coluna?\nalter table public.lpu_obra add column if not exists rotulo text;'); }
+};
 window.amSetLpuCap=function(v){ amLpuCap=v; render(); };
 window.amSetLpuPesq=function(v){ amLpuPesq=v; render(); };
 window.amToggleDisc=function(){ amSoDisc=!amSoDisc; render(); };
@@ -5850,7 +5859,7 @@ function renderListaAM(app){
       corpo=`
         <div style="display:flex;gap:6px;align-items:center;margin-bottom:8px;flex-wrap:wrap">
           <span class="am-chip ${!amLpuCap?'on':''}" onclick="amSetLpuCap('')">Todos</span>
-          ${caps1.map(c=>`<span class="am-chip ${amLpuCap===c.item_id?'on':''}" title="${esc(c.descricao)}" onclick="amSetLpuCap('${esc(c.item_id)}')">${esc(c.item_id)} · ${esc((c.descricao||'').slice(0,24))}${(c.descricao||'').length>24?'…':''}</span>`).join('')}
+          ${caps1.map(c=>`<span class="am-chip ${amLpuCap===c.item_id?'on':''}" title="${esc(c.descricao)}" onclick="amSetLpuCap('${esc(c.item_id)}')">${esc(c.item_id)} · ${esc(c.rotulo||((c.descricao||'').slice(0,24)+((c.descricao||'').length>24?'…':'')))}${peESuper()?` <span style="opacity:.55" title="Editar descrição curta" onclick="event.stopPropagation();amEditarRotulo('${esc(c.item_id)}')">✎</span>`:''}</span>`).join('')}
         </div>
         <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap">
           <button class="am-btn" onclick="amColapsarTudo(true)">Colapsar Tudo</button>
