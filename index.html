@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.09.27.2239</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.09.28.0838</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -6040,6 +6040,7 @@ window.amMedInput=function(lpuId,campo,el){
   if(g('ams')) g('ams').textContent=amFmt(saldoQt);
   if(g('amsv')) g('amsv').textContent=amFmt(saldoQt*pu);
   if(g('amsp')) g('amsp').textContent=qtL?amFmt(saldoQt/qtL*100)+'%':'—';
+  if(g('ame')) g('ame').style.color=saldoQt>0?'#B91C1C':'#C6CBD3';
   const tr=document.getElementById('amr-'+lpuId);
   if(tr) tr.style.background=qt?'#F4FBF6':'';
   amAtualizarTotais();
@@ -6058,6 +6059,14 @@ function amAtualizarTotais(){
   if(g('am-tot-acum')) g('am-tot-acum').textContent=amFmt(acum)+' €';
   if(g('am-tot-saldo')) g('am-tot-saldo').textContent=amFmt(saldo)+' €';
 }
+window.amEsgotar=function(lpuId){
+  const el=document.getElementById('amq-'+lpuId); if(!el) return;
+  const l=amLPU.find(x=>x.id===lpuId); if(!l) return;
+  const qtL=Number(l.qt)||0, ant=amFichaAcc[lpuId]||0;
+  const resto=Math.max(0,Math.round((qtL-ant)*10000)/10000);
+  el.value=resto?String(resto).replace('.',','):'';
+  amMedInput(lpuId,'qt',el);
+};
 window.amGuardarAM=async function(){
   const d=amPorId(amFichaId); if(!d) return;
   Object.keys(amFichaMed).forEach(k=>{ if(!amFichaMed[k]||!Number(amFichaMed[k].qt)){ if(!(amFichaMed[k]&&amFichaMed[k].obs)) delete amFichaMed[k]; } });
@@ -6128,7 +6137,7 @@ function renderFichaAM(app){
       <td style="text-align:center">${esc(l.un||'')}</td>
       <td style="text-align:right">${amFmt(qtL)}</td>
       <td style="text-align:right">${amFmt(pu)}</td>
-      <td style="text-align:right">${inp('amp',pct,'pct','Percentagem executada no mês')}</td>
+      <td style="text-align:right;white-space:nowrap">${editavel?`<span id="ame-${l.id}" onclick="amEsgotar('${l.id}')" title="Esgotar o saldo desta linha" style="cursor:pointer;color:${saldoQt>0?'#B91C1C':'#C6CBD3'};margin-right:3px;user-select:none">●</span>`:''}${inp('amp',pct,'pct','Percentagem executada no mês')}</td>
       <td style="text-align:right">${inp('amq',q,'qt','Quantidade executada no mês')}</td>
       <td style="text-align:right" id="amv-${l.id}">${amFmt(q*pu)}</td>
       <td style="text-align:right" id="ama-${l.id}">${amFmt(acumQt)}</td>
@@ -6178,16 +6187,16 @@ function renderFichaAM(app){
       <thead>
         <tr>
           <th rowspan="2" style="width:74px">Id</th><th rowspan="2">Descrição</th><th rowspan="2" style="width:40px">Un</th>
-          <th colspan="2" style="background:#EEF1F5">LPU</th>
-          <th colspan="3" style="background:#FFF6E0">Mês</th>
-          <th colspan="3" style="background:#EAF3FB">Acumulado</th>
-          <th colspan="3" style="background:#F4FBF6">Saldo</th>
+          <th colspan="2">LPU</th>
+          <th colspan="3">Mês</th>
+          <th colspan="3">Acumulado</th>
+          <th colspan="3">Saldo</th>
         </tr>
         <tr>
-          <th style="width:76px;background:#EEF1F5">Qt</th><th style="width:84px;background:#EEF1F5">Pr Unit</th>
-          <th style="width:64px;background:#FFF6E0">%</th><th style="width:64px;background:#FFF6E0">Qt</th><th style="width:92px;background:#FFF6E0">Valor</th>
-          <th style="width:76px;background:#EAF3FB">Qt</th><th style="width:92px;background:#EAF3FB">Valor</th><th style="width:58px;background:#EAF3FB">Peso</th>
-          <th style="width:76px;background:#F4FBF6">Qt</th><th style="width:92px;background:#F4FBF6">Valor</th><th style="width:58px;background:#F4FBF6">Peso</th>
+          <th style="width:76px">Qt</th><th style="width:84px">Pr Unit</th>
+          <th style="width:64px">%</th><th style="width:64px">Qt</th><th style="width:92px">Valor</th>
+          <th style="width:76px">Qt</th><th style="width:92px">Valor</th><th style="width:58px">Peso</th>
+          <th style="width:76px">Qt</th><th style="width:92px">Valor</th><th style="width:58px">Peso</th>
         </tr>
       </thead>
       <tbody>${rows||''}</tbody>
