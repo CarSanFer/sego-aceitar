@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.09.27.2223</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.09.27.2239</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -1023,6 +1023,7 @@ function render(){
   if(ptqObraId){ renderListaPTQ(app); return; }
   if(qeFichaId){ renderFichaQE(app); return; }
   if(qeObraId){ renderListaQE(app); return; }
+  if(amFichaId){ renderFichaAM(app); return; }
   if(amObraId){ renderListaAM(app); return; }
   if(relRelId){ const _r=DB.relatorios.find(x=>x.id===relRelId); if(_r&&_r.conteudo&&_r.conteudo.tipo==='seguranca'){ renderFichaRVT(app,_r); return; } if(_r&&_r.conteudo&&_r.conteudo.tipo==='fiscalizacao'){ if(_r.conteudo.subtipo==='SOS'){ renderFichaSOS(app,_r); return; } renderFichaRS(app,_r); return; } renderFichaRelatorio(app); return; }
   if(relObraId){ renderCapaObra(app); return; }
@@ -1046,6 +1047,7 @@ let pbObraId=null, pbFichaId=null, pbDocs=[];
 let ptqObraId=null, ptqFichaId=null, ptqDocs=[];
 let qeObraId=null, qeFichaId=null, qeDocs=[];
 let amObraId=null, amVista='lpu', amSub='resumo', amDocs=[], amLPU=[], amLpuCap='', amLpuPesq='', amSoDisc=false, amColapso={}, amResNiv=2;
+let amFichaId=null, amFichaMed={}, amFichaAcc={}, amFCap='', amFPesq='', amFColapso={}, amFSoMed=false;
 let capaContext={tipo:null,subtipo:null,sigla:null,label:null,backVar:null};
 function resetCapaContext(){capaContext={tipo:null,subtipo:null,sigla:null,label:null,backVar:null};}
 
@@ -5637,7 +5639,7 @@ window.amAbrirModulo=async function(obraId){
   fiscObraId=null; fichObraId=null;
   await amCarregar(); render();
 };
-window.amVoltarCapa=function(){ const o=amObra(); amObraId=null; fichObraId=o?o.id:null; render(); };
+window.amVoltarCapa=function(){ const o=amObra(); amObraId=null; amFichaId=null; fichObraId=o?o.id:null; render(); };
 window.amVerVista=function(v){ amVista=v; render(); };
 window.amVerSub=function(v){ amSub=v; render(); };
 window.amSetResNiv=function(n){ amResNiv=n; render(); };
@@ -5884,10 +5886,11 @@ function renderListaAM(app){
         <span style="margin-left:auto" class="am-total">Total da LPU: ${amFmt(totalG)} €</span>
       </div>`+corpo;
   } else {
-    corpo=`<div class="table-card">
+    corpo=`<div style="margin-bottom:10px">${(peEEmp()||peESuper())?`<button class="am-btn on" onclick="amNovoAuto()">+ Novo Auto</button>`:''}</div>
+    <div class="table-card">
       ${amDocs.length?`<table>
         <thead><tr><th>Id</th><th>Mês de Referência</th><th>Estado</th><th>Criado</th><th>Enviado</th></tr></thead>
-        <tbody>${amDocs.map(d=>`<tr>
+        <tbody>${amDocs.map(d=>`<tr onclick="amAbrirFicha('${d.id}')" style="cursor:pointer">
           <td><span class="pe-idp">${esc(d.id)}</span></td>
           <td style="text-align:center">${esc(d.mes_ref||'—')}</td>
           <td style="text-align:center"><span class="pe-estpill" style="background:${amEST(d.estado).cor}">${amEST(d.estado).rot}</span></td>
@@ -5919,6 +5922,279 @@ function renderListaAM(app){
       </span>`:''}
     </div>
     ${corpo}
+  </div>`;
+}
+
+/* ---- FASE 2: Autos — criação e medição mensal ---- */
+function amPorId(id){ return amDocs.find(d=>d.id===id); }
+function amRegistar(d,acao){ d.historico=d.historico||[]; d.historico.push({data:new Date().toLocaleString('pt-PT'),autor:(currentUser?currentUser.nome:'?'),acao}); }
+function amProximoNum(){ return amDocs.reduce((m,d)=>Math.max(m,d.num||0),0)+1; }
+async function amPersistir(d){
+  const o=amObra(); if(!o) return;
+  const row={ id:d.id,num:d.num,rev:d.rev,obra_id:o.id,obra_nome:o.nome,estado:d.estado,mes_ref:d.mes_ref,
+    data_criacao:d.data_criacao||null,data_envio:d.data_envio||null,data_verificacao:d.data_verificacao||null,
+    data_aprovacao:d.data_aprovacao||null,data_fecho:d.data_fecho||null,
+    autor_emp:d.autor_emp||'',autor_fisc:d.autor_fisc||'',autor_do:d.autor_do||'',
+    medicoes:d.medicoes||{},observacoes:d.observacoes||'',prev_id:d.prev_id||null,next_id:d.next_id||null,
+    historico:d.historico||[] };
+  const q=`id=eq.${encodeURIComponent(d.id)}&obra_id=eq.${encodeURIComponent(o.id)}`;
+  const ex=await sbRel.get('autos_mensais',q+'&select=id');
+  if(ex.length) await sbRel.patchWhere('autos_mensais',q,row);
+  else await sbRel.post('autos_mensais',row);
+}
+
+/* acumulado anterior: última revisão de cada num < numAtual */
+function amAcumAnt(numAtual){
+  const ult={};
+  amDocs.filter(d=>d.num<numAtual).forEach(d=>{ if(!ult[d.num]||d.rev>ult[d.num].rev) ult[d.num]=d; });
+  const acc={};
+  Object.values(ult).forEach(d=>{
+    const m=d.medicoes||{};
+    Object.keys(m).forEach(k=>{ const q=Number(m[k]&&m[k].qt); if(q){ acc[k]=(acc[k]||0)+q; } });
+  });
+  return acc;
+}
+
+window.amNovoAuto=function(){
+  if(!(peEEmp()||peESuper())){ alert('Apenas o Empreiteiro cria Autos.'); return; }
+  if(!amLPU.length){ alert('Importe primeiro a LPU da obra.'); return; }
+  const aberto=amDocs.find(d=>d.estado!=='fechado');
+  if(aberto){ alert('O Auto '+aberto.id+' ainda não está fechado. Feche-o antes de criar um novo.'); return; }
+  const hoje=new Date(); const mesDef=hoje.getFullYear()+'-'+String(hoje.getMonth()+1).padStart(2,'0');
+  const veu=document.createElement('div'); veu.className='pe-veu'; veu.id='pe-veu';
+  veu.innerHTML=`<div class="pe-modal" style="max-width:380px"><h3>Novo Auto Mensal</h3>
+    <div class="pe-mb">
+      <div class="pe-fld"><label>Mês de Referência</label><input type="month" id="am-novo-mes" value="${mesDef}" style="width:100%;box-sizing:border-box;height:31px;padding:4px 8px;border:1px solid var(--border-light);border-radius:4px"></div>
+      <div class="pe-msub pe-mt">O Auto nasce em rascunho, com os acumulados dos Autos anteriores. Só se mede o mês.</div>
+    </div>
+    <div class="pe-mrod">
+      <button class="pe-btn" onclick="document.getElementById('pe-veu').remove()">Cancelar</button>
+      <button class="pe-btn green" onclick="amCriarAuto()">Criar →</button>
+    </div></div>`;
+  document.body.appendChild(veu);
+};
+window.amCriarAuto=async function(){
+  const mes=(document.getElementById('am-novo-mes')||{}).value||'';
+  if(!mes){ alert('Indique o mês de referência.'); return; }
+  const v=document.getElementById('pe-veu'); if(v) v.remove();
+  const num=amProximoNum();
+  const d={ id:peIdFmt(num,0), num, rev:0, estado:'rascunho', mes_ref:mes,
+    data_criacao:peHoje(), autor_emp:(currentUser?currentUser.nome:''), medicoes:{}, historico:[] };
+  amRegistar(d,'Auto criado (rascunho) — mês de referência '+mes+'.');
+  amDocs.unshift(d);
+  try{ await amPersistir(d); }catch(e){ alert('Erro ao criar: '+e.message); }
+  amAbrirFicha(d.id);
+};
+window.amAbrirFicha=function(id){
+  const d=amPorId(id); if(!d) return;
+  amFichaId=id;
+  amFichaMed=JSON.parse(JSON.stringify(d.medicoes||{}));
+  amFCap=''; amFPesq=''; amFColapso={}; amFSoMed=false;
+  render();
+};
+window.amFecharFicha=function(){ amFichaId=null; render(); };
+window.amFSetCap=function(v){ amFCap=v; render(); };
+window.amFSetPesq=function(v){ amFPesq=v; render(); };
+window.amFToggleSoMed=function(){ amFSoMed=!amFSoMed; render(); };
+window.amFToggleCap=function(id){ if(amFColapso[id]) delete amFColapso[id]; else amFColapso[id]=true; render(); };
+window.amFColapsarTudo=function(tudo){
+  amFColapso={};
+  if(tudo) amLPU.filter(l=>l.tipo==='capitulo').forEach(l=>{ amFColapso[l.item_id]=true; });
+  render();
+};
+
+/* edição de uma célula de medição (sem re-render global) */
+window.amMedInput=function(lpuId,campo,el){
+  const d=amPorId(amFichaId); if(!d) return;
+  const l=amLPU.find(x=>x.id===lpuId); if(!l) return;
+  const qtL=Number(l.qt)||0, pu=Number(l.pu)||0;
+  const antQt=amFichaAcc[lpuId]||0;
+  const saldoDisp=Math.max(0,qtL-antQt);
+  let qt=amFichaMed[lpuId]&&Number(amFichaMed[lpuId].qt)||0;
+  if(campo==='pct'){
+    let p=amNum(el.value); if(p==null||p<0) p=0;
+    qt=qtL*p/100;
+  }else{
+    let v=amNum(el.value); if(v==null||v<0) v=0;
+    qt=v;
+  }
+  let clamp=false;
+  if(qt>saldoDisp+1e-9){ qt=saldoDisp; clamp=true; }
+  qt=Math.round(qt*10000)/10000;
+  if(!amFichaMed[lpuId]) amFichaMed[lpuId]={};
+  amFichaMed[lpuId].qt=qt||0;
+  // refletir na linha
+  const g=x=>document.getElementById(x+'-'+lpuId);
+  const acumQt=antQt+qt, saldoQt=Math.max(0,qtL-acumQt);
+  if(g('amp')&&campo!=='pct') g('amp').value=qtL?String(Math.round(qt/qtL*10000)/100).replace('.',','):'';
+  if(g('amq')&&campo!=='qt') g('amq').value=qt?String(qt).replace('.',','):'';
+  if(campo==='pct') el.value=el.value; // mantém o que digitou (já clampado abaixo se preciso)
+  if(clamp){
+    if(g('amp')) g('amp').value=qtL?String(Math.round(qt/qtL*10000)/100).replace('.',','):'';
+    if(g('amq')) g('amq').value=qt?String(qt).replace('.',','):'';
+  }
+  if(g('amv')) g('amv').textContent=amFmt(qt*pu);
+  if(g('ama')) g('ama').textContent=amFmt(acumQt);
+  if(g('amav')) g('amav').textContent=amFmt(acumQt*pu);
+  if(g('amap')) g('amap').textContent=qtL?amFmt(acumQt/qtL*100)+'%':'—';
+  if(g('ams')) g('ams').textContent=amFmt(saldoQt);
+  if(g('amsv')) g('amsv').textContent=amFmt(saldoQt*pu);
+  if(g('amsp')) g('amsp').textContent=qtL?amFmt(saldoQt/qtL*100)+'%':'—';
+  const tr=document.getElementById('amr-'+lpuId);
+  if(tr) tr.style.background=qt?'#F4FBF6':'';
+  amAtualizarTotais();
+};
+function amAtualizarTotais(){
+  let mes=0,acum=0,saldo=0;
+  amLPU.forEach(l=>{
+    if(l.tipo!=='linha') return;
+    const pu=Number(l.pu)||0, qtL=Number(l.qt)||0;
+    const ant=amFichaAcc[l.id]||0;
+    const q=amFichaMed[l.id]&&Number(amFichaMed[l.id].qt)||0;
+    mes+=q*pu; acum+=(ant+q)*pu; saldo+=Math.max(0,qtL-ant-q)*pu;
+  });
+  const g=id=>document.getElementById(id);
+  if(g('am-tot-mes')) g('am-tot-mes').textContent=amFmt(mes)+' €';
+  if(g('am-tot-acum')) g('am-tot-acum').textContent=amFmt(acum)+' €';
+  if(g('am-tot-saldo')) g('am-tot-saldo').textContent=amFmt(saldo)+' €';
+}
+window.amGuardarAM=async function(){
+  const d=amPorId(amFichaId); if(!d) return;
+  Object.keys(amFichaMed).forEach(k=>{ if(!amFichaMed[k]||!Number(amFichaMed[k].qt)){ if(!(amFichaMed[k]&&amFichaMed[k].obs)) delete amFichaMed[k]; } });
+  d.medicoes=JSON.parse(JSON.stringify(amFichaMed));
+  amRegistar(d,'Medições guardadas (rascunho).');
+  try{ await amPersistir(d); alert('Rascunho guardado.'); }
+  catch(e){ alert('Erro ao guardar: '+e.message); }
+};
+window.amEliminarAM=async function(){
+  if(!peESuper()) return;
+  const d=amPorId(amFichaId); const o=amObra(); if(!d||!o) return;
+  if(!confirm('Eliminar definitivamente o Auto '+d.id+'? Esta ação não pode ser anulada.')) return;
+  try{
+    await sbRel.deleteWhere('autos_mensais',`id=eq.${encodeURIComponent(d.id)}&obra_id=eq.${encodeURIComponent(o.id)}`);
+    amDocs=amDocs.filter(x=>x.id!==d.id);
+    amFichaId=null; render();
+  }catch(e){ alert('Erro ao eliminar: '+e.message); }
+};
+
+function renderFichaAM(app){
+  const o=amObra(); const d=amPorId(amFichaId);
+  if(!o||!d){ amFichaId=null; render(); return; }
+  amFichaAcc=amAcumAnt(d.num);
+  const editavel=d.estado==='rascunho'&&(peEEmp()||peESuper());
+  const caps1=amLPU.filter(l=>l.tipo==='capitulo'&&l.nivel===1);
+  const seq=amSequencia();
+
+  let visiveis=seq;
+  if(amFCap) visiveis=visiveis.filter(({l,anc})=>l.item_id===amFCap||anc.some(a=>a.item_id===amFCap));
+  if(amFPesq){
+    const q=amFPesq.toLowerCase();
+    visiveis=visiveis.filter(({l})=>String(l.item_id).toLowerCase().includes(q)||String(l.descricao||'').toLowerCase().includes(q));
+  }
+  if(amFSoMed) visiveis=visiveis.filter(({l})=>l.tipo==='linha'&&amFichaMed[l.id]&&Number(amFichaMed[l.id].qt));
+  if(!amFPesq&&!amFSoMed) visiveis=visiveis.filter(({l,anc})=>!anc.some(a=>amFColapso[a.item_id]));
+
+  let totMes=0,totAcum=0,totSaldo=0;
+  amLPU.forEach(l=>{
+    if(l.tipo!=='linha') return;
+    const pu=Number(l.pu)||0, qtL=Number(l.qt)||0;
+    const ant=amFichaAcc[l.id]||0;
+    const q=amFichaMed[l.id]&&Number(amFichaMed[l.id].qt)||0;
+    totMes+=q*pu; totAcum+=(ant+q)*pu; totSaldo+=Math.max(0,qtL-ant-q)*pu;
+  });
+
+  const rows=visiveis.map(({l})=>{
+    if(l.tipo==='capitulo'){
+      const col=!!amFColapso[l.item_id];
+      return `<tr class="am-cap-tr" onclick="amFToggleCap('${esc(l.item_id)}')">
+        <td>${col?'▸':'▾'} ${esc(l.item_id)}</td>
+        <td class="am-desc" colspan="13" style="padding-left:${(l.nivel-1)*14+6}px">${esc(l.descricao)}</td></tr>`;
+    }
+    if(l.tipo==='nota'){
+      return `<tr><td class="am-nota-id">NOTA</td><td class="am-desc">${esc(l.descricao)}</td><td colspan="12"></td></tr>`;
+    }
+    const qtL=Number(l.qt)||0, pu=Number(l.pu)||0;
+    const ant=amFichaAcc[l.id]||0;
+    const m=amFichaMed[l.id]||{};
+    const q=Number(m.qt)||0;
+    const acumQt=ant+q, saldoQt=Math.max(0,qtL-acumQt);
+    const pct=qtL?Math.round(q/qtL*10000)/100:0;
+    const inp=(idp,val,campo,tit)=>editavel
+      ?`<input id="${idp}-${l.id}" value="${val?String(val).replace('.',','):''}" title="${tit}" onchange="amMedInput('${l.id}','${campo}',this)" style="width:56px;height:22px;padding:1px 4px;border:1px solid var(--border-light);border-radius:3px;text-align:right;font-family:Carlito,Calibri,sans-serif;font-size:10pt">`
+      :`<span>${val?String(val).replace('.',','):'—'}</span>`;
+    return `<tr id="amr-${l.id}" ${q?'style="background:#F4FBF6"':''}>
+      <td>${esc(l.item_id)}</td>
+      <td class="am-desc">${esc(l.descricao)}${m.obs?`<div style="color:#B45309;margin-top:2px"><b>Obs.:</b> ${esc(m.obs)}</div>`:''}</td>
+      <td style="text-align:center">${esc(l.un||'')}</td>
+      <td style="text-align:right">${amFmt(qtL)}</td>
+      <td style="text-align:right">${amFmt(pu)}</td>
+      <td style="text-align:right">${inp('amp',pct,'pct','Percentagem executada no mês')}</td>
+      <td style="text-align:right">${inp('amq',q,'qt','Quantidade executada no mês')}</td>
+      <td style="text-align:right" id="amv-${l.id}">${amFmt(q*pu)}</td>
+      <td style="text-align:right" id="ama-${l.id}">${amFmt(acumQt)}</td>
+      <td style="text-align:right" id="amav-${l.id}">${amFmt(acumQt*pu)}</td>
+      <td style="text-align:right" id="amap-${l.id}">${qtL?amFmt(acumQt/qtL*100)+'%':'—'}</td>
+      <td style="text-align:right" id="ams-${l.id}">${amFmt(saldoQt)}</td>
+      <td style="text-align:right" id="amsv-${l.id}">${amFmt(saldoQt*pu)}</td>
+      <td style="text-align:right" id="amsp-${l.id}">${qtL?amFmt(saldoQt/qtL*100)+'%':'—'}</td>
+    </tr>`;
+  }).join('');
+
+  const acoes=[];
+  if(editavel) acoes.push(`<button class="pe-btn green" onclick="amGuardarAM()">Guardar Rascunho</button>`);
+  if(peESuper()) acoes.push(`<button class="pe-btn red" onclick="amEliminarAM()">Eliminar</button>`);
+
+  app.innerHTML=PE_CSS+AM_CSS+`
+  <div class="pe-wrap am-wrap" style="max-width:1500px">
+    <button class="back-btn" onclick="amFecharFicha()">← Voltar aos Autos</button>
+    <div class="page-header">
+      <div>
+        <div class="page-title"><span class="code-pill" style="font-size:13px">${o.codigo}</span>AM ${esc(d.id)} · ${o.sigla} — ${o.nome}</div>
+        <div style="margin-top:4px;display:flex;gap:8px;align-items:center">
+          <span class="pe-estpill" style="background:${amEST(d.estado).cor}">${amEST(d.estado).rot}</span>
+          <span>Mês de Referência: <b>${esc(d.mes_ref||'—')}</b></span>
+          <span class="pe-muted">Criado por ${esc(d.autor_emp||'—')} em ${d.data_criacao?peDataPT(d.data_criacao):'—'}</span>
+        </div>
+      </div>
+      <div class="page-actions">${acoes.join('')}</div>
+    </div>
+    <div style="display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap">
+      <span class="am-total">Mês: <span id="am-tot-mes">${amFmt(totMes)} €</span></span>
+      <span class="am-total">Acumulado: <span id="am-tot-acum">${amFmt(totAcum)} €</span></span>
+      <span class="am-total">Saldo: <span id="am-tot-saldo">${amFmt(totSaldo)} €</span></span>
+      <span class="am-total" style="background:#EEF1F5;border-color:var(--border-light)">LPU: ${amFmt(totAcum+totSaldo)} €</span>
+    </div>
+    <div style="display:flex;gap:6px;align-items:center;margin-bottom:8px;flex-wrap:wrap">
+      <span class="am-chip ${!amFCap?'on':''}" onclick="amFSetCap('')">Todos</span>
+      ${caps1.map(c=>`<span class="am-chip ${amFCap===c.item_id?'on':''}" title="${esc(c.descricao)}" onclick="amFSetCap('${esc(c.item_id)}')">${esc(c.item_id)} · ${esc(c.rotulo||((c.descricao||'').slice(0,22)+((c.descricao||'').length>22?'…':'')))}</span>`).join('')}
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap">
+      <button class="am-btn" onclick="amFColapsarTudo(true)">Colapsar Tudo</button>
+      <button class="am-btn" onclick="amFColapsarTudo(false)">Descolapsar Tudo</button>
+      <button class="am-btn ${amFSoMed?'on':''}" onclick="amFToggleSoMed()">Só Linhas Medidas</button>
+      <input value="${esc(amFPesq)}" placeholder="Pesquisar Id ou descrição…" onchange="amFSetPesq(this.value)" style="height:26px;padding:2px 8px;border:1px solid var(--border-light);border-radius:4px;min-width:240px">
+    </div>
+    <div class="table-card" style="overflow-x:auto"><table style="min-width:1380px">
+      <thead>
+        <tr>
+          <th rowspan="2" style="width:74px">Id</th><th rowspan="2">Descrição</th><th rowspan="2" style="width:40px">Un</th>
+          <th colspan="2" style="background:#EEF1F5">LPU</th>
+          <th colspan="3" style="background:#FFF6E0">Mês</th>
+          <th colspan="3" style="background:#EAF3FB">Acumulado</th>
+          <th colspan="3" style="background:#F4FBF6">Saldo</th>
+        </tr>
+        <tr>
+          <th style="width:76px;background:#EEF1F5">Qt</th><th style="width:84px;background:#EEF1F5">Pr Unit</th>
+          <th style="width:64px;background:#FFF6E0">%</th><th style="width:64px;background:#FFF6E0">Qt</th><th style="width:92px;background:#FFF6E0">Valor</th>
+          <th style="width:76px;background:#EAF3FB">Qt</th><th style="width:92px;background:#EAF3FB">Valor</th><th style="width:58px;background:#EAF3FB">Peso</th>
+          <th style="width:76px;background:#F4FBF6">Qt</th><th style="width:92px;background:#F4FBF6">Valor</th><th style="width:58px;background:#F4FBF6">Peso</th>
+        </tr>
+      </thead>
+      <tbody>${rows||''}</tbody>
+    </table>
+    ${rows?'':'<div class="pe-vazio">Sem resultados para o filtro.</div>'}
+    </div>
+    ${editavel?'<div class="pe-muted" style="margin-top:8px">Medição em % ou quantidade — a linha nunca pode ultrapassar o saldo disponível (o valor é ajustado automaticamente ao máximo). Guarde o rascunho antes de sair.</div>':''}
   </div>`;
 }
 
