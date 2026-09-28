@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.09.28.1002</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.09.28.1037</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -5932,6 +5932,7 @@ function renderListaAM(app){
 
 /* ---- FASE 2: Autos — criação e medição mensal ---- */
 function amPorId(id){ return amDocs.find(d=>d.id===id); }
+function amTemObs(m){ return !!(m&&(m.obs||m.obsEmp||m.obsFisc||m.obsDO)); }
 function amRegistar(d,acao){ d.historico=d.historico||[]; d.historico.push({data:new Date().toLocaleString('pt-PT'),autor:(currentUser?currentUser.nome:'?'),acao}); }
 function amProximoNum(){ return amDocs.reduce((m,d)=>Math.max(m,d.num||0),0)+1; }
 async function amPersistir(d){
@@ -5965,7 +5966,12 @@ window.amNovoAuto=function(){
   if(!amLPU.length){ alert('Importe primeiro a LPU da obra.'); return; }
   const aberto=amDocs.find(d=>d.estado!=='fechado'&&d.estado!=='revisto');
   if(aberto){ alert('O Auto '+aberto.id+' ainda não está fechado. Feche-o antes de criar um novo.'); return; }
-  const hoje=new Date(); const mesDef=hoje.getFullYear()+'-'+String(hoje.getMonth()+1).padStart(2,'0');
+  const hoje=new Date(); let mesDef=hoje.getFullYear()+'-'+String(hoje.getMonth()+1).padStart(2,'0');
+  const ultMes=amDocs.map(d=>d.mes_ref).filter(Boolean).sort().pop();
+  if(ultMes&&/^\d{4}-\d{2}$/.test(ultMes)){
+    const dt=new Date(ultMes+'-01T00:00:00'); dt.setMonth(dt.getMonth()+1);
+    mesDef=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0');
+  }
   const veu=document.createElement('div'); veu.className='pe-veu'; veu.id='pe-veu';
   veu.innerHTML=`<div class="pe-modal" style="max-width:380px"><h3>Novo Auto Mensal</h3>
     <div class="pe-mb">
@@ -5981,6 +5987,8 @@ window.amNovoAuto=function(){
 window.amCriarAuto=async function(){
   const mes=(document.getElementById('am-novo-mes')||{}).value||'';
   if(!mes){ alert('Indique o mês de referência.'); return; }
+  const rep=amDocs.find(d=>d.mes_ref===mes);
+  if(rep){ alert('Já existe o Auto '+rep.id+' para o mês '+mes+' — não pode haver dois Autos de TN para o mesmo mês.'); return; }
   const v=document.getElementById('pe-veu'); if(v) v.remove();
   const num=amProximoNum();
   const d={ id:peIdFmt(num,0), num, rev:0, estado:'rascunho', mes_ref:mes,
@@ -6013,6 +6021,10 @@ window.amFColapsarTudo=function(tudo){
 window.amMedInput=function(lpuId,campo,el){
   const d=amPorId(amFichaId); if(!d) return;
   const l=amLPU.find(x=>x.id===lpuId); if(!l) return;
+  if(d.estado==='rascunho'&&d.prev_id&&!peESuper()){
+    const bm=(d.medicoes||{})[lpuId];
+    if(!(bm&&(Number(bm.qt)||amTemObs(bm)))) return;
+  }
   const qtL=Number(l.qt)||0, pu=Number(l.pu)||0;
   const antQt=amFichaAcc[lpuId]||0;
   const saldoDisp=Math.max(0,qtL-antQt);
@@ -6075,7 +6087,7 @@ window.amEsgotar=function(lpuId){
 };
 window.amGuardarAM=async function(){
   const d=amPorId(amFichaId); if(!d) return;
-  Object.keys(amFichaMed).forEach(k=>{ if(!amFichaMed[k]||!Number(amFichaMed[k].qt)){ if(!(amFichaMed[k]&&amFichaMed[k].obs)) delete amFichaMed[k]; } });
+  Object.keys(amFichaMed).forEach(k=>{ if(!amFichaMed[k]||(!Number(amFichaMed[k].qt)&&!amTemObs(amFichaMed[k]))) delete amFichaMed[k]; });
   d.medicoes=JSON.parse(JSON.stringify(amFichaMed));
   amRegistar(d,'Medições guardadas (rascunho).');
   try{ await amPersistir(d); alert('Rascunho guardado.'); }
@@ -6128,7 +6140,7 @@ async function amNotificar(d,destinos,mensagem,rotulo){
 window.amEnviar=async function(){
   const d=amPorId(amFichaId); if(!d||d.estado!=='rascunho'||!(peEEmp()||peESuper())) return;
   if(!confirm('Enviar o Auto '+d.id+' à Fiscalização para verificação?')) return;
-  Object.keys(amFichaMed).forEach(k=>{ if(!amFichaMed[k]||(!Number(amFichaMed[k].qt)&&!amFichaMed[k].obs)) delete amFichaMed[k]; });
+  Object.keys(amFichaMed).forEach(k=>{ if(!amFichaMed[k]||(!Number(amFichaMed[k].qt)&&!amTemObs(amFichaMed[k]))) delete amFichaMed[k]; });
   d.medicoes=JSON.parse(JSON.stringify(amFichaMed));
   d.estado='enviado'; d.data_envio=peHoje();
   amRegistar(d,'Enviado à Fiscalização — aguarda verificação.');
@@ -6143,17 +6155,22 @@ window.amEditarObs=function(lpuId){
   const podeDO=d.estado==='verificado'&&((currentUser&&currentUser.role==='dono_obra')||peESuper());
   if(!podeEmp&&!podeFisc&&!podeDO) return;
   const l=amLPU.find(x=>x.id===lpuId); if(!l) return;
-  const atual=(amFichaMed[lpuId]&&amFichaMed[lpuId].obs)||'';
+  if(podeEmp&&d.prev_id&&!peESuper()){
+    const bm=(d.medicoes||{})[lpuId];
+    if(!(bm&&(Number(bm.qt)||amTemObs(bm)))) return;
+  }
+  const campo=podeDO?'obsDO':(podeFisc?'obsFisc':'obsEmp');
+  const atual=(amFichaMed[lpuId]&&amFichaMed[lpuId][campo])||'';
   const v=prompt('Observação '+(podeDO?'do Dono de Obra':(podeFisc?'da Fiscalização':'do Empreiteiro'))+' — linha '+l.item_id+' (mês '+(d.mes_ref||'')+'):',atual);
   if(v===null) return;
   if(!amFichaMed[lpuId]) amFichaMed[lpuId]={};
-  amFichaMed[lpuId].obs=v.trim();
+  amFichaMed[lpuId][campo]=v.trim();
   render();
 };
 window.amConcluirVerif=async function(){
   const d=amPorId(amFichaId); if(!d||d.estado!=='enviado'||!(peEFisc()||peESuper())) return;
   const novoId=peIdFmt(d.num,d.rev+1);
-  Object.keys(amFichaMed).forEach(k=>{ if(!amFichaMed[k]||(!Number(amFichaMed[k].qt)&&!amFichaMed[k].obs)) delete amFichaMed[k]; });
+  Object.keys(amFichaMed).forEach(k=>{ if(!amFichaMed[k]||(!Number(amFichaMed[k].qt)&&!amTemObs(amFichaMed[k]))) delete amFichaMed[k]; });
   let nAlt=0; const antes=d.medicoes||{};
   const chaves=new Set([...Object.keys(antes),...Object.keys(amFichaMed)]);
   chaves.forEach(k=>{ const a=Number(antes[k]&&antes[k].qt)||0, b=Number(amFichaMed[k]&&amFichaMed[k].qt)||0; if(Math.abs(a-b)>1e-9) nAlt++; });
@@ -6178,12 +6195,12 @@ window.amAprovarDO=async function(){
   const d=amPorId(amFichaId);
   const eDOAM=(currentUser&&currentUser.role==='dono_obra')||peESuper();
   if(!d||d.estado!=='verificado'||!eDOAM) return;
-  Object.keys(amFichaMed).forEach(k=>{ if(!amFichaMed[k]||(!Number(amFichaMed[k].qt)&&!amFichaMed[k].obs)) delete amFichaMed[k]; });
+  Object.keys(amFichaMed).forEach(k=>{ if(!amFichaMed[k]||(!Number(amFichaMed[k].qt)&&!amTemObs(amFichaMed[k]))) delete amFichaMed[k]; });
   const antes=d.medicoes||{}; let nAlt=0;
   const chaves=new Set([...Object.keys(antes),...Object.keys(amFichaMed)]);
   chaves.forEach(k=>{
     const a=antes[k]||{}, b=amFichaMed[k]||{};
-    if(Math.abs((Number(a.qt)||0)-(Number(b.qt)||0))>1e-9||String(a.obs||'')!==String(b.obs||'')) nAlt++;
+    if(Math.abs((Number(a.qt)||0)-(Number(b.qt)||0))>1e-9||JSON.stringify([a.obs||'',a.obsEmp||'',a.obsFisc||'',a.obsDO||''])!==JSON.stringify([b.obs||'',b.obsEmp||'',b.obsFisc||'',b.obsDO||''])) nAlt++;
   });
   if(!nAlt){
     if(!confirm('Aprovar o Auto '+d.id+'?')) return;
@@ -6255,6 +6272,8 @@ function renderFichaAM(app){
   const eDOAM=(currentUser&&currentUser.role==='dono_obra')||peESuper();
   const editavel=(d.estado==='rascunho'&&eEmpAM)||(d.estado==='enviado'&&eFiscAM)||(d.estado==='verificado'&&eDOAM);
   const obsEdit=(d.estado==='rascunho'&&eEmpAM)||(d.estado==='enviado'&&eFiscAM)||(d.estado==='verificado'&&eDOAM);
+  const restrito=d.estado==='rascunho'&&!!d.prev_id&&!peESuper();
+  const linhasBase=new Set(Object.keys(d.medicoes||{}).filter(k=>{const bm=(d.medicoes||{})[k];return bm&&(Number(bm.qt)||amTemObs(bm));}));
   const caps1=amLPU.filter(l=>l.tipo==='capitulo'&&l.nivel===1);
   const seq=amSequencia();
 
@@ -6265,7 +6284,7 @@ function renderFichaAM(app){
     visiveis=visiveis.filter(({l})=>String(l.item_id).toLowerCase().includes(q)||String(l.descricao||'').toLowerCase().includes(q));
   }
   if(amFSoMed) visiveis=visiveis.filter(({l})=>l.tipo==='linha'&&amFichaMed[l.id]&&Number(amFichaMed[l.id].qt));
-  if(amFSoObs) visiveis=visiveis.filter(({l})=>l.tipo==='linha'&&amFichaMed[l.id]&&amFichaMed[l.id].obs);
+  if(amFSoObs) visiveis=visiveis.filter(({l})=>l.tipo==='linha'&&amTemObs(amFichaMed[l.id]));
   if(!amFPesq&&!amFSoMed&&!amFSoObs) visiveis=visiveis.filter(({l,anc})=>!anc.some(a=>amFColapso[a.item_id]));
 
   let totMes=0,totAcum=0,totSaldo=0;
@@ -6291,18 +6310,19 @@ function renderFichaAM(app){
     const ant=amFichaAcc[l.id]||0;
     const m=amFichaMed[l.id]||{};
     const q=Number(m.qt)||0;
+    const podeLinha=editavel&&(!restrito||linhasBase.has(l.id));
     const acumQt=ant+q, saldoQt=Math.max(0,qtL-acumQt);
     const pct=qtL?Math.round(q/qtL*10000)/100:0;
-    const inp=(idp,val,campo,tit)=>editavel
+    const inp=(idp,val,campo,tit)=>podeLinha
       ?`<input id="${idp}-${l.id}" value="${val?String(val).replace('.',','):''}" title="${tit}" onchange="amMedInput('${l.id}','${campo}',this)" style="width:56px;height:22px;padding:1px 4px;border:1px solid var(--border-light);border-radius:3px;text-align:right;font-family:Carlito,Calibri,sans-serif;font-size:10pt">`
       :`<span>${val?String(val).replace('.',','):'—'}</span>`;
     return `<tr id="amr-${l.id}" ${q?'style="background:#F4FBF6"':''}>
       <td>${esc(l.item_id)}</td>
-      <td class="am-desc">${esc(l.descricao)}${obsEdit?` <span onclick="amEditarObs('${l.id}')" style="cursor:pointer;opacity:.6" title="Observação da Fiscalização (linha · mês)">✎</span>`:''}${m.obs?`<div style="color:#B45309;margin-top:2px"><b>Obs.:</b> ${esc(m.obs)}</div>`:''}</td>
+      <td class="am-desc">${esc(l.descricao)}${(obsEdit&&(!restrito||linhasBase.has(l.id)))?` <span onclick="amEditarObs('${l.id}')" style="cursor:pointer;opacity:.6" title="Observação por linha (mês)">✎</span>`:''}${m.obsFisc?`<div style="color:#B45309;margin-top:2px"><b>Fisc:</b> ${esc(m.obsFisc)}</div>`:''}${m.obsDO?`<div style="color:#7C3AED;margin-top:2px"><b>DO:</b> ${esc(m.obsDO)}</div>`:''}${m.obsEmp?`<div style="color:#1E6E42;margin-top:2px"><b>Emp:</b> ${esc(m.obsEmp)}</div>`:''}${m.obs?`<div style="color:#B45309;margin-top:2px"><b>Obs.:</b> ${esc(m.obs)}</div>`:''}</td>
       <td style="text-align:center">${esc(l.un||'')}</td>
       <td style="text-align:right">${amFmt(qtL)}</td>
       <td style="text-align:right">${amFmt(pu)}</td>
-      <td style="text-align:right;white-space:nowrap">${editavel?`<span id="ame-${l.id}" onclick="amEsgotar('${l.id}')" title="Esgotar o saldo desta linha" style="cursor:pointer;color:${saldoQt>0?'#B91C1C':'#C6CBD3'};margin-right:3px;user-select:none">●</span>`:''}${inp('amp',pct,'pct','Percentagem executada no mês')}</td>
+      <td style="text-align:right;white-space:nowrap">${podeLinha?`<span id="ame-${l.id}" onclick="amEsgotar('${l.id}')" title="Esgotar o saldo desta linha" style="cursor:pointer;color:${saldoQt>0?'#B91C1C':'#C6CBD3'};margin-right:3px;user-select:none">●</span>`:''}${inp('amp',pct,'pct','Percentagem executada no mês')}</td>
       <td style="text-align:right">${inp('amq',q,'qt','Quantidade executada no mês')}</td>
       <td style="text-align:right" id="amv-${l.id}">${amFmt(q*pu)}</td>
       <td style="text-align:right" id="ama-${l.id}">${amFmt(acumQt)}</td>
@@ -6320,7 +6340,7 @@ function renderFichaAM(app){
     acoes.push(`<button class="pe-btn green" onclick="amEnviar()">Enviar à Fiscalização →</button>`);
   }
   if(d.estado==='enviado'&&eFiscAM) acoes.push(`<button class="pe-btn green" onclick="amConcluirVerif()">Concluir Verificação → Dono de Obra</button>`);
-  if(d.estado==='verificado'&&eDOAM) acoes.push(`<button class="pe-btn green" onclick="amAprovarDO()">Aprovar ✓</button>`);
+  if(d.estado==='verificado'&&eDOAM) acoes.push(`<button class="pe-btn green" onclick="amAprovarDO()">Concluir Aprovação → Fiscalização</button>`);
   if(d.estado==='aprovado'&&eFiscAM) acoes.push(`<button class="pe-btn green" onclick="amReencaminhar()">Reencaminhar ao Empreiteiro →</button>`);
   if(d.estado==='concordancia'&&eEmpAM){
     acoes.push(`<button class="pe-btn green" onclick="amFecharAM()">Concordar e Fechar ✓</button>`);
@@ -6356,7 +6376,7 @@ function renderFichaAM(app){
       <button class="am-btn" onclick="amFColapsarTudo(true)">Colapsar Tudo</button>
       <button class="am-btn" onclick="amFColapsarTudo(false)">Descolapsar Tudo</button>
       <button class="am-btn ${amFSoMed?'on':''}" onclick="amFToggleSoMed()">Só Linhas Medidas</button>
-      <button class="am-btn ${amFSoObs?'on':''}" onclick="amFToggleSoObs()">Só c/Observações${(()=>{const n=Object.keys(amFichaMed).filter(k=>amFichaMed[k]&&amFichaMed[k].obs).length;return n?' ('+n+')':'';})()}</button>
+      <button class="am-btn ${amFSoObs?'on':''}" onclick="amFToggleSoObs()">Só c/Observações${(()=>{const n=Object.keys(amFichaMed).filter(k=>amTemObs(amFichaMed[k])).length;return n?' ('+n+')':'';})()}</button>
       <input value="${esc(amFPesq)}" placeholder="Pesquisar Id ou descrição…" onchange="amFSetPesq(this.value)" style="height:26px;padding:2px 8px;border:1px solid var(--border-light);border-radius:4px;min-width:240px">
     </div>
     <div class="table-card" style="overflow-x:auto"><table style="min-width:1380px">
@@ -6382,7 +6402,11 @@ function renderFichaAM(app){
     ${d.estado==='rascunho'&&eEmpAM?'<div class="pe-muted" style="margin-top:8px">Medição em % ou quantidade — a linha nunca pode ultrapassar o saldo disponível (o valor é ajustado automaticamente ao máximo). Guarde o rascunho antes de sair.</div>':''}
     ${d.estado==='enviado'&&eFiscAM?'<div class="pe-muted" style="margin-top:8px">Verificação: corrija quantidades e registe observações por linha (✎). Ao concluir, é criada a revisão seguinte, que segue para o Dono de Obra — as alterações ficam gravadas nesse momento.</div>':''}
     ${d.estado==='verificado'&&eDOAM?'<div class="pe-muted" style="margin-top:8px">Aprovação: pode corrigir quantidades e registar observações por linha (✎), tal como a Fiscalização. Se alterar algo, a aprovação cria a revisão seguinte; sem alterações, aprova diretamente.</div>':''}
+    ${d.estado==='rascunho'&&eEmpAM&&restrito?'<div class="pe-muted" style="margin-top:8px">Revisão por não concordância: apenas as linhas medidas no Auto em causa podem ser corrigidas e comentadas.</div>':''}
     ${d.estado==='concordancia'&&eEmpAM?'<div class="pe-muted" style="margin-top:8px">Concordância: se não concordar, use "Não Concordar" — é criada uma revisão em rascunho onde corrige as quantidades e regista, nas linhas em causa, as observações da não concordância (✎); depois reenvie à Fiscalização.</div>':''}
+    <div class="pe-hist"><b>Histórico</b>
+      ${(d.historico||[]).map(h=>`<div>· ${esc(h.data)} — [${esc(h.autor)}] ${esc(h.acao)}</div>`).join('')||'<div>—</div>'}
+    </div>
   </div>`;
 }
 
