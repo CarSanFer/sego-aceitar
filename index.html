@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.09.28.0849</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.09.28.0929</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -1047,7 +1047,7 @@ let pbObraId=null, pbFichaId=null, pbDocs=[];
 let ptqObraId=null, ptqFichaId=null, ptqDocs=[];
 let qeObraId=null, qeFichaId=null, qeDocs=[];
 let amObraId=null, amVista='lpu', amSub='resumo', amDocs=[], amLPU=[], amLpuCap='', amLpuPesq='', amSoDisc=false, amColapso={}, amResNiv=2;
-let amFichaId=null, amFichaMed={}, amFichaAcc={}, amFCap='', amFPesq='', amFColapso={}, amFSoMed=false;
+let amFichaId=null, amFichaMed={}, amFichaAcc={}, amFCap='', amFPesq='', amFColapso={}, amFSoMed=false, amFSoObs=false;
 let capaContext={tipo:null,subtipo:null,sigla:null,label:null,backVar:null};
 function resetCapaContext(){capaContext={tipo:null,subtipo:null,sigla:null,label:null,backVar:null};}
 
@@ -5567,12 +5567,13 @@ const AM_MOD={
     rascunho:{rot:'Rascunho',cor:'#6B7280',posse:'Empreiteiro'},
     enviado:{rot:'Enviado',cor:'var(--warning)',posse:'Fiscalização'},
     verificado:{rot:'Verificado',cor:'var(--info)',posse:'Dono de Obra'},
-    aprovado:{rot:'Aprovado',cor:'var(--gold)',posse:'Empreiteiro'},
+    aprovado:{rot:'Aprovado',cor:'var(--gold)',posse:'Fiscalização'},
+    concordancia:{rot:'Para Concordância',cor:'#7C3AED',posse:'Empreiteiro'},
     fechado:{rot:'Fechado',cor:'var(--success)',posse:'—'},
     reaberto:{rot:'Reaberto',cor:'var(--danger)',posse:'— (aguarda revisão)'},
     revisto:{rot:'Revisto',cor:'#9CA3AF',posse:'—'}
   },
-  ordem:['rascunho','enviado','verificado','aprovado','fechado']
+  ordem:['rascunho','enviado','verificado','aprovado','concordancia','fechado']
 };
 const AM_CSS=`<style>
   .am-wrap, .am-wrap table, .am-wrap th, .am-wrap td, .am-wrap input, .am-wrap select, .am-wrap .am-btn, .am-wrap .am-chip{font-family:Carlito,Calibri,sans-serif;font-size:10pt}
@@ -5993,13 +5994,14 @@ window.amAbrirFicha=function(id){
   const d=amPorId(id); if(!d) return;
   amFichaId=id;
   amFichaMed=JSON.parse(JSON.stringify(d.medicoes||{}));
-  amFCap=''; amFPesq=''; amFColapso={}; amFSoMed=false;
+  amFCap=''; amFPesq=''; amFColapso={}; amFSoMed=false; amFSoObs=false;
   render();
 };
 window.amFecharFicha=function(){ amFichaId=null; render(); };
 window.amFSetCap=function(v){ amFCap=v; render(); };
 window.amFSetPesq=function(v){ amFPesq=v; render(); };
 window.amFToggleSoMed=function(){ amFSoMed=!amFSoMed; render(); };
+window.amFToggleSoObs=function(){ amFSoObs=!amFSoObs; render(); };
 window.amFToggleCap=function(id){ if(amFColapso[id]) delete amFColapso[id]; else amFColapso[id]=true; render(); };
 window.amFColapsarTudo=function(tudo){
   amFColapso={};
@@ -6135,10 +6137,14 @@ window.amEnviar=async function(){
   render();
 };
 window.amEditarObs=function(lpuId){
-  const d=amPorId(amFichaId); if(!d||d.estado!=='enviado'||!(peEFisc()||peESuper())) return;
+  const d=amPorId(amFichaId); if(!d) return;
+  const podeEmp=d.estado==='rascunho'&&(peEEmp()||peESuper());
+  const podeFisc=d.estado==='enviado'&&(peEFisc()||peESuper());
+  const podeDO=d.estado==='verificado'&&((currentUser&&currentUser.role==='dono_obra')||peESuper());
+  if(!podeEmp&&!podeFisc&&!podeDO) return;
   const l=amLPU.find(x=>x.id===lpuId); if(!l) return;
   const atual=(amFichaMed[lpuId]&&amFichaMed[lpuId].obs)||'';
-  const v=prompt('Observação da Fiscalização — linha '+l.item_id+' (mês '+(d.mes_ref||'')+'):',atual);
+  const v=prompt('Observação '+(podeDO?'do Dono de Obra':(podeFisc?'da Fiscalização':'do Empreiteiro'))+' — linha '+l.item_id+' (mês '+(d.mes_ref||'')+'):',atual);
   if(v===null) return;
   if(!amFichaMed[lpuId]) amFichaMed[lpuId]={};
   amFichaMed[lpuId].obs=v.trim();
@@ -6172,15 +6178,50 @@ window.amAprovarDO=async function(){
   const d=amPorId(amFichaId);
   const eDOAM=(currentUser&&currentUser.role==='dono_obra')||peESuper();
   if(!d||d.estado!=='verificado'||!eDOAM) return;
-  if(!confirm('Aprovar o Auto '+d.id+'?')) return;
-  d.estado='aprovado'; d.data_aprovacao=peHoje(); d.autor_do=(currentUser?currentUser.nome:'');
-  amRegistar(d,'Aprovado pelo Dono de Obra — segue para o Empreiteiro.');
-  await amNotificar(d,amEmails('empreiteiro'),'Auto Mensal '+d.id+' ('+(d.mes_ref||'')+') aprovado pelo Dono de Obra. Reveja: concorde e feche, ou solicite revisão.','Empreiteiro');
+  Object.keys(amFichaMed).forEach(k=>{ if(!amFichaMed[k]||(!Number(amFichaMed[k].qt)&&!amFichaMed[k].obs)) delete amFichaMed[k]; });
+  const antes=d.medicoes||{}; let nAlt=0;
+  const chaves=new Set([...Object.keys(antes),...Object.keys(amFichaMed)]);
+  chaves.forEach(k=>{
+    const a=antes[k]||{}, b=amFichaMed[k]||{};
+    if(Math.abs((Number(a.qt)||0)-(Number(b.qt)||0))>1e-9||String(a.obs||'')!==String(b.obs||'')) nAlt++;
+  });
+  if(!nAlt){
+    if(!confirm('Aprovar o Auto '+d.id+'?')) return;
+    d.estado='aprovado'; d.data_aprovacao=peHoje(); d.autor_do=(currentUser?currentUser.nome:'');
+    amRegistar(d,'Aprovado pelo Dono de Obra — aguarda reencaminhamento pela Fiscalização.');
+    await amNotificar(d,amEmails('fiscalizacao'),'Auto Mensal '+d.id+' ('+(d.mes_ref||'')+') aprovado pelo Dono de Obra — reencaminhe ao Empreiteiro para concordância.','Fiscalização');
+    try{ await amPersistir(d); }catch(e){ alert('Erro ao gravar: '+e.message); }
+    render(); return;
+  }
+  const novoId=peIdFmt(d.num,d.rev+1);
+  if(!confirm('Aprovar o Auto '+d.id+' com alterações do Dono de Obra ('+nAlt+' linha(s))?\n\nSerá criada a revisão '+novoId+' (Aprovado), que segue para o Empreiteiro.')) return;
+  const novo={ id:novoId, num:d.num, rev:d.rev+1, estado:'aprovado', mes_ref:d.mes_ref,
+    data_criacao:d.data_criacao, data_envio:d.data_envio, data_verificacao:d.data_verificacao, data_aprovacao:peHoje(),
+    autor_emp:d.autor_emp, autor_fisc:d.autor_fisc, autor_do:(currentUser?currentUser.nome:''),
+    medicoes:JSON.parse(JSON.stringify(amFichaMed)), prev_id:d.id, historico:[] };
+  amRegistar(novo,'Criado pela aprovação do Dono de Obra ao Auto '+d.id+' com '+nAlt+' linha(s) alterada(s) (ver observações) — aguarda reencaminhamento pela Fiscalização.');
+  d.estado='revisto'; d.next_id=novo.id;
+  amRegistar(d,'Aprovação do Dono de Obra com alterações — substituído pela revisão '+novo.id+'.');
+  amDocs.unshift(novo);
+  await amNotificar(novo,amEmails('fiscalizacao'),'Auto Mensal '+novo.id+' ('+(novo.mes_ref||'')+') aprovado pelo Dono de Obra com '+nAlt+' alteração(ões) — reencaminhe ao Empreiteiro para concordância.','Fiscalização');
+  const o=amObra();
+  try{
+    await amPersistir(novo);
+    await sbRel.patchWhere('autos_mensais',`id=eq.${encodeURIComponent(d.id)}&obra_id=eq.${encodeURIComponent(o.id)}`,{estado:'revisto',next_id:novo.id,historico:d.historico});
+  }catch(e){ alert('Erro ao gravar: '+e.message); }
+  amAbrirFicha(novo.id);
+};
+window.amReencaminhar=async function(){
+  const d=amPorId(amFichaId); if(!d||d.estado!=='aprovado'||!(peEFisc()||peESuper())) return;
+  if(!confirm('Reencaminhar o Auto '+d.id+' ao Empreiteiro para concordância?')) return;
+  d.estado='concordancia';
+  amRegistar(d,'Reencaminhado pela Fiscalização ao Empreiteiro — aguarda concordância.');
+  await amNotificar(d,amEmails('empreiteiro'),'Auto Mensal '+d.id+' ('+(d.mes_ref||'')+') aprovado pelo Dono de Obra. Reveja: concorde e feche, ou registe a não concordância.','Empreiteiro');
   try{ await amPersistir(d); }catch(e){ alert('Erro ao gravar: '+e.message); }
   render();
 };
 window.amFecharAM=async function(){
-  const d=amPorId(amFichaId); if(!d||d.estado!=='aprovado'||!(peEEmp()||peESuper())) return;
+  const d=amPorId(amFichaId); if(!d||d.estado!=='concordancia'||!(peEEmp()||peESuper())) return;
   if(!confirm('Concordar com o Auto '+d.id+' e fechar? O ciclo deste Auto termina aqui.')) return;
   d.estado='fechado'; d.data_fecho=peHoje();
   amRegistar(d,'Empreiteiro concordou — Auto fechado.');
@@ -6188,20 +6229,16 @@ window.amFecharAM=async function(){
   render();
 };
 window.amSolicitarRevisao=async function(){
-  const d=amPorId(amFichaId); if(!d||d.estado!=='aprovado'||!(peEEmp()||peESuper())) return;
-  const motivo=prompt('Motivo da solicitação de revisão (obrigatório):','');
-  if(motivo===null) return;
-  if(!motivo.trim()){ alert('Indique o motivo.'); return; }
+  const d=amPorId(amFichaId); if(!d||d.estado!=='concordancia'||!(peEEmp()||peESuper())) return;
   const novoId=peIdFmt(d.num,d.rev+1);
-  if(!confirm('Solicitar revisão do Auto '+d.id+'?\n\nSerá criada a revisão '+novoId+' em rascunho (com as medições atuais como base), para ajustar e reenviar à Fiscalização.')) return;
+  if(!confirm('Não concorda com o Auto '+d.id+'?\n\nSerá criada a revisão '+novoId+' em rascunho: corrija as quantidades e registe, nas linhas em causa, as observações da não concordância — depois reenvie à Fiscalização.')) return;
   const novo={ id:novoId, num:d.num, rev:d.rev+1, estado:'rascunho', mes_ref:d.mes_ref,
     data_criacao:peHoje(), autor_emp:(currentUser?currentUser.nome:''),
     medicoes:JSON.parse(JSON.stringify(d.medicoes||{})), prev_id:d.id, historico:[] };
-  amRegistar(novo,'Criado por solicitação de revisão do Empreiteiro ao Auto '+d.id+'. Motivo: '+motivo.trim());
+  amRegistar(novo,'Criado por não concordância do Empreiteiro ao Auto '+d.id+' — correções e observações registadas nas linhas; a reenviar à Fiscalização.');
   d.estado='revisto'; d.next_id=novo.id;
-  amRegistar(d,'Empreiteiro solicitou revisão — substituído por '+novo.id+'. Motivo: '+motivo.trim());
+  amRegistar(d,'Empreiteiro não concordou — substituído pela revisão '+novo.id+'.');
   amDocs.unshift(novo);
-  await amNotificar(novo,amEmails('fiscalizacao'),'O Empreiteiro solicitou revisão do Auto Mensal '+d.id+' ('+(d.mes_ref||'')+'). Motivo: '+motivo.trim()+' A revisão '+novo.id+' será reenviada após ajuste.','Fiscalização');
   const o=amObra();
   try{
     await amPersistir(novo);
@@ -6216,8 +6253,8 @@ function renderFichaAM(app){
   amFichaAcc=amAcumAnt(d.num);
   const eEmpAM=peEEmp()||peESuper(), eFiscAM=peEFisc()||peESuper();
   const eDOAM=(currentUser&&currentUser.role==='dono_obra')||peESuper();
-  const editavel=(d.estado==='rascunho'&&eEmpAM)||(d.estado==='enviado'&&eFiscAM);
-  const obsEdit=d.estado==='enviado'&&eFiscAM;
+  const editavel=(d.estado==='rascunho'&&eEmpAM)||(d.estado==='enviado'&&eFiscAM)||(d.estado==='verificado'&&eDOAM);
+  const obsEdit=(d.estado==='rascunho'&&eEmpAM)||(d.estado==='enviado'&&eFiscAM)||(d.estado==='verificado'&&eDOAM);
   const caps1=amLPU.filter(l=>l.tipo==='capitulo'&&l.nivel===1);
   const seq=amSequencia();
 
@@ -6228,7 +6265,8 @@ function renderFichaAM(app){
     visiveis=visiveis.filter(({l})=>String(l.item_id).toLowerCase().includes(q)||String(l.descricao||'').toLowerCase().includes(q));
   }
   if(amFSoMed) visiveis=visiveis.filter(({l})=>l.tipo==='linha'&&amFichaMed[l.id]&&Number(amFichaMed[l.id].qt));
-  if(!amFPesq&&!amFSoMed) visiveis=visiveis.filter(({l,anc})=>!anc.some(a=>amFColapso[a.item_id]));
+  if(amFSoObs) visiveis=visiveis.filter(({l})=>l.tipo==='linha'&&amFichaMed[l.id]&&amFichaMed[l.id].obs);
+  if(!amFPesq&&!amFSoMed&&!amFSoObs) visiveis=visiveis.filter(({l,anc})=>!anc.some(a=>amFColapso[a.item_id]));
 
   let totMes=0,totAcum=0,totSaldo=0;
   amLPU.forEach(l=>{
@@ -6283,9 +6321,10 @@ function renderFichaAM(app){
   }
   if(d.estado==='enviado'&&eFiscAM) acoes.push(`<button class="pe-btn green" onclick="amConcluirVerif()">Concluir Verificação → Dono de Obra</button>`);
   if(d.estado==='verificado'&&eDOAM) acoes.push(`<button class="pe-btn green" onclick="amAprovarDO()">Aprovar ✓</button>`);
-  if(d.estado==='aprovado'&&eEmpAM){
+  if(d.estado==='aprovado'&&eFiscAM) acoes.push(`<button class="pe-btn green" onclick="amReencaminhar()">Reencaminhar ao Empreiteiro →</button>`);
+  if(d.estado==='concordancia'&&eEmpAM){
     acoes.push(`<button class="pe-btn green" onclick="amFecharAM()">Concordar e Fechar ✓</button>`);
-    acoes.push(`<button class="pe-btn gold" onclick="amSolicitarRevisao()">Solicitar Revisão →</button>`);
+    acoes.push(`<button class="pe-btn gold" onclick="amSolicitarRevisao()">Não Concordar →</button>`);
   }
   if(peESuper()) acoes.push(`<button class="pe-btn red" onclick="amEliminarAM()">Eliminar</button>`);
 
@@ -6317,6 +6356,7 @@ function renderFichaAM(app){
       <button class="am-btn" onclick="amFColapsarTudo(true)">Colapsar Tudo</button>
       <button class="am-btn" onclick="amFColapsarTudo(false)">Descolapsar Tudo</button>
       <button class="am-btn ${amFSoMed?'on':''}" onclick="amFToggleSoMed()">Só Linhas Medidas</button>
+      <button class="am-btn ${amFSoObs?'on':''}" onclick="amFToggleSoObs()">Só c/Observações${(()=>{const n=Object.keys(amFichaMed).filter(k=>amFichaMed[k]&&amFichaMed[k].obs).length;return n?' ('+n+')':'';})()}</button>
       <input value="${esc(amFPesq)}" placeholder="Pesquisar Id ou descrição…" onchange="amFSetPesq(this.value)" style="height:26px;padding:2px 8px;border:1px solid var(--border-light);border-radius:4px;min-width:240px">
     </div>
     <div class="table-card" style="overflow-x:auto"><table style="min-width:1380px">
@@ -6341,6 +6381,8 @@ function renderFichaAM(app){
     </div>
     ${d.estado==='rascunho'&&eEmpAM?'<div class="pe-muted" style="margin-top:8px">Medição em % ou quantidade — a linha nunca pode ultrapassar o saldo disponível (o valor é ajustado automaticamente ao máximo). Guarde o rascunho antes de sair.</div>':''}
     ${d.estado==='enviado'&&eFiscAM?'<div class="pe-muted" style="margin-top:8px">Verificação: corrija quantidades e registe observações por linha (✎). Ao concluir, é criada a revisão seguinte, que segue para o Dono de Obra — as alterações ficam gravadas nesse momento.</div>':''}
+    ${d.estado==='verificado'&&eDOAM?'<div class="pe-muted" style="margin-top:8px">Aprovação: pode corrigir quantidades e registar observações por linha (✎), tal como a Fiscalização. Se alterar algo, a aprovação cria a revisão seguinte; sem alterações, aprova diretamente.</div>':''}
+    ${d.estado==='concordancia'&&eEmpAM?'<div class="pe-muted" style="margin-top:8px">Concordância: se não concordar, use "Não Concordar" — é criada uma revisão em rascunho onde corrige as quantidades e regista, nas linhas em causa, as observações da não concordância (✎); depois reenvie à Fiscalização.</div>':''}
   </div>`;
 }
 
