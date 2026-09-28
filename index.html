@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.09.28.0838</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.09.28.0849</span>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -5569,7 +5569,8 @@ const AM_MOD={
     verificado:{rot:'Verificado',cor:'var(--info)',posse:'Dono de Obra'},
     aprovado:{rot:'Aprovado',cor:'var(--gold)',posse:'Empreiteiro'},
     fechado:{rot:'Fechado',cor:'var(--success)',posse:'—'},
-    reaberto:{rot:'Reaberto',cor:'var(--danger)',posse:'— (aguarda revisão)'}
+    reaberto:{rot:'Reaberto',cor:'var(--danger)',posse:'— (aguarda revisão)'},
+    revisto:{rot:'Revisto',cor:'#9CA3AF',posse:'—'}
   },
   ordem:['rascunho','enviado','verificado','aprovado','fechado']
 };
@@ -5889,13 +5890,16 @@ function renderListaAM(app){
     corpo=`<div style="margin-bottom:10px">${(peEEmp()||peESuper())?`<button class="am-btn on" onclick="amNovoAuto()">+ Novo Auto</button>`:''}</div>
     <div class="table-card">
       ${amDocs.length?`<table>
-        <thead><tr><th>Id</th><th>Mês de Referência</th><th>Estado</th><th>Criado</th><th>Enviado</th></tr></thead>
+        <thead><tr><th>Id</th><th>Mês de Referência</th><th>Estado</th><th>Criado</th><th>Enviado</th><th>Verificado</th><th>Aprovado</th><th>Fechado</th></tr></thead>
         <tbody>${amDocs.map(d=>`<tr onclick="amAbrirFicha('${d.id}')" style="cursor:pointer">
-          <td><span class="pe-idp">${esc(d.id)}</span></td>
+          <td><span class="pe-idp">${esc(d.id)}</span>${d.prev_id?`<br><span class="pe-revlink">↳ rev. de ${esc(d.prev_id)}</span>`:''}${d.next_id?`<br><span class="pe-revlink">↳ revisto por ${esc(d.next_id)}</span>`:''}</td>
           <td style="text-align:center">${esc(d.mes_ref||'—')}</td>
           <td style="text-align:center"><span class="pe-estpill" style="background:${amEST(d.estado).cor}">${amEST(d.estado).rot}</span></td>
           <td class="pe-dt" style="text-align:center">${d.data_criacao?peDataPT(d.data_criacao):'—'}</td>
-          <td class="pe-dt" style="text-align:center">${d.data_envio?peDataPT(d.data_envio):'—'}</td></tr>`).join('')}
+          <td class="pe-dt" style="text-align:center">${d.data_envio?peDataPT(d.data_envio):'—'}</td>
+          <td class="pe-dt" style="text-align:center">${d.data_verificacao?peDataPT(d.data_verificacao):'—'}</td>
+          <td class="pe-dt" style="text-align:center">${d.data_aprovacao?peDataPT(d.data_aprovacao):'—'}</td>
+          <td class="pe-dt" style="text-align:center">${d.data_fecho?peDataPT(d.data_fecho):'—'}</td></tr>`).join('')}
         </tbody></table>`
       :`<div class="pe-vazio">${amLPU.length
           ?'Sem Autos Mensais nesta obra. A criação e medição dos Autos chega na Fase 2.'
@@ -6086,11 +6090,134 @@ window.amEliminarAM=async function(){
   }catch(e){ alert('Erro ao eliminar: '+e.message); }
 };
 
+/* ---- FASE 3: fluxo Emp → Fisc → DO → Emp, revisões e notificações ---- */
+function amUtilsDaObra(role){
+  const o=amObra(); if(!o) return [];
+  const oid=String(o.id), ocod=String(o.codigo||''), osig=String(o.sigla||'');
+  const porUtil=(DB.utilizadores||[]).filter(u=>{
+    if(u.ativo===false) return false;
+    if(String(u.role||'')!==role) return false;
+    const refs=(u.obras||[]).map(String);
+    return refs.includes(oid)||(ocod&&refs.includes(ocod))||(osig&&refs.includes(osig));
+  });
+  const campo={fiscalizacao:'intervenientes_fisc',projetista:'intervenientes_proj',empreiteiro:'intervenientes_emp',dono_obra:'intervenientes_do'}[role];
+  const porObra=((campo&&o[campo])||[]).map(id=>(DB.utilizadores||[]).find(u=>String(u.id)===String(id))).filter(u=>u&&u.ativo!==false);
+  const m=new Map(); [...porUtil,...porObra].forEach(u=>m.set(String(u.id),u));
+  return [...m.values()];
+}
+function amEmails(role){ return amUtilsDaObra(role).filter(u=>u.email).map(u=>u.email); }
+function amLink(d){ return location.href.split('?')[0]+'?am='+encodeURIComponent(d.id); }
+async function amNotificar(d,destinos,mensagem,rotulo){
+  const lista=(Array.isArray(destinos)?destinos:[destinos]).filter(Boolean);
+  const et=`Notificação → ${rotulo}${lista.length?' ('+lista.join(', ')+')':''}: ${mensagem}`;
+  if(!lista.length){ amRegistar(d,et+' [sem destinatário na obra — verifique a ficha no SID]'); return; }
+  let ok=0;
+  for(const to of lista){
+    try{
+      await emailjs.send(EJS.service, PE_EJS_TEMPLATE, {
+        to_email:to,to_name:'',from_name:(currentUser&&currentUser.nome?currentUser.nome:'SEGO'),reply_to:(currentUser&&currentUser.email?currentUser.email:''),pe_id:'AM '+d.id,obra:(amObra()?amObra().nome:d.obra_nome),
+        assunto:'Auto Mensal — '+(d.mes_ref||''),estado:amEST(d.estado).rot,
+        mensagem,link:amLink(d),password:'',app_url:amLink(d),role:rotulo});
+      ok++;
+    }catch(e){ console.error('AM notificar falhou:',e); }
+  }
+  amRegistar(d,et+(ok===lista.length?' [enviada]':` [enviadas ${ok}/${lista.length}]`));
+}
+window.amEnviar=async function(){
+  const d=amPorId(amFichaId); if(!d||d.estado!=='rascunho'||!(peEEmp()||peESuper())) return;
+  if(!confirm('Enviar o Auto '+d.id+' à Fiscalização para verificação?')) return;
+  Object.keys(amFichaMed).forEach(k=>{ if(!amFichaMed[k]||(!Number(amFichaMed[k].qt)&&!amFichaMed[k].obs)) delete amFichaMed[k]; });
+  d.medicoes=JSON.parse(JSON.stringify(amFichaMed));
+  d.estado='enviado'; d.data_envio=peHoje();
+  amRegistar(d,'Enviado à Fiscalização — aguarda verificação.');
+  await amNotificar(d,amEmails('fiscalizacao'),'Auto Mensal '+d.id+' ('+(d.mes_ref||'')+') enviado pelo Empreiteiro — aguarda a sua verificação.','Fiscalização');
+  try{ await amPersistir(d); }catch(e){ alert('Erro ao gravar: '+e.message); }
+  render();
+};
+window.amEditarObs=function(lpuId){
+  const d=amPorId(amFichaId); if(!d||d.estado!=='enviado'||!(peEFisc()||peESuper())) return;
+  const l=amLPU.find(x=>x.id===lpuId); if(!l) return;
+  const atual=(amFichaMed[lpuId]&&amFichaMed[lpuId].obs)||'';
+  const v=prompt('Observação da Fiscalização — linha '+l.item_id+' (mês '+(d.mes_ref||'')+'):',atual);
+  if(v===null) return;
+  if(!amFichaMed[lpuId]) amFichaMed[lpuId]={};
+  amFichaMed[lpuId].obs=v.trim();
+  render();
+};
+window.amConcluirVerif=async function(){
+  const d=amPorId(amFichaId); if(!d||d.estado!=='enviado'||!(peEFisc()||peESuper())) return;
+  const novoId=peIdFmt(d.num,d.rev+1);
+  Object.keys(amFichaMed).forEach(k=>{ if(!amFichaMed[k]||(!Number(amFichaMed[k].qt)&&!amFichaMed[k].obs)) delete amFichaMed[k]; });
+  let nAlt=0; const antes=d.medicoes||{};
+  const chaves=new Set([...Object.keys(antes),...Object.keys(amFichaMed)]);
+  chaves.forEach(k=>{ const a=Number(antes[k]&&antes[k].qt)||0, b=Number(amFichaMed[k]&&amFichaMed[k].qt)||0; if(Math.abs(a-b)>1e-9) nAlt++; });
+  if(!confirm('Concluir a verificação do Auto '+d.id+'?\n\n'+(nAlt?nAlt+' linha(s) com quantidades alteradas pela Fiscalização.\n':'Sem alterações às quantidades do Empreiteiro.\n')+'Será criada a revisão '+novoId+' (Verificado), que segue para aprovação do Dono de Obra.')) return;
+  const novo={ id:novoId, num:d.num, rev:d.rev+1, estado:'verificado', mes_ref:d.mes_ref,
+    data_criacao:d.data_criacao, data_envio:d.data_envio, data_verificacao:peHoje(),
+    autor_emp:d.autor_emp, autor_fisc:(currentUser?currentUser.nome:''),
+    medicoes:JSON.parse(JSON.stringify(amFichaMed)), prev_id:d.id, historico:[] };
+  amRegistar(novo,'Criado pela verificação da Fiscalização ao Auto '+d.id+(nAlt?' ('+nAlt+' linha(s) alterada(s), ver observações).':' (sem alterações).'));
+  d.estado='revisto'; d.next_id=novo.id;
+  amRegistar(d,'Verificação concluída — substituído pela revisão '+novo.id+'.');
+  amDocs.unshift(novo);
+  await amNotificar(novo,amEmails('dono_obra'),'Auto Mensal '+novo.id+' ('+(novo.mes_ref||'')+') verificado pela Fiscalização — aguarda a sua aprovação.','Dono de Obra');
+  const o=amObra();
+  try{
+    await amPersistir(novo);
+    await sbRel.patchWhere('autos_mensais',`id=eq.${encodeURIComponent(d.id)}&obra_id=eq.${encodeURIComponent(o.id)}`,{estado:'revisto',next_id:novo.id,historico:d.historico});
+  }catch(e){ alert('Erro ao gravar: '+e.message); }
+  amAbrirFicha(novo.id);
+};
+window.amAprovarDO=async function(){
+  const d=amPorId(amFichaId);
+  const eDOAM=(currentUser&&currentUser.role==='dono_obra')||peESuper();
+  if(!d||d.estado!=='verificado'||!eDOAM) return;
+  if(!confirm('Aprovar o Auto '+d.id+'?')) return;
+  d.estado='aprovado'; d.data_aprovacao=peHoje(); d.autor_do=(currentUser?currentUser.nome:'');
+  amRegistar(d,'Aprovado pelo Dono de Obra — segue para o Empreiteiro.');
+  await amNotificar(d,amEmails('empreiteiro'),'Auto Mensal '+d.id+' ('+(d.mes_ref||'')+') aprovado pelo Dono de Obra. Reveja: concorde e feche, ou solicite revisão.','Empreiteiro');
+  try{ await amPersistir(d); }catch(e){ alert('Erro ao gravar: '+e.message); }
+  render();
+};
+window.amFecharAM=async function(){
+  const d=amPorId(amFichaId); if(!d||d.estado!=='aprovado'||!(peEEmp()||peESuper())) return;
+  if(!confirm('Concordar com o Auto '+d.id+' e fechar? O ciclo deste Auto termina aqui.')) return;
+  d.estado='fechado'; d.data_fecho=peHoje();
+  amRegistar(d,'Empreiteiro concordou — Auto fechado.');
+  try{ await amPersistir(d); }catch(e){ alert('Erro ao gravar: '+e.message); }
+  render();
+};
+window.amSolicitarRevisao=async function(){
+  const d=amPorId(amFichaId); if(!d||d.estado!=='aprovado'||!(peEEmp()||peESuper())) return;
+  const motivo=prompt('Motivo da solicitação de revisão (obrigatório):','');
+  if(motivo===null) return;
+  if(!motivo.trim()){ alert('Indique o motivo.'); return; }
+  const novoId=peIdFmt(d.num,d.rev+1);
+  if(!confirm('Solicitar revisão do Auto '+d.id+'?\n\nSerá criada a revisão '+novoId+' em rascunho (com as medições atuais como base), para ajustar e reenviar à Fiscalização.')) return;
+  const novo={ id:novoId, num:d.num, rev:d.rev+1, estado:'rascunho', mes_ref:d.mes_ref,
+    data_criacao:peHoje(), autor_emp:(currentUser?currentUser.nome:''),
+    medicoes:JSON.parse(JSON.stringify(d.medicoes||{})), prev_id:d.id, historico:[] };
+  amRegistar(novo,'Criado por solicitação de revisão do Empreiteiro ao Auto '+d.id+'. Motivo: '+motivo.trim());
+  d.estado='revisto'; d.next_id=novo.id;
+  amRegistar(d,'Empreiteiro solicitou revisão — substituído por '+novo.id+'. Motivo: '+motivo.trim());
+  amDocs.unshift(novo);
+  await amNotificar(novo,amEmails('fiscalizacao'),'O Empreiteiro solicitou revisão do Auto Mensal '+d.id+' ('+(d.mes_ref||'')+'). Motivo: '+motivo.trim()+' A revisão '+novo.id+' será reenviada após ajuste.','Fiscalização');
+  const o=amObra();
+  try{
+    await amPersistir(novo);
+    await sbRel.patchWhere('autos_mensais',`id=eq.${encodeURIComponent(d.id)}&obra_id=eq.${encodeURIComponent(o.id)}`,{estado:'revisto',next_id:novo.id,historico:d.historico});
+  }catch(e){ alert('Erro ao gravar: '+e.message); }
+  amAbrirFicha(novo.id);
+};
+
 function renderFichaAM(app){
   const o=amObra(); const d=amPorId(amFichaId);
   if(!o||!d){ amFichaId=null; render(); return; }
   amFichaAcc=amAcumAnt(d.num);
-  const editavel=d.estado==='rascunho'&&(peEEmp()||peESuper());
+  const eEmpAM=peEEmp()||peESuper(), eFiscAM=peEFisc()||peESuper();
+  const eDOAM=(currentUser&&currentUser.role==='dono_obra')||peESuper();
+  const editavel=(d.estado==='rascunho'&&eEmpAM)||(d.estado==='enviado'&&eFiscAM);
+  const obsEdit=d.estado==='enviado'&&eFiscAM;
   const caps1=amLPU.filter(l=>l.tipo==='capitulo'&&l.nivel===1);
   const seq=amSequencia();
 
@@ -6133,7 +6260,7 @@ function renderFichaAM(app){
       :`<span>${val?String(val).replace('.',','):'—'}</span>`;
     return `<tr id="amr-${l.id}" ${q?'style="background:#F4FBF6"':''}>
       <td>${esc(l.item_id)}</td>
-      <td class="am-desc">${esc(l.descricao)}${m.obs?`<div style="color:#B45309;margin-top:2px"><b>Obs.:</b> ${esc(m.obs)}</div>`:''}</td>
+      <td class="am-desc">${esc(l.descricao)}${obsEdit?` <span onclick="amEditarObs('${l.id}')" style="cursor:pointer;opacity:.6" title="Observação da Fiscalização (linha · mês)">✎</span>`:''}${m.obs?`<div style="color:#B45309;margin-top:2px"><b>Obs.:</b> ${esc(m.obs)}</div>`:''}</td>
       <td style="text-align:center">${esc(l.un||'')}</td>
       <td style="text-align:right">${amFmt(qtL)}</td>
       <td style="text-align:right">${amFmt(pu)}</td>
@@ -6150,7 +6277,16 @@ function renderFichaAM(app){
   }).join('');
 
   const acoes=[];
-  if(editavel) acoes.push(`<button class="pe-btn green" onclick="amGuardarAM()">Guardar Rascunho</button>`);
+  if(d.estado==='rascunho'&&eEmpAM){
+    acoes.push(`<button class="pe-btn" onclick="amGuardarAM()">Guardar Rascunho</button>`);
+    acoes.push(`<button class="pe-btn green" onclick="amEnviar()">Enviar à Fiscalização →</button>`);
+  }
+  if(d.estado==='enviado'&&eFiscAM) acoes.push(`<button class="pe-btn green" onclick="amConcluirVerif()">Concluir Verificação → Dono de Obra</button>`);
+  if(d.estado==='verificado'&&eDOAM) acoes.push(`<button class="pe-btn green" onclick="amAprovarDO()">Aprovar ✓</button>`);
+  if(d.estado==='aprovado'&&eEmpAM){
+    acoes.push(`<button class="pe-btn green" onclick="amFecharAM()">Concordar e Fechar ✓</button>`);
+    acoes.push(`<button class="pe-btn gold" onclick="amSolicitarRevisao()">Solicitar Revisão →</button>`);
+  }
   if(peESuper()) acoes.push(`<button class="pe-btn red" onclick="amEliminarAM()">Eliminar</button>`);
 
   app.innerHTML=PE_CSS+AM_CSS+`
@@ -6162,7 +6298,7 @@ function renderFichaAM(app){
         <div style="margin-top:4px;display:flex;gap:8px;align-items:center">
           <span class="pe-estpill" style="background:${amEST(d.estado).cor}">${amEST(d.estado).rot}</span>
           <span>Mês de Referência: <b>${esc(d.mes_ref||'—')}</b></span>
-          <span class="pe-muted">Criado por ${esc(d.autor_emp||'—')} em ${d.data_criacao?peDataPT(d.data_criacao):'—'}</span>
+          <span class="pe-muted">Criado por ${esc(d.autor_emp||'—')} em ${d.data_criacao?peDataPT(d.data_criacao):'—'}</span>${d.prev_id?`<span class="pe-revlink">↳ rev. de ${esc(d.prev_id)}</span>`:''}${d.next_id?`<span class="pe-revlink">↳ revisto por ${esc(d.next_id)}</span>`:''}
         </div>
       </div>
       <div class="page-actions">${acoes.join('')}</div>
@@ -6203,7 +6339,8 @@ function renderFichaAM(app){
     </table>
     ${rows?'':'<div class="pe-vazio">Sem resultados para o filtro.</div>'}
     </div>
-    ${editavel?'<div class="pe-muted" style="margin-top:8px">Medição em % ou quantidade — a linha nunca pode ultrapassar o saldo disponível (o valor é ajustado automaticamente ao máximo). Guarde o rascunho antes de sair.</div>':''}
+    ${d.estado==='rascunho'&&eEmpAM?'<div class="pe-muted" style="margin-top:8px">Medição em % ou quantidade — a linha nunca pode ultrapassar o saldo disponível (o valor é ajustado automaticamente ao máximo). Guarde o rascunho antes de sair.</div>':''}
+    ${d.estado==='enviado'&&eFiscAM?'<div class="pe-muted" style="margin-top:8px">Verificação: corrija quantidades e registe observações por linha (✎). Ao concluir, é criada a revisão seguinte, que segue para o Dono de Obra — as alterações ficam gravadas nesse momento.</div>':''}
   </div>`;
 }
 
