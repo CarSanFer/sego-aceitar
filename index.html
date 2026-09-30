@@ -280,7 +280,8 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.09.28.1037</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.09.30.1525</span>
+    <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
       <input type="file" style="display:none" onchange="deployToGitHub(this)">
@@ -1010,6 +1011,7 @@ function go(p,extra=null){
 // MAIN RENDER
 // ================================================================
 function render(){
+  (function(){ const bb=document.getElementById('btn-backup'); if(bb) bb.style.display=(currentUser&&typeof peESuper==='function'&&peESuper())?'flex':'none'; })();
   const app=$('app');
   if(segObraId){ renderCapaSeguranca(app); return; }
   if(fiscObraId){ renderCapaFiscalizacao(app); return; }
@@ -5365,6 +5367,45 @@ function qePreencherContagem(obraId){
     .catch(()=>{ const el=document.getElementById('qe-count-card'); if(el) el.textContent='—'; });
 }
 
+
+/* ####################  BACKUP COMPLETO (superadmin)  #################### */
+window.segoBackup=async function(){
+  if(!peESuper()) return;
+  const PROJ={
+    SID:{ cfg:SUPA, tabelas:['utilizadores','obras'] },
+    SEGO:{ cfg:SUPA_SEGO, tabelas:['relatorios','pedidos_esclarecimento','pedidos_aprovacao','pedidos_betonagem','planos_quinzenais','qualidade_execucao','lpu_obra','autos_mensais'] }
+  };
+  const backup={ gerado:new Date().toISOString(), app:'SEGO', dados:{} };
+  let totalLinhas=0, avisos=[];
+  try{
+    for(const [nome,pj] of Object.entries(PROJ)){
+      backup.dados[nome]={};
+      for(const t of pj.tabelas){
+        showLoadingOverlay('Backup… '+nome+' · '+t);
+        const linhas=[]; let off=0;
+        try{
+          while(true){
+            const r=await fetch(pj.cfg.url+'/rest/v1/'+t+'?select=*&limit=1000&offset='+off,
+              {headers:{apikey:pj.cfg.key,Authorization:'Bearer '+pj.cfg.key}});
+            if(!r.ok) throw new Error('HTTP '+r.status);
+            const pag=await r.json();
+            linhas.push(...pag);
+            if(pag.length<1000) break;
+            off+=1000;
+          }
+          backup.dados[nome][t]=linhas; totalLinhas+=linhas.length;
+        }catch(e){ avisos.push(nome+'.'+t+': '+e.message); backup.dados[nome]['__erro_'+t]=String(e.message); }
+      }
+    }
+  }finally{ hideLoadingOverlay(); }
+  const nomeF='SEGO_backup_'+new Date().toISOString().slice(0,16).replace(/[:T]/g,'-')+'.json';
+  const blob=new Blob([JSON.stringify(backup)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=nomeF;
+  document.body.appendChild(a); a.click(); a.remove();
+  alert('Backup concluído: '+totalLinhas+' linhas.\n'+nomeF+
+    (avisos.length?'\n\nAvisos:\n'+avisos.join('\n'):'')+
+    '\n\nGuarde o ficheiro na pasta do Synology sincronizada (Cloud Sync).');
+};
 
 /* ####################  ADMIN GPE — Renumerar / Importar Histórico  #################### */
 const GPE_ADM={
