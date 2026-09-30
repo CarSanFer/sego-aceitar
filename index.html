@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.09.30.1525</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.09.30.1650</span>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
@@ -6305,6 +6305,99 @@ window.amSolicitarRevisao=async function(){
   amAbrirFicha(novo.id);
 };
 
+/* ---- FASE 4: PDF horizontal para assinatura (2 variantes) ---- */
+window.amPDF=function(variante){
+  const o=amObra(); const d=amPorId(amFichaId); if(!o||!d) return;
+  const acc=amAcumAnt(d.num);
+  const med=amFichaMed&&Object.keys(amFichaMed).length?amFichaMed:(d.medicoes||{});
+  const seq=amSequencia();
+  const soMed=variante==='med';
+  // linhas visíveis; capítulos entram se têm descendentes visíveis
+  const linhaOk=l=>l.tipo==='linha'&&(!soMed||(med[l.id]&&Number(med[l.id].qt)));
+  const capsComConteudo=new Set();
+  seq.forEach(({l,anc})=>{ if(linhaOk(l)) anc.forEach(a=>capsComConteudo.add(a.item_id)); });
+  const visiveis=seq.filter(({l})=>{
+    if(l.tipo==='capitulo') return soMed?capsComConteudo.has(l.item_id):true;
+    if(l.tipo==='nota') return !soMed;
+    return linhaOk(l);
+  });
+  let tMes=0,tAcum=0,tSaldo=0,tLpu=0;
+  amLPU.forEach(l=>{
+    if(l.tipo!=='linha') return;
+    const pu=Number(l.pu)||0, qtL=Number(l.qt)||0;
+    const ant=acc[l.id]||0, q=(med[l.id]&&Number(med[l.id].qt))||0;
+    tLpu+=Number(l.total)||0; tMes+=q*pu; tAcum+=(ant+q)*pu; tSaldo+=Math.max(0,qtL-ant-q)*pu;
+  });
+  const rows=visiveis.map(({l})=>{
+    if(l.tipo==='capitulo')
+      return '<tr class="cap"><td>'+esc(l.item_id)+'</td><td class="desc" colspan="11" style="padding-left:'+(((l.nivel-1)*10)+4)+'px">'+esc(l.descricao)+'</td></tr>';
+    if(l.tipo==='nota')
+      return '<tr><td class="nota">NOTA</td><td class="desc">'+esc(l.descricao)+'</td><td colspan="10"></td></tr>';
+    const qtL=Number(l.qt)||0, pu=Number(l.pu)||0;
+    const ant=acc[l.id]||0, q=(med[l.id]&&Number(med[l.id].qt))||0;
+    const acum=ant+q, saldo=Math.max(0,qtL-acum);
+    return '<tr>'+
+      '<td>'+esc(l.item_id)+'</td><td class="desc">'+esc(l.descricao)+'</td><td class="c">'+esc(l.un||'')+'</td>'+
+      '<td class="n">'+amFmt(qtL)+'</td><td class="n">'+amFmt(pu)+'</td><td class="n">'+amFmt(l.total)+'</td>'+
+      '<td class="n">'+(q?amFmt(q):'—')+'</td><td class="n">'+(q?amFmt(q*pu):'—')+'</td>'+
+      '<td class="n">'+(acum?amFmt(acum):'—')+'</td><td class="n">'+(acum?amFmt(acum*pu):'—')+'</td>'+
+      '<td class="n">'+amFmt(saldo)+'</td><td class="n">'+amFmt(saldo*pu)+'</td></tr>';
+  }).join('');
+  const dt=x=>x?peDataPT(x):'—';
+  const html='<!DOCTYPE html><html lang="pt"><head><meta charset="utf-8">'+
+    '<title>AM '+esc(d.id)+' — '+esc(o.sigla)+' — '+esc(d.mes_ref||'')+'</title><style>'+
+    '@page{size:A4 landscape;margin:10mm 9mm}'+
+    'body{font-family:Carlito,Calibri,sans-serif;font-size:8.5pt;color:#000;margin:0}'+
+    '.top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}'+
+    '.t1{font-size:11pt;font-weight:700}.t2{font-weight:700;margin-top:2px}.t3{margin-top:2px}'+
+    '.dts{text-align:right;font-size:8.5pt}'+
+    'table{width:100%;border-collapse:collapse}'+
+    'thead{display:table-header-group}'+
+    'th,td{border:0.5pt solid #888;padding:2px 4px;vertical-align:top}'+
+    'th{background:#E9EDF2;font-weight:700;text-align:center}'+
+    'td.desc{text-align:justify}td.c{text-align:center}td.n{text-align:right;white-space:nowrap}'+
+    'tr.cap td{font-weight:700;background:#F2F4F7}'+
+    'td.nota{color:#B91C1C;font-weight:700;text-align:center}'+
+    'tr{page-break-inside:avoid}'+
+    'tr.tot td{font-weight:700;background:#E9EDF2}'+
+    '.ass{display:flex;gap:24px;margin-top:26px;page-break-inside:avoid}'+
+    '.ass div{flex:1;text-align:center}'+
+    '.ass .lin{border-top:0.5pt solid #000;margin-top:34px;padding-top:3px}'+
+    '.rodape{margin-top:8px;font-size:7.5pt;color:#444}'+
+    '</style></head><body>'+
+    '<div class="top"><div>'+
+      '<div class="t1">AUTO DE MEDIÇÃO MENSAL — TRABALHOS NORMAIS</div>'+
+      '<div class="t2">'+esc(o.codigo)+' · '+esc(o.sigla)+' — '+esc(o.nome)+'</div>'+
+      '<div class="t3">AM <b>'+esc(d.id)+'</b> · Mês de Referência: <b>'+esc(d.mes_ref||'—')+'</b> · '+esc(amEST(d.estado).rot)+
+      (soMed?' · <i>Só Linhas Medidas</i>':' · <i>Todas as Linhas</i>')+'</div>'+
+    '</div><div class="dts">'+
+      'Enviado: '+dt(d.data_envio)+'<br>Verificado: '+dt(d.data_verificacao)+'<br>Aprovado: '+dt(d.data_aprovacao)+
+    '</div></div>'+
+    '<table><thead>'+
+    '<tr><th rowspan="2" style="width:44px">Id</th><th rowspan="2">Descrição</th><th rowspan="2" style="width:26px">Un</th>'+
+    '<th colspan="3">LPU</th><th colspan="2">Mês</th><th colspan="2">Acumulado</th><th colspan="2">Saldo</th></tr>'+
+    '<tr><th style="width:52px">Qt</th><th style="width:56px">Pr Unit</th><th style="width:66px">Total</th>'+
+    '<th style="width:52px">Qt</th><th style="width:66px">Valor</th>'+
+    '<th style="width:52px">Qt</th><th style="width:66px">Valor</th>'+
+    '<th style="width:52px">Qt</th><th style="width:66px">Valor</th></tr>'+
+    '</thead><tbody>'+rows+
+    '<tr class="tot"><td>T</td><td class="desc">Total</td><td></td><td></td><td></td>'+
+    '<td class="n">'+amFmt(tLpu)+'</td><td></td><td class="n">'+amFmt(tMes)+'</td>'+
+    '<td></td><td class="n">'+amFmt(tAcum)+'</td><td></td><td class="n">'+amFmt(tSaldo)+'</td></tr>'+
+    '</tbody></table>'+
+    '<div class="ass">'+
+      '<div>O Empreiteiro<div class="lin">'+esc(d.autor_emp||'')+'<br>Data: ____ / ____ / ________</div></div>'+
+      '<div>A Fiscalização<div class="lin">'+esc(d.autor_fisc||'')+'<br>Data: ____ / ____ / ________</div></div>'+
+      '<div>O Dono de Obra<div class="lin">'+esc(d.autor_do||'')+'<br>Data: ____ / ____ / ________</div></div>'+
+    '</div>'+
+    '<div class="rodape">Documento gerado pelo SEGO em '+new Date().toLocaleString('pt-PT')+'. Valores em euros; medições conforme registo da aplicação.</div>'+
+    '<script>window.onload=function(){window.print();};<'+'/script>'+
+    '</body></html>';
+  const w=window.open('','_blank');
+  if(!w){ alert('O browser bloqueou a janela do PDF — permita pop-ups para o SEGO.'); return; }
+  w.document.write(html); w.document.close();
+};
+
 function renderFichaAM(app){
   const o=amObra(); const d=amPorId(amFichaId);
   if(!o||!d){ amFichaId=null; render(); return; }
@@ -6387,6 +6480,8 @@ function renderFichaAM(app){
     acoes.push(`<button class="pe-btn green" onclick="amFecharAM()">Concordar e Fechar ✓</button>`);
     acoes.push(`<button class="pe-btn gold" onclick="amSolicitarRevisao()">Não Concordar →</button>`);
   }
+  acoes.push(`<button class="pe-btn" onclick="amPDF('med')">PDF · Só Linhas Medidas</button>`);
+  acoes.push(`<button class="pe-btn" onclick="amPDF('todas')">PDF · Todas as Linhas</button>`);
   if(peESuper()) acoes.push(`<button class="pe-btn red" onclick="amEliminarAM()">Eliminar</button>`);
 
   app.innerHTML=PE_CSS+AM_CSS+`
