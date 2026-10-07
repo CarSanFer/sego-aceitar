@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.10.07.1421</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.10.07.1629</span>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
@@ -2905,6 +2905,7 @@ function peRegistar(d,acao){ d.historico=d.historico||[]; d.historico.push({data
 
 /* Roles (mapeamento directo — SEGO usa o mesmo vocabulário do GPE) */
 function peEEmp(){ return ['empreiteiro','superadmin'].includes(currentUser&&currentUser.role); }
+function peEEmpOuFisc(){ return ['empreiteiro','fiscalizacao','superadmin'].includes(currentUser&&currentUser.role); }
 function peEFisc(){ return ['fiscalizacao','superadmin'].includes(currentUser&&currentUser.role); }
 function peEProj(){ return ['projetista','superadmin'].includes(currentUser&&currentUser.role); }
 function peESuper(){ return (currentUser&&currentUser.role)==='superadmin'; }
@@ -3011,7 +3012,7 @@ function peDocNovo(num,rev,base){
     prevId:base?base.id:null,nextId:null,historico:[]};
 }
 window.peNovoPedido=async function(){
-  if(!peEEmp()){ alert('Apenas o Empreiteiro cria pedidos.'); return; }
+  if(!peEEmpOuFisc()){ alert('Apenas o Empreiteiro ou a Fiscalização criam pedidos.'); return; }
   const o=peObra(); if(!o){ alert('Sem obra selecionada.'); return; }
   const d=peDocNovo(peProximoNum(),0,null);
   peRegistar(d,'Pedido criado (rascunho).');
@@ -3038,7 +3039,7 @@ async function peFecharCadeia(doc){
 }
 
 /* Permissões e leitura de formulário */
-function pePodeEmp(d){ return peEEmp()&&d.estado==='rascunho'; }
+function pePodeEmp(d){ return peEEmpOuFisc()&&d.estado==='rascunho'; }
 function pePodeProj(d){ return peEProj()&&d.estado==='pendente'; }
 function pePodeFiscResp(d){ return peEFisc()&&d.estado==='esclarecido'; }
 function peLerFormEmp(d){
@@ -3068,9 +3069,15 @@ window.peGuardarRascunho=async function(){
 window.peEnviarFisc=async function(){
   const d=peFichaAtualDoc(); if(!d) return; peLerFormEmp(d);
   if(!d.assunto||!d.pedidoTexto){ alert('Preencha o Assunto e o texto do Pedido.'); return; }
+  const fiscCria=currentUser&&currentUser.role==='fiscalizacao';
   d.autorEmp=currentUser?currentUser.nome:''; d.estado='aberto'; d.dataEnvio=peHoje();
-  peRegistar(d,'Enviado à Fiscalização — passa a Aberto.');
-  await peNotificar(d,peEmails('fiscalizacao'),'Novo Pedido de Esclarecimento '+d.id+' recebido do Empreiteiro.','Fiscalização');
+  if(fiscCria){
+    peRegistar(d,'Criado e aberto pela Fiscalização — passa a Aberto.');
+    await peNotificar(d,peEmails('empreiteiro'),'Pedido de Esclarecimento '+d.id+' aberto pela Fiscalização (para conhecimento).','Empreiteiro');
+  }else{
+    peRegistar(d,'Enviado à Fiscalização — passa a Aberto.');
+    await peNotificar(d,peEmails('fiscalizacao'),'Novo Pedido de Esclarecimento '+d.id+' recebido do Empreiteiro.','Fiscalização');
+  }
   await pePersistir(d); peAbrirFicha(d.id);
 };
 async function peConfirmarEnvioProj(projId,coment,cc){
@@ -3256,7 +3263,7 @@ function renderListaPE(app){
       </div>
       <div class="page-actions"></div>
     </div>
-    <div style="margin-bottom:12px;display:flex;gap:8px;align-items:center">${peEEmp()?`<button class="btn btn-gold btn-sm" onclick="peNovoPedido()">+ Novo Pedido</button>`:''}${peESuper()?`<span style="margin-left:auto;display:flex;gap:8px"><button class="btn btn-sm" style="border:1px solid var(--border-light);background:#fff" onclick="gpeAdmRenumerar('pe')">Renumerar</button><button class="btn btn-sm" style="border:1px solid var(--border-light);background:#fff" onclick="gpeAdmImportar('pe')">Importar Histórico</button></span>`:''}</div>
+    <div style="margin-bottom:12px;display:flex;gap:8px;align-items:center">${peEEmpOuFisc()?`<button class="btn btn-gold btn-sm" onclick="peNovoPedido()">+ Novo Pedido</button>`:''}${peESuper()?`<span style="margin-left:auto;display:flex;gap:8px"><button class="btn btn-sm" style="border:1px solid var(--border-light);background:#fff" onclick="gpeAdmRenumerar('pe')">Renumerar</button><button class="btn btn-sm" style="border:1px solid var(--border-light);background:#fff" onclick="gpeAdmImportar('pe')">Importar Histórico</button></span>`:''}</div>
     <div class="table-card">
       ${lst.length?`<table>
         <thead><tr>
@@ -3265,7 +3272,7 @@ function renderListaPE(app){
           ${peESuper()?'<th style="text-align:center">×</th>':''}
         </tr></thead>
         <tbody>${linhas}</tbody>
-      </table>`:`<div class="pe-vazio">Sem pedidos de esclarecimento nesta obra.${peEEmp()?' Use “+ Novo Pedido”.':''}</div>`}
+      </table>`:`<div class="pe-vazio">Sem pedidos de esclarecimento nesta obra.${peEEmpOuFisc()?' Use “+ Novo Pedido”.':''}</div>`}
     </div>
   </div>`;
 }
@@ -3304,9 +3311,9 @@ function renderFichaPE(app){
   if(d.estado==='reaberto') lig.push('Permanece <b>Reaberto</b> até a revisão ser fechada.');
 
   const acoes=[],notas=[];
-  if(d.estado==='rascunho'&&peEEmp()){
+  if(d.estado==='rascunho'&&peEEmpOuFisc()){
     acoes.push(`<button class="pe-btn" onclick="peGuardarRascunho()">Guardar Rascunho</button>`);
-    acoes.push(`<button class="pe-btn green" onclick="peEnviarFisc()">Enviar à Fiscalização →</button>`);
+    acoes.push(`<button class="pe-btn green" onclick="peEnviarFisc()">${(currentUser&&currentUser.role==='fiscalizacao')?'Abrir Pedido →':'Enviar à Fiscalização →'}</button>`);
   }
   if(d.estado==='aberto'&&peEFisc()){
     acoes.push(`<button class="pe-btn gold" onclick="peAbrirModalProjetista()">Enviar ao Projetista →</button>`);
