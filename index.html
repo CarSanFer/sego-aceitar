@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.10.02.1052</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.10.07.1421</span>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
@@ -4990,6 +4990,7 @@ function qeUtilsDaObra(role){
   return [...m.values()];
 }
 function qeEmails(role){ return qeUtilsDaObra(role).filter(u=>u.email).map(u=>u.email); }
+function qeEmailsComDO(role){ return [...new Set([...qeEmails(role),...qeEmails('dono_obra')])]; }
 
 function qeMap(r){
   return {tipo:'qe',id:r.id,num:r.num,rev:r.rev,obraId:r.obra_id,obraNome:r.obra_nome,estado:r.estado,histImport:!!r.historico_import,
@@ -5071,7 +5072,7 @@ async function qeCriarRevisao(doc,motivo){
   qeRegistar(nova,'Revisão criada a partir de '+doc.id+' (motivo: '+motivo+'). Enviada ao Empreiteiro.');
   qeDocs.unshift(nova);
   await qePersistir(doc); await qePersistir(nova);
-  await qeNotificar(nova,qeEmails('empreiteiro'),'QE '+doc.id+' não aceite ('+motivo+'). Revisão '+nova.id+' aguarda nova correção.','Empreiteiro');
+  await qeNotificar(nova,qeEmailsComDO('empreiteiro'),'QE '+doc.id+' não aceite ('+motivo+'). Revisão '+nova.id+' aguarda nova correção do Empreiteiro.','Empreiteiro');
   await qePersistir(nova);
   qeAbrirFicha(nova.id);
   alert('Correção não aceite. Revisão '+nova.id+' criada e enviada ao Empreiteiro.');
@@ -5111,7 +5112,7 @@ window.qeEnviarEmp=async function(){
   if(!d.descricao){ alert('Descreva a falta de Qualidade de Execução.'); return; }
   d.autorFisc=currentUser?currentUser.nome:''; d.estado='pendente'; d.dataEnvio=peHoje();
   qeRegistar(d,'Enviado ao Empreiteiro — passa a Pendente.');
-  await qeNotificar(d,qeEmails('empreiteiro'),'Nova Qualidade de Execução '+d.id+' recebida da Fiscalização. Aguarda a sua resposta.','Empreiteiro');
+  await qeNotificar(d,qeEmailsComDO('empreiteiro'),'Nova Qualidade de Execução '+d.id+' recebida da Fiscalização. Aguarda a resposta do Empreiteiro.','Empreiteiro');
   await qePersistir(d); qeAbrirFicha(d.id);
 };
 window.qeSubmeterResposta=async function(){
@@ -5119,7 +5120,7 @@ window.qeSubmeterResposta=async function(){
   if(!d.correcao){ alert('Descreva a Correção Efetuada.'); return; }
   d.autorEmp=currentUser?currentUser.nome:''; d.estado='respondido'; d.dataResposta=peHoje();
   qeRegistar(d,'Resposta submetida pelo Empreiteiro — passa a Respondido.');
-  await qeNotificar(d,qeEmails('fiscalizacao'),'QE '+d.id+' respondida pelo Empreiteiro. Aguarda parecer da Fiscalização.','Fiscalização');
+  await qeNotificar(d,qeEmailsComDO('fiscalizacao'),'QE '+d.id+' respondida pelo Empreiteiro. Aguarda parecer da Fiscalização.','Fiscalização');
   await qePersistir(d); qeAbrirFicha(d.id);
 };
 async function qeConfirmarParecer(parecer,obs){
@@ -5129,7 +5130,7 @@ async function qeConfirmarParecer(parecer,obs){
     d.estado='fechado'; d.dataFecho=peHoje();
     qeRegistar(d,'Correção aceite pela Fiscalização — processo fechado.');
     await qeFecharCadeia(d);
-    await qeNotificar(d,qeEmails('empreiteiro'),'QE '+d.id+': Correção Aceite. Processo fechado.','Empreiteiro');
+    await qeNotificar(d,qeEmailsComDO('empreiteiro'),'QE '+d.id+': Correção Aceite. Processo fechado.','Empreiteiro');
     await qePersistir(d); qeAbrirFicha(d.id);
   }else{
     if(!obs){ alert('Indique o motivo da não aceitação.'); return; }
