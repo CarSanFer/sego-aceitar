@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.10.09.0851</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.10.09.0921</span>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
@@ -2959,21 +2959,26 @@ function peUnmap(d){
     autor_fisc_resp:d.autorFiscResp,observacoes:d.observacoes,
     prev_id:d.prevId,next_id:d.nextId,historico:d.historico,updated_at:new Date().toISOString()};
 }
+function peUnmapSeguro(d){
+  const row=peUnmap(d);
+  if(d._leve){ delete row.anexos_emp; delete row.anexos_proj; }
+  return row;
+}
 
 /* Carregar / persistir */
 async function peCarregar(){
-  peDocs=[]; const o=peObra(); if(!o) return;
+  peDocs=[]; peSel=new Set(); const o=peObra(); if(!o) return;
   try{
-    const rows=await sbRel.get('pedidos_esclarecimento',`obra_id=eq.${encodeURIComponent(o.id)}&order=num.desc,rev.desc`);
-    peDocs=rows.map(peMap);
+    const rows=await sbRel.get('pedidos_esclarecimento',`obra_id=eq.${encodeURIComponent(o.id)}&order=num.desc,rev.desc&select=id,num,rev,obra_id,obra_nome,estado,historico_import,data_criacao,data_envio,data_esclarecido,data_resposta,data_fecho,autor_empreiteiro,assunto,artigos,desenho,pedido_texto,autor_fisc_envio,data_envio_proj,comentario_fisc_envio,proj_dest_id,proj_dest_nome,proj_dest_email,proj_especialidade,autor_projetista,proj_data,esclarecimento,autor_fisc_resp,observacoes,prev_id,next_id,historico`);
+    peDocs=rows.map(r=>{ const d=peMap(r); d._leve=true; return d; });
   }catch(e){ console.error(e); alert('Erro ao carregar pedidos de esclarecimento.\n\n'+e.message+'\n\nJá correu o SQL da tabela pedidos_esclarecimento no Supabase do SEGO?'); }
 }
 async function pePersistir(d){
   try{
     const _q=`id=eq.${encodeURIComponent(d.id)}&obra_id=eq.${encodeURIComponent(d.obraId)}`;
     const ex=await sbRel.get('pedidos_esclarecimento',_q+`&select=id`);
-    if(ex.length) await sbRel.patchWhere('pedidos_esclarecimento',_q,peUnmap(d));
-    else await sbRel.post('pedidos_esclarecimento',peUnmap(d));
+    if(ex.length) await sbRel.patchWhere('pedidos_esclarecimento',_q,peUnmapSeguro(d));
+    else await sbRel.post('pedidos_esclarecimento',peUnmapSeguro(d));
   }catch(e){ console.error(e); alert('Erro ao guardar: '+e.message); }
 }
 
@@ -2996,6 +3001,56 @@ async function peNotificar(d,destinos,mensagem,rotulo,cc){
   }
   peRegistar(d,et+(ok===lista.length?' [enviada]':` [enviadas ${ok}/${lista.length}]`));
 }
+
+/* Alertas de falta de resposta (Fisc; Cc DO) */
+let peSel=new Set();
+window.peToggleSel=function(id,marcado){
+  if(marcado) peSel.add(id); else peSel.delete(id);
+  const b=document.getElementById('pe-alert-btn'); if(b) b.textContent='Alertar Projetista'+(peSel.size?' ('+peSel.size+')':'');
+};
+window.peSelTodos=function(marcado){
+  peDocs.filter(d=>d.estado==='pendente').forEach(d=>{ if(marcado) peSel.add(d.id); else peSel.delete(d.id); });
+  render();
+};
+window.peAlertar=async function(){
+  if(!(peEFisc()||peESuper())) return;
+  const docs=peDocs.filter(d=>peSel.has(d.id)&&d.estado==='pendente');
+  if(!docs.length){ alert('Selecione pelo menos um pedido Pendente (caixas à esquerda).'); return; }
+  const semEmail=docs.filter(d=>!d.projDestEmail);
+  if(semEmail.length){ alert('Sem email do Projetista em: '+semEmail.map(d=>d.id).join(', ')+'.\nEsses pedidos não serão alertados.'); }
+  const alvo=docs.filter(d=>d.projDestEmail);
+  if(!alvo.length) return;
+  const grupos={};
+  alvo.forEach(d=>{ (grupos[d.projDestEmail]=grupos[d.projDestEmail]||[]).push(d); });
+  const cc=peEmails('dono_obra');
+  const nProj=Object.keys(grupos).length;
+  if(!confirm('Enviar alerta de falta de resposta a '+nProj+' projetista(s), sobre '+alvo.length+' pedido(s) pendente(s)?'+(cc.length?'\nCc: Dono de Obra ('+cc.join(', ')+')':'\n(Sem Dono de Obra associado — segue sem Cc.)'))) return;
+  const o=peObra();
+  let enviados=0, falhas=0;
+  try{
+    for(const [email,lote] of Object.entries(grupos)){
+      showLoadingOverlay('A enviar alerta… '+esc(lote[0].projDestNome||email));
+      const linhas=lote.map(d=>'&bull; <a href="'+peLink(d)+'"><b>PE '+esc(d.id)+'</b></a> &mdash; '+esc(d.assunto||'(sem descrição)')+(d.dataEnvioProj?' (enviado em '+peDataPT(d.dataEnvioProj)+')':'')).join('<br>');
+      const msg='<b>Alerta de falta de resposta.</b><br>Solicita-se resposta ao(s) pedido(s) de esclarecimento que aguarda(m) o seu parecer. Resume(m)-se abaixo o(s) pedido(s) pendente(s):<br><br>'+linhas;
+      const ref=lote.length===1?('PE '+lote[0].id):('PE Pendentes ('+lote.length+')');
+      try{
+        await emailjs.send(EJS.service, PE_EJS_TEMPLATE, {
+          to_email:email,to_name:lote[0].projDestNome||'',from_name:(currentUser&&currentUser.nome?currentUser.nome:'SEGO'),reply_to:(currentUser&&currentUser.email?currentUser.email:''),
+          pe_id:ref,obra:(o?o.nome:lote[0].obraNome),
+          assunto:'Falta de resposta — '+lote.length+' pedido(s)',estado:'Pendente',
+          mensagem:msg,link:peLink(lote[0]),password:'',app_url:peLink(lote[0]),role:'Projetista',cc:(cc.length?cc.join(', '):'')});
+        enviados++;
+        for(const d of lote){
+          peRegistar(d,'Alerta de falta de resposta enviado ao Projetista ('+email+')'+(cc.length?' · Cc: '+cc.join(', '):'')+'.');
+          await pePersistir(d);
+        }
+      }catch(e){ console.error('Alerta falhou:',email,e); falhas++; }
+    }
+  }finally{ hideLoadingOverlay(); }
+  peSel=new Set();
+  render();
+  alert('Alertas enviados: '+enviados+'/'+nProj+' projetista(s).'+(falhas?'\n'+falhas+' com erro (ver consola).':''));
+};
 
 /* Criação / revisão */
 function peProximoNum(){ const n=peDocs.map(d=>d.num); return n.length?Math.max(...n)+1:1; }
@@ -3245,8 +3300,10 @@ function renderListaPE(app){
   if(peEProj()&&!peESuper()) lst=lst.filter(d=>d.estado!=='rascunho');
   lst.sort((a,b)=>b.num-a.num||b.rev-a.rev);
 
+  const podeAlertar=peEFisc()||peESuper();
   const linhas=lst.map(d=>`
     <tr class="${d.histImport?'pe-histrow':''}" onclick="peAbrirFicha('${d.id}')" style="cursor:pointer">
+      ${podeAlertar?`<td style="text-align:center;width:28px" onclick="event.stopPropagation()">${d.estado==='pendente'?`<input type="checkbox" ${peSel.has(d.id)?'checked':''} onclick="event.stopPropagation();peToggleSel('${d.id}',this.checked)">`:''}</td>`:''}
       <td><span class="pe-idp">${d.id}</span>${d.prevId?`<br><span class="pe-revlink">↳ rev. de ${d.prevId}</span>`:''}${d.nextId?`<br><span class="pe-revlink">↳ revisto por ${d.nextId}</span>`:''}</td>
       <td>${esc(d.assunto)||'<span class="pe-muted">(sem descrição)</span>'}</td>
       ${tdData(d.dataEnvio)}${tdData(d.dataEnvioProj)}${tdData(d.dataEsclarecido)}${tdData(d.dataResposta)}${tdData(d.dataFecho)}${tdData(d.estado==='reaberto'?reabertoData(d):null)}
@@ -3263,10 +3320,11 @@ function renderListaPE(app){
       </div>
       <div class="page-actions"></div>
     </div>
-    <div style="margin-bottom:12px;display:flex;gap:8px;align-items:center">${peEEmpOuFisc()?`<button class="btn btn-gold btn-sm" onclick="peNovoPedido()">+ Novo Pedido</button>`:''}${peESuper()?`<span style="margin-left:auto;display:flex;gap:8px"><button class="btn btn-sm" style="border:1px solid var(--border-light);background:#fff" onclick="gpeAdmRenumerar('pe')">Renumerar</button><button class="btn btn-sm" style="border:1px solid var(--border-light);background:#fff" onclick="gpeAdmImportar('pe')">Importar Histórico</button></span>`:''}</div>
+    <div style="margin-bottom:12px;display:flex;gap:8px;align-items:center">${peEEmpOuFisc()?`<button class="btn btn-gold btn-sm" onclick="peNovoPedido()">+ Novo Pedido</button>`:''}${(peEFisc()||peESuper())&&lst.some(d=>d.estado==='pendente')?`<button class="btn btn-sm" id="pe-alert-btn" style="border:1px solid var(--warning);background:#fff;color:#8a5a00" onclick="peAlertar()">Alertar Projetista${peSel.size?' ('+peSel.size+')':''}</button>`:''}${peESuper()?`<span style="margin-left:auto;display:flex;gap:8px"><button class="btn btn-sm" style="border:1px solid var(--border-light);background:#fff" onclick="gpeAdmRenumerar('pe')">Renumerar</button><button class="btn btn-sm" style="border:1px solid var(--border-light);background:#fff" onclick="gpeAdmImportar('pe')">Importar Histórico</button></span>`:''}</div>
     <div class="table-card">
       ${lst.length?`<table>
         <thead><tr>
+          ${podeAlertar?`<th style="text-align:center;width:28px"><input type="checkbox" title="Selecionar todos os Pendentes" ${lst.some(d=>d.estado==='pendente')&&lst.filter(d=>d.estado==='pendente').every(d=>peSel.has(d.id))?'checked':''} onclick="peSelTodos(this.checked)"></th>`:''}
           <th style="text-align:left">Id</th><th style="text-align:left">Descrição</th>
           ${thState('Aberto',M.estados.aberto.cor)}${thState('Pendente',M.estados.pendente.cor)}${thState('Esclarecido',M.estados.esclarecido.cor)}${thState('Respondido',M.estados.respondido.cor)}${thState('Fechado',M.estados.fechado.cor)}${thState('Reaberto',M.estados.reaberto.cor)}
           ${peESuper()?'<th style="text-align:center">×</th>':''}
@@ -3287,7 +3345,19 @@ function peCampo(rot,id,valor,tipo,editavel){
   const v=tipo==='date'?peDataPT(valor):(valor||'—');
   return `<div class="pe-fld"><label>${rot}</label><div class="pe-ro">${esc(v)}</div></div>`;
 }
-window.peAbrirFicha=function(id){ peFichaId=id; render(); };
+window.peAbrirFicha=async function(id){
+  peFichaId=id;
+  const d=peDocs.find(x=>x.id===id);
+  if(d&&d._leve){
+    try{
+      showLoadingOverlay('A carregar anexos…');
+      const rows=await sbRel.get('pedidos_esclarecimento',`id=eq.${encodeURIComponent(d.id)}&obra_id=eq.${encodeURIComponent(d.obraId)}&select=anexos_emp,anexos_proj`);
+      if(rows.length){ d.anexosEmp=rows[0].anexos_emp||[]; d.anexosProj=rows[0].anexos_proj||[]; d._leve=false; }
+    }catch(e){ console.error(e); alert('Não foi possível carregar os anexos deste PE (a base está lenta). A ficha abre sem eles — tente reabrir daqui a pouco.'); }
+    finally{ hideLoadingOverlay(); }
+  }
+  render();
+};
 window.peVoltarLista=function(){ peFichaId=null; render(); };
 window.peVoltarCapa=function(){ const o=peObra(); peFichaId=null; peObraId=null; fichObraId=o?o.id:null; render(); };
 
@@ -5035,19 +5105,24 @@ function qeUnmap(d){
     prev_id:d.prevId,next_id:d.nextId,historico:d.historico,updated_at:new Date().toISOString()};
 }
 
+function qeUnmapSeguro(d){
+  const row=qeUnmap(d);
+  if(d._leve){ delete row.anexos_fisc; delete row.anexos_emp; }
+  return row;
+}
 async function qeCarregar(){
   qeDocs=[]; const o=qeObra(); if(!o) return;
   try{
-    const rows=await sbRel.get('qualidade_execucao',`obra_id=eq.${encodeURIComponent(o.id)}&order=num.desc,rev.desc`);
-    qeDocs=rows.map(qeMap);
+    const rows=await sbRel.get('qualidade_execucao',`obra_id=eq.${encodeURIComponent(o.id)}&order=num.desc,rev.desc&select=id,num,rev,obra_id,obra_nome,estado,historico_import,data_criacao,data_envio,data_resposta,data_parecer,data_fecho,autor_fisc,especialidade,resposta_pretendida,descricao,autor_empreiteiro,origem,correcao,parecer,observacoes_fisc,autor_parecer,prev_id,next_id,historico`);
+    qeDocs=rows.map(r=>{ const d=qeMap(r); d._leve=true; return d; });
   }catch(e){ console.error(e); alert('Erro ao carregar Qualidade de Execução.\n\n'+e.message+'\n\nJá correu o SQL da tabela qualidade_execucao no Supabase do SEGO?'); }
 }
 async function qePersistir(d){
   try{
     const _q=`id=eq.${encodeURIComponent(d.id)}&obra_id=eq.${encodeURIComponent(d.obraId)}`;
     const ex=await sbRel.get('qualidade_execucao',_q+`&select=id`);
-    if(ex.length) await sbRel.patchWhere('qualidade_execucao',_q,qeUnmap(d));
-    else await sbRel.post('qualidade_execucao',qeUnmap(d));
+    if(ex.length) await sbRel.patchWhere('qualidade_execucao',_q,qeUnmapSeguro(d));
+    else await sbRel.post('qualidade_execucao',qeUnmapSeguro(d));
   }catch(e){ console.error(e); alert('Erro ao guardar: '+e.message); }
 }
 function qeLink(d){ return location.href.split('?')[0]+'?qe='+encodeURIComponent(d.id); }
@@ -5250,7 +5325,19 @@ function renderListaQE(app){
 }
 
 /* ---- FICHA ---- */
-window.qeAbrirFicha=function(id){ qeFichaId=id; render(); };
+window.qeAbrirFicha=async function(id){
+  qeFichaId=id;
+  const d=qeDocs.find(x=>x.id===id);
+  if(d&&d._leve){
+    try{
+      showLoadingOverlay('A carregar anexos…');
+      const rows=await sbRel.get('qualidade_execucao',`id=eq.${encodeURIComponent(d.id)}&obra_id=eq.${encodeURIComponent(d.obraId)}&select=anexos_fisc,anexos_emp`);
+      if(rows.length){ d.anexosFisc=rows[0].anexos_fisc||[]; d.anexosEmp=rows[0].anexos_emp||[]; d._leve=false; }
+    }catch(e){ console.error(e); alert('Não foi possível carregar os anexos desta QE (a base está lenta). A ficha abre sem eles — tente reabrir daqui a pouco.'); }
+    finally{ hideLoadingOverlay(); }
+  }
+  render();
+};
 window.qeVoltarLista=function(){ qeFichaId=null; render(); };
 window.qeVoltarCapa=function(){ const o=qeObra(); qeFichaId=null; qeObraId=null; fichObraId=o?o.id:null; render(); };
 
