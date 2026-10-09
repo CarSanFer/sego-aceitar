@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.10.07.1629</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.10.09.0851</span>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
@@ -3540,20 +3540,25 @@ function paUnmap(d){
     autor_fisc_resp:d.autorFiscResp,fisc_parecer:d.fiscParecer||null,fisc_observacoes:d.obsFisc,anexos_fisc:d.anexosFisc,
     via_direta:d.viaDireta,prev_id:d.prevId,next_id:d.nextId,historico:d.historico,updated_at:new Date().toISOString()};
 }
+function paUnmapSeguro(d){
+  const row=paUnmap(d);
+  if(d._leve){ delete row.anexos_emp; delete row.anexos_proj; delete row.anexos_fisc; }
+  return row;
+}
 
 async function paCarregar(){
   paDocs=[]; const o=paObra(); if(!o) return;
   try{
-    const rows=await sbRel.get('pedidos_aprovacao',`obra_id=eq.${encodeURIComponent(o.id)}&order=num.desc,rev.desc`);
-    paDocs=rows.map(paMap);
+    const rows=await sbRel.get('pedidos_aprovacao',`obra_id=eq.${encodeURIComponent(o.id)}&order=num.desc,rev.desc&select=id,num,rev,obra_id,obra_nome,estado,historico_import,data_criacao,data_envio,data_envio_proj,data_analisado,data_resposta,data_fecho,autor_empreiteiro,especialidade,material,tipo_item,capitulo,artigo,referencia,motivo,localizacao,previsto,proposto,tem_amostras,tem_fichas,tem_conformidade,tem_outros,observacoes_emp,autor_fisc_envio,comentario_fisc_envio,proj_dest_id,proj_dest_nome,proj_dest_email,autor_projetista,proj_data,proj_parecer,proj_observacoes,autor_fisc_resp,fisc_parecer,fisc_observacoes,via_direta,prev_id,next_id,historico`);
+    paDocs=rows.map(r=>{ const d=paMap(r); d._leve=true; return d; });
   }catch(e){ console.error(e); alert('Erro ao carregar pedidos de aprovação.\n\n'+e.message+'\n\nJá correu o SQL da tabela pedidos_aprovacao no Supabase do SEGO?'); }
 }
 async function paPersistir(d){
   try{
     const _q=`id=eq.${encodeURIComponent(d.id)}&obra_id=eq.${encodeURIComponent(d.obraId)}`;
     const ex=await sbRel.get('pedidos_aprovacao',_q+`&select=id`);
-    if(ex.length) await sbRel.patchWhere('pedidos_aprovacao',_q,paUnmap(d));
-    else await sbRel.post('pedidos_aprovacao',paUnmap(d));
+    if(ex.length) await sbRel.patchWhere('pedidos_aprovacao',_q,paUnmapSeguro(d));
+    else await sbRel.post('pedidos_aprovacao',paUnmapSeguro(d));
   }catch(e){ console.error(e); alert('Erro ao guardar: '+e.message); }
 }
 function paLink(d){ return location.href.split('?')[0]+'?pa='+encodeURIComponent(d.id); }
@@ -3784,7 +3789,19 @@ function paChk(id,rot,val,ed){
     ? `<label style="font-size:12px"><input type="checkbox" id="fa-${id}" ${val?'checked':''}> ${rot}</label>`
     : `<label style="font-size:12px;color:${val?'var(--info)':'var(--text-muted)'}">${val?'☑':'☐'} ${rot}</label>`;
 }
-window.paAbrirFicha=function(id){ paFichaId=id; render(); };
+window.paAbrirFicha=async function(id){
+  paFichaId=id;
+  const d=paDocs.find(x=>x.id===id);
+  if(d&&d._leve){
+    try{
+      showLoadingOverlay('A carregar anexos…');
+      const rows=await sbRel.get('pedidos_aprovacao',`id=eq.${encodeURIComponent(d.id)}&obra_id=eq.${encodeURIComponent(d.obraId)}&select=anexos_emp,anexos_proj,anexos_fisc`);
+      if(rows.length){ d.anexosEmp=rows[0].anexos_emp||[]; d.anexosProj=rows[0].anexos_proj||[]; d.anexosFisc=rows[0].anexos_fisc||[]; d._leve=false; }
+    }catch(e){ console.error(e); alert('Não foi possível carregar os anexos deste PA (a base está lenta). A ficha abre sem eles — tente reabrir daqui a pouco.'); }
+    finally{ hideLoadingOverlay(); }
+  }
+  render();
+};
 window.paVoltarLista=function(){ paFichaId=null; render(); };
 window.paVoltarCapa=function(){ const o=paObra(); paFichaId=null; paObraId=null; fichObraId=o?o.id:null; render(); };
 
@@ -5435,7 +5452,7 @@ window.gpeAdmRenumerar=async function(mod){
   const desvio=parseInt(prompt('Desvio a somar aos números atuais (ex.: 10 se vai importar 10 registos antigos):'),10);
   if(!desvio||isNaN(desvio)){ return; }
   let rows;
-  try{ rows=await sbRel.get(cfg.tab,`obra_id=eq.${encodeURIComponent(obra.id)}&order=num.asc,rev.asc`); }
+  try{ rows=await sbRel.get(cfg.tab,`obra_id=eq.${encodeURIComponent(obra.id)}&order=num.asc,rev.asc&select=id,num,rev,prev_id,next_id`+(mod==='ptq'?',rsos_ref':'')); }
   catch(e){ alert('Erro a ler: '+e.message); return; }
   if(!rows.length){ alert('Sem registos de '+cfg.sig+' nesta obra.'); return; }
   const mapa={}; rows.forEach(r=>{ mapa[r.id]=gpeAdmFmt(r.num+desvio,r.rev); });
