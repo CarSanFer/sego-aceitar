@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.10.09.0921</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.10.09.0955</span>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
@@ -2880,6 +2880,7 @@ function renderCapaFiscalizacao(app){
    Se não existir na conta, o envio falha em silêncio e o workflow prossegue;
    o estado do envio fica no histórico do pedido. */
 const PE_EJS_TEMPLATE = 'template_8e782pt';
+const EJS_TPL_ALERTA = 'template_md6bd4w';
 
 const PE_MOD = {
   rot:'Pedido de Esclarecimento', sig:'PE', tabela:'pedidos_esclarecimento',
@@ -3030,15 +3031,13 @@ window.peAlertar=async function(){
   try{
     for(const [email,lote] of Object.entries(grupos)){
       showLoadingOverlay('A enviar alerta… '+esc(lote[0].projDestNome||email));
-      const linhas=lote.map(d=>'&bull; <a href="'+peLink(d)+'"><b>PE '+esc(d.id)+'</b></a> &mdash; '+esc(d.assunto||'(sem descrição)')+(d.dataEnvioProj?' (enviado em '+peDataPT(d.dataEnvioProj)+')':'')).join('<br>');
-      const msg='<b>Alerta de falta de resposta.</b><br>Solicita-se resposta ao(s) pedido(s) de esclarecimento que aguarda(m) o seu parecer. Resume(m)-se abaixo o(s) pedido(s) pendente(s):<br><br>'+linhas;
-      const ref=lote.length===1?('PE '+lote[0].id):('PE Pendentes ('+lote.length+')');
+      const linhas=lote.map(d=>'&bull; <a href="'+peLink(d)+'"><b>PE '+esc(d.id)+'</b></a> - '+esc(d.assunto||'(sem descrição)')+(d.dataEnvioProj?' (enviado em '+peDataPT(d.dataEnvioProj)+')':'')).join('<br>');
+      const msg='Solicita-se resposta aos pedidos de esclarecimento pendentes. Resume'+(lote.length>1?'m':'')+'-se abaixo:<br><br>'+linhas;
       try{
-        await emailjs.send(EJS.service, PE_EJS_TEMPLATE, {
-          to_email:email,to_name:lote[0].projDestNome||'',from_name:(currentUser&&currentUser.nome?currentUser.nome:'SEGO'),reply_to:(currentUser&&currentUser.email?currentUser.email:''),
-          pe_id:ref,obra:(o?o.nome:lote[0].obraNome),
-          assunto:'Falta de resposta — '+lote.length+' pedido(s)',estado:'Pendente',
-          mensagem:msg,link:peLink(lote[0]),password:'',app_url:peLink(lote[0]),role:'Projetista',cc:(cc.length?cc.join(', '):'')});
+        await emailjs.send(EJS.service, EJS_TPL_ALERTA, {
+          to_email:email,from_name:(currentUser&&currentUser.nome?currentUser.nome:'SEGO'),reply_to:(currentUser&&currentUser.email?currentUser.email:''),
+          assunto:(o?o.nome:lote[0].obraNome)+' - Pedidos de Esclarecimento Pendentes',
+          mensagem:msg,cc:(cc.length?cc.join(', '):'')});
         enviados++;
         for(const d of lote){
           peRegistar(d,'Alerta de falta de resposta enviado ao Projetista ('+email+')'+(cc.length?' · Cc: '+cc.join(', '):'')+'.');
