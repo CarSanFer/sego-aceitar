@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.10.09.0955</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.10.09.0959</span>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
@@ -3032,7 +3032,7 @@ window.peAlertar=async function(){
     for(const [email,lote] of Object.entries(grupos)){
       showLoadingOverlay('A enviar alerta… '+esc(lote[0].projDestNome||email));
       const linhas=lote.map(d=>'&bull; <a href="'+peLink(d)+'"><b>PE '+esc(d.id)+'</b></a> - '+esc(d.assunto||'(sem descrição)')+(d.dataEnvioProj?' (enviado em '+peDataPT(d.dataEnvioProj)+')':'')).join('<br>');
-      const msg='Solicita-se resposta aos pedidos de esclarecimento pendentes. Resume'+(lote.length>1?'m':'')+'-se abaixo:<br><br>'+linhas;
+      const msg='<div style="margin:18px 24px;font-family:Calibri,Carlito,sans-serif;font-size:14px;color:#111">Solicita-se resposta aos pedidos de esclarecimento pendentes. Resume'+(lote.length>1?'m':'')+'-se abaixo:<br><br>'+linhas+'</div>';
       try{
         await emailjs.send(EJS.service, EJS_TPL_ALERTA, {
           to_email:email,from_name:(currentUser&&currentUser.nome?currentUser.nome:'SEGO'),reply_to:(currentUser&&currentUser.email?currentUser.email:''),
