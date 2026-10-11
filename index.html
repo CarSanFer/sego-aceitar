@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.10.09.2217</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.10.11.1755</span>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-dash" title="Dashboard PE · PA · PB · QE" onclick="dashAbrir('')">📊 Dashboard</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
@@ -1937,7 +1937,7 @@ window.sosAddTema=function(){
   r.conteudo.dados.temas=r.conteudo.dados.temas||[];
   const proximoId=r.conteudo.dados.temas.length?Math.max(...r.conteudo.dados.temas.map(t=>t.id||0))+1:1;
   r.conteudo.dados.temas.push({
-    id:proximoId,titulo:'',anexos:[],observacoes:'',analiseIA:'',estado:'pendente'
+    id:proximoId,titulo:'',anexos:[],observacoes:'',estado:'pendente'
   });
   window._sosCollapsed=window._sosCollapsed||{};
   window._sosCollapsed[proximoId]=false; // novo tema fica expandido
@@ -2022,49 +2022,6 @@ window.sosRemoveAnexo=function(idxTema,idxAnexo){
   sosSaveDebounced(r);
   render();
 };
-window.sosGerarAnalise=async function(idxTema){
-  if(!relRelId)return;
-  const r=DB.relatorios.find(x=>x.id===relRelId);if(!r)return;
-  if(r.estado==='disponibilizado')return;
-  const t=r.conteudo&&r.conteudo.dados&&r.conteudo.dados.temas&&r.conteudo.dados.temas[idxTema];
-  if(!t)return;
-  if(!(t.titulo||'').trim() && !(t.observacoes||'').trim() && (!t.anexos||!t.anexos.length)){
-    alert('Preenche pelo menos o título, observações ou anexos antes de gerar a análise.');
-    return;
-  }
-  showLoadingOverlay('A gerar análise IA...');
-  try{
-    const resp=await fetch('/api/sos-analise',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        titulo:t.titulo||'',
-        observacoes:t.observacoes||'',
-        anexos:(t.anexos||[]).map(a=>({name:a.name||'',mime:a.mime||'',size:a.size||0,url:a.url||''}))
-      })
-    });
-    const data=await resp.json().catch(()=>({}));
-    hideLoadingOverlay();
-    if(!resp.ok){
-      alert('Erro ao gerar análise: '+(data.error||('HTTP '+resp.status))+(data.details?'\n\n'+String(data.details).slice(0,300):''));
-      return;
-    }
-    if(!data.analise){
-      alert('A análise veio vazia.');
-      return;
-    }
-    t.analiseIA=data.analise;
-    sosSaveDebounced(r);
-    render();
-    // Notificar utilizador sobre anexos processados
-    if(Array.isArray(data.naoProcessados) && data.naoProcessados.length){
-      setTimeout(()=>alert('Análise gerada.\n\nAnexos processados: '+(data.processados||0)+'\nNão processados: '+data.naoProcessados.length+'\n\n• '+data.naoProcessados.join('\n• ')),100);
-    }
-  }catch(e){
-    hideLoadingOverlay();
-    alert('Erro de rede: '+e.message);
-  }
-};
 window.criarCO=async function(obraId,tipo,subtipo){
   const relsAll=DB.relatorios.filter(r=>r.obra_id===obraId);
   // Numeração por (tipo,subtipo) — cada série tem o seu contador
@@ -2081,7 +2038,6 @@ window.criarCO=async function(obraId,tipo,subtipo){
         id:t.id,
         titulo:t.titulo||'',
         anexos:Array.isArray(t.anexos)?t.anexos.slice():[],
-        analiseIA:t.analiseIA||'',
         observacoes:t.observacoes||'',
         estado:t.estado||'pendente'
       }));
@@ -2297,13 +2253,6 @@ function renderFichaSOS(app,r){
           <div style="${lbl}">Observações</div>
           <textarea ${ro?'readonly':''} oninput="sosCommitTema(${i},'observacoes',this.value)" placeholder="Notas, contexto, ponto de situação..." rows="3" style="${ro?inpRO:inpS};resize:vertical;min-height:60px">${esc(t.observacoes||'')}</textarea>
         </div>
-        <div>
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
-            <div style="${lbl};margin-bottom:0">Análise IA</div>
-            ${ro?'':`<button onclick="sosGerarAnalise(${i})" style="font-size:11px;color:#1B4F9B;background:none;border:0.5px solid #c8ccd1;border-radius:3px;padding:3px 10px;cursor:pointer;font-weight:600" title="Gerar síntese com base nos anexos e observações">🤖 ${t.analiseIA?'Regenerar':'Gerar'} análise</button>`}
-          </div>
-          <div style="background:#f5f7fa;border:0.5px solid var(--border-light);border-radius:3px;padding:10px;font-size:12px;color:var(--text);min-height:40px;white-space:pre-wrap">${t.analiseIA?esc(t.analiseIA):'<span style="color:var(--text-muted);font-style:italic">Sem análise gerada.</span>'}</div>
-        </div>
       </div>`}
     </div>`;
   };
@@ -2373,9 +2322,17 @@ function renderPublicSOS(rel,o,conteudo){
     .ident{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;background:#fff;padding:16px;border-radius:6px;border:1px solid #d1d5db}
     .ident-label{font-size:10px;text-transform:uppercase;color:#666;letter-spacing:.4px;margin-bottom:3px;font-weight:600}
     .ident-value{font-size:14px;font-weight:600;color:#1F2A44}
-    .placeholder{background:#FEF9EC;border:1px solid #F0E4C2;border-radius:6px;padding:32px;text-align:center;color:#854F0B}
-    .placeholder-title{font-size:15px;font-weight:600;margin-bottom:8px}
-    .placeholder-text{font-size:13px}
+    .tema{background:#fff;border:1px solid #d1d5db;border-radius:6px;padding:14px 16px;margin-bottom:12px}
+    .tema:last-child{margin-bottom:0}
+    .tema-head{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+    .tema-num{font-size:12px;font-weight:700;color:#B91C1C}
+    .tema-tit{flex:1;font-size:14px;font-weight:700;color:#1F2A44}
+    .tema-est{padding:3px 12px;border-radius:12px;font-size:11px;font-weight:700;letter-spacing:.3px}
+    .tema-sec{margin-top:8px}
+    .tema-lbl{font-size:10px;text-transform:uppercase;color:#666;letter-spacing:.4px;margin-bottom:4px;font-weight:600}
+    .tema-obs{font-size:13px;white-space:pre-wrap}
+    .tema-anexo{display:block;font-size:12.5px;color:#1B4F9B;text-decoration:none;padding:3px 0}
+    .tema-anexo:hover{text-decoration:underline}
     .footer{margin-top:36px;padding:18px 28px;border-top:1px solid #e5e7eb;font-size:11px;color:#888;text-align:center;background:#fafbfc}
   </style>
   <div class="container">
@@ -2398,10 +2355,19 @@ function renderPublicSOS(rel,o,conteudo){
       </div>
       <div class="g">
         <h2>Situações Operacionais${temas.length?' · '+temas.length:''}</h2>
-        <div class="placeholder">
-          <div class="placeholder-title">⚙️ Conteúdo SOS em desenvolvimento</div>
-          <div class="placeholder-text">Esta secção vai mostrar os temas/situações operacionais com anexos, análise IA, observações e estado.</div>
-        </div>
+        ${temas.length?temas.map(t=>{
+          const em={pendente:{bg:'#FEF3C7',col:'#854F0B',txt:'Pendente'},resolvido:{bg:'#D1FAE5',col:'#065F46',txt:'Resolvido'},fechado:{bg:'#E5E7EB',col:'#374151',txt:'Fechado'}}[t.estado||'pendente']||{bg:'#E5E7EB',col:'#374151',txt:t.estado||'—'};
+          const anexos=(Array.isArray(t.anexos)?t.anexos:[]);
+          return `<div class="tema">
+            <div class="tema-head">
+              <span class="tema-num">#${String(t.id||0).padStart(3,'0')}</span>
+              <span class="tema-tit">${esc(t.titulo||'(sem título)')}</span>
+              <span class="tema-est" style="background:${em.bg};color:${em.col}">${em.txt}</span>
+            </div>
+            ${t.observacoes?`<div class="tema-sec"><div class="tema-lbl">Observações</div><div class="tema-obs">${esc(t.observacoes)}</div></div>`:''}
+            ${anexos.length?`<div class="tema-sec"><div class="tema-lbl">Anexos · ${anexos.length}</div>${anexos.map(a=>`<a class="tema-anexo" href="${esc(a.url||'#')}" target="_blank" rel="noopener">📎 ${esc(a.name||'(sem nome)')}${a.size?' <span style="color:#888;font-size:10px">('+Math.round(a.size/1024)+' KB)</span>':''}</a>`).join('')}</div>`:''}
+          </div>`;
+        }).join(''):`<div style="background:#fff;border:1px solid #d1d5db;border-radius:6px;padding:20px;text-align:center;color:#666;font-style:italic">Sem situações operacionais registadas neste período.</div>`}
       </div>
     </div>
     <div class="footer">SEGO · Sistema Externo de Gestão de Obras · ${esc(sigla)} SOS ${num}${rel.criado_em?' · publicado em '+fmtDate(rel.criado_em.split('T')[0]):''}</div>
