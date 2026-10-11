@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.10.09.2141</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.10.09.2217</span>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-dash" title="Dashboard PE · PA · PB · QE" onclick="dashAbrir('')">📊 Dashboard</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
@@ -8088,21 +8088,37 @@ function renderDashboard(app){
 // OBRAS — LISTA
 // ================================================================
 /* ####################  DASHBOARD GLOBAL (superadmin)  #################### */
-let dashAtivo=false, dashObraF='', dashMods={pe:true,pa:true,pb:true,qe:true}, dashPer='12', dashTab='visao', dashDados=null, dashDrill=null;
+let dashAtivo=false, dashObraF='', dashMods={pe:true,pa:true,pb:true,qe:true}, dashMes='', dashFisc='', dashTab='detalhe', dashDados=null, dashDrill=null;
 
 const DASH_DEF={
   pe:{sig:'PE',rot:'Pedidos de Esclarecimento',cor:'#1B4F9B',tab:'pedidos_esclarecimento',
-      sel:'id,num,rev,obra_id,obra_nome,estado,historico_import,data_criacao,data_envio,data_fecho,assunto,prev_id,next_id,historico',
-      mod:function(){return PE_MOD;}, descr:function(r){return r.assunto||'';}},
+      sel:'id,num,rev,obra_id,obra_nome,estado,historico_import,data_criacao,data_envio,data_envio_proj,data_esclarecido,data_resposta,data_fecho,assunto,prev_id,next_id,historico',
+      mod:function(){return PE_MOD;}, descr:function(r){return r.assunto||'';},
+      norm:function(r){return {envio:r.data_envio,envioProj:r.data_envio_proj,meio:r.data_esclarecido,resposta:r.data_resposta,fecho:r.data_fecho};},
+      trans:[['Pendente - Aberto','envio','envioProj'],['Esclarecido - Pendente','envioProj','meio'],['Respondido - Esclarecido','meio','resposta'],['Fechado - Respondido','resposta','fecho']],
+      transLeg:'Pendente - Aberto: da receção pela Fiscalização ao envio ao Projetista · Esclarecido - Pendente: tempo do Projetista a esclarecer · Respondido - Esclarecido: da receção do esclarecimento à comunicação ao Empreiteiro · Fechado - Respondido: da comunicação ao fecho pelo Empreiteiro.',
+      estLeg:{rascunho:'Em preparação pelo Empreiteiro',aberto:'Recebido pela Fiscalização',pendente:'No Projetista, aguarda esclarecimento',esclarecido:'Esclarecimento recebido pela Fiscalização',respondido:'Resposta comunicada ao Empreiteiro',fechado:'Processo concluído',reaberto:'Substituído por revisão'}},
   pa:{sig:'PA',rot:'Pedidos de Aprovação',cor:'#6D28D9',tab:'pedidos_aprovacao',
-      sel:'id,num,rev,obra_id,obra_nome,estado,historico_import,data_criacao,data_envio,data_fecho,material,prev_id,next_id,historico',
-      mod:function(){return PA_MOD;}, descr:function(r){return r.material||'';}},
+      sel:'id,num,rev,obra_id,obra_nome,estado,historico_import,data_criacao,data_envio,data_envio_proj,data_analisado,data_resposta,data_fecho,material,prev_id,next_id,historico',
+      mod:function(){return PA_MOD;}, descr:function(r){return r.material||'';},
+      norm:function(r){return {envio:r.data_envio,envioProj:r.data_envio_proj,meio:r.data_analisado,resposta:r.data_resposta,fecho:r.data_fecho};},
+      trans:[['Pendente - Aberto','envio','envioProj'],['Analisado - Pendente','envioProj','meio'],['Respondido - Analisado','meio','resposta'],['Fechado - Respondido','resposta','fecho']],
+      transLeg:'Pendente - Aberto: da receção pela Fiscalização ao envio ao Projetista · Analisado - Pendente: tempo do Projetista a dar parecer · Respondido - Analisado: do parecer à decisão comunicada ao Empreiteiro · Fechado - Respondido: da decisão ao fecho.',
+      estLeg:{rascunho:'Em preparação pelo Empreiteiro',aberto:'Recebido pela Fiscalização',pendente:'No Projetista, aguarda parecer',analisado:'Parecer do Projetista recebido',respondido:'Decisão comunicada ao Empreiteiro',fechado:'Processo concluído',reaberto:'Substituído por revisão'}},
   pb:{sig:'PB',rot:'Pedidos de Betonagem',cor:'#C9922A',tab:'pedidos_betonagem',
-      sel:'*',
-      mod:function(){return PB_MOD;}, descr:function(r){return r.elemento||r.localizacao||r.descricao||r.assunto||'';}},
+      sel:'id,num,rev,obra_id,obra_nome,estado,historico_import,data_criacao,data_envio,data_decisao,data_fecho,elementos,localizacao,prev_id,next_id,historico',
+      mod:function(){return PB_MOD;}, descr:function(r){return r.elementos||r.localizacao||'';},
+      norm:function(r){return {envio:r.data_envio,envioProj:null,meio:r.data_decisao,resposta:null,fecho:r.data_fecho};},
+      trans:[['Decisão - Aberto','envio','meio'],['Fechado - Aberto','envio','fecho']],
+      transLeg:'Decisão - Aberto: do envio à decisão da Fiscalização · Fechado - Aberto: do envio ao fecho do pedido.',
+      estLeg:{rascunho:'Em preparação pelo Empreiteiro',aberto:'Na Fiscalização, aguarda decisão',fechado:'Processo concluído',reaberto:'Substituído por revisão'}},
   qe:{sig:'QE',rot:'Qualidade de Execução',cor:'#1A7A4A',tab:'qualidade_execucao',
-      sel:'id,num,rev,obra_id,obra_nome,estado,historico_import,data_criacao,data_envio,data_fecho,descricao,prev_id,next_id,historico',
-      mod:function(){return QE_MOD;}, descr:function(r){return r.descricao||'';}}
+      sel:'id,num,rev,obra_id,obra_nome,estado,historico_import,data_criacao,data_envio,data_resposta,data_fecho,descricao,prev_id,next_id,historico',
+      mod:function(){return QE_MOD;}, descr:function(r){return r.descricao||'';},
+      norm:function(r){return {envio:r.data_envio,envioProj:null,meio:null,resposta:r.data_resposta,fecho:r.data_fecho};},
+      trans:[['Respondido - Pendente','envio','resposta'],['Fechado - Respondido','resposta','fecho']],
+      transLeg:'Respondido - Pendente: tempo do Empreiteiro a corrigir e responder · Fechado - Respondido: da resposta ao parecer final da Fiscalização.',
+      estLeg:{rascunho:'Em preparação pela Fiscalização',pendente:'No Empreiteiro, aguarda correção',respondido:'Correção submetida, aguarda parecer da Fiscalização',fechado:'Correção aceite, processo concluído',reaberto:'Correção não aceite, substituído por revisão'}}
 };
 
 async function dashFetchTudo(tab,sel){
@@ -8115,7 +8131,6 @@ async function dashFetchTudo(tab,sel){
   }
   return out;
 }
-
 window.dashCarregar=async function(){
   const docs=[];
   try{
@@ -8125,8 +8140,8 @@ window.dashCarregar=async function(){
       const rows=await dashFetchTudo(D.tab,D.sel);
       rows.forEach(r=>{
         docs.push({ k, id:r.id, num:r.num, rev:r.rev, obraId:String(r.obra_id), obraNome:r.obra_nome||'',
-          estado:r.estado, criado:r.data_criacao||null, enviado:r.data_envio||r.data_criacao||null,
-          fechado:r.data_fecho||null, descr:D.descr(r), nextId:r.next_id||null,
+          estado:r.estado, criado:r.data_criacao||null, fechado:r.data_fecho||null,
+          dt:D.norm(r), descr:D.descr(r), nextId:r.next_id||null,
           hist:Array.isArray(r.historico)?r.historico:[], histImport:!!r.historico_import });
       });
     }
@@ -8145,60 +8160,53 @@ window.dashVoltar=function(){ dashAtivo=false; dashDrill=null; render(); };
 window.dashRefrescar=async function(){ dashDados=null; await dashCarregar(); render(); };
 window.dashSetTab=function(t){ dashTab=t; dashDrill=null; render(); };
 window.dashSetObra=function(v){ dashObraF=v; dashDrill=null; render(); };
-window.dashSetPer=function(v){ dashPer=v; dashDrill=null; render(); };
+window.dashSetMes=function(v){ dashMes=v; dashDrill=null; render(); };
+window.dashSetFisc=function(v){ dashFisc=v; dashDrill=null; render(); };
 window.dashToggleMod=function(k){
   dashMods[k]=!dashMods[k];
   if(!Object.values(dashMods).some(Boolean)) dashMods[k]=true;
   dashDrill=null; render();
 };
 
-function dashCutoffISO(){
-  if(dashPer==='tudo') return null;
-  const n=parseInt(dashPer,10)||12;
-  const d=new Date(); d.setMonth(d.getMonth()-n); d.setDate(1);
-  return d.toISOString().slice(0,10);
+function dashYM(iso){ return iso?String(iso).slice(0,7):''; }
+function dashMesPT(ym){ const m=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro']; const p=ym.split('-'); return m[parseInt(p[1],10)-1]+' '+p[0]; }
+function dashDias(a,b){ return Math.max(0,Math.round((new Date(b)-new Date(a))/86400000)); }
+function dashMedia(arr){ return arr.length?Math.round(arr.reduce((s,x)=>s+x,0)/arr.length*10)/10:null; }
+function dashFiscais(){
+  return (DB.utilizadores||[]).filter(u=>u.role==='fiscalizacao'&&u.ativo!==false).sort((a,b)=>(a.nome||'').localeCompare(b.nome||''));
+}
+function dashObrasDoFiscal(uid){
+  const u=(DB.utilizadores||[]).find(x=>String(x.id)===String(uid));
+  const set=new Set();
+  if(!u) return set;
+  const refs=(u.obras||[]).map(String);
+  (DB.obras||[]).forEach(o=>{
+    const fiscs=((o.intervenientes_fisc)||[]).map(String);
+    if(refs.includes(String(o.id))||(o.codigo&&refs.includes(String(o.codigo)))||(o.sigla&&refs.includes(String(o.sigla)))||fiscs.includes(String(u.id)))
+      set.add(String(o.id));
+  });
+  return set;
 }
 function dashDocs(){
   if(!dashDados) return [];
-  const cut=dashCutoffISO();
+  const obrasFisc=dashFisc?dashObrasDoFiscal(dashFisc):null;
   return dashDados.docs.filter(d=>
     dashMods[d.k] &&
     (!dashObraF||d.obraId===dashObraF) &&
-    (!cut||(d.criado&&d.criado>=cut))
+    (!dashMes||dashYM(d.criado)===dashMes) &&
+    (!obrasFisc||obrasFisc.has(d.obraId))
   );
-}
-function dashVigentes(ds){ return ds.filter(d=>!d.nextId); }
-function dashDias(a,b){ return Math.max(0,Math.round((new Date(b)-new Date(a))/86400000)); }
-function dashMedia(arr){ return arr.length?Math.round(arr.reduce((s,x)=>s+x,0)/arr.length):null; }
-function dashYM(iso){ return iso?String(iso).slice(0,7):''; }
-function dashMesPT(ym){ const m=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez']; const p=ym.split('-'); return m[parseInt(p[1],10)-1]+' '+p[0].slice(2); }
-function dashMesesRange(ds){
-  const cut=dashCutoffISO();
-  let ini=cut?dashYM(cut):null;
-  if(!ini){ const cs=ds.map(d=>d.criado).filter(Boolean).sort(); ini=cs.length?dashYM(cs[0]):dashYM(peHoje()); }
-  const fim=dashYM(peHoje());
-  const out=[]; let [y,m]=ini.split('-').map(Number);
-  while(true){
-    const ym=y+'-'+String(m).padStart(2,'0');
-    out.push(ym);
-    if(ym>=fim||out.length>120) break;
-    m++; if(m>12){ m=1; y++; }
-  }
-  return out;
 }
 function dashObrasDe(ds){
   const m=new Map();
   ds.forEach(d=>{ if(!m.has(d.obraId)) m.set(d.obraId,d.obraNome); });
   return [...m.entries()].map(([id,nome])=>({id,nome})).sort((a,b)=>a.nome.localeCompare(b.nome));
 }
-window.dashDrillSet=function(tipo,a,b){
+window.dashDrillSet=function(tipo,a,b,c){
   const ds=dashDocs(); let docs=[], titulo='';
-  if(tipo==='mod'){ docs=dashVigentes(ds).filter(d=>d.k===a); titulo=DASH_DEF[a].sig+' — documentos vigentes'; }
-  else if(tipo==='estado'){ docs=dashVigentes(ds).filter(d=>d.k===a&&d.estado===b); titulo=DASH_DEF[a].sig+' · '+(DASH_DEF[a].mod().estados[b]||{rot:b}).rot; }
-  else if(tipo==='mesC'){ docs=ds.filter(d=>dashYM(d.criado)===a); titulo='Criados em '+dashMesPT(a); }
-  else if(tipo==='mesF'){ docs=ds.filter(d=>d.fechado&&dashYM(d.fechado)===a); titulo='Fechados em '+dashMesPT(a); }
-  else if(tipo==='aging'){ docs=dashVigentes(ds).filter(d=>d.k===a&&d.estado!=='fechado'&&dashAgingBucket(d)===b); titulo=DASH_DEF[a].sig+' em curso · '+b+' dias'; }
-  else if(tipo==='obra'){ docs=dashVigentes(ds).filter(d=>d.obraId===a); titulo='Obra — documentos vigentes'; }
+  if(tipo==='cel'){ docs=ds.filter(d=>d.obraId===a&&(b==='*'||d.k===b)); const o=docs[0]; titulo=(o?o.obraNome:'Obra')+(b==='*'?' — todos os documentos':' — '+DASH_DEF[b].sig); }
+  else if(tipo==='mod'){ docs=ds.filter(d=>d.k===a); titulo=DASH_DEF[a].sig+' — todos os documentos'; }
+  else if(tipo==='est'){ docs=ds.filter(d=>d.k===a&&d.estado===c&&(b==='*'||d.obraId===b)); titulo=DASH_DEF[a].sig+' · '+((DASH_DEF[a].mod().estados[c]||{rot:c}).rot)+(b==='*'?'':' · '+(docs[0]?docs[0].obraNome:'')); }
   dashDrill={titulo,docs:docs.slice().sort((x,y)=>(y.criado||'').localeCompare(x.criado||''))};
   render();
   setTimeout(()=>{ const el=document.getElementById('dash-drill'); if(el) el.scrollIntoView({behavior:'smooth',block:'start'}); },50);
@@ -8211,214 +8219,155 @@ window.dashAbrirDoc=async function(k,obraId,id){
   else if(k==='pb'){ await pbAbrirModulo(obraId); pbAbrirFicha(id); }
   else if(k==='qe'){ await qeAbrirModulo(obraId); qeAbrirFicha(id); }
 };
-function dashAgingBucket(d){
-  const ref=d.enviado||d.criado; if(!ref) return '>60';
-  const dias=dashDias(ref,peHoje());
-  if(dias<=15) return '≤15'; if(dias<=30) return '16–30'; if(dias<=60) return '31–60'; return '>60';
-}
 
 const DASH_CSS=`<style>
 .dash-wrap{max-width:1280px;margin:0 auto;font-size:12px}
 .dash-filtros{display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:var(--bg-card);border:0.5px solid var(--border-light);border-radius:var(--radius);padding:10px 12px;margin-bottom:12px}
-.dash-filtros select{font-family:inherit;font-size:12px;padding:4px 8px;border:1px solid var(--border-light);border-radius:4px;background:#fff}
+.dash-filtros select{font-family:inherit;font-size:12px;padding:4px 8px;border:1px solid var(--border-light);border-radius:4px;background:#fff;max-width:230px}
 .dash-chip{cursor:pointer;border:1px solid var(--border-light);border-radius:999px;padding:3px 12px;font-size:11px;font-weight:700;background:#fff;color:var(--text-muted)}
 .dash-chip.on{color:#fff;border-color:transparent}
 .dash-tabs{display:flex;gap:6px;margin-bottom:12px}
 .dash-tab{cursor:pointer;padding:6px 14px;border-radius:4px 4px 0 0;font-size:12px;font-weight:700;background:#E4E8EF;color:var(--text-muted);border:0.5px solid var(--border-light);border-bottom:none}
 .dash-tab.on{background:var(--navy);color:#fff}
-.dash-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;margin-bottom:12px}
-.dash-tile{background:var(--bg-card);border:0.5px solid var(--border-light);border-left:4px solid var(--tc,var(--navy));border-radius:var(--radius);padding:10px 12px;cursor:pointer}
-.dash-tile:hover{border-color:var(--tc,var(--navy))}
-.dash-card{background:var(--bg-card);border:0.5px solid var(--border-light);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px}
-.dash-h{font-size:12px;font-weight:700;color:var(--navy);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px}
-.dash-seg{cursor:pointer}
-.dash-seg:hover{opacity:.82}
-.dash-tbl{width:100%;border-collapse:collapse}
-.dash-tbl th{background:var(--navy);color:#fff;font-weight:700;padding:5px 8px;text-align:left;font-size:11px}
-.dash-tbl td{padding:4px 8px;border-bottom:0.5px solid var(--border-light);font-size:11.5px}
+.dash-card{background:var(--bg-card);border:0.5px solid var(--border-light);border-radius:var(--radius);padding:12px 14px;margin-bottom:14px}
+.dash-h{font-size:12.5px;font-weight:700;color:var(--navy);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px}
+.dash-tbl{width:100%;border-collapse:collapse;margin-bottom:6px}
+.dash-tbl th{background:var(--navy);color:#fff;font-weight:700;padding:5px 8px;text-align:right;font-size:11px;white-space:nowrap}
+.dash-tbl th:first-child{text-align:left}
+.dash-tbl td{padding:4px 8px;border-bottom:0.5px solid var(--border-light);font-size:11.5px;text-align:right}
+.dash-tbl td:first-child{text-align:left}
 .dash-tbl tr:hover td{background:#F4F6FA}
-.dash-num{text-align:right;white-space:nowrap}
+.dash-tbl tr.tot td{font-weight:700;background:#EEF1F6}
+.dash-cel{cursor:pointer;color:var(--info)}
+.dash-cel:hover{text-decoration:underline}
+.dash-leg{font-size:10.5px;color:var(--text-muted);margin-top:4px;line-height:1.55}
 .dash-pill{display:inline-block;color:#fff;border-radius:999px;padding:1px 8px;font-size:10px;font-weight:700}
-.dash-bar{display:flex;height:22px;border-radius:3px;overflow:hidden;background:#EEF1F6}
-.dash-bar>div{display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:700;margin-right:2px}
-.dash-leg{display:flex;flex-wrap:wrap;gap:12px;margin-top:8px;font-size:10.5px;color:var(--text-muted)}
-.dash-leg span{display:inline-flex;align-items:center;gap:5px}
-.dash-dot{width:9px;height:9px;border-radius:2px;display:inline-block}
-svg.dash-svg text{font-family:inherit}
-svg.dash-svg rect.dash-seg:hover{opacity:.82}
+.dash-pbar{background:#EEF1F6;border-radius:3px;height:14px;position:relative;overflow:hidden}
+.dash-pbar>div{height:100%;border-radius:3px}
 </style>`;
 
-function dashKPIs(ds){
-  return Object.keys(DASH_DEF).filter(k=>dashMods[k]).map(k=>{
-    const D=DASH_DEF[k];
-    const vig=dashVigentes(ds).filter(d=>d.k===k);
-    const fech=vig.filter(d=>d.estado==='fechado');
-    const curso=vig.length-fech.length;
-    const tempos=fech.filter(d=>d.enviado&&d.fechado).map(d=>dashDias(d.enviado,d.fechado));
-    const tm=dashMedia(tempos);
-    const pct=vig.length?Math.round(100*fech.length/vig.length):0;
-    return `<div class="dash-tile" style="--tc:${D.cor}" onclick="dashDrillSet('mod','${k}')">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <span class="dash-pill" style="background:${D.cor}">${D.sig}</span>
-        <b style="font-size:17px">${vig.length}</b>
-      </div>
-      <div style="margin-top:6px;color:var(--text-muted)">Em curso: <b style="color:var(--text)">${curso}</b> · Fechados: <b style="color:var(--text)">${fech.length}</b> (${pct}%)</div>
-      <div style="color:var(--text-muted)">Tempo médio de ciclo: <b style="color:var(--text)">${tm===null?'—':tm+' d'}</b></div>
-    </div>`;
+/* ---------- 1. Utilização da APP ---------- */
+function dashTblUtilizacao(ds){
+  const obras=dashObrasDe(ds);
+  const ks=Object.keys(DASH_DEF).filter(k=>dashMods[k]);
+  const linhas=obras.map(o=>{
+    const docs=ds.filter(d=>d.obraId===o.id);
+    return `<tr><td>${esc(o.nome)}</td>${ks.map(k=>{
+      const n=docs.filter(d=>d.k===k).length;
+      return `<td>${n?`<span class="dash-cel" onclick="dashDrillSet('cel','${o.id}','${k}')">${n}</span>`:''}</td>`;
+    }).join('')}<td><b><span class="dash-cel" onclick="dashDrillSet('cel','${o.id}','*')">${docs.length}</span></b></td></tr>`;
   }).join('');
+  const tot=`<tr class="tot"><td>Total</td>${ks.map(k=>`<td>${ds.filter(d=>d.k===k).length}</td>`).join('')}<td>${ds.length}</td></tr>`;
+  return `<div class="dash-card"><div class="dash-h">1 · Utilização da App</div>
+    <table class="dash-tbl"><thead><tr><th>Obra</th>${ks.map(k=>`<th>${DASH_DEF[k].sig}</th>`).join('')}<th>Total</th></tr></thead>
+    <tbody>${linhas||'<tr><td colspan="9" style="color:var(--text-muted)">Sem documentos no filtro atual.</td></tr>'}${obras.length?tot:''}</tbody></table>
+    <div class="dash-leg">Número de documentos registados na app, por obra e por tipo, com os filtros selecionados (revisões contam como documentos — são atividade). Clique num valor para listar os documentos.</div>
+  </div>`;
 }
 
-function dashEstadosPorModulo(ds){
-  const vig=dashVigentes(ds);
+/* ---------- 2. Estados dos Documentos ---------- */
+function dashTblEstados(ds){
   const blocos=Object.keys(DASH_DEF).filter(k=>dashMods[k]).map(k=>{
     const D=DASH_DEF[k], M=D.mod();
-    const docs=vig.filter(d=>d.k===k);
+    const docs=ds.filter(d=>d.k===k);
     if(!docs.length) return '';
-    const ordem=[...M.ordem.filter(e=>e!=='rascunho'),'rascunho'].filter((v,i,a)=>a.indexOf(v)===i);
-    const segs=ordem.map(e=>{
-      const n=docs.filter(d=>d.estado===e).length;
-      if(!n) return '';
-      const est=M.estados[e]||{rot:e,cor:'#999'};
-      const w=(100*n/docs.length);
-      return `<div class="dash-seg" style="width:${w}%;background:${est.cor}" title="${est.rot}: ${n}" onclick="dashDrillSet('estado','${k}','${e}')">${w>7?n:''}</div>`;
+    const ordem=[...M.ordem,'reaberto'].filter((v,i,a)=>a.indexOf(v)===i);
+    const obras=dashObrasDe(docs);
+    const linhas=obras.map(o=>{
+      const dd=docs.filter(d=>d.obraId===o.id);
+      return `<tr><td>${esc(o.nome)}</td>${ordem.map(e=>{
+        const n=dd.filter(d=>d.estado===e).length;
+        return `<td>${n?`<span class="dash-cel" onclick="dashDrillSet('est','${k}','${o.id}','${e}')">${n}</span>`:''}</td>`;
+      }).join('')}<td><b>${dd.length}</b></td></tr>`;
     }).join('');
-    const leg=ordem.map(e=>{
+    const tot=`<tr class="tot"><td>Total</td>${ordem.map(e=>{
       const n=docs.filter(d=>d.estado===e).length;
-      if(!n) return '';
-      const est=M.estados[e]||{rot:e,cor:'#999'};
-      return `<span><i class="dash-dot" style="background:${est.cor}"></i>${est.rot} (${n})</span>`;
-    }).join('');
-    return `<div style="margin-bottom:12px">
-      <div style="display:flex;justify-content:space-between;margin-bottom:4px"><b>${D.sig} — ${D.rot}</b><span style="color:var(--text-muted)">${docs.length} vigentes</span></div>
-      <div class="dash-bar">${segs}</div>
+      return `<td>${n?`<span class="dash-cel" onclick="dashDrillSet('est','${k}','*','${e}')">${n}</span>`:''}</td>`;
+    }).join('')}<td>${docs.length}</td></tr>`;
+    const leg=ordem.filter(e=>D.estLeg[e]).map(e=>`<b>${(M.estados[e]||{rot:e}).rot}</b>: ${D.estLeg[e]}`).join(' · ');
+    return `<div style="margin-bottom:16px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span class="dash-pill" style="background:${D.cor}">${D.sig}</span><b>${D.rot}</b></div>
+      <table class="dash-tbl"><thead><tr><th>Obra</th>${ordem.map(e=>`<th>${(M.estados[e]||{rot:e}).rot}</th>`).join('')}<th>Total</th></tr></thead>
+      <tbody>${linhas}${tot}</tbody></table>
       <div class="dash-leg">${leg}</div>
     </div>`;
   }).join('');
-  return blocos||'<div style="color:var(--text-muted)">Sem documentos no filtro atual.</div>';
+  return `<div class="dash-card"><div class="dash-h">2 · Estados dos Documentos</div>
+    ${blocos||'<div style="color:var(--text-muted)">Sem documentos no filtro atual.</div>'}
+    <div class="dash-leg" style="margin-top:2px">Fotografia atual: cada documento conta no estado em que se encontra. Clique num valor para listar.</div>
+  </div>`;
 }
 
-function dashPosse(ds){
-  const curso=dashVigentes(ds).filter(d=>d.estado!=='fechado');
-  const posses={};
-  curso.forEach(d=>{
-    const M=DASH_DEF[d.k].mod();
-    const p=((M.estados[d.estado]||{}).posse||'—').split(' ')[0];
-    posses[p]=posses[p]||{pe:0,pa:0,pb:0,qe:0,total:0};
-    posses[p][d.k]++; posses[p].total++;
-  });
-  const ks=Object.keys(DASH_DEF).filter(k=>dashMods[k]);
-  const linhas=Object.entries(posses).sort((a,b)=>b[1].total-a[1].total).map(([p,c])=>
-    `<tr><td><b>${esc(p)}</b></td>${ks.map(k=>`<td class="dash-num">${c[k]||''}</td>`).join('')}<td class="dash-num"><b>${c.total}</b></td></tr>`).join('');
-  return `<table class="dash-tbl"><thead><tr><th>Na Posse De</th>${ks.map(k=>`<th style="text-align:right">${DASH_DEF[k].sig}</th>`).join('')}<th style="text-align:right">Total</th></tr></thead><tbody>${linhas||'<tr><td colspan="9" style="color:var(--text-muted)">Nada em curso.</td></tr>'}</tbody></table>`;
-}
-
-function dashSVGEvolucao(ds){
-  const meses=dashMesesRange(ds);
-  const dados=meses.map(ym=>({ ym,
-    c:ds.filter(d=>dashYM(d.criado)===ym).length,
-    f:ds.filter(d=>d.fechado&&dashYM(d.fechado)===ym).length }));
-  const max=Math.max(1,...dados.map(x=>Math.max(x.c,x.f)));
-  const bw=16, gap=4, grupo=bw*2+gap, pad=34, step=grupo+18;
-  const W=pad*2+meses.length*step, H=190, base=H-28;
-  let rects='', labels='';
-  dados.forEach((x,i)=>{
-    const x0=pad+i*step;
-    const hc=Math.round((base-18)*x.c/max), hf=Math.round((base-18)*x.f/max);
-    rects+=`<rect class="dash-seg" x="${x0}" y="${base-hc}" width="${bw}" height="${Math.max(hc,x.c?2:0)}" rx="3" fill="#1E3A5F" onclick="dashDrillSet('mesC','${x.ym}')"><title>${dashMesPT(x.ym)} — Criados: ${x.c}</title></rect>`;
-    rects+=`<rect class="dash-seg" x="${x0+bw+gap}" y="${base-hf}" width="${bw}" height="${Math.max(hf,x.f?2:0)}" rx="3" fill="#1A7A4A" onclick="dashDrillSet('mesF','${x.ym}')"><title>${dashMesPT(x.ym)} — Fechados: ${x.f}</title></rect>`;
-    if(x.c) labels+=`<text x="${x0+bw/2}" y="${base-hc-4}" font-size="9" text-anchor="middle" fill="#1A1D2E">${x.c}</text>`;
-    if(x.f) labels+=`<text x="${x0+bw+gap+bw/2}" y="${base-hf-4}" font-size="9" text-anchor="middle" fill="#1A1D2E">${x.f}</text>`;
-    labels+=`<text x="${x0+grupo/2}" y="${H-10}" font-size="9" text-anchor="middle" fill="#6B7280">${dashMesPT(x.ym)}</text>`;
-  });
-  return `<div style="overflow-x:auto"><svg class="dash-svg" viewBox="0 0 ${W} ${H}" style="min-width:${Math.min(W,1200)}px;width:100%;height:auto">
-    <line x1="${pad-6}" y1="${base}" x2="${W-pad+6}" y2="${base}" stroke="#D8DCE6" stroke-width="1"/>
-    ${rects}${labels}</svg></div>
-  <div class="dash-leg"><span><i class="dash-dot" style="background:#1E3A5F"></i>Criados</span><span><i class="dash-dot" style="background:#1A7A4A"></i>Fechados</span><span style="margin-left:auto">Clique numa barra para ver os documentos</span></div>`;
-}
-
-function dashAging(ds){
-  const buckets=['≤15','16–30','31–60','>60'];
-  const cores={'≤15':'#1A7A4A','16–30':'#C9922A','31–60':'#B45309','>60':'#B91C1C'};
-  const linhas=Object.keys(DASH_DEF).filter(k=>dashMods[k]).map(k=>{
-    const docs=dashVigentes(ds).filter(d=>d.k===k&&d.estado!=='fechado');
+/* ---------- 3. Tempo Médio de Resposta ---------- */
+function dashTblTempos(ds){
+  const blocos=Object.keys(DASH_DEF).filter(k=>dashMods[k]).map(k=>{
+    const D=DASH_DEF[k];
+    const docs=ds.filter(d=>d.k===k);
     if(!docs.length) return '';
-    const cont={}; buckets.forEach(b=>cont[b]=0);
-    docs.forEach(d=>cont[dashAgingBucket(d)]++);
-    const segs=buckets.map(b=>{
-      if(!cont[b]) return '';
-      const w=100*cont[b]/docs.length;
-      return `<div class="dash-seg" style="width:${w}%;background:${cores[b]}" title="${b} dias: ${cont[b]}" onclick="dashDrillSet('aging','${k}','${b}')">${w>7?cont[b]:''}</div>`;
+    const obras=dashObrasDe(docs);
+    const calc=(dd,t)=>dashMedia(dd.filter(d=>d.dt[t[1]]&&d.dt[t[2]]).map(d=>dashDias(d.dt[t[1]],d.dt[t[2]])));
+    const fmt=v=>v===null?'<span style="color:var(--text-muted)">—</span>':(String(v).replace('.',','))+' d';
+    const linhas=obras.map(o=>{
+      const dd=docs.filter(d=>d.obraId===o.id);
+      return `<tr><td>${esc(o.nome)}</td>${D.trans.map(t=>`<td>${fmt(calc(dd,t))}</td>`).join('')}</tr>`;
     }).join('');
-    return `<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;margin-bottom:3px"><b>${DASH_DEF[k].sig}</b><span style="color:var(--text-muted)">${docs.length} em curso</span></div><div class="dash-bar">${segs}</div></div>`;
+    const tot=`<tr class="tot"><td>Média Global</td>${D.trans.map(t=>`<td>${fmt(calc(docs,t))}</td>`).join('')}</tr>`;
+    return `<div style="margin-bottom:16px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span class="dash-pill" style="background:${D.cor}">${D.sig}</span><b>${D.rot}</b></div>
+      <table class="dash-tbl"><thead><tr><th>Obra</th>${D.trans.map(t=>`<th>${t[0]}</th>`).join('')}</tr></thead>
+      <tbody>${linhas}${tot}</tbody></table>
+      <div class="dash-leg">${D.transLeg}</div>
+    </div>`;
   }).join('');
-  return (linhas||'<div style="color:var(--text-muted)">Nada em curso.</div>')+
-    `<div class="dash-leg">${buckets.map(b=>`<span><i class="dash-dot" style="background:${cores[b]}"></i>${b} dias</span>`).join('')}</div>`;
+  return `<div class="dash-card"><div class="dash-h">3 · Tempo Médio de Resposta</div>
+    ${blocos||'<div style="color:var(--text-muted)">Sem documentos no filtro atual.</div>'}
+    <div class="dash-leg" style="margin-top:2px">Médias em dias entre as etapas do circuito de cada tipo de documento; contam apenas os documentos com as duas datas preenchidas.</div>
+  </div>`;
 }
 
-function dashComparativo(ds){
-  const vig=dashVigentes(ds);
-  const obras=dashObrasDe(vig);
-  if(!obras.length) return '<div class="dash-card" style="color:var(--text-muted)">Sem documentos no filtro atual.</div>';
-  const ks=Object.keys(DASH_DEF).filter(k=>dashMods[k]);
-  const dados=obras.map(o=>{
-    const docs=vig.filter(d=>d.obraId===o.id);
-    const fech=docs.filter(d=>d.estado==='fechado');
-    const tempos=fech.filter(d=>d.enviado&&d.fechado).map(d=>dashDias(d.enviado,d.fechado));
-    let ult=''; docs.forEach(d=>d.hist.forEach(h=>{ if(h.data&&h.data>ult) ult=h.data; }));
-    return { o, docs, total:docs.length, curso:docs.length-fech.length, fech:fech.length,
-      pct:docs.length?Math.round(100*fech.length/docs.length):0, tm:dashMedia(tempos), ult };
-  }).sort((a,b)=>b.total-a.total);
-  const max=Math.max(1,...dados.map(x=>x.total));
-  const barras=dados.map(x=>{
-    const segs=ks.map(k=>{
-      const n=x.docs.filter(d=>d.k===k).length;
-      if(!n) return '';
-      const w=100*n/max;
-      return `<div class="dash-seg" style="width:${w}%;background:${DASH_DEF[k].cor}" title="${DASH_DEF[k].sig}: ${n}">${w>6?n:''}</div>`;
-    }).join('');
-    return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
-      <div style="width:190px;text-align:right;font-size:11px;cursor:pointer;color:var(--info)" title="Filtrar por esta obra" onclick="dashSetObra('${x.o.id}')">${esc(x.o.nome)}</div>
-      <div style="flex:1"><div class="dash-bar" style="background:transparent">${segs}</div></div>
-      <div style="width:34px"><b>${x.total}</b></div></div>`;
-  }).join('');
-  const leg=ks.map(k=>`<span><i class="dash-dot" style="background:${DASH_DEF[k].cor}"></i>${DASH_DEF[k].sig}</span>`).join('');
-  const linhas=dados.map(x=>`<tr>
-    <td style="cursor:pointer;color:var(--info)" onclick="dashDrillSet('obra','${x.o.id}')">${esc(x.o.nome)}</td>
-    <td class="dash-num">${x.total}</td><td class="dash-num">${x.curso}</td><td class="dash-num">${x.fech}</td>
-    <td class="dash-num">${x.pct}%</td><td class="dash-num">${x.tm===null?'—':x.tm+' d'}</td>
-    <td class="dash-num">${x.ult?peDataPT(x.ult):'—'}</td></tr>`).join('');
-  return `<div class="dash-card"><div class="dash-h">Volume por Obra (Documentos Vigentes)</div>${barras}<div class="dash-leg">${leg}<span style="margin-left:auto">Clique no nome para filtrar · na linha da tabela para listar</span></div></div>
-  <div class="dash-card"><div class="dash-h">Indicadores por Obra</div><table class="dash-tbl"><thead><tr><th>Obra</th><th style="text-align:right">Total</th><th style="text-align:right">Em Curso</th><th style="text-align:right">Fechados</th><th style="text-align:right">% Fechados</th><th style="text-align:right">Tempo Médio</th><th style="text-align:right">Última Atividade</th></tr></thead><tbody>${linhas}</tbody></table></div>`;
-}
-
-function dashUtilizacao(ds){
-  const cut=dashCutoffISO();
-  const acoes=[];
-  ds.forEach(d=>d.hist.forEach(h=>{ if(h&&h.data&&(!cut||h.data>=cut)) acoes.push({data:h.data,autor:h.autor||'—',obra:d.obraNome}); }));
-  if(!acoes.length) return '<div class="dash-card" style="color:var(--text-muted)">Sem atividade registada no filtro atual.</div>';
-  const meses=dashMesesRange(ds);
-  const porMes=meses.map(ym=>({ym,n:acoes.filter(a=>dashYM(a.data)===ym).length}));
-  const max=Math.max(1,...porMes.map(x=>x.n));
-  const bw=22, pad=30, step=bw+20, W=pad*2+meses.length*step, H=170, base=H-26;
-  let rects='';
-  porMes.forEach((x,i)=>{
-    const x0=pad+i*step, h=Math.round((base-16)*x.n/max);
-    rects+=`<rect x="${x0}" y="${base-h}" width="${bw}" height="${Math.max(h,x.n?2:0)}" rx="3" fill="#1E3A5F"><title>${dashMesPT(x.ym)}: ${x.n} ações</title></rect>`;
-    if(x.n) rects+=`<text x="${x0+bw/2}" y="${base-h-4}" font-size="9" text-anchor="middle" fill="#1A1D2E">${x.n}</text>`;
-    rects+=`<text x="${x0+bw/2}" y="${H-8}" font-size="9" text-anchor="middle" fill="#6B7280">${dashMesPT(x.ym)}</text>`;
-  });
-  const porAutor={};
-  acoes.forEach(a=>{ porAutor[a.autor]=porAutor[a.autor]||{n:0,ult:''}; porAutor[a.autor].n++; if(a.data>porAutor[a.autor].ult) porAutor[a.autor].ult=a.data; });
-  const top=Object.entries(porAutor).sort((a,b)=>b[1].n-a[1].n).slice(0,10);
-  const maxA=Math.max(1,...top.map(x=>x[1].n));
-  const barrasA=top.map(([autor,v])=>`<div style="display:flex;align-items:center;gap:10px;margin-bottom:5px">
-      <div style="width:170px;text-align:right;font-size:11px">${esc(autor)}</div>
-      <div style="flex:1;background:#EEF1F6;border-radius:3px"><div style="width:${100*v.n/maxA}%;background:#2C4E7A;border-radius:3px;height:16px;color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;padding-left:6px">${v.n}</div></div>
-      <div style="width:76px;color:var(--text-muted);font-size:10.5px">${peDataPT(v.ult)}</div></div>`).join('');
-  return `<div class="dash-card"><div class="dash-h">Ações na App por Mês</div>
-    <div style="overflow-x:auto"><svg class="dash-svg" viewBox="0 0 ${W} ${H}" style="min-width:${Math.min(W,1100)}px;width:100%;height:auto"><line x1="${pad-6}" y1="${base}" x2="${W-pad+6}" y2="${base}" stroke="#D8DCE6"/>${rects}</svg></div>
-    <div class="dash-leg"><span>Cada ação registada no histórico dos documentos (criação, envio, verificação, parecer, notificação, …)</span></div></div>
-  <div class="dash-card"><div class="dash-h">Utilizadores Mais Ativos (Top 10)</div>${barrasA}</div>`;
+/* ---------- Visão Geral ---------- */
+function dashVisaoGeral(ds){
+  const todasObras=(DB.obras||[]);
+  const obrasFisc=dashFisc?dashObrasDoFiscal(dashFisc):null;
+  const universo=todasObras.filter(o=>(!dashObraF||String(o.id)===dashObraF)&&(!obrasFisc||obrasFisc.has(String(o.id))));
+  const comAtividade=dashObrasDe(ds);
+  const semAtividade=universo.filter(o=>!comAtividade.some(c=>c.id===String(o.id)));
+  const fechados=ds.filter(d=>d.estado==='fechado').length;
+  const reabertos=ds.filter(d=>d.estado==='reaberto').length;
+  const emCurso=ds.length-fechados-reabertos;
+  const porMod=Object.keys(DASH_DEF).filter(k=>dashMods[k]).map(k=>({k,n:ds.filter(d=>d.k===k).length})).sort((a,b)=>b.n-a.n);
+  const topMod=porMod[0]&&porMod[0].n?porMod[0]:null;
+  const pesos=comAtividade.map(o=>{
+    const docs=ds.filter(d=>d.obraId===o.id);
+    const f=docs.filter(d=>d.estado==='fechado').length;
+    let ult=''; docs.forEach(d=>d.hist.forEach(h=>{ if(h&&h.data&&h.data>ult) ult=h.data; }));
+    return {o,n:docs.length,pct:ds.length?Math.round(1000*docs.length/ds.length)/10:0,f,pctF:docs.length?Math.round(100*f/docs.length):0,ult};
+  }).sort((a,b)=>b.n-a.n);
+  const tile=(lbl,val,sub)=>`<div class="dash-card" style="margin-bottom:0"><div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px">${lbl}</div><div style="font-size:22px;font-weight:700;color:var(--navy);margin:2px 0">${val}</div><div style="font-size:11px;color:var(--text-muted)">${sub||''}</div></div>`;
+  const bullets=[];
+  if(comAtividade.length) bullets.push(`<b>${comAtividade.length}</b> obra${comAtividade.length===1?'':'s'} com atividade, <b>${semAtividade.length}</b> sem atividade${semAtividade.length?' ('+semAtividade.slice(0,8).map(o=>esc(o.sigla||o.nome)).join(', ')+(semAtividade.length>8?', …':'')+')':''}.`);
+  if(pesos.length) bullets.push(`A obra <b>${esc(pesos[0].o.nome)}</b> concentra <b>${String(pesos[0].pct).replace('.',',')}%</b> da atividade.`);
+  if(topMod) bullets.push(`O tipo de documento mais utilizado é <b>${DASH_DEF[topMod.k].sig}</b> (${topMod.n} de ${ds.length}).`);
+  if(ds.length) bullets.push(`<b>${fechados}</b> documento${fechados===1?'':'s'} fechado${fechados===1?'':'s'} (${Math.round(100*fechados/ds.length)}%), <b>${emCurso}</b> em curso, <b>${reabertos}</b> substituído${reabertos===1?'':'s'} por revisão.`);
+  const linhas=pesos.map(x=>`<tr>
+      <td>${esc(x.o.nome)}</td>
+      <td>${x.n}</td>
+      <td style="width:220px"><div class="dash-pbar"><div style="width:${Math.min(100,x.pct)}%;background:var(--navy2)"></div></div></td>
+      <td>${String(x.pct).replace('.',',')}%</td>
+      <td>${x.pctF}%</td>
+      <td>${x.ult?peDataPT(x.ult):'—'}</td></tr>`).join('');
+  return `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin-bottom:14px">
+      ${tile('Obras Com Atividade',comAtividade.length,'de '+universo.length+' no filtro')}
+      ${tile('Obras Sem Atividade',semAtividade.length,'')}
+      ${tile('Documentos',ds.length,fechados+' fechados · '+emCurso+' em curso')}
+      ${tile('Tipo Mais Utilizado',topMod?DASH_DEF[topMod.k].sig:'—',topMod?topMod.n+' documentos':'')}
+    </div>
+    <div class="dash-card"><div class="dash-h">Análise</div><div style="line-height:1.9">${bullets.map(b=>'• '+b).join('<br>')||'<span style="color:var(--text-muted)">Sem dados no filtro atual.</span>'}</div></div>
+    <div class="dash-card"><div class="dash-h">Peso de Cada Obra na Atividade</div>
+      <table class="dash-tbl"><thead><tr><th>Obra</th><th>Documentos</th><th style="text-align:left">Peso</th><th>%</th><th>% Fechados</th><th>Última Ação</th></tr></thead>
+      <tbody>${linhas||'<tr><td colspan="6" style="color:var(--text-muted)">Sem atividade no filtro atual.</td></tr>'}</tbody></table>
+      <div class="dash-leg">Peso = percentagem dos documentos registados que pertencem a cada obra, com os filtros selecionados.</div>
+    </div>`;
 }
 
 function dashDrillHTML(){
@@ -8427,13 +8376,13 @@ function dashDrillHTML(){
     const M=DASH_DEF[d.k].mod();
     const est=M.estados[d.estado]||{rot:d.estado,cor:'#999'};
     return `<tr>
-      <td><span class="dash-pill" style="background:${DASH_DEF[d.k].cor}">${DASH_DEF[d.k].sig}</span></td>
-      <td><b>${esc(d.id)}</b></td>
-      <td>${esc(d.obraNome)}</td>
-      <td>${esc((d.descr||'').slice(0,70))||'<span style="color:var(--text-muted)">—</span>'}</td>
-      <td><span class="dash-pill" style="background:${est.cor}">${est.rot}</span></td>
-      <td class="dash-num">${d.enviado?peDataPT(d.enviado):'—'}</td>
-      <td class="dash-num">${d.fechado?peDataPT(d.fechado):'—'}</td>
+      <td style="text-align:left"><span class="dash-pill" style="background:${DASH_DEF[d.k].cor}">${DASH_DEF[d.k].sig}</span></td>
+      <td style="text-align:left"><b>${esc(d.id)}</b></td>
+      <td style="text-align:left">${esc(d.obraNome)}</td>
+      <td style="text-align:left">${esc((d.descr||'').slice(0,70))||'<span style="color:var(--text-muted)">—</span>'}</td>
+      <td style="text-align:left"><span class="dash-pill" style="background:${est.cor}">${est.rot}</span></td>
+      <td>${d.criado?peDataPT(d.criado):'—'}</td>
+      <td>${d.fechado?peDataPT(d.fechado):'—'}</td>
       <td><button class="pe-btn" style="padding:2px 10px;font-size:10.5px" onclick="dashAbrirDoc('${d.k}','${d.obraId}','${d.id}')">Abrir</button></td>
     </tr>`;
   }).join('');
@@ -8442,28 +8391,23 @@ function dashDrillHTML(){
       <div class="dash-h" style="margin:0">${esc(dashDrill.titulo)} · ${dashDrill.docs.length}</div>
       <button class="pe-btn" style="padding:2px 10px" onclick="dashDrillFechar()">Fechar ×</button>
     </div>
-    <table class="dash-tbl"><thead><tr><th>Mód.</th><th>Id</th><th>Obra</th><th>Descrição</th><th>Estado</th><th style="text-align:right">Enviado</th><th style="text-align:right">Fechado</th><th></th></tr></thead>
+    <table class="dash-tbl"><thead><tr><th style="text-align:left">Tipo</th><th style="text-align:left">Id</th><th style="text-align:left">Obra</th><th style="text-align:left">Descrição</th><th style="text-align:left">Estado</th><th>Criado</th><th>Fechado</th><th></th></tr></thead>
     <tbody>${linhas||'<tr><td colspan="8" style="color:var(--text-muted)">Sem documentos.</td></tr>'}</tbody></table>
-    ${dashDrill.docs.length>300?'<div style="color:var(--text-muted);margin-top:6px">A mostrar os primeiros 300.</div>':''}</div>`;
+    ${dashDrill.docs.length>300?'<div class="dash-leg">A mostrar os primeiros 300.</div>':''}</div>`;
 }
 
 function renderDashboard(app){
   if(!peESuper()){ dashAtivo=false; render(); return; }
   const ds=dashDocs();
-  const obras=dashObrasDe(dashDados?dashDados.docs.filter(d=>dashMods[d.k]):[]);
-  const tabs=[['visao','Visão Geral'],['evolucao','Evolução'],['comparativo','Comparativo'],['utilizacao','Utilização']];
+  const base=dashDados?dashDados.docs:[];
+  const obras=dashObrasDe(base);
+  const meses=[...new Set(base.map(d=>dashYM(d.criado)).filter(Boolean))].sort().reverse();
+  const fiscais=dashFiscais();
   let corpo='';
-  if(dashTab==='visao'){
-    corpo=`<div class="dash-grid">${dashKPIs(ds)}</div>
-      <div class="dash-card"><div class="dash-h">Estados por Módulo (Documentos Vigentes)</div>${dashEstadosPorModulo(ds)}</div>
-      <div class="dash-card"><div class="dash-h">Em Curso — Na Posse De</div>${dashPosse(ds)}</div>`;
-  }else if(dashTab==='evolucao'){
-    corpo=`<div class="dash-card"><div class="dash-h">Criados vs Fechados por Mês</div>${dashSVGEvolucao(ds)}</div>
-      <div class="dash-card"><div class="dash-h">Antiguidade dos Em Curso (dias desde o envio)</div>${dashAging(ds)}</div>`;
-  }else if(dashTab==='comparativo'){
-    corpo=dashComparativo(ds);
+  if(dashTab==='detalhe'){
+    corpo=dashTblUtilizacao(ds)+dashTblEstados(ds)+dashTblTempos(ds);
   }else{
-    corpo=dashUtilizacao(ds);
+    corpo=dashVisaoGeral(ds);
   }
   app.innerHTML=DASH_CSS+`<div class="dash-wrap">
     <button class="back-btn" onclick="dashVoltar()">← Voltar</button>
@@ -8474,15 +8418,26 @@ function renderDashboard(app){
     <div class="dash-filtros">
       <span style="font-weight:700">Obra:</span>
       <select onchange="dashSetObra(this.value)">
-        <option value="">Todas as Obras</option>
+        <option value="">Todas</option>
         ${obras.map(o=>`<option value="${o.id}" ${dashObraF===o.id?'selected':''}>${esc(o.nome)}</option>`).join('')}
       </select>
-      <span style="font-weight:700;margin-left:10px">Módulos:</span>
+      <span style="font-weight:700;margin-left:8px">Variável:</span>
       ${Object.keys(DASH_DEF).map(k=>`<span class="dash-chip ${dashMods[k]?'on':''}" style="${dashMods[k]?'background:'+DASH_DEF[k].cor:''}" onclick="dashToggleMod('${k}')">${DASH_DEF[k].sig}</span>`).join('')}
-      <span style="font-weight:700;margin-left:10px">Período:</span>
-      ${[['6','6 Meses'],['12','12 Meses'],['tudo','Tudo']].map(([v,r])=>`<span class="dash-chip ${dashPer===v?'on':''}" style="${dashPer===v?'background:var(--navy)':''}" onclick="dashSetPer('${v}')">${r}</span>`).join('')}
+      <span style="font-weight:700;margin-left:8px">Mês:</span>
+      <select onchange="dashSetMes(this.value)">
+        <option value="">Todos</option>
+        ${meses.map(m=>`<option value="${m}" ${dashMes===m?'selected':''}>${dashMesPT(m)}</option>`).join('')}
+      </select>
+      <span style="font-weight:700;margin-left:8px">Fiscal:</span>
+      <select onchange="dashSetFisc(this.value)">
+        <option value="">Todos</option>
+        ${fiscais.map(u=>`<option value="${u.id}" ${dashFisc===String(u.id)?'selected':''}>${esc(u.nome)}</option>`).join('')}
+      </select>
     </div>
-    <div class="dash-tabs">${tabs.map(([t,r])=>`<span class="dash-tab ${dashTab===t?'on':''}" onclick="dashSetTab('${t}')">${r}</span>`).join('')}</div>
+    <div class="dash-tabs">
+      <span class="dash-tab ${dashTab==='detalhe'?'on':''}" onclick="dashSetTab('detalhe')">Detalhe</span>
+      <span class="dash-tab ${dashTab==='visao'?'on':''}" onclick="dashSetTab('visao')">Visão Geral</span>
+    </div>
     ${corpo}
     ${dashDrillHTML()}
   </div>`;
