@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.10.11.1828</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.10.16.1625</span>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-dash" title="Dashboard PE · PA · PB · QE" onclick="dashAbrir('')">📊 Dashboard</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
@@ -2382,15 +2382,20 @@ window.abrirPublicar=function(relId){
   const roleL={dono_obra:'Dono de Obra',fiscalizacao:'Fiscalização',superadmin:'Fiscalização',empreiteiro:'Empreiteiro',projetista:'Projetista'};
   const inObra=u=>u.obras==='todas'||(Array.isArray(u.obras)&&u.obras.some(oid=>String(oid)===String(o.id)));
   const people=(DB.utilizadores||[]).filter(u=>u.email&&roleL[u.role]&&inObra(u));
+  const obrig=people.filter(u=>u.role==='dono_obra'||u.role==='empreiteiro');
+  const opcionais=people.filter(u=>!(u.role==='dono_obra'||u.role==='empreiteiro'));
   const link=location.origin+'/?doc='+encodeURIComponent(relId);
   const obraTxt=((o.sigla?o.sigla+' — ':'')+(o.nome||'')).trim();
   const defMsg='Foi disponibilizado o '+_sigla+' '+relNumero(rel)+' | '+obraTxt+'.';
-  const opts=people.length?people.map(u=>`<label style="display:flex;gap:8px;align-items:center;padding:5px 0"><input type="checkbox" class="pub-cb" value="${u.email}" data-nome="${(u.nome||'').replace(/"/g,'')}"><span style="font-size:13px">${u.nome||u.email} <span style="color:var(--text-muted)">· ${roleL[u.role]} · ${u.email}</span></span></label>`).join(''):'<div style="font-size:12px;color:var(--text-muted)">Sem intervenientes com email nesta obra.</div>';
+  const obrigHtml=obrig.length?obrig.map(u=>`<div style="padding:4px 0;font-size:13px"><b>${u.nome||u.email}</b> <span style="color:var(--text-muted)">· ${roleL[u.role]} · ${u.email}</span></div>`).join(''):'<div style="font-size:12px;color:var(--danger)">— sem Dono de Obra / Empreiteiro com email nesta obra (verifique o SID) —</div>';
+  const opts=opcionais.length?opcionais.map(u=>`<label style="display:flex;gap:8px;align-items:center;padding:5px 0"><input type="checkbox" class="pub-cb" value="${u.email}" data-nome="${(u.nome||'').replace(/"/g,'')}"><span style="font-size:13px">${u.nome||u.email} <span style="color:var(--text-muted)">· ${roleL[u.role]}${segoEhCSO(u)?' · CSO':''} · ${u.email}</span></span></label>`).join(''):'<div style="font-size:12px;color:var(--text-muted)">Sem outros intervenientes com email nesta obra.</div>';
   showModal('Publicar e enviar — '+_sigla+' '+relNumero(rel),`
     <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">Mensagem (parametrizável)</div>
     <textarea id="pub-msg" class="form-input" style="width:100%;min-height:90px;margin-bottom:14px">${defMsg}</textarea>
-    <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">Intervenientes — seleccione quem deve receber (por defeito ninguém é seleccionado)</div>
-    <div style="max-height:170px;overflow:auto;border:1px solid var(--border-light);border-radius:var(--radius);padding:4px 10px;margin-bottom:14px">${opts}</div>
+    <div style="font-size:12px;margin-bottom:4px"><b>Esta notificação será enviada obrigatoriamente a:</b></div>
+    <div style="border:1px solid var(--border-light);border-radius:var(--radius);padding:4px 10px;margin-bottom:14px;background:#F7F9FC">${obrigHtml}</div>
+    <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">Outros intervenientes — opcional (por defeito ninguém é seleccionado)</div>
+    <div style="max-height:150px;overflow:auto;border:1px solid var(--border-light);border-radius:var(--radius);padding:4px 10px;margin-bottom:14px">${opts}</div>
     <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">Emails adicionais (separados por vírgula)</div>
     <input id="pub-extra" class="form-input" style="width:100%" placeholder="ceo@empresa.pt, ...">
     <div style="font-size:11px;color:var(--text-muted);margin-top:10px">Link do documento: <code style="font-size:11px">${link}</code></div>
@@ -2409,7 +2414,10 @@ window.publicarEnviar=async function(relId){
   const msg=(document.getElementById('pub-msg')?.value||'').trim();
   const checks=[...document.querySelectorAll('.pub-cb:checked')].map(c=>({email:c.value,nome:c.dataset.nome||''}));
   const extra=(document.getElementById('pub-extra')?.value||'').split(/[\n,;]+/).map(x=>x.trim()).filter(x=>x.includes('@')).map(e=>({email:e,nome:''}));
-  const dest=[...checks,...extra];
+  const _inObraP=u=>u.obras==='todas'||(Array.isArray(u.obras)&&u.obras.some(oid=>String(oid)===String(o.id)));
+  const obrig=(DB.utilizadores||[]).filter(u=>u.email&&(u.role==='dono_obra'||u.role==='empreiteiro')&&_inObraP(u)).map(u=>({email:u.email,nome:u.nome||''}));
+  const _vistos=new Set();
+  const dest=[...obrig,...checks,...extra].filter(x=>{ const k=x.email.toLowerCase(); if(_vistos.has(k)) return false; _vistos.add(k); return true; });
   const link=location.origin+'/?doc='+encodeURIComponent(relId);
   const obraTxt=((o.sigla?o.sigla+' — ':'')+(o.nome||'')).trim();
   try{
@@ -2897,6 +2905,35 @@ function peUtilsDaObra(role){
   return [...m.values()];
 }
 function peEmails(role){ return peUtilsDaObra(role).filter(u=>u.email).map(u=>u.email); }
+function peEmailsFiscSemCSO(){ return peUtilsDaObra('fiscalizacao').filter(u=>u.email&&!segoEhCSO(u)).map(u=>u.email); }
+function peEquipaDaObra(){
+  const roleL={fiscalizacao:'Fiscalização',empreiteiro:'Empreiteiro',projetista:'Projetista',dono_obra:'Dono de Obra',cliente:'Cliente'};
+  const m=new Map();
+  Object.keys(roleL).forEach(r=>{ peUtilsDaObra(r).forEach(u=>{ if(u.email&&!m.has(String(u.id))) m.set(String(u.id),{id:u.id,nome:u.nome,email:u.email,papel:roleL[r]+(segoEhCSO(u)?' · CSO':'')}); }); });
+  return [...m.values()];
+}
+window.gpeModalNotif=function(titulo,obrigatorios,equipa,aoConfirmar,nota){
+  const excl=new Set(obrigatorios.map(x=>x.email));
+  const eq=(equipa||[]).filter(u=>!excl.has(u.email));
+  window._peNotifCb=aoConfirmar;
+  const veu=document.createElement('div'); veu.className='pe-veu'; veu.id='pe-veu';
+  veu.innerHTML=`<div class="pe-modal">
+    <h3>${titulo}</h3>
+    <div class="pe-mb">
+      <div class="pe-msub"><b style="color:var(--text)">Esta notificação será enviada a:</b></div>
+      <table class="pe-seltab"><tbody>${obrigatorios.map(x=>`<tr><td><b>${esc(x.nome)}</b>${x.papel?` <span class="pe-muted">(${esc(x.papel)})</span>`:''}<br><span class="pe-muted">${esc(x.email)}</span></td></tr>`).join('')||'<tr><td class="pe-muted">— sem destinatário associado à obra (verifique o SID) —</td></tr>'}</tbody></table>
+      ${nota?`<div class="pe-msub" style="margin-top:8px">${nota}</div>`:''}
+      ${eq.length?`<div class="pe-fld pe-mt"><label>Com Conhecimento — Cc (opcional)</label>
+        <table class="pe-seltab"><tbody>${eq.map((u,i)=>`<tr onclick="var c=document.getElementById('pe-nx-${i}');c.checked=!c.checked">
+          <td style="width:28px"><input type="checkbox" class="pe-nxx" id="pe-nx-${i}" value="${esc(u.email)}" onclick="event.stopPropagation()"></td>
+          <td><b>${esc(u.nome)}</b> <span class="pe-muted">(${esc(u.papel)})</span><br><span class="pe-muted">${esc(u.email)}</span></td></tr>`).join('')}</tbody></table></div>`:''}
+    </div>
+    <div class="pe-mrod">
+      <button class="pe-btn" onclick="document.getElementById('pe-veu').remove()">Cancelar</button>
+      <button class="pe-btn gold" onclick="(function(){var cc=Array.from(document.querySelectorAll('.pe-nxx:checked')).map(x=>x.value);document.getElementById('pe-veu').remove();window._peNotifCb(cc);})()">Confirmar e Enviar →</button>
+    </div></div>`;
+  document.body.appendChild(veu);
+};
 function peProjetistas(){
   const o=peObra();
   return peUtilsDaObra('projetista').map(u=>({
@@ -2959,7 +2996,7 @@ async function peNotificar(d,destinos,mensagem,rotulo,cc){
   const lista=(Array.isArray(destinos)?destinos:[destinos]).filter(Boolean);
   const ccLista=(Array.isArray(cc)?cc:[]).filter(Boolean);
   const et=`Notificação → ${rotulo}${lista.length?' ('+lista.join(', ')+')':''}${ccLista.length?' · Cc: '+ccLista.join(', '):''}: ${mensagem}`;
-  if(!lista.length){ peRegistar(d,et+' [sem destinatário na obra — verifique a ficha no SID]'); return; }
+  if(!lista.length){ peRegistar(d,et+' [sem destinatário na obra — verifique a ficha no SID]'); alert('Sem destinatário associado à obra — a notificação não foi enviada. Verifique os intervenientes no SID.'); return; }
   let ok=0;
   for(const to of lista){
     try{
@@ -2971,9 +3008,10 @@ async function peNotificar(d,destinos,mensagem,rotulo,cc){
     }catch(e){ console.error('PE notificar falhou:',e); }
   }
   peRegistar(d,et+(ok===lista.length?' [enviada]':` [enviadas ${ok}/${lista.length}]`));
+  alert((ok===lista.length?'Notificação enviada a:\n':'Notificação enviada parcialmente ('+ok+'/'+lista.length+') a:\n')+lista.join('\n')+(ccLista.length?'\n\nCc: '+ccLista.join(', '):''));
 }
 
-/* Alertas de falta de resposta (Fisc; Cc DO) */
+/* Alertas de falta de resposta (Fisc) */
 let peSel=new Set();
 window.peToggleSel=function(id,marcado){
   if(marcado) peSel.add(id); else peSel.delete(id);
@@ -2993,9 +3031,11 @@ window.peAlertar=async function(){
   if(!alvo.length) return;
   const grupos={};
   alvo.forEach(d=>{ (grupos[d.projDestEmail]=grupos[d.projDestEmail]||[]).push(d); });
-  const cc=peEmails('dono_obra');
   const nProj=Object.keys(grupos).length;
-  if(!confirm('Enviar alerta de falta de resposta a '+nProj+' projetista(s), sobre '+alvo.length+' pedido(s) pendente(s)?'+(cc.length?'\nCc: Dono de Obra ('+cc.join(', ')+')':'\n(Sem Dono de Obra associado — segue sem Cc.)'))) return;
+  const obrig=Object.entries(grupos).map(([em,lt])=>({nome:lt[0].projDestNome||em,email:em,papel:'Projetista · '+lt.length+' pedido'+(lt.length>1?'s':'')}));
+  gpeModalNotif('Alertar Projetista — Falta de Resposta',obrig,peEquipaDaObra(),function(ccSel){ peAlertarEnviar(grupos,nProj,ccSel); });
+};
+async function peAlertarEnviar(grupos,nProj,cc){
   const o=peObra();
   let enviados=0, falhas=0;
   try{
@@ -3099,11 +3139,10 @@ window.peEnviarFisc=async function(){
   const fiscCria=currentUser&&currentUser.role==='fiscalizacao';
   d.autorEmp=currentUser?currentUser.nome:''; d.estado='aberto'; d.dataEnvio=peHoje();
   if(fiscCria){
-    peRegistar(d,'Criado e aberto pela Fiscalização — passa a Aberto.');
-    await peNotificar(d,peEmails('empreiteiro'),'Pedido de Esclarecimento '+d.id+' aberto pela Fiscalização (para conhecimento).','Empreiteiro');
+    peRegistar(d,'Criado e aberto pela Fiscalização — passa a Aberto (sem notificação).');
   }else{
     peRegistar(d,'Enviado à Fiscalização — passa a Aberto.');
-    await peNotificar(d,peEmails('fiscalizacao'),'Novo Pedido de Esclarecimento '+d.id+' recebido do Empreiteiro.','Fiscalização');
+    await peNotificar(d,peEmailsFiscSemCSO(),'Novo Pedido de Esclarecimento '+d.id+' recebido do Empreiteiro.','Fiscalização');
   }
   await pePersistir(d); peAbrirFicha(d.id);
 };
@@ -3127,15 +3166,19 @@ window.peSubmeterEsclarecimento=async function(){
   if(!d.esclarecimento){ alert('Preencha o Esclarecimento antes de submeter.'); return; }
   d.autorProj=currentUser?currentUser.nome:''; d.projData=d.projData||peHoje(); d.dataEsclarecido=peHoje(); d.estado='esclarecido';
   peRegistar(d,'Esclarecimento submetido pelo Projetista — passa a Esclarecido.');
-  await peNotificar(d,peEmails('fiscalizacao'),'Pedido '+d.id+' esclarecido pelo Projetista.','Fiscalização');
+  await peNotificar(d,peEmailsFiscSemCSO(),'Pedido '+d.id+' esclarecido pelo Projetista.','Fiscalização');
   await pePersistir(d); peAbrirFicha(d.id);
 };
-window.peResponderEmp=async function(){
-  const d=peFichaAtualDoc(); if(!d) return; peLerFormFisc(d);
-  d.autorFiscResp=currentUser?currentUser.nome:''; d.dataResposta=d.dataResposta||peHoje(); d.estado='respondido';
-  peRegistar(d,'Resposta transmitida ao Empreiteiro — passa a Respondido.');
-  await peNotificar(d,peEmails('empreiteiro'),'Pedido '+d.id+' respondido. Reveja e feche ou solicite revisão.','Empreiteiro');
-  await pePersistir(d); peAbrirFicha(d.id);
+window.peResponderEmp=function(){
+  const d=peFichaAtualDoc(); if(!d) return;
+  const emps=peUtilsDaObra('empreiteiro').filter(u=>u.email).map(u=>({nome:u.nome,email:u.email,papel:'Empreiteiro'}));
+  gpeModalNotif('Notificar Empreiteiro — PE '+d.id,emps,peEquipaDaObra(),async function(cc){
+    peLerFormFisc(d);
+    d.autorFiscResp=currentUser?currentUser.nome:''; d.dataResposta=d.dataResposta||peHoje(); d.estado='respondido';
+    peRegistar(d,'Resposta transmitida ao Empreiteiro — passa a Respondido.');
+    await peNotificar(d,emps.map(x=>x.email),'Pedido '+d.id+' respondido. Reveja e feche ou solicite revisão.','Empreiteiro',cc);
+    await pePersistir(d); peAbrirFicha(d.id);
+  });
 };
 window.peFechar=async function(){
   const d=peFichaAtualDoc(); if(!d) return;
@@ -3465,11 +3508,12 @@ window.peAbrirModalProjetista=function(){
   veu.innerHTML=`<div class="pe-modal">
     <h3>Enviar ao Projetista</h3>
     <div class="pe-mb">
+      <div class="pe-msub"><b style="color:var(--text)">A notificação segue obrigatoriamente para o Projetista selecionado abaixo.</b></div>
       <div class="pe-msub">As especialidades mostradas são as que cada projetista cobre nesta obra.</div>
       <table class="pe-seltab"><tbody>${linhas}</tbody></table>
       <div class="pe-fld pe-mt"><label>Comentário ao Projetista (opcional)</label><textarea id="pe-coment-envio" placeholder="Comentário a incluir na notificação"></textarea></div>
       ${(function(){
-        const eq=[...peUtilsDaObra('fiscalizacao').map(u=>({...u,papel:'Fiscalização'})),...peUtilsDaObra('projetista').map(u=>({...u,papel:'Projetista'}))].filter(u=>u.email);
+        const eq=peEquipaDaObra();
         if(!eq.length) return '';
         return `<div class="pe-fld pe-mt"><label>Com Conhecimento — Cc (opcional)</label>
           <table class="pe-seltab"><tbody>${eq.map((u,i)=>`<tr onclick="var c=document.getElementById('pe-cc-${i}');c.checked=!c.checked">
@@ -3547,6 +3591,13 @@ function paUtilsDaObra(role){
   return [...m.values()];
 }
 function paEmails(role){ return paUtilsDaObra(role).filter(u=>u.email).map(u=>u.email); }
+function paEmailsFiscSemCSO(){ return paUtilsDaObra('fiscalizacao').filter(u=>u.email&&!segoEhCSO(u)).map(u=>u.email); }
+function paEquipaDaObra(){
+  const roleL={fiscalizacao:'Fiscalização',empreiteiro:'Empreiteiro',projetista:'Projetista',dono_obra:'Dono de Obra',cliente:'Cliente'};
+  const m=new Map();
+  Object.keys(roleL).forEach(r=>{ paUtilsDaObra(r).forEach(u=>{ if(u.email&&!m.has(String(u.id))) m.set(String(u.id),{id:u.id,nome:u.nome,email:u.email,papel:roleL[r]+(segoEhCSO(u)?' · CSO':'')}); }); });
+  return [...m.values()];
+}
 function paProjetistas(){
   const o=paObra();
   return paUtilsDaObra('projetista').map(u=>({
@@ -3589,7 +3640,7 @@ function paUnmapSeguro(d){
 }
 
 async function paCarregar(){
-  paDocs=[]; const o=paObra(); if(!o) return;
+  paDocs=[]; paSel=new Set(); const o=paObra(); if(!o) return;
   try{
     const rows=await sbRel.get('pedidos_aprovacao',`obra_id=eq.${encodeURIComponent(o.id)}&order=num.desc,rev.desc&select=id,num,rev,obra_id,obra_nome,estado,historico_import,data_criacao,data_envio,data_envio_proj,data_analisado,data_resposta,data_fecho,autor_empreiteiro,especialidade,material,tipo_item,capitulo,artigo,referencia,motivo,localizacao,previsto,proposto,tem_amostras,tem_fichas,tem_conformidade,tem_outros,observacoes_emp,autor_fisc_envio,comentario_fisc_envio,proj_dest_id,proj_dest_nome,proj_dest_email,autor_projetista,proj_data,proj_parecer,proj_observacoes,autor_fisc_resp,fisc_parecer,fisc_observacoes,via_direta,prev_id,next_id,historico`);
     paDocs=rows.map(r=>{ const d=paMap(r); d._leve=true; return d; });
@@ -3604,21 +3655,23 @@ async function paPersistir(d){
   }catch(e){ console.error(e); alert('Erro ao guardar: '+e.message); }
 }
 function paLink(d){ return location.href.split('?')[0]+'?pa='+encodeURIComponent(d.id); }
-async function paNotificar(d,destinos,mensagem,rotulo){
+async function paNotificar(d,destinos,mensagem,rotulo,cc){
   const lista=(Array.isArray(destinos)?destinos:[destinos]).filter(Boolean);
-  const et=`Notificação → ${rotulo}${lista.length?' ('+lista.join(', ')+')':''}: ${mensagem}`;
-  if(!lista.length){ paRegistar(d,et+' [sem destinatário na obra — verifique a ficha no SID]'); return; }
+  const ccLista=(Array.isArray(cc)?cc:[]).filter(Boolean);
+  const et=`Notificação → ${rotulo}${lista.length?' ('+lista.join(', ')+')':''}${ccLista.length?' · Cc: '+ccLista.join(', '):''}: ${mensagem}`;
+  if(!lista.length){ paRegistar(d,et+' [sem destinatário na obra — verifique a ficha no SID]'); alert('Sem destinatário associado à obra — a notificação não foi enviada. Verifique os intervenientes no SID.'); return; }
   let ok=0;
   for(const to of lista){
     try{
       await emailjs.send(EJS.service, PE_EJS_TEMPLATE, {
         to_email:to,to_name:'',from_name:(currentUser&&currentUser.nome?currentUser.nome:'SEGO'),reply_to:(currentUser&&currentUser.email?currentUser.email:''),pe_id:'PA '+d.id,obra:(paObra()?paObra().nome:d.obraNome),
         assunto:d.material||'',estado:paEST(d.estado).rot,
-        mensagem,link:paLink(d),password:'',app_url:paLink(d),role:rotulo});
+        mensagem,link:paLink(d),password:'',app_url:paLink(d),role:rotulo,cc:(ccLista.length?ccLista.join(', '):'')});
       ok++;
     }catch(e){ console.error('PA notificar falhou:',e); }
   }
   paRegistar(d,et+(ok===lista.length?' [enviada]':` [enviadas ${ok}/${lista.length}]`));
+  alert((ok===lista.length?'Notificação enviada a:\n':'Notificação enviada parcialmente ('+ok+'/'+lista.length+') a:\n')+lista.join('\n')+(ccLista.length?'\n\nCc: '+ccLista.join(', '):''));
 }
 
 function paProximoNum(){ const n=paDocs.map(d=>d.num); return n.length?Math.max(...n)+1:1; }
@@ -3688,10 +3741,10 @@ window.paEnviarFisc=async function(){
   if(!d.especialidade){ alert('Indique a Especialidade.'); return; }
   d.autorEmp=currentUser?currentUser.nome:''; d.estado='aberto'; d.dataEnvio=peHoje();
   paRegistar(d,'Enviado à Fiscalização — passa a Aberto.');
-  await paNotificar(d,paEmails('fiscalizacao'),'Novo Pedido de Aprovação '+d.id+' recebido do Empreiteiro.','Fiscalização');
+  await paNotificar(d,paEmailsFiscSemCSO(),'Novo Pedido de Aprovação '+d.id+' recebido do Empreiteiro.','Fiscalização');
   await paPersistir(d); paAbrirFicha(d.id);
 };
-async function paConfirmarEnvioProj(projId,coment){
+async function paConfirmarEnvioProj(projId,coment,cc){
   const d=paFichaAtualDoc(); if(!d) return;
   const p=paProjetistas().find(x=>String(x.id)===String(projId));
   if(!p){ alert('Projetista inválido.'); return; }
@@ -3700,8 +3753,9 @@ async function paConfirmarEnvioProj(projId,coment){
   d.autorFiscEnvio=currentUser?currentUser.nome:''; d.estado='pendente'; d.dataEnvioProj=peHoje();
   d.comentFiscEnvio=coment||'';
   d.projDestId=p.id; d.projDestNome=p.nome; d.projDestEmail=p.email;
-  paRegistar(d,'Enviado ao Projetista '+p.nome+' — passa a Pendente.'+(coment?' Comentário: '+coment:''));
-  await paNotificar(d,p.email,'Pedido de Aprovação '+d.id+' aguarda o seu parecer.'+(coment?'<br><br><strong style="font-weight:700">Comentário da Fiscalização:</strong> '+esc(coment):''),'Projetista');
+  const ccFinal=[...new Set((cc||[]).filter(e=>e&&e!==p.email))];
+  paRegistar(d,'Enviado ao Projetista '+p.nome+' — passa a Pendente.'+(coment?' Comentário: '+coment:'')+(ccFinal.length?' Cc: '+ccFinal.join(', ')+'.':''));
+  await paNotificar(d,p.email,'Pedido de Aprovação '+d.id+' aguarda o seu parecer.'+(coment?'<br><br><strong style="font-weight:700">Comentário da Fiscalização:</strong> '+esc(coment):''),'Projetista',ccFinal);
   await paPersistir(d); paAbrirFicha(d.id);
 }
 async function paConfirmarParecerProj(parecer,obs){
@@ -3711,10 +3765,10 @@ async function paConfirmarParecerProj(parecer,obs){
   if(paModalAnexos.length){ d.anexosProj=[...(d.anexosProj||[]),...paModalAnexos]; }
   paRegistar(d,'Parecer do Projetista: '+DEC_PA[parecer].rot+' — passa a Analisado.'+(paModalAnexos.length?' ('+paModalAnexos.length+' anexo'+(paModalAnexos.length>1?'s':'')+')':''));
   paModalAnexos=[];
-  await paNotificar(d,paEmails('fiscalizacao'),'Pedido '+d.id+' analisado pelo Projetista: '+DEC_PA[parecer].rot+'.','Fiscalização');
+  await paNotificar(d,paEmailsFiscSemCSO(),'Pedido '+d.id+' analisado pelo Projetista: '+DEC_PA[parecer].rot+'.','Fiscalização');
   await paPersistir(d); paAbrirFicha(d.id);
 }
-async function paConfirmarDecisao(parecer,obs,direta){
+async function paConfirmarDecisao(parecer,obs,direta,cc){
   const d=paFichaAtualDoc(); if(!d) return; paFecharModal();
   d.autorFiscResp=currentUser?currentUser.nome:''; d.fiscParecer=parecer; d.obsFisc=obs;
   d.dataResposta=peHoje(); d.estado='respondido';
@@ -3722,7 +3776,7 @@ async function paConfirmarDecisao(parecer,obs,direta){
   if(paModalAnexos.length){ d.anexosFisc=[...(d.anexosFisc||[]),...paModalAnexos]; }
   paRegistar(d,(direta?'Aprovação directa pela Fiscalização (sem Projetista): ':'Decisão da Fiscalização: ')+DEC_PA[parecer].rot+' — passa a Respondido.'+(paModalAnexos.length?' ('+paModalAnexos.length+' anexo'+(paModalAnexos.length>1?'s':'')+')':''));
   paModalAnexos=[];
-  await paNotificar(d,paEmails('empreiteiro'),'Pedido '+d.id+': '+DEC_PA[parecer].rot+'. Reveja e feche ou submeta revisão.','Empreiteiro');
+  await paNotificar(d,paEmails('empreiteiro'),'Pedido '+d.id+': '+DEC_PA[parecer].rot+'. Reveja e feche ou submeta revisão.','Empreiteiro',cc);
   await paPersistir(d); paAbrirFicha(d.id);
 }
 window.paFechar=async function(){
@@ -3730,6 +3784,7 @@ window.paFechar=async function(){
   d.estado='fechado'; d.dataFecho=peHoje();
   paRegistar(d,'Fechado pelo Empreiteiro.');
   await paFecharCadeia(d);
+  await paNotificar(d,paEmailsFiscSemCSO(),'Pedido de Aprovação '+d.id+' fechado pelo Empreiteiro.','Fiscalização');
   await paPersistir(d); paAbrirFicha(d.id);
 };
 window.paRever=function(){ const d=paFichaAtualDoc(); if(d) paCriarRevisao(d); };
@@ -3787,8 +3842,10 @@ function renderListaPA(app){
   if(peEProj()&&!peESuper()) lst=lst.filter(d=>d.estado!=='rascunho');
   lst.sort((a,b)=>b.num-a.num||b.rev-a.rev);
 
+  const podeAlertarPA=peEFisc()||peESuper();
   const linhas=lst.map(d=>`
     <tr class="${d.histImport?'pe-histrow':''}" onclick="paAbrirFicha('${d.id}')" style="cursor:pointer">
+      ${podeAlertarPA?`<td style="text-align:center;width:28px" onclick="event.stopPropagation()">${d.estado==='pendente'?`<input type="checkbox" ${paSel.has(d.id)?'checked':''} onclick="event.stopPropagation();paToggleSel('${d.id}',this.checked)">`:''}</td>`:''}
       <td><span class="pe-idp">${d.id}</span>${d.prevId?`<br><span class="pe-revlink">↳ rev. de ${d.prevId}</span>`:''}${d.nextId?`<br><span class="pe-revlink">↳ revisto por ${d.nextId}</span>`:''}</td>
       <td style="text-align:center" title="${d.tipoItem==='equipamento'?'Equipamento':'Material'}">${d.tipoItem==='equipamento'?'E':'M'}</td>
       <td style="text-align:center" title="${esc(peNomeEsp(d.especialidade))}">${esc(d.especialidade)||'—'}</td>
@@ -3810,10 +3867,11 @@ function renderListaPA(app){
       </div>
       <div class="page-actions"></div>
     </div>
-    <div style="margin-bottom:12px;display:flex;gap:8px;align-items:center">${peEEmp()?`<button class="btn btn-gold btn-sm" onclick="paNovoPedido()">+ Novo Pedido</button>`:''}${peESuper()?`<span style="margin-left:auto;display:flex;gap:8px"><button class="btn btn-sm" style="border:1px solid var(--border-light);background:#fff" onclick="gpeAdmRenumerar('pa')">Renumerar</button><button class="btn btn-sm" style="border:1px solid var(--border-light);background:#fff" onclick="gpeAdmImportar('pa')">Importar Histórico</button></span>`:''}</div>
+    <div style="margin-bottom:12px;display:flex;gap:8px;align-items:center">${peEEmp()?`<button class="btn btn-gold btn-sm" onclick="paNovoPedido()">+ Novo Pedido</button>`:''}${(peEFisc()||peESuper())&&lst.some(d=>d.estado==='pendente')?`<button class="btn btn-sm" id="pa-alert-btn" style="border:1px solid var(--warning);background:#fff;color:#8a5a00" onclick="paAlertar()">Alertar Projetista${paSel.size?' ('+paSel.size+')':''}</button>`:''}${peESuper()?`<span style="margin-left:auto;display:flex;gap:8px"><button class="btn btn-sm" style="border:1px solid var(--border-light);background:#fff" onclick="gpeAdmRenumerar('pa')">Renumerar</button><button class="btn btn-sm" style="border:1px solid var(--border-light);background:#fff" onclick="gpeAdmImportar('pa')">Importar Histórico</button></span>`:''}</div>
     <div class="table-card">
       ${lst.length?`<table>
         <thead><tr>
+          ${podeAlertarPA?`<th style="text-align:center;width:28px"><input type="checkbox" title="Selecionar todos os Pendentes" ${lst.some(d=>d.estado==='pendente')&&lst.filter(d=>d.estado==='pendente').every(d=>paSel.has(d.id))?'checked':''} onclick="paSelTodos(this.checked)"></th>`:''}
           <th style="text-align:left">Id</th><th style="text-align:center" title="Material / Equipamento">M | E</th><th style="text-align:center" title="Especialidade">Esp</th><th style="text-align:left">Descrição</th><th style="text-align:left">Previsto</th><th style="text-align:left">Proposto</th>
           ${thState('Aberto',M.estados.aberto.cor)}${thState('Pendente',M.estados.pendente.cor)}${thState('Analisado',M.estados.analisado.cor)}${thState('Respondido',M.estados.respondido.cor)}${thState('Fechado',M.estados.fechado.cor)}${thState('Reaberto',M.estados.reaberto.cor)}
           <th style="text-align:center">Parecer</th>
@@ -3992,6 +4050,59 @@ function renderFichaPA(app){
   </div>`;
 }
 
+/* Alertas de falta de parecer (Fisc) */
+let paSel=new Set();
+window.paToggleSel=function(id,marcado){
+  if(marcado) paSel.add(id); else paSel.delete(id);
+  const b=document.getElementById('pa-alert-btn'); if(b) b.textContent='Alertar Projetista'+(paSel.size?' ('+paSel.size+')':'');
+};
+window.paSelTodos=function(marcado){
+  paDocs.filter(d=>d.estado==='pendente').forEach(d=>{ if(marcado) paSel.add(d.id); else paSel.delete(d.id); });
+  render();
+};
+window.paAlertar=function(){
+  if(!(peEFisc()||peESuper())) return;
+  const docs=paDocs.filter(d=>paSel.has(d.id)&&d.estado==='pendente');
+  if(!docs.length){ alert('Selecione pelo menos um pedido Pendente (caixas à esquerda).'); return; }
+  const semEmail=docs.filter(d=>!d.projDestEmail);
+  if(semEmail.length){ alert('Sem email do Projetista em: '+semEmail.map(d=>d.id).join(', ')+'.\nEsses pedidos não serão alertados.'); }
+  const alvo=docs.filter(d=>d.projDestEmail);
+  if(!alvo.length) return;
+  const grupos={};
+  alvo.forEach(d=>{ (grupos[d.projDestEmail]=grupos[d.projDestEmail]||[]).push(d); });
+  const nProj=Object.keys(grupos).length;
+  const obrig=Object.entries(grupos).map(([em,lt])=>({nome:lt[0].projDestNome||em,email:em,papel:'Projetista · '+lt.length+' pedido'+(lt.length>1?'s':'')}));
+  gpeModalNotif('Alertar Projetista — Falta de Parecer',obrig,paEquipaDaObra(),function(ccSel){ paAlertarEnviar(grupos,nProj,ccSel); });
+};
+async function paAlertarEnviar(grupos,nProj,cc){
+  const o=paObra();
+  let enviados=0, falhas=0;
+  try{
+    for(const [email,lote] of Object.entries(grupos)){
+      showLoadingOverlay('A enviar alerta… '+esc(lote[0].projDestNome||email));
+      const linhas=lote.map(d=>'<div style="margin:0 0 14px 0">&bull; <a href="'+paLink(d)+'"><b>PA '+esc(d.id)+'</b></a> - '+esc(d.material||'(sem designação)')+(d.dataEnvioProj?' (enviado em '+peDataPT(d.dataEnvioProj)+')':'')+'</div>').join('');
+      const msg='<div style="margin:18px 24px;font-family:Calibri,Carlito,sans-serif;font-size:14px;color:#111">'+
+        'Solicita-se parecer aos pedidos de aprovação pendentes que se resumem abaixo.<br><br>'+
+        linhas+
+        '<br>Pode aceder a cada Pedido de Aprovação clicando no respetivo link acima.</div>';
+      try{
+        await emailjs.send(EJS.service, EJS_TPL_ALERTA, {
+          to_email:email,from_name:(currentUser&&currentUser.nome?currentUser.nome:'SEGO'),reply_to:(currentUser&&currentUser.email?currentUser.email:''),
+          assunto:(o?o.nome:lote[0].obraNome)+' - Pedidos de Aprovação Pendentes',
+          mensagem:msg,cc:(cc.length?cc.join(', '):'')});
+        enviados++;
+        for(const d of lote){
+          paRegistar(d,'Alerta de falta de parecer enviado ao Projetista ('+email+')'+(cc.length?' · Cc: '+cc.join(', '):'')+'.');
+          await paPersistir(d);
+        }
+      }catch(e){ console.error('Alerta PA falhou:',email,e); falhas++; }
+    }
+  }finally{ hideLoadingOverlay(); }
+  paSel=new Set();
+  render();
+  alert('Alertas enviados: '+enviados+'/'+nProj+' projetista(s).'+(falhas?'\n'+falhas+' com erro (ver consola).':''));
+}
+
 /* ---- Modais (reutilizam pe-veu/pe-modal) ---- */
 function paFecharModal(){ const v=document.getElementById('pe-veu'); if(v) v.remove(); }
 function paOpcoesDecisao(nome){
@@ -4017,9 +4128,18 @@ window.paModalProjetista=function(){
   }).join('');
   const veu=document.createElement('div'); veu.className='pe-veu'; veu.id='pe-veu';
   veu.innerHTML=`<div class="pe-modal"><h3>Enviar ao Projetista</h3>
-    <div class="pe-mb"><div class="pe-msub">${esp?('Especialidade do pedido: <b>'+esc(peNomeEsp(esp))+'</b>. '):''}As especialidades mostradas são as que cada projetista cobre nesta obra.</div>
+    <div class="pe-mb"><div class="pe-msub"><b style="color:var(--text)">A notificação segue obrigatoriamente para o Projetista selecionado abaixo.</b></div>
+      <div class="pe-msub">${esp?('Especialidade do pedido: <b>'+esc(peNomeEsp(esp))+'</b>. '):''}As especialidades mostradas são as que cada projetista cobre nesta obra.</div>
       <table class="pe-seltab"><tbody>${linhas}</tbody></table>
-      <div class="pe-fld pe-mt"><label>Comentário ao Projetista (opcional)</label><textarea id="pa-coment-envio" placeholder="Comentário a incluir na notificação"></textarea></div></div>
+      <div class="pe-fld pe-mt"><label>Comentário ao Projetista (opcional)</label><textarea id="pa-coment-envio" placeholder="Comentário a incluir na notificação"></textarea></div>
+      ${(function(){
+        const eq=paEquipaDaObra();
+        if(!eq.length) return '';
+        return `<div class="pe-fld pe-mt"><label>Com Conhecimento — Cc (opcional)</label>
+          <table class="pe-seltab"><tbody>${eq.map((u,i)=>`<tr onclick="var c=document.getElementById('pa-cc-${i}');c.checked=!c.checked">
+            <td style="width:28px"><input type="checkbox" class="pa-ccx" id="pa-cc-${i}" value="${esc(u.email)}" onclick="event.stopPropagation()"></td>
+            <td><b>${esc(u.nome)}</b> <span class="pe-muted">(${esc(u.papel)})</span><br><span class="pe-muted">${esc(u.email)}</span></td></tr>`).join('')}</tbody></table></div>`;
+      })()}</div>
     <div class="pe-mrod"><button class="pe-btn" onclick="paFecharModal()">Cancelar</button>
       <button class="pe-btn gold" onclick="paSubmeterEscolhaProj()">Enviar Link →</button></div></div>`;
   document.body.appendChild(veu);
@@ -4028,7 +4148,8 @@ window.paSubmeterEscolhaProj=function(){
   const s=document.querySelector('input[name="pa-rp"]:checked');
   if(!s){ alert('Selecione um projetista.'); return; }
   const c=document.getElementById('pa-coment-envio');
-  paConfirmarEnvioProj(s.value,(c&&c.value?c.value.trim():''));
+  const cc=Array.from(document.querySelectorAll('.pa-ccx:checked')).map(x=>x.value);
+  paConfirmarEnvioProj(s.value,(c&&c.value?c.value.trim():''),cc);
 };
 let paModalAnexos=[];
 function paModalAnexosHtml(){
@@ -4086,7 +4207,18 @@ window.paModalDecisao=function(direta){
     <div class="pe-mb"><div class="pe-msub">${sub}</div>
       ${parecerBloco}
       <div class="pe-fld pe-mt"><label>${direta?'Observações':'Nota da Fiscalização'}</label><textarea id="dec-obs">${esc(d.obsFisc)}</textarea></div>
-      ${paModalAnexosHtml()}</div>
+      ${paModalAnexosHtml()}
+      <div class="pe-msub pe-mt"><b style="color:var(--text)">Esta notificação será enviada a:</b></div>
+      <table class="pe-seltab"><tbody>${(function(){const es=paUtilsDaObra('empreiteiro').filter(u=>u.email);return es.length?es.map(u=>`<tr><td><b>${esc(u.nome)}</b> <span class="pe-muted">(Empreiteiro)</span><br><span class="pe-muted">${esc(u.email)}</span></td></tr>`).join(''):'<tr><td class="pe-muted">— sem empreiteiro associado à obra (verifique o SID) —</td></tr>';})()}</tbody></table>
+      ${(function(){
+        const emps=new Set(paUtilsDaObra('empreiteiro').filter(u=>u.email).map(u=>u.email));
+        const eq=paEquipaDaObra().filter(u=>!emps.has(u.email));
+        if(!eq.length) return '';
+        return `<div class="pe-fld pe-mt"><label>Com Conhecimento — Cc (opcional)</label>
+          <table class="pe-seltab"><tbody>${eq.map((u,i)=>`<tr onclick="var c=document.getElementById('pa-dc-${i}');c.checked=!c.checked">
+            <td style="width:28px"><input type="checkbox" class="pa-dcx" id="pa-dc-${i}" value="${esc(u.email)}" onclick="event.stopPropagation()"></td>
+            <td><b>${esc(u.nome)}</b> <span class="pe-muted">(${esc(u.papel)})</span><br><span class="pe-muted">${esc(u.email)}</span></td></tr>`).join('')}</tbody></table></div>`;
+      })()}</div>
     <div class="pe-mrod"><button class="pe-btn" onclick="paFecharModal()">Cancelar</button>
       <button class="pe-btn gold" onclick="paSubmeterDecisao(${direta?'true':'false'})">Confirmar e Notificar →</button></div></div>`;
   document.body.appendChild(veu);
@@ -4102,7 +4234,8 @@ window.paSubmeterDecisao=function(direta){
     parecer=d.projParecer;
     if(!parecer){ alert('Não há parecer do Projetista para confirmar.'); return; }
   }
-  paConfirmarDecisao(parecer,(document.getElementById('dec-obs')||{}).value?document.getElementById('dec-obs').value.trim():'',direta);
+  const ccDec=Array.from(document.querySelectorAll('.pa-dcx:checked')).map(x=>x.value);
+  paConfirmarDecisao(parecer,(document.getElementById('dec-obs')||{}).value?document.getElementById('dec-obs').value.trim():'',direta,ccDec);
 };
 
 /* ---- Entrada via card ---- */
@@ -4173,6 +4306,14 @@ function pbUtilsDaObra(role){
   return [...m.values()];
 }
 function pbEmails(role){ return pbUtilsDaObra(role).filter(u=>u.email).map(u=>u.email); }
+function segoEhCSO(u){ return /\bcso\b|seguran/i.test(String(u.funcao||'')); }
+function pbEmailsFiscSemCSO(){ return pbUtilsDaObra('fiscalizacao').filter(u=>u.email&&!segoEhCSO(u)).map(u=>u.email); }
+function pbEquipaDaObra(){
+  const roleL={fiscalizacao:'Fiscalização',empreiteiro:'Empreiteiro',projetista:'Projetista',dono_obra:'Dono de Obra',cliente:'Cliente'};
+  const m=new Map();
+  Object.keys(roleL).forEach(r=>{ pbUtilsDaObra(r).forEach(u=>{ if(u.email&&!m.has(String(u.id))) m.set(String(u.id),{id:u.id,nome:u.nome,email:u.email,papel:roleL[r]+(segoEhCSO(u)?' · CSO':'')}); }); });
+  return [...m.values()];
+}
 
 function pbMap(r){
   return {tipo:'pb',id:r.id,num:r.num,rev:r.rev,obraId:r.obra_id,obraNome:r.obra_nome,estado:r.estado,histImport:!!r.historico_import,
@@ -4215,21 +4356,23 @@ async function pbPersistir(d){
   }catch(e){ console.error(e); alert('Erro ao guardar: '+e.message); }
 }
 function pbLink(d){ return location.href.split('?')[0]+'?pb='+encodeURIComponent(d.id); }
-async function pbNotificar(d,destinos,mensagem,rotulo){
+async function pbNotificar(d,destinos,mensagem,rotulo,cc){
   const lista=(Array.isArray(destinos)?destinos:[destinos]).filter(Boolean);
-  const et=`Notificação → ${rotulo}${lista.length?' ('+lista.join(', ')+')':''}: ${mensagem}`;
-  if(!lista.length){ pbRegistar(d,et+' [sem destinatário na obra — verifique a ficha no SID]'); return; }
+  const ccLista=(Array.isArray(cc)?cc:[]).filter(Boolean);
+  const et=`Notificação → ${rotulo}${lista.length?' ('+lista.join(', ')+')':''}${ccLista.length?' · Cc: '+ccLista.join(', '):''}: ${mensagem}`;
+  if(!lista.length){ pbRegistar(d,et+' [sem destinatário na obra — verifique a ficha no SID]'); alert('Sem destinatário associado à obra — a notificação não foi enviada. Verifique os intervenientes no SID.'); return; }
   let ok=0;
   for(const to of lista){
     try{
       await emailjs.send(EJS.service, PE_EJS_TEMPLATE, {
         to_email:to,to_name:'',from_name:(currentUser&&currentUser.nome?currentUser.nome:'SEGO'),reply_to:(currentUser&&currentUser.email?currentUser.email:''),pe_id:'PB '+d.id,obra:(pbObra()?pbObra().nome:d.obraNome),
         assunto:d.localizacao||'',estado:pbEST(d.estado).rot,
-        mensagem,link:pbLink(d),password:'',app_url:pbLink(d),role:rotulo});
+        mensagem,link:pbLink(d),password:'',app_url:pbLink(d),role:rotulo,cc:(ccLista.length?ccLista.join(', '):'')});
       ok++;
     }catch(e){ console.error('PB notificar falhou:',e); }
   }
   pbRegistar(d,et+(ok===lista.length?' [enviada]':` [enviadas ${ok}/${lista.length}]`));
+  alert((ok===lista.length?'Notificação enviada a:\n':'Notificação enviada parcialmente ('+ok+'/'+lista.length+') a:\n')+lista.join('\n')+(ccLista.length?'\n\nCc: '+ccLista.join(', '):''));
 }
 
 function pbProximoNum(){ const n=pbDocs.map(d=>d.num); return n.length?Math.max(...n)+1:1; }
@@ -4299,20 +4442,20 @@ window.pbEnviarFisc=async function(){
   if(!d.localizacao&&!d.elementos){ alert('Indique a Localização ou os Elementos a betonar.'); return; }
   d.autorEmp=currentUser?currentUser.nome:''; d.estado='aberto'; d.dataEnvio=peHoje();
   pbRegistar(d,'Enviado à Fiscalização — passa a Aberto.');
-  await pbNotificar(d,pbEmails('fiscalizacao'),'Novo Pedido de Betonagem '+d.id+' recebido do Empreiteiro.','Fiscalização');
+  await pbNotificar(d,pbEmailsFiscSemCSO(),'Novo Pedido de Betonagem '+d.id+' recebido do Empreiteiro.','Fiscalização');
   await pbPersistir(d); pbAbrirFicha(d.id);
 };
-async function pbConfirmarDecisao(decisao,obs){
+async function pbConfirmarDecisao(decisao,obs,cc){
   const d=pbFichaAtualDoc(); if(!d) return; pbFecharModal();
   d.autorFisc=currentUser?currentUser.nome:''; d.decisao=decisao; d.observacoes=obs; d.dataDecisao=peHoje();
   if(decisao==='aprovado'){
     d.estado='fechado'; d.dataFecho=peHoje();
     pbRegistar(d,'Aprovado pela Fiscalização — pedido fechado.');
-    await pbNotificar(d,pbEmails('empreiteiro'),'Plano de Betonagem '+d.id+': Aprovado.','Empreiteiro');
+    await pbNotificar(d,pbEmails('empreiteiro'),'Pedido de Betonagem '+d.id+': Aprovado.','Empreiteiro',cc);
     await pbPersistir(d); pbAbrirFicha(d.id);
   }else{
     pbRegistar(d,'Não aprovado pela Fiscalização — gera revisão.');
-    await pbNotificar(d,pbEmails('empreiteiro'),'Plano de Betonagem '+d.id+': Não Aprovado. Foi criada uma revisão para correcção.','Empreiteiro');
+    await pbNotificar(d,pbEmails('empreiteiro'),'Pedido de Betonagem '+d.id+': Não Aprovado. Foi criada uma revisão para correcção.','Empreiteiro',cc);
     await pbCriarRevisao(d);
   }
 }
@@ -4534,7 +4677,18 @@ window.pbModalDecisao=function(){
         <tr onclick="document.getElementById('pbd-0').checked=true"><td style="width:28px"><input type="radio" name="pbd" id="pbd-0" value="aprovado" checked></td><td><span class="pe-estpill" style="background:var(--success)">Aprovado</span> — a betonagem avança e o pedido fecha</td></tr>
         <tr onclick="document.getElementById('pbd-1').checked=true"><td style="width:28px"><input type="radio" name="pbd" id="pbd-1" value="nao_aprovado"></td><td><span class="pe-estpill" style="background:var(--danger)">Não Aprovado</span> — gera revisão para correcção</td></tr>
       </tbody></table>
-      <div class="pe-fld pe-mt"><label>Observações</label><textarea id="pbd-obs">${esc(d.observacoes)}</textarea></div></div>
+      <div class="pe-fld pe-mt"><label>Observações</label><textarea id="pbd-obs">${esc(d.observacoes)}</textarea></div>
+      <div class="pe-msub pe-mt"><b style="color:var(--text)">Esta notificação será enviada a:</b></div>
+      <table class="pe-seltab"><tbody>${(function(){const es=pbUtilsDaObra('empreiteiro').filter(u=>u.email);return es.length?es.map(u=>`<tr><td><b>${esc(u.nome)}</b> <span class="pe-muted">(Empreiteiro)</span><br><span class="pe-muted">${esc(u.email)}</span></td></tr>`).join(''):'<tr><td class="pe-muted">— sem empreiteiro associado à obra (verifique o SID) —</td></tr>';})()}</tbody></table>
+      ${(function(){
+        const emps=new Set(pbUtilsDaObra('empreiteiro').filter(u=>u.email).map(u=>u.email));
+        const eq=pbEquipaDaObra().filter(u=>!emps.has(u.email));
+        if(!eq.length) return '';
+        return `<div class="pe-fld pe-mt"><label>Com Conhecimento — Cc (opcional)</label>
+          <table class="pe-seltab"><tbody>${eq.map((u,i)=>`<tr onclick="var c=document.getElementById('pb-dc-${i}');c.checked=!c.checked">
+            <td style="width:28px"><input type="checkbox" class="pb-dcx" id="pb-dc-${i}" value="${esc(u.email)}" onclick="event.stopPropagation()"></td>
+            <td><b>${esc(u.nome)}</b> <span class="pe-muted">(${esc(u.papel)})</span><br><span class="pe-muted">${esc(u.email)}</span></td></tr>`).join('')}</tbody></table></div>`;
+      })()}</div>
     <div class="pe-mrod"><button class="pe-btn" onclick="pbFecharModal()">Cancelar</button>
       <button class="pe-btn gold" onclick="pbSubmeterDecisao()">Confirmar e Notificar →</button></div></div>`;
   document.body.appendChild(veu);
@@ -4542,7 +4696,8 @@ window.pbModalDecisao=function(){
 window.pbSubmeterDecisao=function(){
   const s=document.querySelector('input[name="pbd"]:checked');
   if(!s){ alert('Selecione a decisão.'); return; }
-  pbConfirmarDecisao(s.value,(document.getElementById('pbd-obs')||{}).value?document.getElementById('pbd-obs').value.trim():'');
+  const ccDec=Array.from(document.querySelectorAll('.pb-dcx:checked')).map(x=>x.value);
+  pbConfirmarDecisao(s.value,(document.getElementById('pbd-obs')||{}).value?document.getElementById('pbd-obs').value.trim():'',ccDec);
 };
 
 /* ---- Entrada via card ---- */
@@ -5057,6 +5212,7 @@ function qeUtilsDaObra(role){
 }
 function qeEmails(role){ return qeUtilsDaObra(role).filter(u=>u.email).map(u=>u.email); }
 function qeEmailsComDO(role){ return [...new Set([...qeEmails(role),...qeEmails('dono_obra')])]; }
+function qeEmailsFiscSemCSOComDO(){ return [...new Set([...qeUtilsDaObra('fiscalizacao').filter(u=>u.email&&!segoEhCSO(u)).map(u=>u.email),...qeEmails('dono_obra')])]; }
 
 function qeMap(r){
   return {tipo:'qe',id:r.id,num:r.num,rev:r.rev,obraId:r.obra_id,obraNome:r.obra_nome,estado:r.estado,histImport:!!r.historico_import,
@@ -5191,7 +5347,7 @@ window.qeSubmeterResposta=async function(){
   if(!d.correcao){ alert('Descreva a Correção Efetuada.'); return; }
   d.autorEmp=currentUser?currentUser.nome:''; d.estado='respondido'; d.dataResposta=peHoje();
   qeRegistar(d,'Resposta submetida pelo Empreiteiro — passa a Respondido.');
-  await qeNotificar(d,qeEmailsComDO('fiscalizacao'),'QE '+d.id+' respondida pelo Empreiteiro. Aguarda parecer da Fiscalização.','Fiscalização');
+  await qeNotificar(d,qeEmailsFiscSemCSOComDO(),'QE '+d.id+' respondida pelo Empreiteiro. Aguarda parecer da Fiscalização.','Fiscalização');
   await qePersistir(d); qeAbrirFicha(d.id);
 };
 async function qeConfirmarParecer(parecer,obs){
@@ -6246,6 +6402,7 @@ function amUtilsDaObra(role){
   return [...m.values()];
 }
 function amEmails(role){ return amUtilsDaObra(role).filter(u=>u.email).map(u=>u.email); }
+function amEmailsFiscSemCSO(){ return amUtilsDaObra('fiscalizacao').filter(u=>u.email&&!segoEhCSO(u)).map(u=>u.email); }
 function amLink(d){ return location.href.split('?')[0]+'?am='+encodeURIComponent(d.id); }
 async function amNotificar(d,destinos,mensagem,rotulo){
   const lista=(Array.isArray(destinos)?destinos:[destinos]).filter(Boolean);
@@ -6270,7 +6427,7 @@ window.amEnviar=async function(){
   d.medicoes=JSON.parse(JSON.stringify(amFichaMed));
   d.estado='enviado'; d.data_envio=peHoje();
   amRegistar(d,'Enviado à Fiscalização — aguarda verificação.');
-  await amNotificar(d,amEmails('fiscalizacao'),'Auto Mensal '+d.id+' ('+(d.mes_ref||'')+') enviado pelo Empreiteiro — aguarda a sua verificação.','Fiscalização');
+  await amNotificar(d,amEmailsFiscSemCSO(),'Auto Mensal '+d.id+' ('+(d.mes_ref||'')+') enviado pelo Empreiteiro — aguarda a sua verificação.','Fiscalização');
   try{ await amPersistir(d); }catch(e){ alert('Erro ao gravar: '+e.message); }
   render();
 };
@@ -6332,7 +6489,7 @@ window.amAprovarDO=async function(){
     if(!confirm('Aprovar o Auto '+d.id+'?')) return;
     d.estado='aprovado'; d.data_aprovacao=peHoje(); d.autor_do=(currentUser?currentUser.nome:'');
     amRegistar(d,'Aprovado pelo Dono de Obra — aguarda reencaminhamento pela Fiscalização.');
-    await amNotificar(d,amEmails('fiscalizacao'),'Auto Mensal '+d.id+' ('+(d.mes_ref||'')+') aprovado pelo Dono de Obra — reencaminhe ao Empreiteiro para concordância.','Fiscalização');
+    await amNotificar(d,amEmailsFiscSemCSO(),'Auto Mensal '+d.id+' ('+(d.mes_ref||'')+') aprovado pelo Dono de Obra — reencaminhe ao Empreiteiro para concordância.','Fiscalização');
     try{ await amPersistir(d); }catch(e){ alert('Erro ao gravar: '+e.message); }
     render(); return;
   }
@@ -6346,7 +6503,7 @@ window.amAprovarDO=async function(){
   d.estado='revisto'; d.next_id=novo.id;
   amRegistar(d,'Aprovação do Dono de Obra com alterações — substituído pela revisão '+novo.id+'.');
   amDocs.unshift(novo);
-  await amNotificar(novo,amEmails('fiscalizacao'),'Auto Mensal '+novo.id+' ('+(novo.mes_ref||'')+') aprovado pelo Dono de Obra com '+nAlt+' alteração(ões) — reencaminhe ao Empreiteiro para concordância.','Fiscalização');
+  await amNotificar(novo,amEmailsFiscSemCSO(),'Auto Mensal '+novo.id+' ('+(novo.mes_ref||'')+') aprovado pelo Dono de Obra com '+nAlt+' alteração(ões) — reencaminhe ao Empreiteiro para concordância.','Fiscalização');
   const o=amObra();
   try{
     await amPersistir(novo);
@@ -6368,6 +6525,7 @@ window.amFecharAM=async function(){
   if(!confirm('Concordar com o Auto '+d.id+' e fechar? O ciclo deste Auto termina aqui.')) return;
   d.estado='fechado'; d.data_fecho=peHoje();
   amRegistar(d,'Empreiteiro concordou — Auto fechado.');
+  await amNotificar(d,amEmailsFiscSemCSO(),'Auto Mensal '+d.id+' ('+(d.mes_ref||'')+'): o Empreiteiro concordou — Auto fechado.','Fiscalização');
   try{ await amPersistir(d); }catch(e){ alert('Erro ao gravar: '+e.message); }
   render();
 };
@@ -6382,6 +6540,7 @@ window.amSolicitarRevisao=async function(){
   d.estado='revisto'; d.next_id=novo.id;
   amRegistar(d,'Empreiteiro não concordou — substituído pela revisão '+novo.id+'.');
   amDocs.unshift(novo);
+  await amNotificar(novo,amEmailsFiscSemCSO(),'Auto Mensal '+d.id+' ('+(d.mes_ref||'')+'): o Empreiteiro não concordou — foi criada a revisão '+novo.id+' para correção, que será reenviada à Fiscalização.','Fiscalização');
   const o=amObra();
   try{
     await amPersistir(novo);
@@ -8138,12 +8297,15 @@ window.dashCarregar=async function(){
   const docs=[];
   try{
     showLoadingOverlay('Dashboard… a carregar RSO · SOS · RVT');
-    const rels=await dashFetchTudo('relatorios','id,obra_id,numero,versao,estado,mes,ano,criado_em,criado_por_nome,tipo:conteudo->>tipo,subtipo:conteudo->>subtipo','&order=obra_id.asc,numero.asc');
+    const rels=await dashFetchTudo('relatorios','id,obra_id,numero,versao,estado,mes,ano,criado_em,criado_por_nome,conteudo','&order=obra_id.asc,numero.asc');
     rels.forEach(r=>{
+      let c=r.conteudo;
+      if(typeof c==='string'){ try{ c=JSON.parse(c); }catch(e){ c=null; } }
+      c=c||{};
       let k=null;
-      if(r.tipo==='seguranca') k='rvt';
-      else if(r.tipo==='fiscalizacao'&&r.subtipo==='SOS') k='sos';
-      else if(r.tipo==='fiscalizacao') k='rso';
+      if(c.tipo==='seguranca') k='rvt';
+      else if(c.tipo==='fiscalizacao'&&c.subtipo==='SOS') k='sos';
+      else if(c.tipo==='fiscalizacao') k='rso';
       if(!k) return;
       docs.push({ k, uid:r.id, id:String(r.numero||0).padStart(3,'0')+'.'+String(r.versao||0),
         obraId:String(r.obra_id), obraNome:dashObraNome(r.obra_id), estado:r.estado||'rascunho',
@@ -8171,7 +8333,7 @@ window.dashCarregar=async function(){
 window.dashAbrir=async function(obraId){
   if(!peESuper()) return;
   dashAtivo=true; dashObraF=obraId?String(obraId):''; dashDrill=null;
-  if(!dashDados) await dashCarregar();
+  await dashCarregar();
   render();
 };
 window.dashVoltar=function(){ dashAtivo=false; dashDrill=null; render(); };
@@ -8258,6 +8420,60 @@ const DASH_CSS=`<style>
 .dash-pbar>div{height:100%;border-radius:3px}
 </style>`;
 
+/* ---------- Gráficos (SVG/HTML) ---------- */
+function dashChartMensal(dsk,cor){
+  const yms=[...new Set(dsk.map(d=>dashYM(d.criado)).filter(Boolean))].sort();
+  if(yms.length<2) return '';
+  const dados=yms.map(ym=>({ym,n:dsk.filter(d=>dashYM(d.criado)===ym).length}));
+  const max=Math.max(1,...dados.map(x=>x.n));
+  const bw=22,pad=10,step=bw+22,W=pad*2+dados.length*step,H=150,base=H-24;
+  let g='';
+  dados.forEach((x,i)=>{
+    const x0=pad+i*step,h=Math.max(2,Math.round((base-20)*x.n/max));
+    g+=`<rect x="${x0}" y="${base-h}" width="${bw}" height="${h}" rx="3" fill="${cor}"><title>${dashMesLabel(x.ym)}: ${x.n}</title></rect>`;
+    g+=`<text x="${x0+bw/2}" y="${base-h-5}" font-size="10" font-weight="700" text-anchor="middle" fill="#1A1D2E">${x.n}</text>`;
+    g+=`<text x="${x0+bw/2}" y="${H-7}" font-size="9" text-anchor="middle" fill="#6B7280">${x.ym.slice(5)+'/'+x.ym.slice(2,4)}</text>`;
+  });
+  return `<div style="overflow-x:auto;margin-bottom:10px"><svg viewBox="0 0 ${W} ${H}" style="height:${H}px;max-width:100%"><line x1="${pad-4}" y1="${base}" x2="${W-pad+4}" y2="${base}" stroke="#D8DCE6"/>${g}</svg></div>
+  <div class="dash-leg" style="margin:-4px 0 10px">Documentos criados por mês (todas as obras do filtro).</div>`;
+}
+function dashBarraEstados(k,dsk){
+  if(!dsk.length) return '';
+  const D=DASH_DEF[k],EST=D.estados();
+  const ordem=D.ordemEst.filter(e=>EST[e]&&dsk.some(d=>d.estado===e));
+  const segs=ordem.map(e=>{
+    const n=dsk.filter(d=>d.estado===e).length;
+    const w=100*n/dsk.length;
+    return `<div style="width:${w}%;background:${EST[e].cor};display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:700;margin-right:2px;cursor:pointer" title="${EST[e].rot}: ${n}" onclick="dashDrillSet('est','${k}','*','${e}')">${w>6?n:''}</div>`;
+  }).join('');
+  const leg=ordem.map(e=>`<span style="display:inline-flex;align-items:center;gap:5px"><i style="width:9px;height:9px;border-radius:2px;background:${EST[e].cor};display:inline-block"></i>${EST[e].rot} (${dsk.filter(d=>d.estado===e).length})</span>`).join('');
+  return `<div style="display:flex;height:26px;border-radius:4px;overflow:hidden;background:#EEF1F6;margin-bottom:6px">${segs}</div>
+  <div class="dash-leg" style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:12px">${leg}</div>`;
+}
+function dashBarrasTempos(k,dsk){
+  const D=DASH_DEF[k];
+  const calc=t=>dashMedia(dsk.filter(d=>d.dt[t[1]]&&d.dt[t[2]]).map(d=>dashDias(d.dt[t[1]],d.dt[t[2]])));
+  const vals=D.trans.map(t=>({rot:t[0],v:calc(t)})).filter(x=>x.v!==null);
+  if(!vals.length) return '';
+  const max=Math.max(...vals.map(x=>x.v),1);
+  return `<div style="margin-bottom:12px">${vals.map(x=>`
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:5px">
+      <div style="width:200px;text-align:right;font-size:11px">${x.rot}</div>
+      <div style="flex:1;background:#EEF1F6;border-radius:3px"><div style="width:${Math.max(3,100*x.v/max)}%;background:${D.cor};border-radius:3px;height:16px;color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;padding-left:6px;white-space:nowrap">${String(x.v).replace('.',',')} d</div></div>
+    </div>`).join('')}
+  <div class="dash-leg">Média global de cada etapa, em dias.</div></div>`;
+}
+function dashBarrasTipos(ds){
+  const dados=DASH_ORDEM.map(k=>({k,n:ds.filter(d=>d.k===k).length}));
+  const max=Math.max(1,...dados.map(x=>x.n));
+  return `<div class="dash-card"><div class="dash-h">Documentos por Tipo</div>${dados.map(x=>`
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:5px">
+      <div style="width:44px;text-align:right"><span class="dash-pill" style="background:${DASH_DEF[x.k].cor}">${DASH_DEF[x.k].sig}</span></div>
+      <div style="flex:1;background:#EEF1F6;border-radius:3px;cursor:pointer" onclick="dashDrillSet('cel','*','${x.k}')"><div style="width:${Math.max(x.n?3:0,100*x.n/max)}%;background:${DASH_DEF[x.k].cor};border-radius:3px;height:16px;color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;padding-left:6px">${x.n||''}</div></div>
+    </div>`).join('')}
+  <div class="dash-leg">Total de documentos registados por tipo, com os filtros selecionados. Clique numa barra para listar.</div></div>`;
+}
+
 /* ---------- Secções por módulo ---------- */
 function dashSecUtilizacao(k,dsk){
   const D=DASH_DEF[k];
@@ -8271,6 +8487,7 @@ function dashSecUtilizacao(k,dsk){
   }).join('');
   const tot=`<tr class="tot"><td>Total</td><td>${dsk.length}</td><td></td><td>100%</td></tr>`;
   return `<div class="dash-card"><div class="dash-h">1 · Utilização da App — ${D.sig}</div>
+    ${dashChartMensal(dsk,D.cor)}
     <table class="dash-tbl"><thead><tr><th>Obra</th><th>Documentos</th><th style="text-align:left">Peso</th><th>%</th></tr></thead>
     <tbody>${linhas||'<tr><td colspan="4" style="color:var(--text-muted)">Sem documentos no filtro atual.</td></tr>'}${obras.length?tot:''}</tbody></table>
     <div class="dash-leg">Número de ${D.rot} registados na app, por obra, com os filtros selecionados (revisões contam como documentos — são atividade). Clique num valor para listar.</div>
@@ -8293,6 +8510,7 @@ function dashSecEstados(k,dsk){
   }).join('')}<td>${dsk.length}</td></tr>`;
   const leg=ordem.filter(e=>D.estLeg[e]).map(e=>`<b>${EST[e].rot}</b>: ${D.estLeg[e]}`).join(' · ');
   return `<div class="dash-card"><div class="dash-h">2 · Estados dos Documentos — ${D.sig}</div>
+    ${dashBarraEstados(k,dsk)}
     ${obras.length?`<table class="dash-tbl"><thead><tr><th>Obra</th>${ordem.map(e=>`<th>${EST[e].rot}</th>`).join('')}<th>Total</th></tr></thead>
     <tbody>${linhas}${tot}</tbody></table>`:'<div style="color:var(--text-muted)">Sem documentos no filtro atual.</div>'}
     <div class="dash-leg">${leg}${leg?'<br>':''}Fotografia atual: cada documento conta no estado em que se encontra. Clique num valor para listar.</div>
@@ -8313,6 +8531,7 @@ function dashSecTempos(k,dsk){
   }).join('');
   const tot=`<tr class="tot"><td>Média Global</td>${D.trans.map(t=>`<td>${fmt(calc(dsk,t))}</td>`).join('')}</tr>`;
   return `<div class="dash-card"><div class="dash-h">3 · Tempo Médio de Resposta — ${D.sig}</div>
+    ${dashBarrasTempos(k,dsk)}
     ${obras.length?`<table class="dash-tbl"><thead><tr><th>Obra</th>${D.trans.map(t=>`<th>${t[0]}</th>`).join('')}</tr></thead>
     <tbody>${linhas}${tot}</tbody></table>`:'<div style="color:var(--text-muted)">Sem documentos no filtro atual.</div>'}
     <div class="dash-leg">${D.transLeg} Médias em dias; contam apenas os documentos com as duas datas preenchidas.</div>
@@ -8358,6 +8577,7 @@ function dashVisaoGeral(ds){
       ${tile('Documentos Registados',ds.length,'todos os tipos')}
       ${tile('Documento Mais Utilizado',topMod?DASH_DEF[topMod.k].sig:'—',topMod?topMod.n+' registos':'')}
     </div>
+    ${dashBarrasTipos(ds)}
     <div class="dash-card"><div class="dash-h">O Que Ocorreu — Todas as Obras</div>
       <table class="dash-tbl"><thead><tr><th>Obra</th>${DASH_ORDEM.map(k=>`<th>${DASH_DEF[k].sig}</th>`).join('')}<th>Total</th></tr></thead>
       <tbody>${linhasT||'<tr><td colspan="11" style="color:var(--text-muted)">Sem documentos no filtro atual.</td></tr>'}${comAtividade.length?totT:''}</tbody></table>
