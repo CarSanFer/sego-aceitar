@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.10.19.1206</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.10.19.1423</span>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-dash" title="Dashboard PE · PA · PB · QE" onclick="dashAbrir('')">📊 Dashboard</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
@@ -3003,7 +3003,7 @@ async function peNotificar(d,destinos,mensagem,rotulo,cc){
       await emailjs.send(EJS.service, PE_EJS_TEMPLATE, {
         to_email:to,to_name:'',from_name:(currentUser&&currentUser.nome?currentUser.nome:'SEGO'),reply_to:(currentUser&&currentUser.email?currentUser.email:''),pe_id:'PE '+d.id,obra:(peObra()?peObra().nome:d.obraNome),
         assunto:d.assunto||'',estado:peEST(d.estado).rot,
-        mensagem:mensagem+segoAssinatura(true),link:peLink(d),password:'',app_url:peLink(d),role:rotulo,cc:(ccLista.length?ccLista.join(', '):'')});
+        mensagem:gpeEmailHTML(mensagem,peLink(d)),link:peLink(d),password:'',app_url:peLink(d),role:rotulo,cc:(ccLista.length?ccLista.join(', '):'')});
       ok++;
     }catch(e){ console.error('PE notificar falhou:',e); }
   }
@@ -3043,9 +3043,9 @@ async function peAlertarEnviar(grupos,nProj,cc){
       showLoadingOverlay('A enviar alerta… '+esc(lote[0].projDestNome||email));
       const linhas=lote.map(d=>'<div style="margin:0 0 14px 0">&bull; <a href="'+peLink(d)+'"><b>PE '+esc(d.id)+'</b></a> - '+esc(d.assunto||'(sem descrição)')+(d.dataEnvioProj?' (enviado em '+peDataPT(d.dataEnvioProj)+')':'')+'</div>').join('');
       const msg='<div style="margin:18px 24px;font-family:Calibri,Carlito,sans-serif;font-size:14px;color:#111">'+
-        'Solicita-se resposta aos pedidos de esclarecimento pendentes que se resumem abaixo.<br><br>'+
+        segoSaud()+',<br><br>Solicita-se resposta aos pedidos de esclarecimento pendentes que se resumem abaixo.<br><br>'+
         linhas+
-        '<br>Pode aceder a cada Pedido de Esclarecimento clicando no respetivo link acima.'+segoAssinatura(true)+'</div>';
+        '<br>Pode aceder a cada Pedido de Esclarecimento clicando no respetivo link acima.'+gpeContactoNota()+'</div>';
       try{
         await emailjs.send(EJS.service, EJS_TPL_ALERTA, {
           to_email:email,from_name:(currentUser&&currentUser.nome?currentUser.nome:'SEGO'),reply_to:(currentUser&&currentUser.email?currentUser.email:''),
@@ -3142,7 +3142,7 @@ window.peEnviarFisc=async function(){
     peRegistar(d,'Criado e aberto pela Fiscalização — passa a Aberto (sem notificação).');
   }else{
     peRegistar(d,'Enviado à Fiscalização — passa a Aberto.');
-    await peNotificar(d,peEmailsFiscSemCSO(),'Novo Pedido de Esclarecimento '+d.id+' recebido do Empreiteiro.','Fiscalização');
+    await peNotificar(d,peEmailsFiscSemCSO(),'Enviamos o PE '+d.id+' da Obra '+(peObra()?peObra().nome:d.obraNome)+' para o qual solicitamos a v/melhor atenção.','Fiscalização');
   }
   await pePersistir(d); peAbrirFicha(d.id);
 };
@@ -3158,7 +3158,7 @@ async function peConfirmarEnvioProj(projId,coment,cc){
   d.projEspecialidade=(p.especialidades||[]).map(peNomeEsp).join(', ');
   const ccFinal=[...new Set((cc||[]).filter(e=>e&&e!==p.email))];
   peRegistar(d,'Enviado ao Projetista '+p.nome+' — passa a Pendente.'+(coment?' Comentário: '+coment:'')+(ccFinal.length?' Cc: '+ccFinal.join(', ')+'.':''));
-  await peNotificar(d,p.email,'Pedido de Esclarecimento '+d.id+' aguarda o seu esclarecimento.'+(coment?'<br><br><strong style="font-weight:700">Comentário da Fiscalização:</strong> '+esc(coment):''),'Projetista',ccFinal);
+  await peNotificar(d,p.email,'Reencaminhamos o PE '+d.id+' da Obra '+(peObra()?peObra().nome:d.obraNome)+' para o qual solicitamos o v/esclarecimento.'+(coment?'<br><br><strong style="font-weight:700">Comentário da Fiscalização:</strong> '+esc(coment):''),'Projetista',ccFinal);
   await pePersistir(d); peAbrirFicha(d.id);
 }
 window.peSubmeterEsclarecimento=async function(){
@@ -3166,7 +3166,7 @@ window.peSubmeterEsclarecimento=async function(){
   if(!d.esclarecimento){ alert('Preencha o Esclarecimento antes de submeter.'); return; }
   d.autorProj=currentUser?currentUser.nome:''; d.projData=d.projData||peHoje(); d.dataEsclarecido=peHoje(); d.estado='esclarecido';
   peRegistar(d,'Esclarecimento submetido pelo Projetista — passa a Esclarecido.');
-  await peNotificar(d,peEmailsFiscSemCSO(),'Pedido '+d.id+' esclarecido pelo Projetista.','Fiscalização');
+  await peNotificar(d,peEmailsFiscSemCSO(),'Enviamos o PE '+d.id+' da Obra '+(peObra()?peObra().nome:d.obraNome)+' devidamente esclarecido.','Fiscalização');
   await pePersistir(d); peAbrirFicha(d.id);
 };
 window.peResponderEmp=function(){
@@ -3176,7 +3176,7 @@ window.peResponderEmp=function(){
     peLerFormFisc(d);
     d.autorFiscResp=currentUser?currentUser.nome:''; d.dataResposta=d.dataResposta||peHoje(); d.estado='respondido';
     peRegistar(d,'Resposta transmitida ao Empreiteiro — passa a Respondido.');
-    await peNotificar(d,emps.map(x=>x.email),'Pedido '+d.id+' respondido. Reveja e feche ou solicite revisão.','Empreiteiro',cc);
+    await peNotificar(d,emps.map(x=>x.email),'Reencaminhamos o PE '+d.id+' da Obra '+(peObra()?peObra().nome:d.obraNome)+' devidamente esclarecido.','Empreiteiro',cc);
     await pePersistir(d); peAbrirFicha(d.id);
   });
 };
@@ -3666,7 +3666,7 @@ async function paNotificar(d,destinos,mensagem,rotulo,cc){
       await emailjs.send(EJS.service, PE_EJS_TEMPLATE, {
         to_email:to,to_name:'',from_name:(currentUser&&currentUser.nome?currentUser.nome:'SEGO'),reply_to:(currentUser&&currentUser.email?currentUser.email:''),pe_id:'PA '+d.id,obra:(paObra()?paObra().nome:d.obraNome),
         assunto:d.material||'',estado:paEST(d.estado).rot,
-        mensagem:mensagem+segoAssinatura(true),link:paLink(d),password:'',app_url:paLink(d),role:rotulo,cc:(ccLista.length?ccLista.join(', '):'')});
+        mensagem:gpeEmailHTML(mensagem,paLink(d)),link:paLink(d),password:'',app_url:paLink(d),role:rotulo,cc:(ccLista.length?ccLista.join(', '):'')});
       ok++;
     }catch(e){ console.error('PA notificar falhou:',e); }
   }
@@ -3741,7 +3741,7 @@ window.paEnviarFisc=async function(){
   if(!d.especialidade){ alert('Indique a Especialidade.'); return; }
   d.autorEmp=currentUser?currentUser.nome:''; d.estado='aberto'; d.dataEnvio=peHoje();
   paRegistar(d,'Enviado à Fiscalização — passa a Aberto.');
-  await paNotificar(d,paEmailsFiscSemCSO(),'Novo Pedido de Aprovação '+d.id+' recebido do Empreiteiro.','Fiscalização');
+  await paNotificar(d,paEmailsFiscSemCSO(),'Enviamos o PA '+d.id+' da Obra '+(paObra()?paObra().nome:d.obraNome)+' para o qual solicitamos a v/melhor atenção.','Fiscalização');
   await paPersistir(d); paAbrirFicha(d.id);
 };
 async function paConfirmarEnvioProj(projId,coment,cc){
@@ -3755,7 +3755,7 @@ async function paConfirmarEnvioProj(projId,coment,cc){
   d.projDestId=p.id; d.projDestNome=p.nome; d.projDestEmail=p.email;
   const ccFinal=[...new Set((cc||[]).filter(e=>e&&e!==p.email))];
   paRegistar(d,'Enviado ao Projetista '+p.nome+' — passa a Pendente.'+(coment?' Comentário: '+coment:'')+(ccFinal.length?' Cc: '+ccFinal.join(', ')+'.':''));
-  await paNotificar(d,p.email,'Pedido de Aprovação '+d.id+' aguarda o seu parecer.'+(coment?'<br><br><strong style="font-weight:700">Comentário da Fiscalização:</strong> '+esc(coment):''),'Projetista',ccFinal);
+  await paNotificar(d,p.email,'Reencaminhamos o PA '+d.id+' da Obra '+(paObra()?paObra().nome:d.obraNome)+' para o qual solicitamos a v/análise.'+(coment?'<br><br><strong style="font-weight:700">Comentário da Fiscalização:</strong> '+esc(coment):''),'Projetista',ccFinal);
   await paPersistir(d); paAbrirFicha(d.id);
 }
 async function paConfirmarParecerProj(parecer,obs){
@@ -3765,7 +3765,7 @@ async function paConfirmarParecerProj(parecer,obs){
   if(paModalAnexos.length){ d.anexosProj=[...(d.anexosProj||[]),...paModalAnexos]; }
   paRegistar(d,'Parecer do Projetista: '+DEC_PA[parecer].rot+' — passa a Analisado.'+(paModalAnexos.length?' ('+paModalAnexos.length+' anexo'+(paModalAnexos.length>1?'s':'')+')':''));
   paModalAnexos=[];
-  await paNotificar(d,paEmailsFiscSemCSO(),'Pedido '+d.id+' analisado pelo Projetista: '+DEC_PA[parecer].rot+'.','Fiscalização');
+  await paNotificar(d,paEmailsFiscSemCSO(),'Enviamos o PA '+d.id+' da Obra '+(paObra()?paObra().nome:d.obraNome)+' devidamente analisado.','Fiscalização');
   await paPersistir(d); paAbrirFicha(d.id);
 }
 async function paConfirmarDecisao(parecer,obs,direta,cc){
@@ -3776,7 +3776,7 @@ async function paConfirmarDecisao(parecer,obs,direta,cc){
   if(paModalAnexos.length){ d.anexosFisc=[...(d.anexosFisc||[]),...paModalAnexos]; }
   paRegistar(d,(direta?'Aprovação directa pela Fiscalização (sem Projetista): ':'Decisão da Fiscalização: ')+DEC_PA[parecer].rot+' — passa a Respondido.'+(paModalAnexos.length?' ('+paModalAnexos.length+' anexo'+(paModalAnexos.length>1?'s':'')+')':''));
   paModalAnexos=[];
-  await paNotificar(d,paEmails('empreiteiro'),'Pedido '+d.id+': '+DEC_PA[parecer].rot+'. Reveja e feche ou submeta revisão.','Empreiteiro',cc);
+  await paNotificar(d,paEmails('empreiteiro'),'Reencaminhamos o PA '+d.id+' da Obra '+(paObra()?paObra().nome:d.obraNome)+' devidamente analisado.','Empreiteiro',cc);
   await paPersistir(d); paAbrirFicha(d.id);
 }
 window.paFechar=async function(){
@@ -3784,7 +3784,7 @@ window.paFechar=async function(){
   d.estado='fechado'; d.dataFecho=peHoje();
   paRegistar(d,'Fechado pelo Empreiteiro.');
   await paFecharCadeia(d);
-  await paNotificar(d,paEmailsFiscSemCSO(),'Pedido de Aprovação '+d.id+' fechado pelo Empreiteiro.','Fiscalização');
+  await paNotificar(d,paEmailsFiscSemCSO(),'Enviamos o PA '+d.id+' da Obra '+(paObra()?paObra().nome:d.obraNome)+' com o respetivo parecer.','Fiscalização');
   await paPersistir(d); paAbrirFicha(d.id);
 };
 window.paRever=function(){ const d=paFichaAtualDoc(); if(d) paCriarRevisao(d); };
@@ -4082,9 +4082,9 @@ async function paAlertarEnviar(grupos,nProj,cc){
       showLoadingOverlay('A enviar alerta… '+esc(lote[0].projDestNome||email));
       const linhas=lote.map(d=>'<div style="margin:0 0 14px 0">&bull; <a href="'+paLink(d)+'"><b>PA '+esc(d.id)+'</b></a> - '+esc(d.material||'(sem designação)')+(d.dataEnvioProj?' (enviado em '+peDataPT(d.dataEnvioProj)+')':'')+'</div>').join('');
       const msg='<div style="margin:18px 24px;font-family:Calibri,Carlito,sans-serif;font-size:14px;color:#111">'+
-        'Solicita-se parecer aos pedidos de aprovação pendentes que se resumem abaixo.<br><br>'+
+        segoSaud()+',<br><br>Solicita-se parecer aos pedidos de aprovação pendentes que se resumem abaixo.<br><br>'+
         linhas+
-        '<br>Pode aceder a cada Pedido de Aprovação clicando no respetivo link acima.'+segoAssinatura(true)+'</div>';
+        '<br>Pode aceder a cada Pedido de Aprovação clicando no respetivo link acima.'+gpeContactoNota()+'</div>';
       try{
         await emailjs.send(EJS.service, EJS_TPL_ALERTA, {
           to_email:email,from_name:(currentUser&&currentUser.nome?currentUser.nome:'SEGO'),reply_to:(currentUser&&currentUser.email?currentUser.email:''),
@@ -4307,6 +4307,8 @@ function pbUtilsDaObra(role){
 }
 function pbEmails(role){ return pbUtilsDaObra(role).filter(u=>u.email&&!segoEhCSO(u)).map(u=>u.email); }
 function segoSaud(){ const h=new Date().getHours(); return h<13?'Bom dia':(h<20?'Boa tarde':'Boa noite'); }
+function gpeContactoNota(){ return '<p>Se necessário, entre em contacto connosco, respondendo a <a href="mailto:'+(currentUser&&currentUser.email?currentUser.email:'info@aceitar.pt')+'" style="color:#1B4F9B"><b>'+(currentUser&&currentUser.nome?currentUser.nome:'Aceitar Sucessos')+'</b></a>.</p><p style="margin-top:34px;margin-bottom:34px;font-size:11px;color:#777">Email automático da plataforma SEGO — não responda diretamente a esta conta.<br><br>Ao usar "Responder", a mensagem será dirigida a quem enviou a notificação.</p>'; }
+function gpeEmailHTML(texto,link){ const t=String(texto==null?'':texto).replace(/\n/g,'<br>'); return '<div style="font-family:Calibri,Carlito,Arial,sans-serif;font-size:14px;line-height:1.5;color:#333"><p>'+segoSaud()+',</p><p>'+t+'</p>'+(link?'<p>Acesso ao documento: <a href="'+link+'" style="color:#1B4F9B;text-decoration:underline">Abrir Documento</a></p>':'')+gpeContactoNota()+'</div>'; }
 function segoAssinatura(html){ const n=(currentUser&&currentUser.nome)?currentUser.nome:'',e=(currentUser&&currentUser.email)?currentUser.email:''; const t=(n||e)?'Enviado por: '+(n||e)+(n&&e?' ('+e+')':''):''; const a='Email automático da plataforma SEGO — não responda diretamente a esta conta.',b='Ao usar "Responder", a mensagem será dirigida a quem enviou a notificação.'; return html?(t?'<br><br><b>'+t+'</b>':'')+'<br><br><span style="font-size:11px;color:#777">'+a+'<br><br>'+b+'</span>':(t?'\n\n'+t:'')+'\n\n'+a+'\n\n'+b; }
 function segoEhCSO(u){ return /\bcso\b|\btss?t\b|seguran/i.test(String(u.funcao||'')); }
 function pbEmailsFiscSemCSO(){ return pbUtilsDaObra('fiscalizacao').filter(u=>u.email&&!segoEhCSO(u)).map(u=>u.email); }
@@ -4369,7 +4371,7 @@ async function pbNotificar(d,destinos,mensagem,rotulo,cc){
       await emailjs.send(EJS.service, PE_EJS_TEMPLATE, {
         to_email:to,to_name:'',from_name:(currentUser&&currentUser.nome?currentUser.nome:'SEGO'),reply_to:(currentUser&&currentUser.email?currentUser.email:''),pe_id:'PB '+d.id,obra:(pbObra()?pbObra().nome:d.obraNome),
         assunto:d.localizacao||'',estado:pbEST(d.estado).rot,
-        mensagem:mensagem+segoAssinatura(true),link:pbLink(d),password:'',app_url:pbLink(d),role:rotulo,cc:(ccLista.length?ccLista.join(', '):'')});
+        mensagem:gpeEmailHTML(mensagem,pbLink(d)),link:pbLink(d),password:'',app_url:pbLink(d),role:rotulo,cc:(ccLista.length?ccLista.join(', '):'')});
       ok++;
     }catch(e){ console.error('PB notificar falhou:',e); }
   }
@@ -4444,7 +4446,7 @@ window.pbEnviarFisc=async function(){
   if(!d.localizacao&&!d.elementos){ alert('Indique a Localização ou os Elementos a betonar.'); return; }
   d.autorEmp=currentUser?currentUser.nome:''; d.estado='aberto'; d.dataEnvio=peHoje();
   pbRegistar(d,'Enviado à Fiscalização — passa a Aberto.');
-  await pbNotificar(d,pbEmailsFiscSemCSO(),'Novo Pedido de Betonagem '+d.id+' recebido do Empreiteiro.','Fiscalização');
+  await pbNotificar(d,pbEmailsFiscSemCSO(),'Enviamos o PB '+d.id+' da Obra '+(pbObra()?pbObra().nome:d.obraNome)+' para o qual solicitamos a v/melhor atenção.','Fiscalização');
   await pbPersistir(d); pbAbrirFicha(d.id);
 };
 async function pbConfirmarDecisao(decisao,obs,cc){
@@ -4453,11 +4455,11 @@ async function pbConfirmarDecisao(decisao,obs,cc){
   if(decisao==='aprovado'){
     d.estado='fechado'; d.dataFecho=peHoje();
     pbRegistar(d,'Aprovado pela Fiscalização — pedido fechado.');
-    await pbNotificar(d,pbEmails('empreiteiro'),'Pedido de Betonagem '+d.id+': Aprovado.','Empreiteiro',cc);
+    await pbNotificar(d,pbEmails('empreiteiro'),'Enviamos o PB '+d.id+' da Obra '+(pbObra()?pbObra().nome:d.obraNome)+' devidamente analisado e que devem considerar como Aprovado.','Empreiteiro',cc);
     await pbPersistir(d); pbAbrirFicha(d.id);
   }else{
     pbRegistar(d,'Não aprovado pela Fiscalização — gera revisão.');
-    await pbNotificar(d,pbEmails('empreiteiro'),'Pedido de Betonagem '+d.id+': Não Aprovado. Foi criada uma revisão para correcção.','Empreiteiro',cc);
+    await pbNotificar(d,pbEmails('empreiteiro'),'Enviamos o PB '+d.id+' da Obra '+(pbObra()?pbObra().nome:d.obraNome)+' devidamente analisado e que devem considerar como Não Aprovado.\n\nFoi criada uma revisão para correção.','Empreiteiro',cc);
     await pbCriarRevisao(d);
   }
 }
@@ -4846,7 +4848,7 @@ async function ptqNotificar(d,destinos,mensagem,rotulo){
     try{
       await emailjs.send(EJS.service, PE_EJS_TEMPLATE, {
         to_email:to,to_name:'',from_name:(currentUser&&currentUser.nome?currentUser.nome:'SEGO'),reply_to:(currentUser&&currentUser.email?currentUser.email:''),pe_id:'PTQ '+d.id,obra:(ptqObra()?ptqObra().nome:d.obraNome),
-        assunto:d.periodo||'',estado:ptqEST(d.estado).rot,mensagem:mensagem+segoAssinatura(true),link:ptqLink(d),password:'',app_url:ptqLink(d),role:rotulo});
+        assunto:d.periodo||'',estado:ptqEST(d.estado).rot,mensagem:gpeEmailHTML(mensagem,ptqLink(d)),link:ptqLink(d),password:'',app_url:ptqLink(d),role:rotulo});
       ok++;
     }catch(e){ console.error('PTQ notificar falhou:',e); }
   }
@@ -4981,7 +4983,7 @@ window.ptqEnviar=async function(){
   if(!comAtiv.length){ alert('Preencha pelo menos uma actividade com descrição e localização.'); return; }
   d.autorEmp=currentUser?currentUser.nome:''; d.estado='enviado'; d.dataEnvio=peHoje();
   ptqRegistar(d,'Plano enviado à Fiscalização — passa a Enviado.');
-  await ptqNotificar(d,ptqEmails('fiscalizacao'),'Plano Quinzenal '+d.id+' ('+d.periodo+', semanas '+d.semanas+') enviado pelo Empreiteiro.','Fiscalização');
+  await ptqNotificar(d,ptqEmails('fiscalizacao'),'Enviamos o PTQ '+d.id+' da Obra '+(ptqObra()?ptqObra().nome:d.obraNome)+' para o qual solicitamos a v/melhor atenção.','Fiscalização');
   await ptqPersistir(d); ptqAbrirFicha(d.id);
 };
 
@@ -5266,7 +5268,7 @@ async function qeNotificar(d,destinos,mensagem,rotulo){
       await emailjs.send(EJS.service, PE_EJS_TEMPLATE, {
         to_email:to,to_name:'',from_name:(currentUser&&currentUser.nome?currentUser.nome:'SEGO'),reply_to:(currentUser&&currentUser.email?currentUser.email:''),pe_id:'QE '+d.id,obra:(qeObra()?qeObra().nome:d.obraNome),
         assunto:(d.descricao||'').slice(0,80),estado:qeEST(d.estado).rot,
-        mensagem:mensagem+segoAssinatura(true),link:qeLink(d),password:'',app_url:qeLink(d),role:rotulo});
+        mensagem:gpeEmailHTML(mensagem,qeLink(d)),link:qeLink(d),password:'',app_url:qeLink(d),role:rotulo});
       ok++;
     }catch(e){ console.error('QE notificar falhou:',e); }
   }
@@ -5301,7 +5303,7 @@ async function qeCriarRevisao(doc,motivo){
   qeRegistar(nova,'Revisão criada a partir de '+doc.id+' (motivo: '+motivo+'). Enviada ao Empreiteiro.');
   qeDocs.unshift(nova);
   await qePersistir(doc); await qePersistir(nova);
-  await qeNotificar(nova,qeEmailsComDO('empreiteiro'),'QE '+doc.id+' não aceite ('+motivo+'). Revisão '+nova.id+' aguarda nova correção do Empreiteiro.','Empreiteiro');
+  await qeNotificar(nova,qeEmailsComDO('empreiteiro'),'Enviamos a QE '+doc.id+' da Obra '+(qeObra()?qeObra().nome:doc.obraNome)+' devidamente analisada, cuja correção não se aceita.\n\nFicamos a aguardar a respetiva correção.','Empreiteiro');
   await qePersistir(nova);
   qeAbrirFicha(nova.id);
   alert('Correção não aceite. Revisão '+nova.id+' criada e enviada ao Empreiteiro.');
@@ -5341,7 +5343,7 @@ window.qeEnviarEmp=async function(){
   if(!d.descricao){ alert('Descreva a falta de Qualidade de Execução.'); return; }
   d.autorFisc=currentUser?currentUser.nome:''; d.estado='pendente'; d.dataEnvio=peHoje();
   qeRegistar(d,'Enviado ao Empreiteiro — passa a Pendente.');
-  await qeNotificar(d,qeEmailsComDO('empreiteiro'),'Nova Qualidade de Execução '+d.id+' recebida da Fiscalização. Aguarda a resposta do Empreiteiro.','Empreiteiro');
+  await qeNotificar(d,qeEmailsComDO('empreiteiro'),'Enviamos a QE '+d.id+' da Obra '+(qeObra()?qeObra().nome:d.obraNome)+' para a qual solicitamos a v/melhor atenção.','Empreiteiro');
   await qePersistir(d); qeAbrirFicha(d.id);
 };
 window.qeSubmeterResposta=async function(){
@@ -5349,7 +5351,7 @@ window.qeSubmeterResposta=async function(){
   if(!d.correcao){ alert('Descreva a Correção Efetuada.'); return; }
   d.autorEmp=currentUser?currentUser.nome:''; d.estado='respondido'; d.dataResposta=peHoje();
   qeRegistar(d,'Resposta submetida pelo Empreiteiro — passa a Respondido.');
-  await qeNotificar(d,qeEmailsFiscSemCSOComDO(),'QE '+d.id+' respondida pelo Empreiteiro. Aguarda parecer da Fiscalização.','Fiscalização');
+  await qeNotificar(d,qeEmailsFiscSemCSOComDO(),'Enviamos a QE '+d.id+' da Obra '+(qeObra()?qeObra().nome:d.obraNome)+' devidamente analisada, ficando a aguardar o v/parecer.','Fiscalização');
   await qePersistir(d); qeAbrirFicha(d.id);
 };
 async function qeConfirmarParecer(parecer,obs){
@@ -5359,7 +5361,7 @@ async function qeConfirmarParecer(parecer,obs){
     d.estado='fechado'; d.dataFecho=peHoje();
     qeRegistar(d,'Correção aceite pela Fiscalização — processo fechado.');
     await qeFecharCadeia(d);
-    await qeNotificar(d,qeEmailsComDO('empreiteiro'),'QE '+d.id+': Correção Aceite. Processo fechado.','Empreiteiro');
+    await qeNotificar(d,qeEmailsComDO('empreiteiro'),'Enviamos a QE '+d.id+' da Obra '+(qeObra()?qeObra().nome:d.obraNome)+' devidamente analisada, cuja correção aceitamos.','Empreiteiro');
     await qePersistir(d); qeAbrirFicha(d.id);
   }else{
     if(!obs){ alert('Indique o motivo da não aceitação.'); return; }
@@ -6416,7 +6418,7 @@ async function amNotificar(d,destinos,mensagem,rotulo){
       await emailjs.send(EJS.service, PE_EJS_TEMPLATE, {
         to_email:to,to_name:'',from_name:(currentUser&&currentUser.nome?currentUser.nome:'SEGO'),reply_to:(currentUser&&currentUser.email?currentUser.email:''),pe_id:'AM '+d.id,obra:(amObra()?amObra().nome:d.obra_nome),
         assunto:'Auto Mensal — '+(d.mes_ref||''),estado:amEST(d.estado).rot,
-        mensagem:mensagem+segoAssinatura(true),link:amLink(d),password:'',app_url:amLink(d),role:rotulo});
+        mensagem:gpeEmailHTML(mensagem,amLink(d)),link:amLink(d),password:'',app_url:amLink(d),role:rotulo});
       ok++;
     }catch(e){ console.error('AM notificar falhou:',e); }
   }
@@ -6429,7 +6431,7 @@ window.amEnviar=async function(){
   d.medicoes=JSON.parse(JSON.stringify(amFichaMed));
   d.estado='enviado'; d.data_envio=peHoje();
   amRegistar(d,'Enviado à Fiscalização — aguarda verificação.');
-  await amNotificar(d,amEmailsFiscSemCSO(),'Auto Mensal '+d.id+' ('+(d.mes_ref||'')+') enviado pelo Empreiteiro — aguarda a sua verificação.','Fiscalização');
+  await amNotificar(d,amEmailsFiscSemCSO(),'Enviamos o AM '+d.id+' da Obra '+(amObra()?amObra().nome:d.obra_nome)+' para o qual solicitamos a v/melhor atenção.','Fiscalização');
   try{ await amPersistir(d); }catch(e){ alert('Erro ao gravar: '+e.message); }
   render();
 };
@@ -6468,7 +6470,7 @@ window.amConcluirVerif=async function(){
   d.estado='revisto'; d.next_id=novo.id;
   amRegistar(d,'Verificação concluída — substituído pela revisão '+novo.id+'.');
   amDocs.unshift(novo);
-  await amNotificar(novo,amEmails('dono_obra'),'Auto Mensal '+novo.id+' ('+(novo.mes_ref||'')+') verificado pela Fiscalização — aguarda a sua aprovação.','Dono de Obra');
+  await amNotificar(novo,amEmails('dono_obra'),'Enviamos o AM '+novo.id+' da Obra '+(amObra()?amObra().nome:novo.obra_nome)+' devidamente verificado e para o qual solicitamos a v/aprovação.','Dono de Obra');
   const o=amObra();
   try{
     await amPersistir(novo);
@@ -6491,7 +6493,7 @@ window.amAprovarDO=async function(){
     if(!confirm('Aprovar o Auto '+d.id+'?')) return;
     d.estado='aprovado'; d.data_aprovacao=peHoje(); d.autor_do=(currentUser?currentUser.nome:'');
     amRegistar(d,'Aprovado pelo Dono de Obra — aguarda reencaminhamento pela Fiscalização.');
-    await amNotificar(d,amEmailsFiscSemCSO(),'Auto Mensal '+d.id+' ('+(d.mes_ref||'')+') aprovado pelo Dono de Obra — reencaminhe ao Empreiteiro para concordância.','Fiscalização');
+    await amNotificar(d,amEmailsFiscSemCSO(),'Enviamos o AM '+d.id+' da Obra '+(amObra()?amObra().nome:d.obra_nome)+' devidamente analisado pelo Dono de Obra.','Fiscalização');
     try{ await amPersistir(d); }catch(e){ alert('Erro ao gravar: '+e.message); }
     render(); return;
   }
@@ -6505,7 +6507,7 @@ window.amAprovarDO=async function(){
   d.estado='revisto'; d.next_id=novo.id;
   amRegistar(d,'Aprovação do Dono de Obra com alterações — substituído pela revisão '+novo.id+'.');
   amDocs.unshift(novo);
-  await amNotificar(novo,amEmailsFiscSemCSO(),'Auto Mensal '+novo.id+' ('+(novo.mes_ref||'')+') aprovado pelo Dono de Obra com '+nAlt+' alteração(ões) — reencaminhe ao Empreiteiro para concordância.','Fiscalização');
+  await amNotificar(novo,amEmailsFiscSemCSO(),'Enviamos o AM '+novo.id+' da Obra '+(amObra()?amObra().nome:novo.obra_nome)+' devidamente analisado pelo Dono de Obra.','Fiscalização');
   const o=amObra();
   try{
     await amPersistir(novo);
@@ -6518,7 +6520,7 @@ window.amReencaminhar=async function(){
   if(!confirm('Reencaminhar o Auto '+d.id+' ao Empreiteiro para concordância?')) return;
   d.estado='concordancia';
   amRegistar(d,'Reencaminhado pela Fiscalização ao Empreiteiro — aguarda concordância.');
-  await amNotificar(d,amEmails('empreiteiro'),'Auto Mensal '+d.id+' ('+(d.mes_ref||'')+') aprovado pelo Dono de Obra. Reveja: concorde e feche, ou registe a não concordância.','Empreiteiro');
+  await amNotificar(d,amEmails('empreiteiro'),'Enviamos o AM '+d.id+' da Obra '+(amObra()?amObra().nome:d.obra_nome)+' devidamente analisado pelo Dono de Obra e Fiscalização.\n\nDeverá concordar e fechar o AM, ou registar a não concordância, abrindo uma revisão.','Empreiteiro');
   try{ await amPersistir(d); }catch(e){ alert('Erro ao gravar: '+e.message); }
   render();
 };
@@ -6527,7 +6529,7 @@ window.amFecharAM=async function(){
   if(!confirm('Concordar com o Auto '+d.id+' e fechar? O ciclo deste Auto termina aqui.')) return;
   d.estado='fechado'; d.data_fecho=peHoje();
   amRegistar(d,'Empreiteiro concordou — Auto fechado.');
-  await amNotificar(d,amEmailsFiscSemCSO(),'Auto Mensal '+d.id+' ('+(d.mes_ref||'')+'): o Empreiteiro concordou — Auto fechado.','Fiscalização');
+  await amNotificar(d,amEmailsFiscSemCSO(),'O Empreiteiro concordou com a análise ao AM '+d.id+' da Obra '+(amObra()?amObra().nome:d.obra_nome)+' e fechou o processo.','Fiscalização');
   try{ await amPersistir(d); }catch(e){ alert('Erro ao gravar: '+e.message); }
   render();
 };
@@ -6542,7 +6544,7 @@ window.amSolicitarRevisao=async function(){
   d.estado='revisto'; d.next_id=novo.id;
   amRegistar(d,'Empreiteiro não concordou — substituído pela revisão '+novo.id+'.');
   amDocs.unshift(novo);
-  await amNotificar(novo,amEmailsFiscSemCSO(),'Auto Mensal '+d.id+' ('+(d.mes_ref||'')+'): o Empreiteiro não concordou — foi criada a revisão '+novo.id+' para correção, que será reenviada à Fiscalização.','Fiscalização');
+  await amNotificar(novo,amEmailsFiscSemCSO(),'O Empreiteiro não concordou com a análise ao AM '+d.id+' da Obra '+(amObra()?amObra().nome:d.obra_nome)+', pelo que foi criada uma revisão do mesmo.','Fiscalização');
   const o=amObra();
   try{
     await amPersistir(novo);
