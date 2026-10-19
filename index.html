@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.10.19.1132</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.10.19.1159</span>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-dash" title="Dashboard PE · PA · PB · QE" onclick="dashAbrir('')">📊 Dashboard</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
@@ -2386,7 +2386,7 @@ window.abrirPublicar=function(relId){
   const opcionais=people.filter(u=>!(u.role==='dono_obra'||u.role==='empreiteiro')||segoEhCSO(u));
   const link=location.origin+'/?doc='+encodeURIComponent(relId);
   const obraTxt=((o.sigla?o.sigla+' — ':'')+(o.nome||'')).trim();
-  const defMsg='Foi disponibilizado o '+_sigla+' '+relNumero(rel)+' | '+obraTxt+'.';
+  const defMsg='Disponibiliza-se o '+_sigla+' '+relNumero(rel)+' da Obra '+obraTxt+', cujo link de acesso é:';
   const obrigHtml=obrig.length?obrig.map(u=>`<div style="padding:4px 0;font-size:13px"><b>${u.nome||u.email}</b> <span style="color:var(--text-muted)">· ${roleL[u.role]} · ${u.email}</span></div>`).join(''):'<div style="font-size:12px;color:var(--danger)">— sem Dono de Obra / Empreiteiro com email nesta obra (verifique o SID) —</div>';
   const opts=opcionais.length?opcionais.map(u=>`<label style="display:flex;gap:8px;align-items:center;padding:5px 0"><input type="checkbox" class="pub-cb" value="${u.email}" data-nome="${(u.nome||'').replace(/"/g,'')}"><span style="font-size:13px">${u.nome||u.email} <span style="color:var(--text-muted)">· ${roleL[u.role]}${segoEhCSO(u)?' · CSO':''} · ${u.email}</span></span></label>`).join(''):'<div style="font-size:12px;color:var(--text-muted)">Sem outros intervenientes com email nesta obra.</div>';
   showModal('Publicar e enviar — '+_sigla+' '+relNumero(rel),`
@@ -2428,14 +2428,14 @@ window.publicarEnviar=async function(relId){
     if(!window.emailjs){ emailErr='EmailJS não carregou (window.emailjs indefinido).'; }
     if(window.emailjs && dest.length){
       try{
-        const _msgEsc=String((msg||'')+segoAssinatura(false)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+        const _msgEsc=String(msg||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
         const _linkHTML='<a href="'+link+'" style="color:#1B4F9B;text-decoration:underline">Abrir documento</a>';
-        const _msgHTML='<div style="font-family:Calibri,Arial,sans-serif;font-size:14px;line-height:1.5;color:#333"><p>'+_msgEsc+'</p><p style="margin-top:16px"><strong>Acesso ao documento:</strong> '+_linkHTML+'</p></div>';
+        const _msgHTML='<div style="font-family:Calibri,Carlito,Arial,sans-serif;font-size:14px;line-height:1.5;color:#333">'+'<p>'+segoSaud()+',</p>'+'<p>'+_msgEsc+' '+_linkHTML+'</p>'+'<p>Se necessário, entre em contacto connosco, respondendo a <a href="mailto:'+(currentUser&&currentUser.email?currentUser.email:'info@aceitar.pt')+'" style="color:#1B4F9B"><b>'+(currentUser&&currentUser.nome?currentUser.nome:'Aceitar Sucessos')+'</b></a>.</p>'+'<p style="margin-top:34px;font-size:11px;color:#777">Email automático da plataforma SEGO — não responda diretamente a esta conta.<br><br>Ao usar "Responder", a mensagem será dirigida a quem enviou a notificação.</p>'+'</div>';
         const _toEmail=dest.map(d=>d.email).join(',');
         const _toName=dest.map(d=>d.nome||d.email).join(', ');
         const _fromName=(currentUser&&currentUser.nome)?currentUser.nome:'CSO / Aceitar';
         const _replyTo=(currentUser&&currentUser.email)?currentUser.email:'info@aceitar.pt';
-        await emailjs.send(EJS.service, EJS_TPL_RVT, {to_email:_toEmail,to_name:_toName,from_name:_fromName,reply_to:_replyTo,obra_nome:obraTxt,rvt_ref:_sigla+' '+relNumero(rel),doc_link:link,doc_link_html:_linkHTML,mensagem:msg+segoAssinatura(false),mensagem_html:_msgHTML,doc_tipo:_sigla});
+        await emailjs.send(EJS.service, EJS_TPL_RVT, {to_email:_toEmail,to_name:_toName,from_name:_fromName,reply_to:_replyTo,obra_nome:obraTxt,rvt_ref:_sigla+' '+relNumero(rel),doc_link:link,doc_link_html:_linkHTML,mensagem:msg,mensagem_html:_msgHTML,doc_tipo:_sigla});
         okEmail=true;
       }catch(e){ console.error('EmailJS falhou:',e); emailErr=(e&&(e.text||e.message))||(typeof e==='string'?e:JSON.stringify(e)); }
     }
@@ -2498,14 +2498,14 @@ window.reenviarEnviar=async function(relId){
     if(!window.emailjs){ emailErr='EmailJS não carregou (window.emailjs indefinido).'; }
     if(window.emailjs && dest.length){
       try{
-        const _msgEsc=String((msg||'')+segoAssinatura(false)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+        const _msgEsc=String(msg||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
         const _linkHTML='<a href="'+link+'" style="color:#1B4F9B;text-decoration:underline">Abrir documento</a>';
-        const _msgHTML='<div style="font-family:Calibri,Arial,sans-serif;font-size:14px;line-height:1.5;color:#333"><p>'+_msgEsc+'</p><p style="margin-top:16px"><strong>Acesso ao documento:</strong> '+_linkHTML+'</p></div>';
+        const _msgHTML='<div style="font-family:Calibri,Carlito,Arial,sans-serif;font-size:14px;line-height:1.5;color:#333">'+'<p>'+segoSaud()+',</p>'+'<p>'+_msgEsc+' '+_linkHTML+'</p>'+'<p>Se necessário, entre em contacto connosco, respondendo a <a href="mailto:'+(currentUser&&currentUser.email?currentUser.email:'info@aceitar.pt')+'" style="color:#1B4F9B"><b>'+(currentUser&&currentUser.nome?currentUser.nome:'Aceitar Sucessos')+'</b></a>.</p>'+'<p style="margin-top:34px;font-size:11px;color:#777">Email automático da plataforma SEGO — não responda diretamente a esta conta.<br><br>Ao usar "Responder", a mensagem será dirigida a quem enviou a notificação.</p>'+'</div>';
         const _toEmail=dest.map(d=>d.email).join(',');
         const _toName=dest.map(d=>d.nome||d.email).join(', ');
         const _fromName=(currentUser&&currentUser.nome)?currentUser.nome:'CSO / Aceitar';
         const _replyTo=(currentUser&&currentUser.email)?currentUser.email:'info@aceitar.pt';
-        await emailjs.send(EJS.service, EJS_TPL_RVT, {to_email:_toEmail,to_name:_toName,from_name:_fromName,reply_to:_replyTo,obra_nome:obraTxt,rvt_ref:_sigla+' '+relNumero(rel),doc_link:link,doc_link_html:_linkHTML,mensagem:msg+segoAssinatura(false),mensagem_html:_msgHTML,doc_tipo:_sigla});
+        await emailjs.send(EJS.service, EJS_TPL_RVT, {to_email:_toEmail,to_name:_toName,from_name:_fromName,reply_to:_replyTo,obra_nome:obraTxt,rvt_ref:_sigla+' '+relNumero(rel),doc_link:link,doc_link_html:_linkHTML,mensagem:msg,mensagem_html:_msgHTML,doc_tipo:_sigla});
         okEmail=true;
       }catch(e){ emailErr=e.message||String(e); }
     }
@@ -4306,6 +4306,7 @@ function pbUtilsDaObra(role){
   return [...m.values()];
 }
 function pbEmails(role){ return pbUtilsDaObra(role).filter(u=>u.email&&!segoEhCSO(u)).map(u=>u.email); }
+function segoSaud(){ const h=new Date().getHours(); return h<13?'Bom dia':(h<20?'Boa tarde':'Boa noite'); }
 function segoAssinatura(html){ const n=(currentUser&&currentUser.nome)?currentUser.nome:'',e=(currentUser&&currentUser.email)?currentUser.email:''; const t=(n||e)?'Enviado por: '+(n||e)+(n&&e?' ('+e+')':''):''; const a='Email automático da plataforma SEGO — não responda diretamente a esta conta.',b='Ao usar "Responder", a mensagem será dirigida a quem enviou a notificação.'; return html?(t?'<br><br><b>'+t+'</b>':'')+'<br><br><span style="font-size:11px;color:#777">'+a+'<br><br>'+b+'</span>':(t?'\n\n'+t:'')+'\n\n'+a+'\n\n'+b; }
 function segoEhCSO(u){ return /\bcso\b|\btss?t\b|seguran/i.test(String(u.funcao||'')); }
 function pbEmailsFiscSemCSO(){ return pbUtilsDaObra('fiscalizacao').filter(u=>u.email&&!segoEhCSO(u)).map(u=>u.email); }
