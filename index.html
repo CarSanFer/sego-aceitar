@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.10.19.0844</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.10.19.1132</span>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-dash" title="Dashboard PE · PA · PB · QE" onclick="dashAbrir('')">📊 Dashboard</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
@@ -757,7 +757,7 @@ function hashPwd(pwd){
 }
 
 // EmailJS config
-const EJS={service:'service_2u3z5y5',template:'template_8e782pq',pubkey:'BiTbyfz5BTSKgyq0P'};
+const EJS={service:'service_66t6wsn',template:'template_8e782pq',pubkey:'BiTbyfz5BTSKgyq0P'};
 const EJS_TPL_RVT='template_ohytgg4'; // Template ID real do EmailJS (nome: template_rvt_pub)
 function initEmailJS(){ if(window.emailjs) emailjs.init({publicKey:EJS.pubkey}); }
 
@@ -2428,14 +2428,14 @@ window.publicarEnviar=async function(relId){
     if(!window.emailjs){ emailErr='EmailJS não carregou (window.emailjs indefinido).'; }
     if(window.emailjs && dest.length){
       try{
-        const _msgEsc=String(msg||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+        const _msgEsc=String((msg||'')+segoAssinatura(false)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
         const _linkHTML='<a href="'+link+'" style="color:#1B4F9B;text-decoration:underline">Abrir documento</a>';
         const _msgHTML='<div style="font-family:Calibri,Arial,sans-serif;font-size:14px;line-height:1.5;color:#333"><p>'+_msgEsc+'</p><p style="margin-top:16px"><strong>Acesso ao documento:</strong> '+_linkHTML+'</p></div>';
         const _toEmail=dest.map(d=>d.email).join(',');
         const _toName=dest.map(d=>d.nome||d.email).join(', ');
         const _fromName=(currentUser&&currentUser.nome)?currentUser.nome:'CSO / Aceitar';
         const _replyTo=(currentUser&&currentUser.email)?currentUser.email:'info@aceitar.pt';
-        await emailjs.send(EJS.service, EJS_TPL_RVT, {to_email:_toEmail,to_name:_toName,from_name:_fromName,reply_to:_replyTo,obra_nome:obraTxt,rvt_ref:_sigla+' '+relNumero(rel),doc_link:link,doc_link_html:_linkHTML,mensagem:msg,mensagem_html:_msgHTML,doc_tipo:_sigla});
+        await emailjs.send(EJS.service, EJS_TPL_RVT, {to_email:_toEmail,to_name:_toName,from_name:_fromName,reply_to:_replyTo,obra_nome:obraTxt,rvt_ref:_sigla+' '+relNumero(rel),doc_link:link,doc_link_html:_linkHTML,mensagem:msg+segoAssinatura(false),mensagem_html:_msgHTML,doc_tipo:_sigla});
         okEmail=true;
       }catch(e){ console.error('EmailJS falhou:',e); emailErr=(e&&(e.text||e.message))||(typeof e==='string'?e:JSON.stringify(e)); }
     }
@@ -2498,14 +2498,14 @@ window.reenviarEnviar=async function(relId){
     if(!window.emailjs){ emailErr='EmailJS não carregou (window.emailjs indefinido).'; }
     if(window.emailjs && dest.length){
       try{
-        const _msgEsc=String(msg||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+        const _msgEsc=String((msg||'')+segoAssinatura(false)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
         const _linkHTML='<a href="'+link+'" style="color:#1B4F9B;text-decoration:underline">Abrir documento</a>';
         const _msgHTML='<div style="font-family:Calibri,Arial,sans-serif;font-size:14px;line-height:1.5;color:#333"><p>'+_msgEsc+'</p><p style="margin-top:16px"><strong>Acesso ao documento:</strong> '+_linkHTML+'</p></div>';
         const _toEmail=dest.map(d=>d.email).join(',');
         const _toName=dest.map(d=>d.nome||d.email).join(', ');
         const _fromName=(currentUser&&currentUser.nome)?currentUser.nome:'CSO / Aceitar';
         const _replyTo=(currentUser&&currentUser.email)?currentUser.email:'info@aceitar.pt';
-        await emailjs.send(EJS.service, EJS_TPL_RVT, {to_email:_toEmail,to_name:_toName,from_name:_fromName,reply_to:_replyTo,obra_nome:obraTxt,rvt_ref:_sigla+' '+relNumero(rel),doc_link:link,doc_link_html:_linkHTML,mensagem:msg,mensagem_html:_msgHTML,doc_tipo:_sigla});
+        await emailjs.send(EJS.service, EJS_TPL_RVT, {to_email:_toEmail,to_name:_toName,from_name:_fromName,reply_to:_replyTo,obra_nome:obraTxt,rvt_ref:_sigla+' '+relNumero(rel),doc_link:link,doc_link_html:_linkHTML,mensagem:msg+segoAssinatura(false),mensagem_html:_msgHTML,doc_tipo:_sigla});
         okEmail=true;
       }catch(e){ emailErr=e.message||String(e); }
     }
@@ -3003,7 +3003,7 @@ async function peNotificar(d,destinos,mensagem,rotulo,cc){
       await emailjs.send(EJS.service, PE_EJS_TEMPLATE, {
         to_email:to,to_name:'',from_name:(currentUser&&currentUser.nome?currentUser.nome:'SEGO'),reply_to:(currentUser&&currentUser.email?currentUser.email:''),pe_id:'PE '+d.id,obra:(peObra()?peObra().nome:d.obraNome),
         assunto:d.assunto||'',estado:peEST(d.estado).rot,
-        mensagem,link:peLink(d),password:'',app_url:peLink(d),role:rotulo,cc:(ccLista.length?ccLista.join(', '):'')});
+        mensagem:mensagem+segoAssinatura(true),link:peLink(d),password:'',app_url:peLink(d),role:rotulo,cc:(ccLista.length?ccLista.join(', '):'')});
       ok++;
     }catch(e){ console.error('PE notificar falhou:',e); }
   }
@@ -3045,7 +3045,7 @@ async function peAlertarEnviar(grupos,nProj,cc){
       const msg='<div style="margin:18px 24px;font-family:Calibri,Carlito,sans-serif;font-size:14px;color:#111">'+
         'Solicita-se resposta aos pedidos de esclarecimento pendentes que se resumem abaixo.<br><br>'+
         linhas+
-        '<br>Pode aceder a cada Pedido de Esclarecimento clicando no respetivo link acima.</div>';
+        '<br>Pode aceder a cada Pedido de Esclarecimento clicando no respetivo link acima.'+segoAssinatura(true)+'</div>';
       try{
         await emailjs.send(EJS.service, EJS_TPL_ALERTA, {
           to_email:email,from_name:(currentUser&&currentUser.nome?currentUser.nome:'SEGO'),reply_to:(currentUser&&currentUser.email?currentUser.email:''),
@@ -3666,7 +3666,7 @@ async function paNotificar(d,destinos,mensagem,rotulo,cc){
       await emailjs.send(EJS.service, PE_EJS_TEMPLATE, {
         to_email:to,to_name:'',from_name:(currentUser&&currentUser.nome?currentUser.nome:'SEGO'),reply_to:(currentUser&&currentUser.email?currentUser.email:''),pe_id:'PA '+d.id,obra:(paObra()?paObra().nome:d.obraNome),
         assunto:d.material||'',estado:paEST(d.estado).rot,
-        mensagem,link:paLink(d),password:'',app_url:paLink(d),role:rotulo,cc:(ccLista.length?ccLista.join(', '):'')});
+        mensagem:mensagem+segoAssinatura(true),link:paLink(d),password:'',app_url:paLink(d),role:rotulo,cc:(ccLista.length?ccLista.join(', '):'')});
       ok++;
     }catch(e){ console.error('PA notificar falhou:',e); }
   }
@@ -4084,7 +4084,7 @@ async function paAlertarEnviar(grupos,nProj,cc){
       const msg='<div style="margin:18px 24px;font-family:Calibri,Carlito,sans-serif;font-size:14px;color:#111">'+
         'Solicita-se parecer aos pedidos de aprovação pendentes que se resumem abaixo.<br><br>'+
         linhas+
-        '<br>Pode aceder a cada Pedido de Aprovação clicando no respetivo link acima.</div>';
+        '<br>Pode aceder a cada Pedido de Aprovação clicando no respetivo link acima.'+segoAssinatura(true)+'</div>';
       try{
         await emailjs.send(EJS.service, EJS_TPL_ALERTA, {
           to_email:email,from_name:(currentUser&&currentUser.nome?currentUser.nome:'SEGO'),reply_to:(currentUser&&currentUser.email?currentUser.email:''),
@@ -4306,6 +4306,7 @@ function pbUtilsDaObra(role){
   return [...m.values()];
 }
 function pbEmails(role){ return pbUtilsDaObra(role).filter(u=>u.email&&!segoEhCSO(u)).map(u=>u.email); }
+function segoAssinatura(html){ const n=(currentUser&&currentUser.nome)?currentUser.nome:'',e=(currentUser&&currentUser.email)?currentUser.email:''; const t=(n||e)?'Enviado por: '+(n||e)+(n&&e?' ('+e+')':''):''; const a='Email automático da plataforma SEGO — não responda diretamente a esta conta.',b='Ao usar "Responder", a mensagem será dirigida a quem enviou a notificação.'; return html?(t?'<br><br><b>'+t+'</b>':'')+'<br><br><span style="font-size:11px;color:#777">'+a+'<br><br>'+b+'</span>':(t?'\n\n'+t:'')+'\n\n'+a+'\n\n'+b; }
 function segoEhCSO(u){ return /\bcso\b|\btss?t\b|seguran/i.test(String(u.funcao||'')); }
 function pbEmailsFiscSemCSO(){ return pbUtilsDaObra('fiscalizacao').filter(u=>u.email&&!segoEhCSO(u)).map(u=>u.email); }
 function pbEquipaDaObra(){
@@ -4367,7 +4368,7 @@ async function pbNotificar(d,destinos,mensagem,rotulo,cc){
       await emailjs.send(EJS.service, PE_EJS_TEMPLATE, {
         to_email:to,to_name:'',from_name:(currentUser&&currentUser.nome?currentUser.nome:'SEGO'),reply_to:(currentUser&&currentUser.email?currentUser.email:''),pe_id:'PB '+d.id,obra:(pbObra()?pbObra().nome:d.obraNome),
         assunto:d.localizacao||'',estado:pbEST(d.estado).rot,
-        mensagem,link:pbLink(d),password:'',app_url:pbLink(d),role:rotulo,cc:(ccLista.length?ccLista.join(', '):'')});
+        mensagem:mensagem+segoAssinatura(true),link:pbLink(d),password:'',app_url:pbLink(d),role:rotulo,cc:(ccLista.length?ccLista.join(', '):'')});
       ok++;
     }catch(e){ console.error('PB notificar falhou:',e); }
   }
@@ -4844,7 +4845,7 @@ async function ptqNotificar(d,destinos,mensagem,rotulo){
     try{
       await emailjs.send(EJS.service, PE_EJS_TEMPLATE, {
         to_email:to,to_name:'',from_name:(currentUser&&currentUser.nome?currentUser.nome:'SEGO'),reply_to:(currentUser&&currentUser.email?currentUser.email:''),pe_id:'PTQ '+d.id,obra:(ptqObra()?ptqObra().nome:d.obraNome),
-        assunto:d.periodo||'',estado:ptqEST(d.estado).rot,mensagem,link:ptqLink(d),password:'',app_url:ptqLink(d),role:rotulo});
+        assunto:d.periodo||'',estado:ptqEST(d.estado).rot,mensagem:mensagem+segoAssinatura(true),link:ptqLink(d),password:'',app_url:ptqLink(d),role:rotulo});
       ok++;
     }catch(e){ console.error('PTQ notificar falhou:',e); }
   }
@@ -5264,7 +5265,7 @@ async function qeNotificar(d,destinos,mensagem,rotulo){
       await emailjs.send(EJS.service, PE_EJS_TEMPLATE, {
         to_email:to,to_name:'',from_name:(currentUser&&currentUser.nome?currentUser.nome:'SEGO'),reply_to:(currentUser&&currentUser.email?currentUser.email:''),pe_id:'QE '+d.id,obra:(qeObra()?qeObra().nome:d.obraNome),
         assunto:(d.descricao||'').slice(0,80),estado:qeEST(d.estado).rot,
-        mensagem,link:qeLink(d),password:'',app_url:qeLink(d),role:rotulo});
+        mensagem:mensagem+segoAssinatura(true),link:qeLink(d),password:'',app_url:qeLink(d),role:rotulo});
       ok++;
     }catch(e){ console.error('QE notificar falhou:',e); }
   }
@@ -6414,7 +6415,7 @@ async function amNotificar(d,destinos,mensagem,rotulo){
       await emailjs.send(EJS.service, PE_EJS_TEMPLATE, {
         to_email:to,to_name:'',from_name:(currentUser&&currentUser.nome?currentUser.nome:'SEGO'),reply_to:(currentUser&&currentUser.email?currentUser.email:''),pe_id:'AM '+d.id,obra:(amObra()?amObra().nome:d.obra_nome),
         assunto:'Auto Mensal — '+(d.mes_ref||''),estado:amEST(d.estado).rot,
-        mensagem,link:amLink(d),password:'',app_url:amLink(d),role:rotulo});
+        mensagem:mensagem+segoAssinatura(true),link:amLink(d),password:'',app_url:amLink(d),role:rotulo});
       ok++;
     }catch(e){ console.error('AM notificar falhou:',e); }
   }
