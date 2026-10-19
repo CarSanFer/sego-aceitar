@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.10.16.1625</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.10.19.0844</span>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-dash" title="Dashboard PE · PA · PB · QE" onclick="dashAbrir('')">📊 Dashboard</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
@@ -2382,8 +2382,8 @@ window.abrirPublicar=function(relId){
   const roleL={dono_obra:'Dono de Obra',fiscalizacao:'Fiscalização',superadmin:'Fiscalização',empreiteiro:'Empreiteiro',projetista:'Projetista'};
   const inObra=u=>u.obras==='todas'||(Array.isArray(u.obras)&&u.obras.some(oid=>String(oid)===String(o.id)));
   const people=(DB.utilizadores||[]).filter(u=>u.email&&roleL[u.role]&&inObra(u));
-  const obrig=people.filter(u=>u.role==='dono_obra'||u.role==='empreiteiro');
-  const opcionais=people.filter(u=>!(u.role==='dono_obra'||u.role==='empreiteiro'));
+  const obrig=people.filter(u=>(u.role==='dono_obra'||u.role==='empreiteiro')&&!segoEhCSO(u));
+  const opcionais=people.filter(u=>!(u.role==='dono_obra'||u.role==='empreiteiro')||segoEhCSO(u));
   const link=location.origin+'/?doc='+encodeURIComponent(relId);
   const obraTxt=((o.sigla?o.sigla+' — ':'')+(o.nome||'')).trim();
   const defMsg='Foi disponibilizado o '+_sigla+' '+relNumero(rel)+' | '+obraTxt+'.';
@@ -2415,7 +2415,7 @@ window.publicarEnviar=async function(relId){
   const checks=[...document.querySelectorAll('.pub-cb:checked')].map(c=>({email:c.value,nome:c.dataset.nome||''}));
   const extra=(document.getElementById('pub-extra')?.value||'').split(/[\n,;]+/).map(x=>x.trim()).filter(x=>x.includes('@')).map(e=>({email:e,nome:''}));
   const _inObraP=u=>u.obras==='todas'||(Array.isArray(u.obras)&&u.obras.some(oid=>String(oid)===String(o.id)));
-  const obrig=(DB.utilizadores||[]).filter(u=>u.email&&(u.role==='dono_obra'||u.role==='empreiteiro')&&_inObraP(u)).map(u=>({email:u.email,nome:u.nome||''}));
+  const obrig=(DB.utilizadores||[]).filter(u=>u.email&&(u.role==='dono_obra'||u.role==='empreiteiro')&&!segoEhCSO(u)&&_inObraP(u)).map(u=>({email:u.email,nome:u.nome||''}));
   const _vistos=new Set();
   const dest=[...obrig,...checks,...extra].filter(x=>{ const k=x.email.toLowerCase(); if(_vistos.has(k)) return false; _vistos.add(k); return true; });
   const link=location.origin+'/?doc='+encodeURIComponent(relId);
@@ -2904,7 +2904,7 @@ function peUtilsDaObra(role){
   const m=new Map(); [...porUtil,...porObra].forEach(u=>m.set(String(u.id),u));
   return [...m.values()];
 }
-function peEmails(role){ return peUtilsDaObra(role).filter(u=>u.email).map(u=>u.email); }
+function peEmails(role){ return peUtilsDaObra(role).filter(u=>u.email&&!segoEhCSO(u)).map(u=>u.email); }
 function peEmailsFiscSemCSO(){ return peUtilsDaObra('fiscalizacao').filter(u=>u.email&&!segoEhCSO(u)).map(u=>u.email); }
 function peEquipaDaObra(){
   const roleL={fiscalizacao:'Fiscalização',empreiteiro:'Empreiteiro',projetista:'Projetista',dono_obra:'Dono de Obra',cliente:'Cliente'};
@@ -3171,7 +3171,7 @@ window.peSubmeterEsclarecimento=async function(){
 };
 window.peResponderEmp=function(){
   const d=peFichaAtualDoc(); if(!d) return;
-  const emps=peUtilsDaObra('empreiteiro').filter(u=>u.email).map(u=>({nome:u.nome,email:u.email,papel:'Empreiteiro'}));
+  const emps=peUtilsDaObra('empreiteiro').filter(u=>u.email&&!segoEhCSO(u)).map(u=>({nome:u.nome,email:u.email,papel:'Empreiteiro'}));
   gpeModalNotif('Notificar Empreiteiro — PE '+d.id,emps,peEquipaDaObra(),async function(cc){
     peLerFormFisc(d);
     d.autorFiscResp=currentUser?currentUser.nome:''; d.dataResposta=d.dataResposta||peHoje(); d.estado='respondido';
@@ -3590,7 +3590,7 @@ function paUtilsDaObra(role){
   const m=new Map(); [...porUtil,...porObra].forEach(u=>m.set(String(u.id),u));
   return [...m.values()];
 }
-function paEmails(role){ return paUtilsDaObra(role).filter(u=>u.email).map(u=>u.email); }
+function paEmails(role){ return paUtilsDaObra(role).filter(u=>u.email&&!segoEhCSO(u)).map(u=>u.email); }
 function paEmailsFiscSemCSO(){ return paUtilsDaObra('fiscalizacao').filter(u=>u.email&&!segoEhCSO(u)).map(u=>u.email); }
 function paEquipaDaObra(){
   const roleL={fiscalizacao:'Fiscalização',empreiteiro:'Empreiteiro',projetista:'Projetista',dono_obra:'Dono de Obra',cliente:'Cliente'};
@@ -4209,9 +4209,9 @@ window.paModalDecisao=function(direta){
       <div class="pe-fld pe-mt"><label>${direta?'Observações':'Nota da Fiscalização'}</label><textarea id="dec-obs">${esc(d.obsFisc)}</textarea></div>
       ${paModalAnexosHtml()}
       <div class="pe-msub pe-mt"><b style="color:var(--text)">Esta notificação será enviada a:</b></div>
-      <table class="pe-seltab"><tbody>${(function(){const es=paUtilsDaObra('empreiteiro').filter(u=>u.email);return es.length?es.map(u=>`<tr><td><b>${esc(u.nome)}</b> <span class="pe-muted">(Empreiteiro)</span><br><span class="pe-muted">${esc(u.email)}</span></td></tr>`).join(''):'<tr><td class="pe-muted">— sem empreiteiro associado à obra (verifique o SID) —</td></tr>';})()}</tbody></table>
+      <table class="pe-seltab"><tbody>${(function(){const es=paUtilsDaObra('empreiteiro').filter(u=>u.email&&!segoEhCSO(u));return es.length?es.map(u=>`<tr><td><b>${esc(u.nome)}</b> <span class="pe-muted">(Empreiteiro)</span><br><span class="pe-muted">${esc(u.email)}</span></td></tr>`).join(''):'<tr><td class="pe-muted">— sem empreiteiro associado à obra (verifique o SID) —</td></tr>';})()}</tbody></table>
       ${(function(){
-        const emps=new Set(paUtilsDaObra('empreiteiro').filter(u=>u.email).map(u=>u.email));
+        const emps=new Set(paUtilsDaObra('empreiteiro').filter(u=>u.email&&!segoEhCSO(u)).map(u=>u.email));
         const eq=paEquipaDaObra().filter(u=>!emps.has(u.email));
         if(!eq.length) return '';
         return `<div class="pe-fld pe-mt"><label>Com Conhecimento — Cc (opcional)</label>
@@ -4305,8 +4305,8 @@ function pbUtilsDaObra(role){
   const m=new Map(); [...porUtil,...porObra].forEach(u=>m.set(String(u.id),u));
   return [...m.values()];
 }
-function pbEmails(role){ return pbUtilsDaObra(role).filter(u=>u.email).map(u=>u.email); }
-function segoEhCSO(u){ return /\bcso\b|seguran/i.test(String(u.funcao||'')); }
+function pbEmails(role){ return pbUtilsDaObra(role).filter(u=>u.email&&!segoEhCSO(u)).map(u=>u.email); }
+function segoEhCSO(u){ return /\bcso\b|\btss?t\b|seguran/i.test(String(u.funcao||'')); }
 function pbEmailsFiscSemCSO(){ return pbUtilsDaObra('fiscalizacao').filter(u=>u.email&&!segoEhCSO(u)).map(u=>u.email); }
 function pbEquipaDaObra(){
   const roleL={fiscalizacao:'Fiscalização',empreiteiro:'Empreiteiro',projetista:'Projetista',dono_obra:'Dono de Obra',cliente:'Cliente'};
@@ -4679,9 +4679,9 @@ window.pbModalDecisao=function(){
       </tbody></table>
       <div class="pe-fld pe-mt"><label>Observações</label><textarea id="pbd-obs">${esc(d.observacoes)}</textarea></div>
       <div class="pe-msub pe-mt"><b style="color:var(--text)">Esta notificação será enviada a:</b></div>
-      <table class="pe-seltab"><tbody>${(function(){const es=pbUtilsDaObra('empreiteiro').filter(u=>u.email);return es.length?es.map(u=>`<tr><td><b>${esc(u.nome)}</b> <span class="pe-muted">(Empreiteiro)</span><br><span class="pe-muted">${esc(u.email)}</span></td></tr>`).join(''):'<tr><td class="pe-muted">— sem empreiteiro associado à obra (verifique o SID) —</td></tr>';})()}</tbody></table>
+      <table class="pe-seltab"><tbody>${(function(){const es=pbUtilsDaObra('empreiteiro').filter(u=>u.email&&!segoEhCSO(u));return es.length?es.map(u=>`<tr><td><b>${esc(u.nome)}</b> <span class="pe-muted">(Empreiteiro)</span><br><span class="pe-muted">${esc(u.email)}</span></td></tr>`).join(''):'<tr><td class="pe-muted">— sem empreiteiro associado à obra (verifique o SID) —</td></tr>';})()}</tbody></table>
       ${(function(){
-        const emps=new Set(pbUtilsDaObra('empreiteiro').filter(u=>u.email).map(u=>u.email));
+        const emps=new Set(pbUtilsDaObra('empreiteiro').filter(u=>u.email&&!segoEhCSO(u)).map(u=>u.email));
         const eq=pbEquipaDaObra().filter(u=>!emps.has(u.email));
         if(!eq.length) return '';
         return `<div class="pe-fld pe-mt"><label>Com Conhecimento — Cc (opcional)</label>
@@ -5210,7 +5210,7 @@ function qeUtilsDaObra(role){
   const m=new Map(); [...porUtil,...porObra].forEach(u=>m.set(String(u.id),u));
   return [...m.values()];
 }
-function qeEmails(role){ return qeUtilsDaObra(role).filter(u=>u.email).map(u=>u.email); }
+function qeEmails(role){ return qeUtilsDaObra(role).filter(u=>u.email&&!segoEhCSO(u)).map(u=>u.email); }
 function qeEmailsComDO(role){ return [...new Set([...qeEmails(role),...qeEmails('dono_obra')])]; }
 function qeEmailsFiscSemCSOComDO(){ return [...new Set([...qeUtilsDaObra('fiscalizacao').filter(u=>u.email&&!segoEhCSO(u)).map(u=>u.email),...qeEmails('dono_obra')])]; }
 
@@ -6401,7 +6401,7 @@ function amUtilsDaObra(role){
   const m=new Map(); [...porUtil,...porObra].forEach(u=>m.set(String(u.id),u));
   return [...m.values()];
 }
-function amEmails(role){ return amUtilsDaObra(role).filter(u=>u.email).map(u=>u.email); }
+function amEmails(role){ return amUtilsDaObra(role).filter(u=>u.email&&!segoEhCSO(u)).map(u=>u.email); }
 function amEmailsFiscSemCSO(){ return amUtilsDaObra('fiscalizacao').filter(u=>u.email&&!segoEhCSO(u)).map(u=>u.email); }
 function amLink(d){ return location.href.split('?')[0]+'?am='+encodeURIComponent(d.id); }
 async function amNotificar(d,destinos,mensagem,rotulo){
