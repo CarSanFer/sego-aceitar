@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.10.19.1159</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.10.19.1206</span>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-dash" title="Dashboard PE · PA · PB · QE" onclick="dashAbrir('')">📊 Dashboard</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
@@ -2430,7 +2430,7 @@ window.publicarEnviar=async function(relId){
       try{
         const _msgEsc=String(msg||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
         const _linkHTML='<a href="'+link+'" style="color:#1B4F9B;text-decoration:underline">Abrir documento</a>';
-        const _msgHTML='<div style="font-family:Calibri,Carlito,Arial,sans-serif;font-size:14px;line-height:1.5;color:#333">'+'<p>'+segoSaud()+',</p>'+'<p>'+_msgEsc+' '+_linkHTML+'</p>'+'<p>Se necessário, entre em contacto connosco, respondendo a <a href="mailto:'+(currentUser&&currentUser.email?currentUser.email:'info@aceitar.pt')+'" style="color:#1B4F9B"><b>'+(currentUser&&currentUser.nome?currentUser.nome:'Aceitar Sucessos')+'</b></a>.</p>'+'<p style="margin-top:34px;font-size:11px;color:#777">Email automático da plataforma SEGO — não responda diretamente a esta conta.<br><br>Ao usar "Responder", a mensagem será dirigida a quem enviou a notificação.</p>'+'</div>';
+        const _msgHTML='<div style="font-family:Calibri,Carlito,Arial,sans-serif;font-size:14px;line-height:1.5;color:#333">'+'<p>'+segoSaud()+',</p>'+'<p>'+_msgEsc+' '+_linkHTML+'</p>'+'<p>Se necessário, entre em contacto connosco, respondendo a <a href="mailto:'+(currentUser&&currentUser.email?currentUser.email:'info@aceitar.pt')+'" style="color:#1B4F9B"><b>'+(currentUser&&currentUser.nome?currentUser.nome:'Aceitar Sucessos')+'</b></a>.</p>'+'<p style="margin-top:34px;margin-bottom:34px;font-size:11px;color:#777">Email automático da plataforma SEGO — não responda diretamente a esta conta.<br><br>Ao usar "Responder", a mensagem será dirigida a quem enviou a notificação.</p>'+'</div>';
         const _toEmail=dest.map(d=>d.email).join(',');
         const _toName=dest.map(d=>d.nome||d.email).join(', ');
         const _fromName=(currentUser&&currentUser.nome)?currentUser.nome:'CSO / Aceitar';
@@ -2464,7 +2464,7 @@ window.abrirReenviar=function(relId){
   const people=(DB.utilizadores||[]).filter(u=>u.email&&roleL[u.role]&&inObra(u));
   const link=location.origin+'/?doc='+encodeURIComponent(relId);
   const obraTxt=((o.sigla?o.sigla+' — ':'')+(o.nome||'')).trim();
-  const defMsg='Reenvio do '+_sigla+' '+relNumero(rel)+' | '+obraTxt+'.';
+  const defMsg='Reenvia-se o '+_sigla+' '+relNumero(rel)+' da Obra '+obraTxt+', cujo link de acesso é:';
   const opts=people.length?people.map(u=>`<label style="display:flex;gap:8px;align-items:center;padding:5px 0"><input type="checkbox" class="reenv-cb" value="${u.email}" data-nome="${(u.nome||'').replace(/"/g,'')}"><span style="font-size:13px">${u.nome||u.email} <span style="color:var(--text-muted)">· ${roleL[u.role]} · ${u.email}</span></span></label>`).join(''):'<div style="font-size:12px;color:var(--text-muted)">Sem intervenientes com email nesta obra.</div>';
   showModal('Reenviar — '+_sigla+' '+relNumero(rel),`
     <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">Mensagem (parametrizável)</div>
@@ -2500,7 +2500,7 @@ window.reenviarEnviar=async function(relId){
       try{
         const _msgEsc=String(msg||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
         const _linkHTML='<a href="'+link+'" style="color:#1B4F9B;text-decoration:underline">Abrir documento</a>';
-        const _msgHTML='<div style="font-family:Calibri,Carlito,Arial,sans-serif;font-size:14px;line-height:1.5;color:#333">'+'<p>'+segoSaud()+',</p>'+'<p>'+_msgEsc+' '+_linkHTML+'</p>'+'<p>Se necessário, entre em contacto connosco, respondendo a <a href="mailto:'+(currentUser&&currentUser.email?currentUser.email:'info@aceitar.pt')+'" style="color:#1B4F9B"><b>'+(currentUser&&currentUser.nome?currentUser.nome:'Aceitar Sucessos')+'</b></a>.</p>'+'<p style="margin-top:34px;font-size:11px;color:#777">Email automático da plataforma SEGO — não responda diretamente a esta conta.<br><br>Ao usar "Responder", a mensagem será dirigida a quem enviou a notificação.</p>'+'</div>';
+        const _msgHTML='<div style="font-family:Calibri,Carlito,Arial,sans-serif;font-size:14px;line-height:1.5;color:#333">'+'<p>'+segoSaud()+',</p>'+'<p>'+_msgEsc+' '+_linkHTML+'</p>'+'<p>Se necessário, entre em contacto connosco, respondendo a <a href="mailto:'+(currentUser&&currentUser.email?currentUser.email:'info@aceitar.pt')+'" style="color:#1B4F9B"><b>'+(currentUser&&currentUser.nome?currentUser.nome:'Aceitar Sucessos')+'</b></a>.</p>'+'<p style="margin-top:34px;margin-bottom:34px;font-size:11px;color:#777">Email automático da plataforma SEGO — não responda diretamente a esta conta.<br><br>Ao usar "Responder", a mensagem será dirigida a quem enviou a notificação.</p>'+'</div>';
         const _toEmail=dest.map(d=>d.email).join(',');
         const _toName=dest.map(d=>d.nome||d.email).join(', ');
         const _fromName=(currentUser&&currentUser.nome)?currentUser.nome:'CSO / Aceitar';
