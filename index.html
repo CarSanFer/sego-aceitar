@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.10.20.0929</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.10.20.1507</span>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-dash" title="Dashboard PE · PA · PB · QE" onclick="dashAbrir('')">📊 Dashboard</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
@@ -2900,7 +2900,7 @@ function peUtilsDaObra(role){
     return refs.includes(oid)||(ocod&&refs.includes(ocod))||(osig&&refs.includes(osig));
   });
   const campo={fiscalizacao:'intervenientes_fisc',projetista:'intervenientes_proj',empreiteiro:'intervenientes_emp',dono_obra:'intervenientes_do'}[role];
-  const porObra=((campo&&o[campo])||[]).map(id=>(DB.utilizadores||[]).find(u=>String(u.id)===String(id))).filter(u=>u&&u.ativo!==false);
+  const porObra=((campo&&o[campo])||[]).map(id=>(DB.utilizadores||[]).find(u=>String(u.id)===String(id))).filter(u=>{ if(!u||u.ativo===false) return false; const refs=(u.obras||[]).map(String); return refs.includes(oid)||(ocod&&refs.includes(ocod))||(osig&&refs.includes(osig)); });
   const m=new Map(); [...porUtil,...porObra].forEach(u=>m.set(String(u.id),u));
   return [...m.values()];
 }
@@ -3586,7 +3586,7 @@ function paUtilsDaObra(role){
     return refs.includes(oid)||(ocod&&refs.includes(ocod))||(osig&&refs.includes(osig));
   });
   const campo={fiscalizacao:'intervenientes_fisc',projetista:'intervenientes_proj',empreiteiro:'intervenientes_emp',dono_obra:'intervenientes_do'}[role];
-  const porObra=((campo&&o[campo])||[]).map(id=>(DB.utilizadores||[]).find(u=>String(u.id)===String(id))).filter(u=>u&&u.ativo!==false);
+  const porObra=((campo&&o[campo])||[]).map(id=>(DB.utilizadores||[]).find(u=>String(u.id)===String(id))).filter(u=>{ if(!u||u.ativo===false) return false; const refs=(u.obras||[]).map(String); return refs.includes(oid)||(ocod&&refs.includes(ocod))||(osig&&refs.includes(osig)); });
   const m=new Map(); [...porUtil,...porObra].forEach(u=>m.set(String(u.id),u));
   return [...m.values()];
 }
@@ -4301,7 +4301,7 @@ function pbUtilsDaObra(role){
     return refs.includes(oid)||(ocod&&refs.includes(ocod))||(osig&&refs.includes(osig));
   });
   const campo={fiscalizacao:'intervenientes_fisc',projetista:'intervenientes_proj',empreiteiro:'intervenientes_emp',dono_obra:'intervenientes_do'}[role];
-  const porObra=((campo&&o[campo])||[]).map(id=>(DB.utilizadores||[]).find(u=>String(u.id)===String(id))).filter(u=>u&&u.ativo!==false);
+  const porObra=((campo&&o[campo])||[]).map(id=>(DB.utilizadores||[]).find(u=>String(u.id)===String(id))).filter(u=>{ if(!u||u.ativo===false) return false; const refs=(u.obras||[]).map(String); return refs.includes(oid)||(ocod&&refs.includes(ocod))||(osig&&refs.includes(osig)); });
   const m=new Map(); [...porUtil,...porObra].forEach(u=>m.set(String(u.id),u));
   return [...m.values()];
 }
@@ -4798,7 +4798,7 @@ function ptqEmails(role){
     return refs.includes(oid)||(ocod&&refs.includes(ocod))||(osig&&refs.includes(osig));
   });
   const campo={fiscalizacao:'intervenientes_fisc',empreiteiro:'intervenientes_emp'}[role];
-  const porObra=((campo&&o[campo])||[]).map(id=>(DB.utilizadores||[]).find(u=>String(u.id)===String(id))).filter(u=>u&&u.ativo!==false);
+  const porObra=((campo&&o[campo])||[]).map(id=>(DB.utilizadores||[]).find(u=>String(u.id)===String(id))).filter(u=>{ if(!u||u.ativo===false) return false; const refs=(u.obras||[]).map(String); return refs.includes(oid)||(ocod&&refs.includes(ocod))||(osig&&refs.includes(osig)); });
   const m=new Map(); [...porUtil,...porObra].forEach(u=>m.set(String(u.id),u));
   return [...m.values()].filter(u=>u.email).map(u=>u.email);
 }
@@ -5210,7 +5210,7 @@ function qeUtilsDaObra(role){
     return refs.includes(oid)||(ocod&&refs.includes(ocod))||(osig&&refs.includes(osig));
   });
   const campo={fiscalizacao:'intervenientes_fisc',projetista:'intervenientes_proj',empreiteiro:'intervenientes_emp',dono_obra:'intervenientes_do'}[role];
-  const porObra=((campo&&o[campo])||[]).map(id=>(DB.utilizadores||[]).find(u=>String(u.id)===String(id))).filter(u=>u&&u.ativo!==false);
+  const porObra=((campo&&o[campo])||[]).map(id=>(DB.utilizadores||[]).find(u=>String(u.id)===String(id))).filter(u=>{ if(!u||u.ativo===false) return false; const refs=(u.obras||[]).map(String); return refs.includes(oid)||(ocod&&refs.includes(ocod))||(osig&&refs.includes(osig)); });
   const m=new Map(); [...porUtil,...porObra].forEach(u=>m.set(String(u.id),u));
   return [...m.values()];
 }
@@ -6406,7 +6406,7 @@ function amUtilsDaObra(role){
     return refs.includes(oid)||(ocod&&refs.includes(ocod))||(osig&&refs.includes(osig));
   });
   const campo={fiscalizacao:'intervenientes_fisc',projetista:'intervenientes_proj',empreiteiro:'intervenientes_emp',dono_obra:'intervenientes_do'}[role];
-  const porObra=((campo&&o[campo])||[]).map(id=>(DB.utilizadores||[]).find(u=>String(u.id)===String(id))).filter(u=>u&&u.ativo!==false);
+  const porObra=((campo&&o[campo])||[]).map(id=>(DB.utilizadores||[]).find(u=>String(u.id)===String(id))).filter(u=>{ if(!u||u.ativo===false) return false; const refs=(u.obras||[]).map(String); return refs.includes(oid)||(ocod&&refs.includes(ocod))||(osig&&refs.includes(osig)); });
   const m=new Map(); [...porUtil,...porObra].forEach(u=>m.set(String(u.id),u));
   return [...m.values()];
 }
