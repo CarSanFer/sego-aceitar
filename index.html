@@ -280,8 +280,8 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.10.19.1611</span>
-    <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-dash" title="Dashboard — Portfólio · GPE · Fiscalização · Segurança · Autos" onclick="dashAbrir('')">📊 Dashboard</button>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.10.20.0929</span>
+    <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-dash" title="Dashboard PE · PA · PB · QE" onclick="dashAbrir('')">📊 Dashboard</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
@@ -5626,20 +5626,25 @@ window.segoBackup=async function(){
     for(const [nome,pj] of Object.entries(PROJ)){
       backup.dados[nome]={};
       for(const t of pj.tabelas){
-        showLoadingOverlay('Backup… '+nome+' · '+t);
-        const linhas=[]; let off=0;
-        try{
-          while(true){
-            const r=await fetch(pj.cfg.url+'/rest/v1/'+t+'?select=*&limit=1000&offset='+off,
-              {headers:{apikey:pj.cfg.key,Authorization:'Bearer '+pj.cfg.key}});
-            if(!r.ok) throw new Error('HTTP '+r.status);
-            const pag=await r.json();
-            linhas.push(...pag);
-            if(pag.length<1000) break;
-            off+=1000;
-          }
-          backup.dados[nome][t]=linhas; totalLinhas+=linhas.length;
-        }catch(e){ avisos.push(nome+'.'+t+': '+e.message); backup.dados[nome]['__erro_'+t]=String(e.message); }
+        let ok=false, ultErr=null;
+        for(const PAG of [1000,200,50,10]){
+          showLoadingOverlay('Backup… '+nome+' · '+t+(PAG<1000?' (pág. '+PAG+')':''));
+          const linhas=[]; let off=0;
+          try{
+            while(true){
+              const r=await fetch(pj.cfg.url+'/rest/v1/'+t+'?select=*&limit='+PAG+'&offset='+off,
+                {headers:{apikey:pj.cfg.key,Authorization:'Bearer '+pj.cfg.key}});
+              if(!r.ok) throw new Error('HTTP '+r.status);
+              const pag=await r.json();
+              linhas.push(...pag);
+              if(pag.length<PAG) break;
+              off+=PAG;
+              showLoadingOverlay('Backup… '+nome+' · '+t+' ('+linhas.length+' linhas)');
+            }
+            backup.dados[nome][t]=linhas; totalLinhas+=linhas.length; ok=true; break;
+          }catch(e){ ultErr=e; }
+        }
+        if(!ok){ avisos.push(nome+'.'+t+': '+(ultErr&&ultErr.message?ultErr.message:'falhou')); backup.dados[nome]['__erro_'+t]=String(ultErr&&ultErr.message?ultErr.message:'falhou'); }
       }
     }
   }finally{ hideLoadingOverlay(); }
@@ -8217,233 +8222,180 @@ function renderDashboard(app){
 // OBRAS — LISTA
 // ================================================================
 /* ####################  DASHBOARD GLOBAL (superadmin)  #################### */
-/* ================================================================
-   DASHBOARD v2 — Portfólio · Fluxos GPE · Fiscalização · Segurança · Autos · Documentos
-   Arquitetura: store único (dashDados) → filtros globais (dashF) → vistas que
-   subscrevem o mesmo estado. Qualquer clique num gráfico altera dashF
-   (cross-filter) e todas as vistas reagem. Gráficos: Apache ECharts (CDN, lazy).
-   ================================================================ */
-let dashAtivo=false, dashDados=null, dashTab='portfolio', dashDrill=null, dashCharts=[], dashEchartsPromise=null;
-let dashF={obras:[],mods:[],estados:[],posse:[],idade:[],periodo:['',''],fiscal:'',pesq:''};
-let dashOrd={col:'criado',dir:-1}, dashPag=0, dashDocsPorPag=50, dashDDAberto='';
+let dashAtivo=false, dashObraF='', dashMes='', dashFisc='', dashTab='visao', dashDados=null, dashDrill=null;
 
 const DASH_REL_EST={
-  rascunho:{rot:'Rascunho',cor:'#6B7280',posse:'Fiscalização'},
-  revisao:{rot:'Em Revisão',cor:'var(--warning)',posse:'Fiscalização'},
-  aprovado:{rot:'Aprovado',cor:'var(--info)',posse:'Fiscalização'},
-  disponibilizado:{rot:'Disponibilizado',cor:'var(--success)',posse:'—'}
+  rascunho:{rot:'Rascunho',cor:'#6B7280'},
+  revisao:{rot:'Em Revisão',cor:'var(--warning)'},
+  aprovado:{rot:'Aprovado',cor:'var(--info)'},
+  disponibilizado:{rot:'Disponibilizado',cor:'var(--success)'}
 };
 const DASH_REL_LEG={rascunho:'Em preparação pela Fiscalização',revisao:'Em correção após comentários',aprovado:'Aprovado internamente, por disponibilizar',disponibilizado:'Publicado e enviado aos destinatários (acessível por link)'};
 
 const DASH_DEF={
-  rso:{sig:'RSO',rot:'Relatórios Semanais de Obra',cor:'#1E3A5F',grupo:'fisc',
-      estados:()=>DASH_REL_EST,ordemEst:['rascunho','revisao','aprovado','disponibilizado'],estLeg:DASH_REL_LEG,trans:[],transLeg:'',fechados:['disponibilizado']},
-  sos:{sig:'SOS',rot:'Situações Operacionais Semanais',cor:'#B45309',grupo:'fisc',
-      estados:()=>DASH_REL_EST,ordemEst:['rascunho','revisao','aprovado','disponibilizado'],estLeg:DASH_REL_LEG,trans:[],transLeg:'',fechados:['disponibilizado']},
-  rvt:{sig:'RVT',rot:'Relatórios de Visita Técnica (Segurança)',cor:'#0F766E',grupo:'seg',
-      estados:()=>DASH_REL_EST,ordemEst:['rascunho','revisao','aprovado','disponibilizado'],estLeg:DASH_REL_LEG,trans:[],transLeg:'',fechados:['disponibilizado']},
-  pe:{sig:'PE',rot:'Pedidos de Esclarecimento',cor:'#1B4F9B',grupo:'gpe',tab:'pedidos_esclarecimento',
-      sel:'id,num,rev,obra_id,obra_nome,estado,historico_import,data_criacao,data_envio,data_envio_proj,data_esclarecido,data_resposta,data_fecho,assunto,autor_empreiteiro,proj_especialidade,prev_id,next_id,historico',
-      estados:()=>PE_MOD.estados,ordemEst:['rascunho','aberto','pendente','esclarecido','respondido','fechado','reaberto'],fechados:['fechado','reaberto'],
-      descr:r=>r.assunto||'',cat:r=>r.proj_especialidade||'',
+  rso:{sig:'RSO',rot:'Relatórios Semanais de Obra',cor:'#1E3A5F',tipoRel:['fiscalizacao','RS'],
+      estados:()=>DASH_REL_EST,ordemEst:['rascunho','revisao','aprovado','disponibilizado'],estLeg:DASH_REL_LEG,trans:[],transLeg:''},
+  sos:{sig:'SOS',rot:'Situações Operacionais Semanais',cor:'#B45309',tipoRel:['fiscalizacao','SOS'],
+      estados:()=>DASH_REL_EST,ordemEst:['rascunho','revisao','aprovado','disponibilizado'],estLeg:DASH_REL_LEG,trans:[],transLeg:''},
+  rvt:{sig:'RVT',rot:'Relatórios de Visita Técnica (Segurança)',cor:'#0F766E',tipoRel:['seguranca',null],
+      estados:()=>DASH_REL_EST,ordemEst:['rascunho','revisao','aprovado','disponibilizado'],estLeg:DASH_REL_LEG,trans:[],transLeg:''},
+  pe:{sig:'PE',rot:'Pedidos de Esclarecimento',cor:'#1B4F9B',tab:'pedidos_esclarecimento',
+      sel:'id,num,rev,obra_id,obra_nome,estado,historico_import,data_criacao,data_envio,data_envio_proj,data_esclarecido,data_resposta,data_fecho,assunto,prev_id,next_id,historico',
+      estados:()=>PE_MOD.estados,ordemEst:['rascunho','aberto','pendente','esclarecido','respondido','fechado','reaberto'],
+      descr:r=>r.assunto||'',
       norm:r=>({criacao:r.data_criacao,envio:r.data_envio,envioProj:r.data_envio_proj,meio:r.data_esclarecido,resposta:r.data_resposta,fecho:r.data_fecho}),
-      trans:[['Fisc. → Projetista','envio','envioProj','Fiscalização'],['Projetista esclarece','envioProj','meio','Projetista'],['Fisc. → Empreiteiro','meio','resposta','Fiscalização'],['Fecho','resposta','fecho','Empreiteiro']],
-      transLeg:'Fisc. → Projetista: da receção pela Fiscalização ao envio ao Projetista · Projetista esclarece: tempo do Projetista · Fisc. → Empreiteiro: da receção do esclarecimento à comunicação · Fecho: da comunicação ao fecho.',
+      trans:[['Pendente - Aberto','envio','envioProj'],['Esclarecido - Pendente','envioProj','meio'],['Respondido - Esclarecido','meio','resposta'],['Fechado - Respondido','resposta','fecho']],
+      transLeg:'Pendente - Aberto: da receção pela Fiscalização ao envio ao Projetista · Esclarecido - Pendente: tempo do Projetista a esclarecer · Respondido - Esclarecido: da receção do esclarecimento à comunicação ao Empreiteiro · Fechado - Respondido: da comunicação ao fecho.',
       estLeg:{rascunho:'Em preparação pelo Empreiteiro',aberto:'Recebido pela Fiscalização',pendente:'No Projetista, aguarda esclarecimento',esclarecido:'Esclarecimento recebido pela Fiscalização',respondido:'Resposta comunicada ao Empreiteiro',fechado:'Processo concluído',reaberto:'Substituído por revisão'}},
-  pa:{sig:'PA',rot:'Pedidos de Aprovação',cor:'#6D28D9',grupo:'gpe',tab:'pedidos_aprovacao',
-      sel:'id,num,rev,obra_id,obra_nome,estado,historico_import,data_criacao,data_envio,data_envio_proj,data_analisado,data_resposta,data_fecho,material,especialidade,tipo_item,fisc_parecer,proj_parecer,autor_empreiteiro,prev_id,next_id,historico',
-      estados:()=>PA_MOD.estados,ordemEst:['rascunho','aberto','pendente','analisado','respondido','fechado','reaberto'],fechados:['fechado','reaberto'],
-      descr:r=>r.material||'',cat:r=>r.especialidade||'',
+  pa:{sig:'PA',rot:'Pedidos de Aprovação',cor:'#6D28D9',tab:'pedidos_aprovacao',
+      sel:'id,num,rev,obra_id,obra_nome,estado,historico_import,data_criacao,data_envio,data_envio_proj,data_analisado,data_resposta,data_fecho,material,prev_id,next_id,historico',
+      estados:()=>PA_MOD.estados,ordemEst:['rascunho','aberto','pendente','analisado','respondido','fechado','reaberto'],
+      descr:r=>r.material||'',
       norm:r=>({criacao:r.data_criacao,envio:r.data_envio,envioProj:r.data_envio_proj,meio:r.data_analisado,resposta:r.data_resposta,fecho:r.data_fecho}),
-      trans:[['Fisc. → Projetista','envio','envioProj','Fiscalização'],['Projetista analisa','envioProj','meio','Projetista'],['Fisc. → Empreiteiro','meio','resposta','Fiscalização'],['Fecho','resposta','fecho','Empreiteiro']],
-      transLeg:'Fisc. → Projetista: da receção pela Fiscalização ao envio ao Projetista · Projetista analisa: tempo do Projetista a dar parecer · Fisc. → Empreiteiro: do parecer à decisão comunicada · Fecho: da decisão ao fecho.',
+      trans:[['Pendente - Aberto','envio','envioProj'],['Analisado - Pendente','envioProj','meio'],['Respondido - Analisado','meio','resposta'],['Fechado - Respondido','resposta','fecho']],
+      transLeg:'Pendente - Aberto: da receção pela Fiscalização ao envio ao Projetista · Analisado - Pendente: tempo do Projetista a dar parecer · Respondido - Analisado: do parecer à decisão comunicada ao Empreiteiro · Fechado - Respondido: da decisão ao fecho.',
       estLeg:{rascunho:'Em preparação pelo Empreiteiro',aberto:'Recebido pela Fiscalização',pendente:'No Projetista, aguarda parecer',analisado:'Parecer do Projetista recebido',respondido:'Decisão comunicada ao Empreiteiro',fechado:'Processo concluído',reaberto:'Substituído por revisão'}},
-  pb:{sig:'PB',rot:'Pedidos de Betonagem',cor:'#C9922A',grupo:'gpe',tab:'pedidos_betonagem',
-      sel:'id,num,rev,obra_id,obra_nome,estado,historico_import,data_criacao,data_envio,data_decisao,data_fecho,data_prevista,elementos,localizacao,vol_previsto,decisao,autor_empreiteiro,prev_id,next_id,historico',
-      estados:()=>PB_MOD.estados,ordemEst:['rascunho','aberto','fechado','reaberto'],fechados:['fechado','reaberto'],
-      descr:r=>r.elementos||r.localizacao||'',cat:r=>r.decisao||'',
+  pb:{sig:'PB',rot:'Pedidos de Betonagem',cor:'#C9922A',tab:'pedidos_betonagem',
+      sel:'id,num,rev,obra_id,obra_nome,estado,historico_import,data_criacao,data_envio,data_decisao,data_fecho,elementos,localizacao,prev_id,next_id,historico',
+      estados:()=>PB_MOD.estados,ordemEst:['rascunho','aberto','fechado','reaberto'],
+      descr:r=>r.elementos||r.localizacao||'',
       norm:r=>({criacao:r.data_criacao,envio:r.data_envio,meio:r.data_decisao,fecho:r.data_fecho}),
-      trans:[['Decisão da Fisc.','envio','meio','Fiscalização'],['Fecho','meio','fecho','Empreiteiro']],
-      transLeg:'Decisão da Fisc.: do envio à decisão da Fiscalização · Fecho: da decisão ao fecho do pedido.',
+      trans:[['Decisão - Aberto','envio','meio'],['Fechado - Aberto','envio','fecho']],
+      transLeg:'Decisão - Aberto: do envio à decisão da Fiscalização · Fechado - Aberto: do envio ao fecho do pedido.',
       estLeg:{rascunho:'Em preparação pelo Empreiteiro',aberto:'Na Fiscalização, aguarda decisão',fechado:'Processo concluído',reaberto:'Substituído por revisão'}},
-  ptq:{sig:'PTQ',rot:'Planos Quinzenais de Trabalho',cor:'#334155',grupo:'gpe',tab:'planos_quinzenais',
-      sel:'id,num,rev,obra_id,obra_nome,estado,data_criacao,data_envio,inicio_plano,periodo,autor_empreiteiro,historico',
-      estados:()=>PTQ_MOD.estados,ordemEst:['rascunho','enviado'],fechados:['enviado'],
-      descr:r=>r.periodo||'',cat:r=>'',
+  ptq:{sig:'PTQ',rot:'Planos Quinzenais de Trabalho',cor:'#334155',tab:'planos_quinzenais',
+      sel:'id,num,rev,obra_id,obra_nome,estado,data_criacao,data_envio,periodo,autor_empreiteiro,historico',
+      estados:()=>PTQ_MOD.estados,ordemEst:['rascunho','enviado'],
+      descr:r=>r.periodo||'',
       norm:r=>({criacao:r.data_criacao,envio:r.data_envio}),
-      trans:[['Criação → Envio','criacao','envio','Empreiteiro']],
-      transLeg:'Criação → Envio: dias entre a criação do plano e o envio à Fiscalização.',
+      trans:[['Enviado - Criado','criacao','envio']],
+      transLeg:'Enviado - Criado: dias entre a criação do plano e o envio à Fiscalização.',
       estLeg:{rascunho:'Em preparação pelo Empreiteiro',enviado:'Entregue à Fiscalização'}},
-  qe:{sig:'QE',rot:'Qualidade de Execução',cor:'#1A7A4A',grupo:'gpe',tab:'qualidade_execucao',
-      sel:'id,num,rev,obra_id,obra_nome,estado,historico_import,data_criacao,data_envio,data_resposta,data_parecer,data_fecho,descricao,especialidade,parecer,autor_fisc,prev_id,next_id,historico',
-      estados:()=>QE_MOD.estados,ordemEst:['rascunho','pendente','respondido','fechado','reaberto'],fechados:['fechado','reaberto'],
-      descr:r=>r.descricao||'',cat:r=>r.especialidade||'',
+  qe:{sig:'QE',rot:'Qualidade de Execução',cor:'#1A7A4A',tab:'qualidade_execucao',
+      sel:'id,num,rev,obra_id,obra_nome,estado,historico_import,data_criacao,data_envio,data_resposta,data_fecho,descricao,prev_id,next_id,historico',
+      estados:()=>QE_MOD.estados,ordemEst:['rascunho','pendente','respondido','fechado','reaberto'],
+      descr:r=>r.descricao||'',
       norm:r=>({criacao:r.data_criacao,envio:r.data_envio,resposta:r.data_resposta,fecho:r.data_fecho}),
-      trans:[['Empreiteiro corrige','envio','resposta','Empreiteiro'],['Parecer da Fisc.','resposta','fecho','Fiscalização']],
-      transLeg:'Empreiteiro corrige: tempo do Empreiteiro a corrigir e responder · Parecer da Fisc.: da resposta ao parecer final da Fiscalização.',
+      trans:[['Respondido - Pendente','envio','resposta'],['Fechado - Respondido','resposta','fecho']],
+      transLeg:'Respondido - Pendente: tempo do Empreiteiro a corrigir e responder · Fechado - Respondido: da resposta ao parecer final da Fiscalização.',
       estLeg:{rascunho:'Em preparação pela Fiscalização',pendente:'No Empreiteiro, aguarda correção',respondido:'Correção submetida, aguarda parecer da Fiscalização',fechado:'Correção aceite, processo concluído',reaberto:'Correção não aceite, substituído por revisão'}},
-  am:{sig:'AM',rot:'Autos Mensais',cor:'#7C3AED',grupo:'am',tab:'autos_mensais',
-      sel:'id,num,rev,obra_id,obra_nome,estado,mes_ref,data_criacao,data_envio,data_verificacao,data_aprovacao,data_fecho,autor_emp,medicoes,prev_id,next_id,historico',
-      estados:()=>AM_MOD.estados,ordemEst:['rascunho','enviado','verificado','aprovado','concordancia','fechado','revisto'],fechados:['fechado','revisto','reaberto'],
-      descr:r=>r.mes_ref?('Mês '+r.mes_ref):'',cat:r=>'',
+  am:{sig:'AM',rot:'Autos Mensais',cor:'#7C3AED',tab:'autos_mensais',
+      sel:'id,num,rev,obra_id,estado,mes_ref,data_criacao,data_envio,data_verificacao,data_aprovacao,data_fecho,autor_emp,prev_id,next_id,historico',
+      estados:()=>AM_MOD.estados,ordemEst:['rascunho','enviado','verificado','aprovado','concordancia','fechado','revisto'],
+      descr:r=>r.mes_ref?('Mês '+r.mes_ref):'',
       norm:r=>({criacao:r.data_criacao,envio:r.data_envio,meio:r.data_verificacao,resposta:r.data_aprovacao,fecho:r.data_fecho}),
-      trans:[['Empreiteiro mede','criacao','envio','Empreiteiro'],['Fisc. verifica','envio','meio','Fiscalização'],['DO aprova','meio','resposta','Dono de Obra'],['Concordância e fecho','resposta','fecho','Empreiteiro']],
-      transLeg:'Empreiteiro mede: preparação da medição · Fisc. verifica: verificação pela Fiscalização · DO aprova: aprovação pelo Dono de Obra · Concordância e fecho: reencaminhamento e concordância final.',
+      trans:[['Enviado - Criado','criacao','envio'],['Verificado - Enviado','envio','meio'],['Aprovado - Verificado','meio','resposta'],['Fechado - Aprovado','resposta','fecho']],
+      transLeg:'Enviado - Criado: preparação da medição pelo Empreiteiro · Verificado - Enviado: verificação pela Fiscalização · Aprovado - Verificado: aprovação pelo Dono de Obra · Fechado - Aprovado: reencaminhamento e concordância final.',
       estLeg:{rascunho:'Medição em preparação pelo Empreiteiro',enviado:'Na Fiscalização, para verificação',verificado:'No Dono de Obra, para aprovação',aprovado:'Na Fiscalização, para reencaminhamento',concordancia:'No Empreiteiro, para concordância e fecho',fechado:'Auto concluído',revisto:'Substituído por revisão'}}
 };
 const DASH_ORDEM=['rso','sos','rvt','pe','pa','pb','ptq','qe','am'];
-const DASH_GPE=['pe','pa','pb','ptq','qe'];
-const DASH_TABS=[['portfolio','Portfólio'],['gpe','Fluxos GPE'],['fisc','Fiscalização'],['seg','Segurança'],['am','Autos'],['docs','Documentos']];
-const DASH_POSSE_ORD=['Empreiteiro','Fiscalização','Projetista','Dono de Obra','—'];
-const DASH_POSSE_COR={'Empreiteiro':'#1B4F9B','Fiscalização':'#C9922A','Projetista':'#6D28D9','Dono de Obra':'#1E3A5F','—':'#9CA3AF'};
-const DASH_IDADE=[['0-7','0 – 7 d',0,7],['8-15','8 – 15 d',8,15],['16-30','16 – 30 d',16,30],['>30','> 30 d',31,1e9]];
-/* Paleta categórica (identidade das obras) — ordem fixa, validada para CVD; 9.ª+ obra → "Outras" */
-const DASH_PAL=['#2a78d6','#eb6834','#1baf7a','#eda100','#e87ba4','#008300','#6250d6','#e34948'];
-const DASH_PAL_OUTRAS='#9CA3AF';
-const DASH_SEQ=['#cde2fb','#9ec5f4','#6da7ec','#3987e5','#256abf','#184f95'];
-const DASH_RVT_ST={C:{rot:'Conforme',cor:'#1A7A4A'},OM:{rot:'Oport. Melhoria',cor:'#7C5E0A'},NC:{rot:'Não Conforme',cor:'#B91C1C'},NA:{rot:'Não Aplicável',cor:'#9CA3AF'},NV:{rot:'Não Verificado',cor:'#1B4F9B'}};
-const DASH_RVT_SEC={1:'Documentação',2:'Resposta à Emergência',3:'Normas Gerais de Segurança',4:'Eletricidade e Inst. Provisórias',5:'Ambiente'};
-const DASH_SOS_ST={pendente:{rot:'Pendente',cor:'#7C5E0A'},resolvido:{rot:'Resolvido',cor:'#1A7A4A'},fechado:{rot:'Fechado',cor:'#9CA3AF'}};
-const DASH_VARHEX={'var(--navy)':'#1E3A5F','var(--navy2)':'#2C4E7A','var(--gold)':'#C9922A','var(--info)':'#1B4F9B','var(--warning)':'#7C5E0A','var(--danger)':'#B91C1C','var(--success)':'#1A7A4A','var(--purple)':'#6D28D9'};
-function dashHex(c){ return DASH_VARHEX[c]||c||'#9CA3AF'; }
 
-/* ---------- Utilitários ---------- */
 function dashObraNome(obraId){ const o=(DB.obras||[]).find(x=>String(x.id)===String(obraId)); return o?((o.sigla?o.sigla+' — ':'')+(o.nome||'')):String(obraId); }
-function dashObraSigla(obraId){ const o=(DB.obras||[]).find(x=>String(x.id)===String(obraId)); return o?(o.sigla||o.codigo||o.nome||String(obraId)):String(obraId); }
-function dashYM(iso){ return iso?String(iso).slice(0,7):''; }
-function dashMesLabel(ym){ if(!ym) return ''; const p=ym.split('-'); return mesesPT[parseInt(p[1],10)-1]+' '+p[0]; }
-function dashMesCurto(ym){ if(!ym) return ''; const p=ym.split('-'); return mesesPT[parseInt(p[1],10)-1].slice(0,3)+' '+p[0].slice(2); }
-function dashDias(a,b){ return Math.max(0,Math.round((new Date(b)-new Date(a))/86400000)); }
-function dashMedia(arr){ return arr.length?Math.round(arr.reduce((s,x)=>s+x,0)/arr.length*10)/10:null; }
-function dashMediana(arr){ if(!arr.length) return null; const a=arr.slice().sort((x,y)=>x-y); const m=Math.floor(a.length/2); return a.length%2?a[m]:Math.round((a[m-1]+a[m])/2*10)/10; }
-function dashN(n,c){ return (n==null||isNaN(n))?'—':amFmt(n,c==null?0:c); }
-function dashPct(n,c){ return (n==null||isNaN(n))?'—':amFmt(n,c==null?0:c)+' %'; }
-function dashEur(n){ return (n==null||isNaN(n))?'—':amFmt(n,0)+' €'; }
-function dashDiasFmt(v){ return v==null?'—':amFmt(v,1)+' d'; }
-function dashHoje(){ return new Date().toISOString().slice(0,10); }
-function dashAddDias(iso,n){ const d=new Date(iso); d.setDate(d.getDate()+n); return d.toISOString().slice(0,10); }
-function dashFiscais(){ return (DB.utilizadores||[]).filter(u=>u.role==='fiscalizacao'&&u.ativo!==false).sort((a,b)=>(a.nome||'').localeCompare(b.nome||'')); }
-function dashObrasDoFiscal(uid){
-  const u=(DB.utilizadores||[]).find(x=>String(x.id)===String(uid)); const set=new Set(); if(!u) return set;
-  const refs=(u.obras||[]).map(String);
-  (DB.obras||[]).forEach(o=>{ const fiscs=((o.intervenientes_fisc)||[]).map(String);
-    if(refs.includes(String(o.id))||(o.codigo&&refs.includes(String(o.codigo)))||(o.sigla&&refs.includes(String(o.sigla)))||fiscs.includes(String(u.id))) set.add(String(o.id)); });
-  return set;
-}
-function dashPosseDe(k,estado){ const E=DASH_DEF[k].estados()[estado]; const p=E&&E.posse?String(E.posse):'—'; if(p.startsWith('—')) return '—'; return p; }
-function dashUltimaData(d){ let u=d.criado||''; Object.values(d.dt||{}).forEach(v=>{ if(v&&String(v).slice(0,10)>u) u=String(v).slice(0,10); }); (d.hist||[]).forEach(h=>{ if(h&&h.data){ const s=dashHistISO(h.data); if(s>u) u=s; } }); return u||null; }
-function dashHistISO(s){ s=String(s||''); const m=s.match(/^(\d{2})\/(\d{2})\/(\d{4})/); if(m) return m[3]+'-'+m[2]+'-'+m[1]; return s.slice(0,10); }
-function dashIdadeBucket(dias){ for(const b of DASH_IDADE){ if(dias>=b[2]&&dias<=b[3]) return b[0]; } return '>30'; }
 
-/* ---------- Carregamento (store único) ---------- */
 async function dashFetchTudo(tab,sel,extra){
   const out=[]; let off=0;
-  while(true){ const pag=await sbRel.get(tab,'select='+sel+(extra||'')+'&limit=1000&offset='+off); out.push(...pag); if(pag.length<1000) break; off+=1000; }
+  while(true){
+    const pag=await sbRel.get(tab,'select='+sel+(extra||'')+'&limit=1000&offset='+off);
+    out.push(...pag);
+    if(pag.length<1000) break;
+    off+=1000;
+  }
   return out;
 }
 window.dashCarregar=async function(){
-  const docs=[], rsoSem=[], sosTemas=[], rvts=[], autos=[], lpu={};
-  const hoje=dashHoje();
+  const docs=[];
   try{
     showLoadingOverlay('Dashboard… a carregar RSO · SOS · RVT');
-    const rels=await dashFetchTudo('relatorios','id,obra_id,numero,versao,estado,mes,ano,criado_em,criado_por_nome,conteudo','&order=obra_id.asc,numero.asc,versao.asc');
-    const rvtIds=[];
+    const rels=await dashFetchTudo('relatorios','id,obra_id,numero,versao,estado,mes,ano,criado_em,criado_por_nome,conteudo','&order=obra_id.asc,numero.asc');
     rels.forEach(r=>{
-      let c=r.conteudo; if(typeof c==='string'){ try{ c=JSON.parse(c); }catch(e){ c=null; } } c=c||{};
-      let k=null; if(c.tipo==='seguranca') k='rvt'; else if(c.tipo==='fiscalizacao'&&c.subtipo==='SOS') k='sos'; else if(c.tipo==='fiscalizacao') k='rso';
+      let c=r.conteudo;
+      if(typeof c==='string'){ try{ c=JSON.parse(c); }catch(e){ c=null; } }
+      c=c||{};
+      let k=null;
+      if(c.tipo==='seguranca') k='rvt';
+      else if(c.tipo==='fiscalizacao'&&c.subtipo==='SOS') k='sos';
+      else if(c.tipo==='fiscalizacao') k='rso';
       if(!k) return;
-      const dd=c.dados||{};
-      const criado=r.criado_em?String(r.criado_em).slice(0,10):null;
-      const d={ k, uid:r.id, id:String(r.numero||0).padStart(3,'0')+'.'+String(r.versao||0), num:r.numero||0, rev:r.versao||0,
-        obraId:String(r.obra_id), obraNome:dashObraNome(r.obra_id), obraSigla:dashObraSigla(r.obra_id), estado:r.estado||'rascunho',
-        criado, dt:{}, descr:(dd.semanaIni?('Semana de '+peDataPT(dd.semanaIni)):(dd.semana||fmtMesAno(r.mes,r.ano))), cat:'', autor:r.criado_por_nome||'', hist:[], histImport:false };
-      d.posse=dashPosseDe(k,d.estado); d.ultima=criado; d.fechadoFlag=DASH_DEF[k].fechados.includes(d.estado);
-      d.idade=d.fechadoFlag?null:dashDias(d.ultima||hoje,hoje);
-      docs.push(d);
-      if(k==='rso'){
-        let P=0,E=0,nSubs=0; (dd.subempreiteiros||[]).forEach(s=>{ if(!(s&&(s.subempreiteiro||'').trim())) return; nSubs++; (s.dias||[]).forEach(x=>{ P+=(+(x&&x.prev))||0; E+=(+(x&&x.efet))||0; }); });
-        rsoSem.push({ obraId:d.obraId, obraSigla:d.obraSigla, uid:r.id, id:d.id, num:d.num, rev:d.rev, semana:dd.semanaIni?String(dd.semanaIni).slice(0,10):(criado||''), P, E, nSubs, estado:d.estado });
-      }
-      if(k==='sos'){
-        (dd.temas||[]).forEach((t,i)=>{ if(!t) return; sosTemas.push({ obraId:d.obraId, obraSigla:d.obraSigla, uid:r.id, id:d.id, num:d.num, rev:d.rev, data:(dd.data||criado||''), temaId:String(t.id||(i+1)), titulo:t.titulo||('Tema '+(t.id||(i+1))), estado:t.estado||'pendente' }); });
-      }
-      if(k==='rvt') rvtIds.push(d);
-    });
-    showLoadingOverlay('Dashboard… a carregar checklists RVT');
-    const chks=await dashFetchTudo('checklists_amb_seg','obra_id,rvt,payload,updated_at','');
-    const chkMap=new Map(); chks.forEach(c=>chkMap.set(String(c.obra_id)+'|'+String(c.rvt),c));
-    rvtIds.forEach(d=>{
-      const c=chkMap.get(d.obraId+'|'+d.uid); let p=c&&c.payload; if(typeof p==='string'){ try{ p=JSON.parse(p); }catch(e){ p=null; } }
-      const cnt={C:0,OM:0,NC:0,NA:0,NV:0,total:0}; const ncItems=[];
-      if(p&&p.items){ Object.entries(p.items).forEach(([ref,v])=>{ const st=(v&&v.status)||'NV'; if(cnt[st]==null) return; cnt[st]++; cnt.total++; if(st==='NC'||st==='OM') ncItems.push({ref,st,obs:(v&&v.obs)||'',fotos:((v&&v.photos)||[]).length}); }); }
-      const denom=cnt.C+cnt.OM+cnt.NC; const ic=denom?Math.round(cnt.C/denom*100):null;
-      const dataVisita=(p&&p.meta&&p.meta.data)?String(p.meta.data).slice(0,10):(d.criado||'');
-      rvts.push({ obraId:d.obraId, obraSigla:d.obraSigla, uid:d.uid, id:d.id, num:d.num, estado:d.estado, data:dataVisita, cnt, ic, ncItems, temPayload:!!(p&&p.items) });
-      d.cat=ic==null?'':('IC '+ic+' %');
+      docs.push({ k, uid:r.id, id:String(r.numero||0).padStart(3,'0')+'.'+String(r.versao||0),
+        obraId:String(r.obra_id), obraNome:dashObraNome(r.obra_id), estado:r.estado||'rascunho',
+        criado:r.criado_em?String(r.criado_em).slice(0,10):null, fechado:null,
+        dt:{}, descr:fmtMesAno(r.mes,r.ano), nextId:null, hist:[], autor:r.criado_por_nome||'' });
     });
     for(const k of DASH_ORDEM){
-      const D=DASH_DEF[k]; if(!D.tab) continue;
+      const D=DASH_DEF[k];
+      if(!D.tab) continue;
       showLoadingOverlay('Dashboard… a carregar '+D.sig);
       const rows=await dashFetchTudo(D.tab,D.sel,'&order=obra_id.asc,num.asc');
       rows.forEach(r=>{
-        const d={ k, uid:r.id, id:r.id, num:r.num||0, rev:r.rev||0, obraId:String(r.obra_id), obraNome:r.obra_nome||dashObraNome(r.obra_id), obraSigla:dashObraSigla(r.obra_id), estado:r.estado,
-          criado:r.data_criacao||null, dt:D.norm(r), descr:D.descr(r), cat:D.cat?D.cat(r):'', autor:r.autor_empreiteiro||r.autor_emp||r.autor_fisc||'',
-          hist:Array.isArray(r.historico)?r.historico:[], histImport:!!r.historico_import };
-        d.posse=dashPosseDe(k,d.estado); d.fechadoFlag=D.fechados.includes(d.estado); d.ultima=dashUltimaData(d);
-        d.idade=d.fechadoFlag?null:dashDias(d.ultima||d.criado||hoje,hoje);
-        d.ciclo=(d.dt.fecho&&d.criado)?dashDias(d.criado,d.dt.fecho):null;
-        docs.push(d);
-        if(k==='am'){ let m=r.medicoes; if(typeof m==='string'){ try{ m=JSON.parse(m); }catch(e){ m={}; } } autos.push({ obraId:d.obraId, obraSigla:d.obraSigla, uid:r.id, id:r.id, num:d.num, rev:d.rev, mesRef:r.mes_ref||'', estado:r.estado, med:m||{} }); }
+        docs.push({ k, uid:r.id, id:r.id, obraId:String(r.obra_id),
+          obraNome:r.obra_nome||dashObraNome(r.obra_id), estado:r.estado,
+          criado:r.data_criacao||null, fechado:r.data_fecho||null,
+          dt:D.norm(r), descr:D.descr(r), nextId:r.next_id||null,
+          hist:Array.isArray(r.historico)?r.historico:[], autor:r.autor_empreiteiro||r.autor_emp||'' });
       });
     }
-    showLoadingOverlay('Dashboard… a carregar LPU');
-    const lpuRows=await dashFetchTudo('lpu_obra','id,obra_id,tipo,item_id,nivel,descricao,pu,total','');
-    lpuRows.forEach(l=>{ const o=String(l.obra_id); if(!lpu[o]) lpu[o]={total:0,linhas:{},caps:{}}; if(l.tipo==='linha'){ lpu[o].total+=Number(l.total)||0; lpu[o].linhas[l.id]={pu:Number(l.pu)||0,total:Number(l.total)||0,cap:String(l.item_id||'').split('.')[0]}; } else if(l.tipo==='capitulo'&&(l.nivel===1||String(l.item_id||'').indexOf('.')<0)){ lpu[o].caps[String(l.item_id||'').split('.')[0]]=l.descricao||''; } });
-    autos.forEach(a=>{ const L=lpu[a.obraId]; let v=0; const porCap={}; Object.entries(a.med||{}).forEach(([lid,bm])=>{ const q=Number(bm&&bm.qt)||0; if(!q||!L||!L.linhas[lid]) return; const val=q*L.linhas[lid].pu; v+=val; const c=L.linhas[lid].cap; porCap[c]=(porCap[c]||0)+val; }); a.valor=v; a.porCap=porCap; });
-    /* Paleta de obras: ordem fixa por sigla, atribuída uma vez */
-    const obrasIds=[...new Set(docs.map(d=>d.obraId))].sort((a,b)=>dashObraSigla(a).localeCompare(dashObraSigla(b)));
-    const corObra={}; obrasIds.forEach((id,i)=>{ corObra[id]=i<DASH_PAL.length?DASH_PAL[i]:DASH_PAL_OUTRAS; });
-    dashDados={docs,rsoSem,sosTemas,rvts,autos,lpu,corObra,obrasIds,quando:new Date()};
+    dashDados={docs, quando:new Date()};
   }catch(e){ console.error(e); alert('Erro ao carregar o Dashboard: '+e.message); }
   finally{ hideLoadingOverlay(); }
 };
-function dashLoadEcharts(){
-  if(window.echarts) return Promise.resolve();
-  if(dashEchartsPromise) return dashEchartsPromise;
-  dashEchartsPromise=new Promise((res,rej)=>{ const s=document.createElement('script'); s.src='https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js'; s.onload=()=>res(); s.onerror=()=>{ dashEchartsPromise=null; rej(new Error('Não foi possível carregar a biblioteca de gráficos.')); }; document.head.appendChild(s); });
-  return dashEchartsPromise;
-}
 
-/* ---------- Navegação / filtros ---------- */
-function dashGuardarF(){ try{ localStorage.setItem('sego.dash.f',JSON.stringify({f:dashF,tab:dashTab})); }catch(e){} }
-function dashLerF(){ try{ const s=JSON.parse(localStorage.getItem('sego.dash.f')||'null'); if(s&&s.f){ dashF=Object.assign({obras:[],mods:[],estados:[],posse:[],idade:[],periodo:['',''],fiscal:'',pesq:''},s.f); dashTab=s.tab||'portfolio'; } }catch(e){} }
 window.dashAbrir=async function(obraId){
   if(!peESuper()) return;
-  dashLerF(); if(obraId) dashF.obras=[String(obraId)];
-  dashAtivo=true; dashDrill=null; dashPag=0;
-  try{ await Promise.all([dashCarregar(),dashLoadEcharts()]); }catch(e){ alert(e.message); }
+  dashAtivo=true; dashObraF=obraId?String(obraId):''; dashDrill=null;
+  await dashCarregar();
   render();
 };
-window.dashVoltar=function(){ dashAtivo=false; dashDrill=null; dashDestruir(); render(); };
+window.dashVoltar=function(){ dashAtivo=false; dashDrill=null; render(); };
 window.dashRefrescar=async function(){ dashDados=null; await dashCarregar(); render(); };
-window.dashSetTab=function(t){ dashTab=t; dashDrill=null; dashPag=0; dashGuardarF(); render(); };
-window.dashToggle=function(dim,val,ev){
-  val=String(val); const arr=dashF[dim]||[]; const multi=!!(ev&&(ev.ctrlKey||ev.metaKey||ev.shiftKey));
-  if(multi){ const i=arr.indexOf(val); if(i>=0) arr.splice(i,1); else arr.push(val); dashF[dim]=arr; }
-  else{ dashF[dim]=(arr.length===1&&arr[0]===val)?[]:[val]; }
-  dashPag=0; dashDrill=null; dashGuardarF(); render();
+window.dashSetTab=function(t){ dashTab=t; dashDrill=null; render(); };
+window.dashSetObra=function(v){ dashObraF=v; dashDrill=null; render(); };
+window.dashSetMes=function(v){ dashMes=v; dashDrill=null; render(); };
+window.dashSetFisc=function(v){ dashFisc=v; dashDrill=null; render(); };
+
+function dashYM(iso){ return iso?String(iso).slice(0,7):''; }
+function dashMesLabel(ym){ const p=ym.split('-'); return mesesPT[parseInt(p[1],10)-1]+' '+p[0]; }
+function dashDias(a,b){ return Math.max(0,Math.round((new Date(b)-new Date(a))/86400000)); }
+function dashMedia(arr){ return arr.length?Math.round(arr.reduce((s,x)=>s+x,0)/arr.length*10)/10:null; }
+function dashFiscais(){
+  return (DB.utilizadores||[]).filter(u=>u.role==='fiscalizacao'&&u.ativo!==false).sort((a,b)=>(a.nome||'').localeCompare(b.nome||''));
+}
+function dashObrasDoFiscal(uid){
+  const u=(DB.utilizadores||[]).find(x=>String(x.id)===String(uid));
+  const set=new Set();
+  if(!u) return set;
+  const refs=(u.obras||[]).map(String);
+  (DB.obras||[]).forEach(o=>{
+    const fiscs=((o.intervenientes_fisc)||[]).map(String);
+    if(refs.includes(String(o.id))||(o.codigo&&refs.includes(String(o.codigo)))||(o.sigla&&refs.includes(String(o.sigla)))||fiscs.includes(String(u.id)))
+      set.add(String(o.id));
+  });
+  return set;
+}
+function dashDocsTodos(){
+  if(!dashDados) return [];
+  const obrasFisc=dashFisc?dashObrasDoFiscal(dashFisc):null;
+  return dashDados.docs.filter(d=>
+    (!dashObraF||d.obraId===dashObraF) &&
+    (!dashMes||dashYM(d.criado)===dashMes) &&
+    (!obrasFisc||obrasFisc.has(d.obraId))
+  );
+}
+function dashObrasDe(ds){
+  const m=new Map();
+  ds.forEach(d=>{ if(!m.has(d.obraId)) m.set(d.obraId,d.obraNome); });
+  return [...m.entries()].map(([id,nome])=>({id,nome})).sort((a,b)=>a.nome.localeCompare(b.nome));
+}
+window.dashDrillSet=function(tipo,a,b,c){
+  const ds=dashDocsTodos(); let docs=[], titulo='';
+  if(tipo==='cel'){ docs=ds.filter(d=>(a==='*'||d.obraId===a)&&(b==='*'||d.k===b)); titulo=(a==='*'?'Todas as Obras':dashObraNome(a))+(b==='*'?' — todos os documentos':' · '+DASH_DEF[b].sig); }
+  else if(tipo==='est'){ docs=ds.filter(d=>d.k===a&&d.estado===c&&(b==='*'||d.obraId===b)); const E=DASH_DEF[a].estados()[c]||{rot:c}; titulo=DASH_DEF[a].sig+' · '+E.rot+(b==='*'?'':' · '+dashObraNome(b)); }
+  dashDrill={titulo,docs:docs.slice().sort((x,y)=>(y.criado||'').localeCompare(x.criado||''))};
+  render();
+  setTimeout(()=>{ const el=document.getElementById('dash-drill'); if(el) el.scrollIntoView({behavior:'smooth',block:'start'}); },50);
 };
-window.dashRemover=function(dim,val){ if(dim==='periodo') dashF.periodo=['','']; else if(dim==='fiscal') dashF.fiscal=''; else if(dim==='pesq') dashF.pesq=''; else dashF[dim]=(dashF[dim]||[]).filter(x=>x!==String(val)); dashPag=0; dashGuardarF(); render(); };
-window.dashLimpar=function(){ dashF={obras:[],mods:[],estados:[],posse:[],idade:[],periodo:['',''],fiscal:'',pesq:''}; dashPag=0; dashDrill=null; dashGuardarF(); render(); };
-window.dashSetPeriodo=function(ini,fim){ dashF.periodo=[ini||'',fim||'']; dashPag=0; dashGuardarF(); render(); };
-window.dashPreset=function(p){ const h=dashHoje(); if(p==='30') dashSetPeriodo(dashAddDias(h,-30),h); else if(p==='90') dashSetPeriodo(dashAddDias(h,-90),h); else if(p==='ano') dashSetPeriodo(h.slice(0,4)+'-01-01',h); else dashSetPeriodo('',''); };
-window.dashSetFisc=function(v){ dashF.fiscal=v||''; dashPag=0; dashGuardarF(); render(); };
-window.dashSetPesq=function(v){ dashF.pesq=v||''; dashPag=0; dashGuardarF(); dashRenderDocsTabela(); };
-window.dashDD=function(id){ dashDDAberto=(dashDDAberto===id)?'':id; render(); };
-window.dashOrdenar=function(col){ if(dashOrd.col===col) dashOrd.dir=-dashOrd.dir; else dashOrd={col,dir:(col==='criado'||col==='ultima'||col==='idade')?-1:1}; dashPag=0; render(); };
-window.dashPagina=function(n){ dashPag=Math.max(0,n); render(); };
+window.dashDrillFechar=function(){ dashDrill=null; render(); };
 window.dashAbrirDoc=async function(k,obraId,id){
-  dashAtivo=false; dashDrill=null; dashDestruir();
+  dashAtivo=false; dashDrill=null;
   if(k==='rso'||k==='sos'||k==='rvt'){ relRelId=id; render(); return; }
   if(k==='pe'){ await peAbrirModulo(obraId); peAbrirFicha(id); }
   else if(k==='pa'){ await paAbrirModulo(obraId); paAbrirFicha(id); }
@@ -8452,493 +8404,269 @@ window.dashAbrirDoc=async function(k,obraId,id){
   else if(k==='qe'){ await qeAbrirModulo(obraId); qeAbrirFicha(id); }
   else if(k==='am'){ await amAbrirModulo(obraId); amAbrirFicha(id); }
 };
-window.dashDrillSet=function(titulo,pred){ const ds=dashDocs(); dashDrill={titulo,docs:ds.filter(pred).sort((x,y)=>(y.ultima||'').localeCompare(x.ultima||''))}; render(); setTimeout(()=>{ const el=document.getElementById('dash-drill'); if(el) el.scrollIntoView({behavior:'smooth',block:'start'}); },50); };
-window.dashDrillFechar=function(){ dashDrill=null; render(); };
-window.dashExportarCSV=function(){
-  const ds=dashDocsOrdenados(); const sep=';';
-  const cab=['Tipo','Id','Obra','Descrição','Categoria','Estado','Posse','Criado','Última Data','Idade (d)','Ciclo (d)','Autor'];
-  const esc2=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
-  const linhas=ds.map(d=>[DASH_DEF[d.k].sig,d.id,d.obraNome,d.descr,d.cat,(DASH_DEF[d.k].estados()[d.estado]||{rot:d.estado}).rot,d.posse,peDataPT(d.criado),peDataPT(d.ultima),d.idade==null?'':d.idade,d.ciclo==null?'':d.ciclo,d.autor].map(esc2).join(sep));
-  const csv='﻿'+cab.map(esc2).join(sep)+'\n'+linhas.join('\n');
-  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})); a.download='SEGO_Dashboard_'+dashHoje()+'.csv'; a.click();
-};
 
-/* Conjunto filtrado — a única fonte de verdade para todas as vistas */
-function dashDocs(){
-  if(!dashDados) return [];
-  const F=dashF; const obrasFisc=F.fiscal?dashObrasDoFiscal(F.fiscal):null; const [ini,fim]=F.periodo;
-  return dashDados.docs.filter(d=>
-    (!F.obras.length||F.obras.includes(d.obraId)) &&
-    (!F.mods.length||F.mods.includes(d.k)) &&
-    (!F.estados.length||F.estados.includes(d.k+':'+d.estado)) &&
-    (!F.posse.length||F.posse.includes(d.posse)) &&
-    (!F.idade.length||(d.idade!=null&&F.idade.includes(dashIdadeBucket(d.idade)))) &&
-    (!ini||(d.criado||'')>=ini) && (!fim||(d.criado||'')<=fim) &&
-    (!obrasFisc||obrasFisc.has(d.obraId))
-  );
-}
-function dashObrasF(){ /* obras no filtro (universo), mesmo sem documentos */
-  if(!dashDados) return [];
-  const F=dashF; const obrasFisc=F.fiscal?dashObrasDoFiscal(F.fiscal):null;
-  return dashDados.obrasIds.filter(id=>(!F.obras.length||F.obras.includes(id))&&(!obrasFisc||obrasFisc.has(id)));
-}
-function dashSubFiltro(arr){ /* aplica obra/fiscal/período a séries auxiliares (rso, sos, rvt, autos) */
-  const F=dashF; const obrasFisc=F.fiscal?dashObrasDoFiscal(F.fiscal):null; const [ini,fim]=F.periodo;
-  const chave=x=>x.data||x.semana||(x.mesRef?x.mesRef+'-01':'');
-  return arr.filter(x=>(!F.obras.length||F.obras.includes(x.obraId))&&(!obrasFisc||obrasFisc.has(x.obraId))&&(!ini||!chave(x)||chave(x)>=ini)&&(!fim||!chave(x)||chave(x)<=fim));
-}
-function dashCorObra(id){ return (dashDados&&dashDados.corObra[id])||DASH_PAL_OUTRAS; }
-function dashDocsOrdenados(){
-  const ds=dashDocs().filter(d=>{ if(!dashF.pesq) return true; const q=dashF.pesq.toLowerCase(); return [d.id,d.obraNome,d.descr,d.cat,d.autor,DASH_DEF[d.k].sig,(DASH_DEF[d.k].estados()[d.estado]||{}).rot||d.estado].join(' ').toLowerCase().includes(q); });
-  const c=dashOrd.col, dir=dashOrd.dir;
-  const val=d=>c==='tipo'?DASH_DEF[d.k].sig:c==='estado'?((DASH_DEF[d.k].estados()[d.estado]||{}).rot||d.estado):c==='obra'?d.obraSigla:(d[c]==null?'':d[c]);
-  return ds.sort((a,b)=>{ const x=val(a),y=val(b); if(typeof x==='number'&&typeof y==='number') return (x-y)*dir; return String(x).localeCompare(String(y),'pt')*dir; });
-}
-
-/* ---------- ECharts: base, montagem, destruição ---------- */
-const DASH_ECH_BASE={ textStyle:{fontFamily:'Calibri, Carlito, sans-serif',fontSize:11,color:'#1A1D2E'}, animationDuration:300, animationDurationUpdate:300,
-  tooltip:{backgroundColor:'#fff',borderColor:'#D8DCE6',borderWidth:1,textStyle:{color:'#1A1D2E',fontSize:11},padding:[6,9],extraCssText:'box-shadow:0 2px 8px rgba(0,0,0,.08);border-radius:4px'},
-  grid:{left:8,right:12,top:28,bottom:8,containLabel:true},
-  legend:{top:0,left:0,icon:'roundRect',itemWidth:10,itemHeight:10,itemGap:12,textStyle:{fontSize:11,color:'#6B7280'}} };
-function dashEixoX(extra){ return Object.assign({axisLine:{lineStyle:{color:'#D8DCE6'}},axisTick:{show:false},axisLabel:{color:'#6B7280',fontSize:10.5},splitLine:{show:false}},extra||{}); }
-function dashEixoY(extra){ return Object.assign({axisLine:{show:false},axisTick:{show:false},axisLabel:{color:'#6B7280',fontSize:10.5},splitLine:{lineStyle:{color:'#EEF1F6'}}},extra||{}); }
-function dashTopLeg(n){ return n>5?48:26; }
-function dashDestruir(){ dashCharts.forEach(c=>{ try{ c.dispose(); }catch(e){} }); dashCharts=[]; }
-function dashMontar(defs){
-  dashDestruir(); if(!window.echarts) return;
-  defs.forEach(([id,opt,onClick])=>{
-    const el=document.getElementById(id); if(!el) return;
-    const ch=echarts.init(el,null,{renderer:'canvas'}); ch.setOption(Object.assign({},DASH_ECH_BASE,opt)); if(onClick) ch.on('click',p=>onClick(p,p.event&&p.event.event)); dashCharts.push(ch);
-  });
-  if(!window._dashResize){ window._dashResize=true; window.addEventListener('resize',()=>dashCharts.forEach(c=>{ try{ c.resize(); }catch(e){} })); }
-}
-function dashSemDados(msg){ return `<div class="dash-vazio">${esc(msg||'Sem dados no filtro atual.')}</div>`; }
-
-/* ---------- CSS ---------- */
 const DASH_CSS=`<style>
-.dash-wrap{max-width:1400px;margin:0 auto;font-size:12px}
-.dash-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:8px}
-.dash-filtros{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;background:var(--bg-card);border:0.5px solid var(--border-light);border-radius:var(--radius);padding:8px 12px;margin-bottom:8px;position:relative}
-.dash-filtros label{font-weight:700;color:var(--navy);margin-right:2px}
-.dash-filtros select,.dash-filtros input[type=date],.dash-filtros input[type=search]{font-family:inherit;font-size:12px;padding:4px 7px;border:1px solid var(--border-light);border-radius:4px;background:#fff;height:27px;box-sizing:border-box}
-.dash-sep{width:1px;height:20px;background:var(--border-light);margin:0 2px}
-.dash-pill{display:inline-block;color:#fff;border-radius:999px;padding:1px 8px;font-size:10px;font-weight:700;white-space:nowrap}
-.dash-mod{cursor:pointer;opacity:.45;border:1.5px solid transparent;transition:opacity .12s}
-.dash-mod.on{opacity:1}
-.dash-mod:hover{opacity:.85}
-.dash-ddwrap{position:relative}
-.dash-ddbtn{cursor:pointer;font-family:inherit;font-size:12px;padding:4px 8px;border:1px solid var(--border-light);border-radius:4px;background:#fff;height:27px;min-width:150px;text-align:left;display:inline-flex;align-items:center;justify-content:space-between;gap:8px}
-.dash-dd{position:absolute;top:30px;left:0;z-index:50;background:#fff;border:1px solid var(--border-light);border-radius:4px;box-shadow:0 4px 14px rgba(0,0,0,.1);padding:6px 4px;min-width:280px;max-height:320px;overflow:auto}
-.dash-dd label{display:flex;align-items:center;gap:7px;padding:4px 8px;font-weight:400;color:var(--text);cursor:pointer;border-radius:3px;white-space:nowrap}
-.dash-dd label:hover{background:#F4F6FA}
-.dash-dd i{width:9px;height:9px;border-radius:2px;display:inline-block;flex-shrink:0}
-.dash-chips{display:flex;flex-wrap:wrap;gap:5px;align-items:center;margin-bottom:10px;min-height:22px}
-.dash-chip{display:inline-flex;align-items:center;gap:5px;background:#EEF1F6;border:0.5px solid var(--border-light);border-radius:999px;padding:2px 6px 2px 9px;font-size:11px;color:var(--text)}
-.dash-chip b{color:var(--navy)}
-.dash-chip span{cursor:pointer;color:var(--text-muted);font-weight:700;padding:0 2px}
-.dash-chip span:hover{color:var(--danger)}
-.dash-tabs{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px;border-bottom:1px solid var(--border-light)}
-.dash-tab{cursor:pointer;padding:6px 14px;font-size:12px;font-weight:700;color:var(--text-muted);border-bottom:2px solid transparent;margin-bottom:-1px;user-select:none}
-.dash-tab:hover{color:var(--navy)}
-.dash-tab.on{color:var(--navy);border-bottom-color:var(--gold)}
-.dash-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:10px;margin-bottom:10px}
-.dash-card{background:var(--bg-card);border:0.5px solid var(--border-light);border-radius:var(--radius);padding:10px 12px;min-width:0}
-.dash-c12{grid-column:span 12}.dash-c8{grid-column:span 8}.dash-c6{grid-column:span 6}.dash-c4{grid-column:span 4}.dash-c3{grid-column:span 3}
-@media(max-width:1100px){.dash-c8,.dash-c6,.dash-c4,.dash-c3{grid-column:span 12}}
-.dash-h{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:6px}
-.dash-h b{font-size:12px;color:var(--navy);text-transform:uppercase;letter-spacing:.5px}
-.dash-h small{font-size:10.5px;color:var(--text-muted)}
-.dash-chart{width:100%;height:240px}
-.dash-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-bottom:10px}
-.dash-kpi{background:var(--bg-card);border:0.5px solid var(--border-light);border-left:3px solid var(--navy);border-radius:var(--radius);padding:8px 10px 6px;cursor:pointer;min-width:0}
-.dash-kpi:hover{background:#FAFBFD}
-.dash-kpi .l{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.dash-kpi .v{font-size:22px;font-weight:700;color:var(--navy);line-height:1.15;margin:2px 0 1px;display:flex;align-items:baseline;gap:6px}
-.dash-kpi .v small{font-size:11px;font-weight:700}
-.dash-kpi .s{font-size:10.5px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.dash-kpi .sp{height:30px;width:100%;margin-top:2px}
-.dash-up{color:var(--success)}.dash-down{color:var(--danger)}.dash-flat{color:var(--text-muted)}
-.dash-tbl{width:100%;border-collapse:collapse}
-.dash-tbl th{background:#F4F6FA;color:var(--navy);font-weight:700;padding:5px 8px;text-align:right;font-size:11px;white-space:nowrap;border-bottom:1px solid var(--border-light);cursor:pointer;user-select:none}
-.dash-tbl th.l,.dash-tbl td.l{text-align:left}
-.dash-tbl th:hover{background:#EEF1F6}
-.dash-tbl td{padding:4px 8px;border-bottom:0.5px solid var(--border-light);font-size:11.5px;text-align:right;white-space:nowrap}
-.dash-tbl td.w{white-space:normal}
+.dash-wrap{max-width:1280px;margin:0 auto;font-size:12px}
+.dash-filtros{display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:var(--bg-card);border:0.5px solid var(--border-light);border-radius:var(--radius);padding:10px 12px;margin-bottom:12px}
+.dash-filtros select{font-family:inherit;font-size:12px;padding:4px 8px;border:1px solid var(--border-light);border-radius:4px;background:#fff;max-width:240px}
+.dash-tabs{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px}
+.dash-tab{cursor:pointer;padding:6px 13px;border-radius:4px 4px 0 0;font-size:12px;font-weight:700;background:#E4E8EF;color:var(--text-muted);border:0.5px solid var(--border-light);border-bottom:none}
+.dash-tab.on{color:#fff}
+.dash-card{background:var(--bg-card);border:0.5px solid var(--border-light);border-radius:var(--radius);padding:12px 14px;margin-bottom:14px}
+.dash-h{font-size:12.5px;font-weight:700;color:var(--navy);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px}
+.dash-tbl{width:100%;border-collapse:collapse;margin-bottom:6px}
+.dash-tbl th{background:var(--navy);color:#fff;font-weight:700;padding:5px 8px;text-align:right;font-size:11px;white-space:nowrap}
+.dash-tbl th:first-child{text-align:left}
+.dash-tbl td{padding:4px 8px;border-bottom:0.5px solid var(--border-light);font-size:11.5px;text-align:right}
+.dash-tbl td:first-child{text-align:left}
 .dash-tbl tr:hover td{background:#F4F6FA}
 .dash-tbl tr.tot td{font-weight:700;background:#EEF1F6}
-.dash-tbl tr.cl{cursor:pointer}
-.dash-tbl tr.sel td{background:#FFF6E0}
-.dash-bar{display:inline-block;height:8px;border-radius:2px;vertical-align:middle;background:var(--navy2);max-width:120px}
-.dash-leg{font-size:10.5px;color:var(--text-muted);margin-top:6px;line-height:1.5}
-.dash-vazio{color:var(--text-muted);padding:18px 0;text-align:center}
-.dash-btn{cursor:pointer;font-family:inherit;font-size:11.5px;padding:4px 10px;border:1px solid var(--border-light);border-radius:4px;background:#fff;color:var(--navy);font-weight:700}
-.dash-btn:hover{background:#F4F6FA}
-.dash-sem{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:middle}
-.dash-pag{display:flex;gap:6px;align-items:center;justify-content:flex-end;margin-top:8px;font-size:11px;color:var(--text-muted)}
-.dash-spark{height:34px;width:100%}
+.dash-cel{cursor:pointer;color:var(--info)}
+.dash-cel:hover{text-decoration:underline}
+.dash-leg{font-size:10.5px;color:var(--text-muted);margin-top:4px;line-height:1.55}
+.dash-pill{display:inline-block;color:#fff;border-radius:999px;padding:1px 8px;font-size:10px;font-weight:700}
+.dash-pbar{background:#EEF1F6;border-radius:3px;height:14px;position:relative;overflow:hidden}
+.dash-pbar>div{height:100%;border-radius:3px}
 </style>`;
 
-/* ---------- Cabeçalho, filtros, chips ---------- */
-function dashFiltrosHTML(){
-  const obrasU=dashDados?dashDados.obrasIds:[]; const F=dashF; const fiscais=dashFiscais();
-  const obrasSel=F.obras.length?F.obras.length+' obra'+(F.obras.length>1?'s':''):'Todas as Obras';
-  const ddObras=dashDDAberto==='obras'?`<div class="dash-dd" onclick="event.stopPropagation()">${obrasU.map(id=>`<label><input type="checkbox" ${F.obras.includes(id)?'checked':''} onchange="dashToggle('obras','${id}',{ctrlKey:true})"><i style="background:${dashCorObra(id)}"></i>${esc(dashObraNome(id))}</label>`).join('')||'<div class="dash-vazio">Sem obras.</div>'}</div>`:'';
-  const [ini,fim]=F.periodo;
-  return `<div class="dash-filtros">
-    <label>Obra</label>
-    <span class="dash-ddwrap"><button class="dash-ddbtn" onclick="event.stopPropagation();dashDD('obras')"><span>${esc(obrasSel)}</span><span style="color:var(--text-muted)">▾</span></button>${ddObras}</span>
-    <span class="dash-sep"></span>
-    <label>Módulo</label>
-    ${DASH_ORDEM.map(k=>`<span class="dash-pill dash-mod ${(!F.mods.length||F.mods.includes(k))?'on':''}" style="background:${DASH_DEF[k].cor}" title="${esc(DASH_DEF[k].rot)} — clique para filtrar · Ctrl+clique para somar" onclick="dashToggle('mods','${k}',event)">${DASH_DEF[k].sig}</span>`).join('')}
-    <span class="dash-sep"></span>
-    <label>Posse</label>
-    ${DASH_POSSE_ORD.filter(p=>p!=='—').map(p=>`<span class="dash-pill dash-mod ${(!F.posse.length||F.posse.includes(p))?'on':''}" style="background:${DASH_POSSE_COR[p]}" title="Documentos em posse de ${p}" onclick="dashToggle('posse','${p}',event)">${p}</span>`).join('')}
-    <span class="dash-sep"></span>
-    <label>Período</label>
-    <input type="date" value="${ini}" onchange="dashSetPeriodo(this.value,'${fim}')"> <span style="color:var(--text-muted)">a</span> <input type="date" value="${fim}" onchange="dashSetPeriodo('${ini}',this.value)">
-    <button class="dash-btn" onclick="dashPreset('30')">30 d</button><button class="dash-btn" onclick="dashPreset('90')">90 d</button><button class="dash-btn" onclick="dashPreset('ano')">Ano</button>
-    <span class="dash-sep"></span>
-    <label>Fiscal</label>
-    <select onchange="dashSetFisc(this.value)"><option value="">Todos</option>${fiscais.map(u=>`<option value="${u.id}" ${F.fiscal===String(u.id)?'selected':''}>${esc(u.nome)}</option>`).join('')}</select>
-  </div>`;
+/* ---------- Gráficos (SVG/HTML) ---------- */
+function dashChartMensal(dsk,cor){
+  const yms=[...new Set(dsk.map(d=>dashYM(d.criado)).filter(Boolean))].sort();
+  if(yms.length<2) return '';
+  const dados=yms.map(ym=>({ym,n:dsk.filter(d=>dashYM(d.criado)===ym).length}));
+  const max=Math.max(1,...dados.map(x=>x.n));
+  const bw=22,pad=10,step=bw+22,W=pad*2+dados.length*step,H=150,base=H-24;
+  let g='';
+  dados.forEach((x,i)=>{
+    const x0=pad+i*step,h=Math.max(2,Math.round((base-20)*x.n/max));
+    g+=`<rect x="${x0}" y="${base-h}" width="${bw}" height="${h}" rx="3" fill="${cor}"><title>${dashMesLabel(x.ym)}: ${x.n}</title></rect>`;
+    g+=`<text x="${x0+bw/2}" y="${base-h-5}" font-size="10" font-weight="700" text-anchor="middle" fill="#1A1D2E">${x.n}</text>`;
+    g+=`<text x="${x0+bw/2}" y="${H-7}" font-size="9" text-anchor="middle" fill="#6B7280">${x.ym.slice(5)+'/'+x.ym.slice(2,4)}</text>`;
+  });
+  return `<div style="overflow-x:auto;margin-bottom:10px"><svg viewBox="0 0 ${W} ${H}" style="height:${H}px;max-width:100%"><line x1="${pad-4}" y1="${base}" x2="${W-pad+4}" y2="${base}" stroke="#D8DCE6"/>${g}</svg></div>
+  <div class="dash-leg" style="margin:-4px 0 10px">Documentos criados por mês (todas as obras do filtro).</div>`;
 }
-function dashChipsHTML(){
-  const F=dashF; const chips=[];
-  F.obras.forEach(id=>chips.push(['obras',id,'Obra',dashObraSigla(id)]));
-  F.mods.forEach(k=>chips.push(['mods',k,'Módulo',DASH_DEF[k].sig]));
-  F.estados.forEach(e=>{ const [k,st]=e.split(':'); const E=DASH_DEF[k]&&DASH_DEF[k].estados()[st]; chips.push(['estados',e,'Estado',DASH_DEF[k].sig+' · '+(E?E.rot:st)]); });
-  F.posse.forEach(p=>chips.push(['posse',p,'Posse',p]));
-  F.idade.forEach(b=>chips.push(['idade',b,'Idade',(DASH_IDADE.find(x=>x[0]===b)||[b,b])[1]]));
-  if(F.periodo[0]||F.periodo[1]) chips.push(['periodo','','Período',(F.periodo[0]?peDataPT(F.periodo[0]):'…')+' – '+(F.periodo[1]?peDataPT(F.periodo[1]):'…')]);
-  if(F.fiscal){ const u=(DB.utilizadores||[]).find(x=>String(x.id)===String(F.fiscal)); chips.push(['fiscal','','Fiscal',u?u.nome:F.fiscal]); }
-  if(F.pesq) chips.push(['pesq','','Pesquisa',F.pesq]);
-  if(!chips.length) return `<div class="dash-chips"><span style="color:var(--text-muted);font-size:11px">Sem filtros ativos — clique em qualquer barra, fatia ou linha para filtrar; Ctrl+clique para somar seleções.</span></div>`;
-  return `<div class="dash-chips">${chips.map(c=>`<span class="dash-chip"><b>${c[2]}:</b> ${esc(c[3])}<span onclick="dashRemover('${c[0]}','${esc(c[1])}')" title="Remover">×</span></span>`).join('')}<button class="dash-btn" style="padding:2px 9px" onclick="dashLimpar()">Limpar Filtros</button></div>`;
+function dashBarraEstados(k,dsk){
+  if(!dsk.length) return '';
+  const D=DASH_DEF[k],EST=D.estados();
+  const ordem=D.ordemEst.filter(e=>EST[e]&&dsk.some(d=>d.estado===e));
+  const segs=ordem.map(e=>{
+    const n=dsk.filter(d=>d.estado===e).length;
+    const w=100*n/dsk.length;
+    return `<div style="width:${w}%;background:${EST[e].cor};display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:700;margin-right:2px;cursor:pointer" title="${EST[e].rot}: ${n}" onclick="dashDrillSet('est','${k}','*','${e}')">${w>6?n:''}</div>`;
+  }).join('');
+  const leg=ordem.map(e=>`<span style="display:inline-flex;align-items:center;gap:5px"><i style="width:9px;height:9px;border-radius:2px;background:${EST[e].cor};display:inline-block"></i>${EST[e].rot} (${dsk.filter(d=>d.estado===e).length})</span>`).join('');
+  return `<div style="display:flex;height:26px;border-radius:4px;overflow:hidden;background:#EEF1F6;margin-bottom:6px">${segs}</div>
+  <div class="dash-leg" style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:12px">${leg}</div>`;
 }
-function dashKpi(l,v,s,spark,onclick,unit,delta){
-  const dl=delta==null?'':(delta>0?`<small class="dash-up">▲ ${amFmt(Math.abs(delta),0)}</small>`:delta<0?`<small class="dash-down">▼ ${amFmt(Math.abs(delta),0)}</small>`:`<small class="dash-flat">▬</small>`);
-  return `<div class="dash-kpi" ${onclick?`onclick="${onclick}"`:''}><div class="l">${esc(l)}</div><div class="v">${v}${unit?`<small style="color:var(--text-muted)">${unit}</small>`:''}${dl}</div><div class="s">${s||''}</div>${spark?`<div class="sp" id="${spark}"></div>`:''}</div>`;
+function dashBarrasTempos(k,dsk){
+  const D=DASH_DEF[k];
+  const calc=t=>dashMedia(dsk.filter(d=>d.dt[t[1]]&&d.dt[t[2]]).map(d=>dashDias(d.dt[t[1]],d.dt[t[2]])));
+  const vals=D.trans.map(t=>({rot:t[0],v:calc(t)})).filter(x=>x.v!==null);
+  if(!vals.length) return '';
+  const max=Math.max(...vals.map(x=>x.v),1);
+  return `<div style="margin-bottom:12px">${vals.map(x=>`
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:5px">
+      <div style="width:200px;text-align:right;font-size:11px">${x.rot}</div>
+      <div style="flex:1;background:#EEF1F6;border-radius:3px"><div style="width:${Math.max(3,100*x.v/max)}%;background:${D.cor};border-radius:3px;height:16px;color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;padding-left:6px;white-space:nowrap">${String(x.v).replace('.',',')} d</div></div>
+    </div>`).join('')}
+  <div class="dash-leg">Média global de cada etapa, em dias.</div></div>`;
 }
-function dashSerieMensal(ds,campo){ const m={}; ds.forEach(d=>{ const ym=dashYM(d[campo]); if(ym) m[ym]=(m[ym]||0)+1; }); return m; }
-function dashMesesEixo(mapas){ const s=new Set(); mapas.forEach(m=>Object.keys(m).forEach(k=>s.add(k))); let arr=[...s].sort(); if(arr.length>24) arr=arr.slice(-24); return arr; }
-function dashSparkOpt(valores,cor){ return { grid:{left:0,right:0,top:2,bottom:0}, xAxis:{type:'category',show:false,data:valores.map((_,i)=>i)}, yAxis:{type:'value',show:false,min:0}, tooltip:{show:false}, series:[{type:'line',data:valores,smooth:0.3,symbol:'none',lineStyle:{width:1.5,color:cor},areaStyle:{color:cor,opacity:.12}}] }; }
-function dashDelta30(ds){ const h=dashHoje(), a=dashAddDias(h,-30), b=dashAddDias(h,-60); const n1=ds.filter(d=>(d.criado||'')>a).length, n0=ds.filter(d=>(d.criado||'')>b&&(d.criado||'')<=a).length; return n1-n0; }
+function dashBarrasTipos(ds){
+  const dados=DASH_ORDEM.map(k=>({k,n:ds.filter(d=>d.k===k).length}));
+  const max=Math.max(1,...dados.map(x=>x.n));
+  return `<div class="dash-card"><div class="dash-h">Documentos por Tipo</div>${dados.map(x=>`
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:5px">
+      <div style="width:44px;text-align:right"><span class="dash-pill" style="background:${DASH_DEF[x.k].cor}">${DASH_DEF[x.k].sig}</span></div>
+      <div style="flex:1;background:#EEF1F6;border-radius:3px;cursor:pointer" onclick="dashDrillSet('cel','*','${x.k}')"><div style="width:${Math.max(x.n?3:0,100*x.n/max)}%;background:${DASH_DEF[x.k].cor};border-radius:3px;height:16px;color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;padding-left:6px">${x.n||''}</div></div>
+    </div>`).join('')}
+  <div class="dash-leg">Total de documentos registados por tipo, com os filtros selecionados. Clique numa barra para listar.</div></div>`;
+}
 
-/* ---------- Vista: Portfólio ---------- */
-function dashVistaPortfolio(ds,charts){
-  const obras=dashObrasF(); const hoje=dashHoje();
-  const abertos=ds.filter(d=>!d.fechadoFlag); const pend15=abertos.filter(d=>d.idade>15);
-  const ciclos=ds.filter(d=>d.ciclo!=null).map(d=>d.ciclo);
-  const rso=dashSubFiltro(dashDados.rsoSem); const ultSem={}; rso.forEach(s=>{ if(!ultSem[s.obraId]||s.semana>ultSem[s.obraId].semana) ultSem[s.obraId]=s; });
-  const hsE=Object.values(ultSem).reduce((s,x)=>s+x.E,0), hsP=Object.values(ultSem).reduce((s,x)=>s+x.P,0);
-  const rvt=dashSubFiltro(dashDados.rvts).filter(r=>r.ic!=null); const ultRvt={}; rvt.forEach(r=>{ if(!ultRvt[r.obraId]||r.data>ultRvt[r.obraId].data) ultRvt[r.obraId]=r; });
-  const icMed=dashMedia(Object.values(ultRvt).map(r=>r.ic));
-  const sos=dashSubFiltro(dashDados.sosTemas); const temasPend=dashSosTemasAtuais(sos).filter(t=>t.estado==='pendente').length;
-  const meses=dashMesesEixo([dashSerieMensal(ds,'criado')]); const mCri=dashSerieMensal(ds,'criado');
-  const kpis=`<div class="dash-kpis">
-    ${dashKpi('Documentos no Filtro',amFmt(ds.length,0),amFmt(abertos.length,0)+' em curso · '+amFmt(ds.length-abertos.length,0)+' concluídos','sp-docs',"dashSetTab('docs')",'',dashDelta30(ds))}
-    ${dashKpi('Pendentes > 15 Dias',amFmt(pend15.length,0),abertos.length?amFmt(100*pend15.length/abertos.length,0)+' % dos documentos em curso':'—','',"dashF.idade=['16-30','>30'];dashPag=0;dashGuardarF();render()")}
-    ${dashKpi('Ciclo Médio (Criação → Fecho)',ciclos.length?amFmt(dashMedia(ciclos),1):'—',ciclos.length?'mediana '+amFmt(dashMediana(ciclos),1)+' d · '+amFmt(ciclos.length,0)+' fechados':'sem documentos fechados','',"dashSetTab('gpe')",ciclos.length?'d':'')}
-    ${dashKpi('Mão de Obra — Última Semana',Object.keys(ultSem).length?amFmt(hsE,0):'—',Object.keys(ultSem).length?('efetivos · previstos '+amFmt(hsP,0)+' · '+Object.keys(ultSem).length+' obra'+(Object.keys(ultSem).length>1?'s':'')):'sem RSO','',"dashSetTab('fisc')",Object.keys(ultSem).length?'h·s':'')}
-    ${dashKpi('Temas SOS Pendentes',amFmt(temasPend,0),sos.length?'de '+amFmt(dashSosTemasAtuais(sos).length,0)+' temas acompanhados':'sem SOS','',"dashSetTab('fisc')")}
-    ${dashKpi('Conformidade RVT (IC)',icMed==null?'—':amFmt(icMed,0),icMed==null?'sem RVT com checklist':'média dos últimos RVT de '+Object.keys(ultRvt).length+' obra'+(Object.keys(ultRvt).length>1?'s':''),'',"dashSetTab('seg')",icMed==null?'':'%')}
+/* ---------- Secções por módulo ---------- */
+function dashSecUtilizacao(k,dsk){
+  const D=DASH_DEF[k];
+  const obras=dashObrasDe(dsk);
+  const linhas=obras.map(o=>{
+    const n=dsk.filter(d=>d.obraId===o.id).length;
+    const pct=dsk.length?Math.round(1000*n/dsk.length)/10:0;
+    return `<tr><td>${esc(o.nome)}</td><td><span class="dash-cel" onclick="dashDrillSet('cel','${o.id}','${k}')">${n}</span></td>
+      <td style="width:220px;text-align:left"><div class="dash-pbar"><div style="width:${Math.min(100,pct)}%;background:${D.cor}"></div></div></td>
+      <td>${String(pct).replace('.',',')}%</td></tr>`;
+  }).join('');
+  const tot=`<tr class="tot"><td>Total</td><td>${dsk.length}</td><td></td><td>100%</td></tr>`;
+  return `<div class="dash-card"><div class="dash-h">1 · Utilização da App — ${D.sig}</div>
+    ${dashChartMensal(dsk,D.cor)}
+    <table class="dash-tbl"><thead><tr><th>Obra</th><th>Documentos</th><th style="text-align:left">Peso</th><th>%</th></tr></thead>
+    <tbody>${linhas||'<tr><td colspan="4" style="color:var(--text-muted)">Sem documentos no filtro atual.</td></tr>'}${obras.length?tot:''}</tbody></table>
+    <div class="dash-leg">Número de ${D.rot} registados na app, por obra, com os filtros selecionados (revisões contam como documentos — são atividade). Clique num valor para listar.</div>
   </div>`;
-  charts.push(['sp-docs',dashSparkOpt(meses.map(m=>mCri[m]||0),'#1E3A5F')]);
-  /* Atividade por obra × posse (barras horizontais empilhadas) */
-  const obrasAtv=obras.map(id=>({id,sig:dashObraSigla(id),n:ds.filter(d=>d.obraId===id).length})).filter(x=>x.n).sort((a,b)=>b.n-a.n);
-  const posseSeries=DASH_POSSE_ORD.map(p=>({name:p==='—'?'Concluído':p,type:'bar',stack:'t',barMaxWidth:18,itemStyle:{color:DASH_POSSE_COR[p],borderColor:'#fff',borderWidth:1},emphasis:{focus:'series'},data:obrasAtv.map(o=>ds.filter(d=>d.obraId===o.id&&d.posse===p).length)}));
-  charts.push(['dc-obras',{ tooltip:{trigger:'axis',axisPointer:{type:'shadow'}}, legend:{data:posseSeries.map(s=>s.name)}, grid:{left:8,right:16,top:dashTopLeg(posseSeries.length),bottom:4,containLabel:true},
-    xAxis:dashEixoX({type:'value',minInterval:1}), yAxis:dashEixoY({type:'category',data:obrasAtv.map(o=>o.sig),inverse:true,splitLine:{show:false}}), series:posseSeries },
-    (p,ev)=>{ const o=obrasAtv[p.dataIndex]; if(!o) return; if(ev&&(ev.ctrlKey||ev.metaKey)) dashToggle('obras',o.id,ev); else { dashF.obras=[o.id]; const pn=p.seriesName==='Concluído'?'—':p.seriesName; dashF.posse=[pn]; dashPag=0; dashGuardarF(); render(); } }]);
-  /* Fluxo mensal: criados vs fechados */
-  const mFec={}; ds.forEach(d=>{ const ym=dashYM(d.dt&&d.dt.fecho); if(ym) mFec[ym]=(mFec[ym]||0)+1; });
-  const mesesF=dashMesesEixo([mCri,mFec]);
-  charts.push(['dc-fluxo',{ tooltip:{trigger:'axis'}, legend:{data:['Criados','Fechados']}, grid:{left:8,right:12,top:26,bottom:4,containLabel:true},
-    xAxis:dashEixoX({type:'category',data:mesesF.map(dashMesCurto),boundaryGap:true}), yAxis:dashEixoY({type:'value',minInterval:1}),
-    series:[{name:'Criados',type:'bar',barMaxWidth:16,itemStyle:{color:'#2a78d6',borderRadius:[3,3,0,0]},data:mesesF.map(m=>mCri[m]||0)},{name:'Fechados',type:'bar',barMaxWidth:16,itemStyle:{color:'#1baf7a',borderRadius:[3,3,0,0]},data:mesesF.map(m=>mFec[m]||0)}] },
-    (p,ev)=>{ const ym=mesesF[p.dataIndex]; if(!ym) return; const fim=new Date(ym+'-01T00:00:00'); fim.setMonth(fim.getMonth()+1); fim.setDate(0); dashSetPeriodo(ym+'-01',fim.toISOString().slice(0,10)); }]);
-  /* Heatmap obra × módulo */
-  const hmObras=obrasAtv.map(o=>o.sig), hmData=[]; let hmMax=1;
-  obrasAtv.forEach((o,i)=>DASH_ORDEM.forEach((k,j)=>{ const n=ds.filter(d=>d.obraId===o.id&&d.k===k).length; if(n>hmMax) hmMax=n; hmData.push([j,i,n]); }));
-  charts.push(['dc-heat',{ tooltip:{formatter:p=>`<b>${esc(hmObras[p.value[1]])}</b> · ${DASH_DEF[DASH_ORDEM[p.value[0]]].rot}<br>${amFmt(p.value[2],0)} documento${p.value[2]===1?'':'s'}`}, grid:{left:8,right:12,top:8,bottom:4,containLabel:true},
-    xAxis:dashEixoX({type:'category',data:DASH_ORDEM.map(k=>DASH_DEF[k].sig),position:'top',axisLine:{show:false}}), yAxis:dashEixoY({type:'category',data:hmObras,inverse:true,splitLine:{show:false}}),
-    visualMap:{show:false,min:0,max:hmMax,inRange:{color:['#F4F6FA'].concat(DASH_SEQ)}},
-    series:[{type:'heatmap',data:hmData,label:{show:true,fontSize:10,formatter:p=>p.value[2]||'',color:'#1A1D2E'},itemStyle:{borderColor:'#fff',borderWidth:2,borderRadius:2},emphasis:{itemStyle:{borderColor:'#1E3A5F'}}}] },
-    (p,ev)=>{ const o=obrasAtv[p.value[1]], k=DASH_ORDEM[p.value[0]]; if(!o||!p.value[2]) return; dashF.obras=[o.id]; dashF.mods=[k]; dashPag=0; dashGuardarF(); render(); }]);
-  /* Pendências por idade × posse */
-  const idSeries=DASH_POSSE_ORD.filter(p=>p!=='—').map(p=>({name:p,type:'bar',stack:'i',barMaxWidth:34,itemStyle:{color:DASH_POSSE_COR[p],borderColor:'#fff',borderWidth:1},data:DASH_IDADE.map(b=>abertos.filter(d=>d.posse===p&&dashIdadeBucket(d.idade)===b[0]).length)}));
-  charts.push(['dc-idade',{ tooltip:{trigger:'axis',axisPointer:{type:'shadow'}}, legend:{data:idSeries.map(s=>s.name)}, grid:{left:8,right:12,top:26,bottom:4,containLabel:true},
-    xAxis:dashEixoX({type:'category',data:DASH_IDADE.map(b=>b[1])}), yAxis:dashEixoY({type:'value',minInterval:1}), series:idSeries },
-    (p,ev)=>{ const b=DASH_IDADE[p.dataIndex]; if(!b) return; dashF.idade=[b[0]]; if(!(ev&&(ev.ctrlKey||ev.metaKey))) dashF.posse=[p.seriesName]; dashPag=0; dashGuardarF(); render(); }]);
-  /* Tabela de obras */
-  const am=dashSubFiltro(dashDados.autos); const amPorObra=dashAmAcumulado(am);
-  const linhas=obras.map(id=>{
-    const dd=ds.filter(d=>d.obraId===id), ab=dd.filter(d=>!d.fechadoFlag), p15=ab.filter(d=>d.idade>15);
-    const cic=dashMedia(dd.filter(d=>d.ciclo!=null).map(d=>d.ciclo)); let ult=''; dd.forEach(d=>{ if((d.ultima||'')>ult) ult=d.ultima; });
-    const s=ultSem[id], r=ultRvt[id], a=amPorObra[id];
-    return {id,sig:dashObraSigla(id),nome:dashObraNome(id),n:dd.length,ab:ab.length,p15:p15.length,cic,ult,hs:s?s.E:null,hsP:s?s.P:null,ic:r?r.ic:null,am:a&&a.lpu?100*a.acum/a.lpu:null};
+}
+function dashSecEstados(k,dsk){
+  const D=DASH_DEF[k], EST=D.estados();
+  const ordem=D.ordemEst.filter(e=>EST[e]);
+  const obras=dashObrasDe(dsk);
+  const linhas=obras.map(o=>{
+    const dd=dsk.filter(d=>d.obraId===o.id);
+    return `<tr><td>${esc(o.nome)}</td>${ordem.map(e=>{
+      const n=dd.filter(d=>d.estado===e).length;
+      return `<td>${n?`<span class="dash-cel" onclick="dashDrillSet('est','${k}','${o.id}','${e}')">${n}</span>`:''}</td>`;
+    }).join('')}<td><b>${dd.length}</b></td></tr>`;
+  }).join('');
+  const tot=`<tr class="tot"><td>Total</td>${ordem.map(e=>{
+    const n=dsk.filter(d=>d.estado===e).length;
+    return `<td>${n?`<span class="dash-cel" onclick="dashDrillSet('est','${k}','*','${e}')">${n}</span>`:''}</td>`;
+  }).join('')}<td>${dsk.length}</td></tr>`;
+  const leg=ordem.filter(e=>D.estLeg[e]).map(e=>`<b>${EST[e].rot}</b>: ${D.estLeg[e]}`).join(' · ');
+  return `<div class="dash-card"><div class="dash-h">2 · Estados dos Documentos — ${D.sig}</div>
+    ${dashBarraEstados(k,dsk)}
+    ${obras.length?`<table class="dash-tbl"><thead><tr><th>Obra</th>${ordem.map(e=>`<th>${EST[e].rot}</th>`).join('')}<th>Total</th></tr></thead>
+    <tbody>${linhas}${tot}</tbody></table>`:'<div style="color:var(--text-muted)">Sem documentos no filtro atual.</div>'}
+    <div class="dash-leg">${leg}${leg?'<br>':''}Fotografia atual: cada documento conta no estado em que se encontra. Clique num valor para listar.</div>
+  </div>`;
+}
+function dashSecTempos(k,dsk){
+  const D=DASH_DEF[k];
+  if(!D.trans.length){
+    return `<div class="dash-card"><div class="dash-h">3 · Tempo Médio de Resposta — ${D.sig}</div>
+      <div style="color:var(--text-muted)">Os ${D.rot} não têm etapas datadas entre estados — não há tempos a calcular neste tipo de documento.</div></div>`;
+  }
+  const obras=dashObrasDe(dsk);
+  const calc=(dd,t)=>dashMedia(dd.filter(d=>d.dt[t[1]]&&d.dt[t[2]]).map(d=>dashDias(d.dt[t[1]],d.dt[t[2]])));
+  const fmt=v=>v===null?'<span style="color:var(--text-muted)">—</span>':String(v).replace('.',',')+' d';
+  const linhas=obras.map(o=>{
+    const dd=dsk.filter(d=>d.obraId===o.id);
+    return `<tr><td>${esc(o.nome)}</td>${D.trans.map(t=>`<td>${fmt(calc(dd,t))}</td>`).join('')}</tr>`;
+  }).join('');
+  const tot=`<tr class="tot"><td>Média Global</td>${D.trans.map(t=>`<td>${fmt(calc(dsk,t))}</td>`).join('')}</tr>`;
+  return `<div class="dash-card"><div class="dash-h">3 · Tempo Médio de Resposta — ${D.sig}</div>
+    ${dashBarrasTempos(k,dsk)}
+    ${obras.length?`<table class="dash-tbl"><thead><tr><th>Obra</th>${D.trans.map(t=>`<th>${t[0]}</th>`).join('')}</tr></thead>
+    <tbody>${linhas}${tot}</tbody></table>`:'<div style="color:var(--text-muted)">Sem documentos no filtro atual.</div>'}
+    <div class="dash-leg">${D.transLeg} Médias em dias; contam apenas os documentos com as duas datas preenchidas.</div>
+  </div>`;
+}
+
+/* ---------- Visão Geral ---------- */
+function dashVisaoGeral(ds){
+  const obrasFisc=dashFisc?dashObrasDoFiscal(dashFisc):null;
+  const universo=(DB.obras||[]).filter(o=>(!dashObraF||String(o.id)===dashObraF)&&(!obrasFisc||obrasFisc.has(String(o.id))));
+  const comAtividade=dashObrasDe(ds);
+  const semAtividade=universo.filter(o=>!comAtividade.some(c=>c.id===String(o.id)));
+  const linhasT=comAtividade.map(o=>{
+    const dd=ds.filter(d=>d.obraId===o.id);
+    return `<tr><td>${esc(o.nome)}</td>${DASH_ORDEM.map(k=>{
+      const n=dd.filter(d=>d.k===k).length;
+      return `<td>${n?`<span class="dash-cel" onclick="dashDrillSet('cel','${o.id}','${k}')">${n}</span>`:''}</td>`;
+    }).join('')}<td><b><span class="dash-cel" onclick="dashDrillSet('cel','${o.id}','*')">${dd.length}</span></b></td></tr>`;
+  }).join('');
+  const totT=`<tr class="tot"><td>Total</td>${DASH_ORDEM.map(k=>`<td>${ds.filter(d=>d.k===k).length}</td>`).join('')}<td>${ds.length}</td></tr>`;
+  const porMod=DASH_ORDEM.map(k=>({k,n:ds.filter(d=>d.k===k).length})).sort((a,b)=>b.n-a.n);
+  const topMod=porMod[0]&&porMod[0].n?porMod[0]:null;
+  const pesos=comAtividade.map(o=>{
+    const dd=ds.filter(d=>d.obraId===o.id);
+    let ult=''; dd.forEach(d=>{ d.hist.forEach(h=>{ if(h&&h.data&&h.data>ult) ult=h.data; }); if((d.criado||'')>ult) ult=d.criado; });
+    return {o,n:dd.length,pct:ds.length?Math.round(1000*dd.length/ds.length)/10:0,ult};
   }).sort((a,b)=>b.n-a.n);
-  const sel=dashF.obras;
-  const tab=`<table class="dash-tbl"><thead><tr><th class="l">Obra</th><th>Docs</th><th>Em Curso</th><th>&gt; 15 d</th><th>Ciclo Médio</th><th>Última Ação</th><th>H·S Efetivos</th><th>IC RVT</th><th>AM Executado</th></tr></thead><tbody>
-    ${linhas.map(x=>`<tr class="cl ${sel.length===1&&sel[0]===x.id?'sel':''}" onclick="dashToggle('obras','${x.id}',event)" title="${esc(x.nome)} — clique para filtrar a obra">
-      <td class="l"><span class="dash-sem" style="background:${dashCorObra(x.id)}"></span><b>${esc(x.sig)}</b></td><td>${dashN(x.n)}</td><td>${dashN(x.ab)}</td>
-      <td style="color:${x.p15?'var(--danger)':'inherit'};font-weight:${x.p15?'700':'400'}">${dashN(x.p15)}</td><td>${dashDiasFmt(x.cic)}</td><td>${x.ult?peDataPT(x.ult):'—'}</td>
-      <td>${x.hs==null?'—':dashN(x.hs)+(x.hsP!=null?' <span style="color:var(--text-muted)">/ '+dashN(x.hsP)+'</span>':'')}</td>
-      <td>${x.ic==null?'—':`<span class="dash-sem" style="background:${x.ic>=80?'#1A7A4A':x.ic>=60?'#7C5E0A':'#B91C1C'}"></span>${dashPct(x.ic)}`}</td>
-      <td>${x.am==null?'—':`<span class="dash-bar" style="width:${Math.min(100,x.am)}px"></span> ${dashPct(x.am,1)}`}</td></tr>`).join('')||'<tr><td colspan="9" class="dash-vazio">Sem obras no filtro.</td></tr>'}
-    </tbody></table><div class="dash-leg">H·S = homens·semana (efetivos / previstos) na última semana com RSO · IC = índice de conformidade do último RVT (C ÷ (C+OM+NC)) · AM = valor medido acumulado ÷ LPU.</div>`;
-  return kpis+`<div class="dash-grid">
-    <div class="dash-card dash-c6"><div class="dash-h"><b>Documentos por Obra e Posse</b><small>quem tem a bola, obra a obra</small></div><div class="dash-chart" id="dc-obras" style="height:${Math.max(200,34+obrasAtv.length*26)}px"></div></div>
-    <div class="dash-card dash-c6"><div class="dash-h"><b>Fluxo Mensal</b><small>criados vs fechados · clique num mês para filtrar</small></div><div class="dash-chart" id="dc-fluxo"></div></div>
-    <div class="dash-card dash-c6"><div class="dash-h"><b>Carteira por Obra e Módulo</b><small>clique numa célula para abrir obra + módulo</small></div><div class="dash-chart" id="dc-heat" style="height:${Math.max(200,40+obrasAtv.length*26)}px"></div></div>
-    <div class="dash-card dash-c6"><div class="dash-h"><b>Pendências por Idade e Posse</b><small>dias desde a última ação · só documentos em curso</small></div><div class="dash-chart" id="dc-idade"></div></div>
-    <div class="dash-card dash-c12"><div class="dash-h"><b>Quadro de Obras</b><small>${obras.length} obra${obras.length===1?'':'s'} no filtro · clique numa linha para aprofundar</small></div>${tab}</div>
-  </div>`;
+  const tile=(lbl,val,sub)=>`<div class="dash-card" style="margin-bottom:0"><div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px">${lbl}</div><div style="font-size:22px;font-weight:700;color:var(--navy);margin:2px 0">${val}</div><div style="font-size:11px;color:var(--text-muted)">${sub||''}</div></div>`;
+  const bullets=[];
+  bullets.push(`<b>${comAtividade.length}</b> obra${comAtividade.length===1?'':'s'} com atividade e <b>${semAtividade.length}</b> sem atividade${semAtividade.length?' ('+semAtividade.slice(0,8).map(o=>esc(o.sigla||o.nome)).join(', ')+(semAtividade.length>8?', …':'')+')':''}.`);
+  if(pesos.length) bullets.push(`A obra <b>${esc(pesos[0].o.nome)}</b> concentra <b>${String(pesos[0].pct).replace('.',',')}%</b> da atividade registada.`);
+  if(topMod) bullets.push(`O documento mais utilizado é <b>${DASH_DEF[topMod.k].sig}</b> (${topMod.n} de ${ds.length}).`);
+  const semUso=DASH_ORDEM.filter(k=>!ds.some(d=>d.k===k));
+  if(semUso.length&&ds.length) bullets.push(`Sem qualquer registo: <b>${semUso.map(k=>DASH_DEF[k].sig).join(' · ')}</b>.`);
+  const linhasP=pesos.map(x=>`<tr>
+      <td>${esc(x.o.nome)}</td><td>${x.n}</td>
+      <td style="width:220px;text-align:left"><div class="dash-pbar"><div style="width:${Math.min(100,x.pct)}%;background:var(--navy2)"></div></div></td>
+      <td>${String(x.pct).replace('.',',')}%</td>
+      <td>${x.ult?peDataPT(String(x.ult).slice(0,10)):'—'}</td></tr>`).join('');
+  return `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin-bottom:14px">
+      ${tile('Obras Com Atividade',comAtividade.length,'de '+universo.length+' no filtro')}
+      ${tile('Obras Sem Atividade',semAtividade.length,'')}
+      ${tile('Documentos Registados',ds.length,'todos os tipos')}
+      ${tile('Documento Mais Utilizado',topMod?DASH_DEF[topMod.k].sig:'—',topMod?topMod.n+' registos':'')}
+    </div>
+    ${dashBarrasTipos(ds)}
+    <div class="dash-card"><div class="dash-h">O Que Ocorreu — Todas as Obras</div>
+      <table class="dash-tbl"><thead><tr><th>Obra</th>${DASH_ORDEM.map(k=>`<th>${DASH_DEF[k].sig}</th>`).join('')}<th>Total</th></tr></thead>
+      <tbody>${linhasT||'<tr><td colspan="11" style="color:var(--text-muted)">Sem documentos no filtro atual.</td></tr>'}${comAtividade.length?totT:''}</tbody></table>
+      <div class="dash-leg">Número de documentos registados por obra e por tipo, com os filtros selecionados. Clique num valor para listar.</div>
+    </div>
+    <div class="dash-card"><div class="dash-h">Análise</div><div style="line-height:1.9">${bullets.map(b=>'• '+b).join('<br>')}</div></div>
+    <div class="dash-card"><div class="dash-h">Peso de Cada Obra na Atividade</div>
+      <table class="dash-tbl"><thead><tr><th>Obra</th><th>Documentos</th><th style="text-align:left">Peso</th><th>%</th><th>Última Ação</th></tr></thead>
+      <tbody>${linhasP||'<tr><td colspan="5" style="color:var(--text-muted)">Sem atividade no filtro atual.</td></tr>'}</tbody></table>
+    </div>`;
 }
-
-/* ---------- Vista: Fluxos GPE ---------- */
-function dashVistaGPE(ds,charts){
-  const mods=DASH_GPE.filter(k=>!dashF.mods.length||dashF.mods.includes(k));
-  const dg=ds.filter(d=>DASH_GPE.includes(d.k));
-  if(!dg.length) return dashSemDados('Sem documentos GPE (PE · PA · PB · PTQ · QE) no filtro atual.');
-  const abertos=dg.filter(d=>!d.fechadoFlag);
-  /* Estados por módulo (barras 100 % empilhadas) */
-  const estSet=[]; mods.forEach(k=>DASH_DEF[k].ordemEst.forEach(e=>{ const E=DASH_DEF[k].estados()[e]; if(E&&!estSet.find(x=>x.rot===E.rot)) estSet.push({rot:E.rot,cor:dashHex(E.cor)}); }));
-  const estSeries=estSet.map(E=>({name:E.rot,type:'bar',stack:'e',barMaxWidth:22,itemStyle:{color:E.cor,borderColor:'#fff',borderWidth:1},data:mods.map(k=>dg.filter(d=>d.k===k&&(DASH_DEF[k].estados()[d.estado]||{}).rot===E.rot).length)}));
-  charts.push(['dc-est',{ tooltip:{trigger:'axis',axisPointer:{type:'shadow'}}, legend:{data:estSet.map(E=>E.rot)}, grid:{left:8,right:12,top:dashTopLeg(estSet.length),bottom:4,containLabel:true},
-    xAxis:dashEixoX({type:'value',minInterval:1}), yAxis:dashEixoY({type:'category',data:mods.map(k=>DASH_DEF[k].sig),inverse:true,splitLine:{show:false}}), series:estSeries },
-    (p,ev)=>{ const k=mods[p.dataIndex]; if(!k) return; const e=Object.entries(DASH_DEF[k].estados()).find(([key,E])=>E.rot===p.seriesName); if(!e) return; dashToggle('estados',k+':'+e[0],ev); }]);
-  /* Tempo por etapa (média e mediana) */
-  const etapas=[]; mods.forEach(k=>DASH_DEF[k].trans.forEach(t=>{ const vals=dg.filter(d=>d.k===k&&d.dt[t[1]]&&d.dt[t[2]]).map(d=>dashDias(d.dt[t[1]],d.dt[t[2]])); if(vals.length) etapas.push({k,rot:DASH_DEF[k].sig+' · '+t[0],posse:t[3],med:dashMedia(vals),mdn:dashMediana(vals),n:vals.length,max:Math.max(...vals)}); }));
-  charts.push(['dc-tempos',{ tooltip:{trigger:'axis',axisPointer:{type:'shadow'},formatter:ps=>{ const e=etapas[ps[0].dataIndex]; return `<b>${esc(e.rot)}</b> — posse ${e.posse}<br>Média ${amFmt(e.med,1)} d · Mediana ${amFmt(e.mdn,1)} d · Máx. ${amFmt(e.max,0)} d<br>${amFmt(e.n,0)} documento${e.n===1?'':'s'}`; }},
-    legend:{data:['Mediana'],right:0,left:'auto'}, grid:{left:8,right:16,top:26,bottom:4,containLabel:true},
-    xAxis:dashEixoX({type:'value',name:'dias',nameTextStyle:{color:'#6B7280',fontSize:10}}), yAxis:dashEixoY({type:'category',data:etapas.map(e=>e.rot),inverse:true,splitLine:{show:false},axisLabel:{color:'#6B7280',fontSize:10.5,width:150,overflow:'truncate'}}),
-    series:[{name:'Média',type:'bar',barMaxWidth:12,itemStyle:{borderRadius:[0,3,3,0]},data:etapas.map(e=>({value:e.med,itemStyle:{color:DASH_POSSE_COR[e.posse]||'#2a78d6'}}))},{name:'Mediana',type:'scatter',symbolSize:9,itemStyle:{color:'#1A1D2E'},data:etapas.map(e=>e.mdn)}] }]);
-  /* Backlog por posse × módulo */
-  const possesAb=DASH_POSSE_ORD.filter(p=>p!=='—');
-  charts.push(['dc-posse',{ tooltip:{trigger:'axis',axisPointer:{type:'shadow'}}, legend:{data:possesAb}, grid:{left:8,right:12,top:26,bottom:4,containLabel:true},
-    xAxis:dashEixoX({type:'category',data:mods.map(k=>DASH_DEF[k].sig)}), yAxis:dashEixoY({type:'value',minInterval:1}),
-    series:possesAb.map(p=>({name:p,type:'bar',stack:'p',barMaxWidth:30,itemStyle:{color:DASH_POSSE_COR[p],borderColor:'#fff',borderWidth:1},data:mods.map(k=>abertos.filter(d=>d.k===k&&d.posse===p).length)})) },
-    (p,ev)=>{ const k=mods[p.dataIndex]; if(!k) return; dashF.mods=[k]; dashF.posse=[p.seriesName]; dashPag=0; dashGuardarF(); render(); }]);
-  /* Categorias (especialidade / decisão) */
-  const cats={}; dg.forEach(d=>{ if(d.cat) cats[d.cat]=(cats[d.cat]||0)+1; }); const catArr=Object.entries(cats).sort((a,b)=>b[1]-a[1]).slice(0,10);
-  charts.push(['dc-cat',{ tooltip:{trigger:'axis',axisPointer:{type:'shadow'}}, grid:{left:8,right:16,top:8,bottom:4,containLabel:true},
-    xAxis:dashEixoX({type:'value',minInterval:1}), yAxis:dashEixoY({type:'category',data:catArr.map(c=>c[0]),inverse:true,splitLine:{show:false},axisLabel:{color:'#6B7280',fontSize:10.5,width:140,overflow:'truncate'}}),
-    series:[{type:'bar',barMaxWidth:14,itemStyle:{color:'#2a78d6',borderRadius:[0,3,3,0]},data:catArr.map(c=>c[1])}] }]);
-  /* Tabela de pendências (envelhecimento) */
-  const pend=abertos.slice().sort((a,b)=>(b.idade||0)-(a.idade||0)).slice(0,40);
-  const tab=`<table class="dash-tbl"><thead><tr><th class="l">Tipo</th><th class="l">Id</th><th class="l">Obra</th><th class="l">Descrição</th><th class="l">Estado</th><th class="l">Posse</th><th>Última Ação</th><th>Idade</th><th></th></tr></thead><tbody>
-    ${pend.map(d=>{ const E=DASH_DEF[d.k].estados()[d.estado]||{rot:d.estado,cor:'#999'}; return `<tr><td class="l"><span class="dash-pill" style="background:${DASH_DEF[d.k].cor}">${DASH_DEF[d.k].sig}</span></td><td class="l"><b>${esc(d.id)}</b></td><td class="l">${esc(d.obraSigla)}</td><td class="l w" style="max-width:360px">${esc((d.descr||'').slice(0,90))}</td><td class="l"><span class="dash-pill" style="background:${dashHex(E.cor)}">${E.rot}</span></td><td class="l">${esc(d.posse)}</td><td>${peDataPT(d.ultima)}</td><td style="font-weight:700;color:${d.idade>30?'var(--danger)':d.idade>15?'var(--warning)':'inherit'}">${dashN(d.idade)} d</td><td><button class="dash-btn" style="padding:1px 8px" onclick="dashAbrirDoc('${d.k}','${d.obraId}','${d.uid}')">Abrir</button></td></tr>`; }).join('')||'<tr><td colspan="9" class="dash-vazio">Sem pendências no filtro.</td></tr>'}
-    </tbody></table>${abertos.length>40?`<div class="dash-leg">A mostrar as 40 pendências mais antigas de ${amFmt(abertos.length,0)}. Use a vista Documentos para a lista completa.</div>`:''}`;
-  return `<div class="dash-grid">
-    <div class="dash-card dash-c6"><div class="dash-h"><b>Estados por Módulo</b><small>clique num segmento para filtrar o estado</small></div><div class="dash-chart" id="dc-est" style="height:${Math.max(200,70+mods.length*34)}px"></div><div class="dash-leg">${mods.map(k=>'<b>'+DASH_DEF[k].sig+'</b>: '+DASH_DEF[k].ordemEst.filter(e=>DASH_DEF[k].estLeg[e]).map(e=>DASH_DEF[k].estados()[e].rot+' = '+DASH_DEF[k].estLeg[e]).join(' · ')).join('<br>')}</div></div>
-    <div class="dash-card dash-c6"><div class="dash-h"><b>Tempo por Etapa</b><small>barra = média em dias, cor = quem tem a posse (<span style="color:#1B4F9B">■</span> Empreiteiro <span style="color:#C9922A">■</span> Fiscalização <span style="color:#6D28D9">■</span> Projetista <span style="color:#1E3A5F">■</span> Dono de Obra) · ponto = mediana</small></div><div class="dash-chart" id="dc-tempos" style="height:${Math.max(180,50+etapas.length*24)}px"></div><div class="dash-leg">${mods.map(k=>DASH_DEF[k].transLeg).filter(Boolean).join('<br>')}</div></div>
-    <div class="dash-card dash-c6"><div class="dash-h"><b>Backlog em Curso por Posse</b><small>documentos não concluídos · clique para filtrar</small></div><div class="dash-chart" id="dc-posse"></div></div>
-    <div class="dash-card dash-c6"><div class="dash-h"><b>Especialidades e Decisões</b><small>top 10 categorias nos documentos GPE</small></div><div class="dash-chart" id="dc-cat" style="height:${Math.max(180,30+catArr.length*22)}px"></div></div>
-    <div class="dash-card dash-c12"><div class="dash-h"><b>Pendências por Antiguidade</b><small>${amFmt(abertos.length,0)} documento${abertos.length===1?'':'s'} em curso</small></div>${tab}</div>
-  </div>`;
-}
-
-/* ---------- Vista: Fiscalização (RSO + SOS) ---------- */
-function dashSosTemasAtuais(sos){ /* estado atual de cada tema (último SOS por obra+tema) + recorrência */
-  const m={}; sos.forEach(t=>{ const key=t.obraId+'|'+t.temaId; const cur=m[key]; if(!cur){ m[key]={...t,n:1,primeiro:t.data,ultimo:t.data}; } else { cur.n++; if(t.data>=cur.ultimo){ cur.ultimo=t.data; cur.estado=t.estado; cur.titulo=t.titulo||cur.titulo; cur.uid=t.uid; cur.id=t.id; } if(t.data<cur.primeiro) cur.primeiro=t.data; } });
-  return Object.values(m);
-}
-function dashVistaFisc(ds,charts){
-  const rso=dashSubFiltro(dashDados.rsoSem).sort((a,b)=>a.semana.localeCompare(b.semana)); const sos=dashSubFiltro(dashDados.sosTemas);
-  if(!rso.length&&!sos.length) return dashSemDados('Sem RSO nem SOS no filtro atual.');
-  const semanas=[...new Set(rso.map(s=>s.semana))].sort().slice(-26);
-  const somaP=semanas.map(w=>rso.filter(s=>s.semana===w).reduce((a,x)=>a+x.P,0)), somaE=semanas.map(w=>rso.filter(s=>s.semana===w).reduce((a,x)=>a+x.E,0));
-  const obrasR=[...new Set(rso.map(s=>s.obraId))];
-  const multiObra=obrasR.length>1;
-  const serieObras=multiObra&&obrasR.length<=8?obrasR.map(id=>({name:dashObraSigla(id),type:'line',smooth:0.3,symbol:'circle',symbolSize:6,lineStyle:{width:2,color:dashCorObra(id)},itemStyle:{color:dashCorObra(id)},data:semanas.map(w=>{ const s=rso.find(x=>x.obraId===id&&x.semana===w); return s?s.E:null; })})):null;
-  charts.push(['dc-rso',{ tooltip:{trigger:'axis'}, legend:{data:['Previstos','Efetivos']}, grid:{left:8,right:16,top:26,bottom:4,containLabel:true},
-    xAxis:dashEixoX({type:'category',data:semanas.map(w=>peDataPT(w).slice(0,5))}), yAxis:dashEixoY({type:'value',minInterval:1}),
-    series:[{name:'Previstos',type:'line',smooth:0.3,symbol:'none',lineStyle:{width:2,color:'#9CA3AF',type:'dashed'},data:somaP},{name:'Efetivos',type:'line',smooth:0.3,symbol:'circle',symbolSize:6,lineStyle:{width:2,color:'#1B4F9B'},itemStyle:{color:'#1B4F9B'},areaStyle:{color:'#1B4F9B',opacity:.08},data:somaE}] }]);
-  if(serieObras) charts.push(['dc-rso-obras',{ tooltip:{trigger:'axis'}, legend:{data:serieObras.map(s=>s.name)}, grid:{left:8,right:16,top:26,bottom:4,containLabel:true}, xAxis:dashEixoX({type:'category',data:semanas.map(w=>peDataPT(w).slice(0,5))}), yAxis:dashEixoY({type:'value',minInterval:1}), series:serieObras }]);
-  /* Desvio E−P por obra (última semana) */
-  const ult={}; rso.forEach(s=>{ if(!ult[s.obraId]||s.semana>ult[s.obraId].semana) ult[s.obraId]=s; });
-  const desv=Object.values(ult).map(s=>({id:s.obraId,sig:s.obraSigla,d:s.E-s.P,P:s.P,E:s.E,sem:s.semana,subs:s.nSubs})).sort((a,b)=>a.d-b.d);
-  charts.push(['dc-desvio',{ tooltip:{trigger:'axis',axisPointer:{type:'shadow'},formatter:ps=>{ const x=desv[ps[0].dataIndex]; return `<b>${esc(x.sig)}</b> · semana de ${peDataPT(x.sem)}<br>Efetivos ${amFmt(x.E,0)} · Previstos ${amFmt(x.P,0)} · Desvio ${x.d>0?'+':''}${amFmt(x.d,0)}<br>${amFmt(x.subs,0)} subempreiteiro${x.subs===1?'':'s'}`; }}, grid:{left:30,right:30,top:8,bottom:4,containLabel:true},
-    xAxis:dashEixoX({type:'value',minInterval:1}), yAxis:dashEixoY({type:'category',data:desv.map(x=>x.sig),inverse:true,splitLine:{show:false}}),
-    series:[{type:'bar',barMaxWidth:14,data:desv.map(x=>({value:x.d,itemStyle:{color:x.d<0?'#B91C1C':x.d>0?'#1A7A4A':'#9CA3AF',borderRadius:3},label:{show:true,position:x.d<0?'left':'right',fontSize:10,color:'#1A1D2E',formatter:p=>(p.value>0?'+':'')+amFmt(p.value,0)}}))}] },
-    (p,ev)=>{ const x=desv[p.dataIndex]; if(x) dashToggle('obras',x.id,ev); }]);
-  /* SOS */
-  const temas=dashSosTemasAtuais(sos); const obrasS=[...new Set(temas.map(t=>t.obraId))].sort((a,b)=>dashObraSigla(a).localeCompare(dashObraSigla(b)));
-  const stK=Object.keys(DASH_SOS_ST);
-  charts.push(['dc-sos',{ tooltip:{trigger:'axis',axisPointer:{type:'shadow'}}, legend:{data:stK.map(k=>DASH_SOS_ST[k].rot)}, grid:{left:8,right:12,top:26,bottom:4,containLabel:true},
-    xAxis:dashEixoX({type:'value',minInterval:1}), yAxis:dashEixoY({type:'category',data:obrasS.map(dashObraSigla),inverse:true,splitLine:{show:false}}),
-    series:stK.map(k=>({name:DASH_SOS_ST[k].rot,type:'bar',stack:'s',barMaxWidth:18,itemStyle:{color:DASH_SOS_ST[k].cor,borderColor:'#fff',borderWidth:1},data:obrasS.map(id=>temas.filter(t=>t.obraId===id&&t.estado===k).length)})) },
-    (p,ev)=>{ const id=obrasS[p.dataIndex]; if(id) dashToggle('obras',id,ev); }]);
-  const pend=temas.filter(t=>t.estado==='pendente').sort((a,b)=>b.n-a.n||a.primeiro.localeCompare(b.primeiro)).slice(0,30);
-  const tabSos=`<table class="dash-tbl"><thead><tr><th class="l">Obra</th><th class="l">Tema</th><th>Desde</th><th>Ocorrências</th><th>Último SOS</th><th></th></tr></thead><tbody>
-    ${pend.map(t=>`<tr><td class="l">${esc(t.obraSigla)}</td><td class="l w" style="max-width:420px">${esc(t.titulo)}</td><td>${peDataPT(t.primeiro)}</td><td style="font-weight:700;color:${t.n>=4?'var(--danger)':t.n>=2?'var(--warning)':'inherit'}">${dashN(t.n)}</td><td>${esc(t.id)}</td><td><button class="dash-btn" style="padding:1px 8px" onclick="dashAbrirDoc('sos','${t.obraId}','${t.uid}')">Abrir</button></td></tr>`).join('')||'<tr><td colspan="6" class="dash-vazio">Sem temas pendentes.</td></tr>'}
-    </tbody></table><div class="dash-leg">Ocorrências = número de SOS consecutivos em que o tema se mantém. Temas com 4 ou mais ocorrências pendentes exigem decisão.</div>`;
-  const kpis=`<div class="dash-kpis">
-    ${dashKpi('Efetivos — Última Semana',rso.length?amFmt(somaE[somaE.length-1]||0,0):'—',rso.length?'previstos '+amFmt(somaP[somaP.length-1]||0,0)+' · semana de '+peDataPT(semanas[semanas.length-1]):'sem RSO','','','h·s')}
-    ${dashKpi('Taxa de Efetivação',somaP.reduce((a,b)=>a+b,0)?amFmt(100*somaE.reduce((a,b)=>a+b,0)/somaP.reduce((a,b)=>a+b,0),0):'—','efetivos ÷ previstos no período','','',somaP.reduce((a,b)=>a+b,0)?'%':'')}
-    ${dashKpi('Subempreiteiros Ativos',Object.values(ult).length?amFmt(Object.values(ult).reduce((a,s)=>a+s.nSubs,0),0):'—','soma das últimas semanas por obra','','')}
-    ${dashKpi('Temas SOS Pendentes',amFmt(temas.filter(t=>t.estado==='pendente').length,0),amFmt(temas.filter(t=>t.estado==='resolvido').length,0)+' resolvidos · '+amFmt(temas.filter(t=>t.estado==='fechado').length,0)+' fechados','','')}
-    ${dashKpi('Temas Recorrentes (≥ 3 SOS)',amFmt(temas.filter(t=>t.estado==='pendente'&&t.n>=3).length,0),'pendentes há 3 ou mais semanas','','')}
-  </div>`;
-  return kpis+`<div class="dash-grid">
-    <div class="dash-card ${serieObras?'dash-c6':'dash-c8'}"><div class="dash-h"><b>Mão de Obra Semanal — Previstos vs Efetivos</b><small>soma das obras no filtro · últimas ${semanas.length} semanas</small></div><div class="dash-chart" id="dc-rso"></div></div>
-    ${serieObras?`<div class="dash-card dash-c6"><div class="dash-h"><b>Efetivos por Obra</b><small>homens·semana</small></div><div class="dash-chart" id="dc-rso-obras"></div></div>`:''}
-    <div class="dash-card ${serieObras?'dash-c6':'dash-c4'}"><div class="dash-h"><b>Desvio Efetivos − Previstos</b><small>última semana de cada obra</small></div><div class="dash-chart" id="dc-desvio" style="height:${Math.max(160,30+desv.length*26)}px"></div></div>
-    <div class="dash-card ${serieObras?'dash-c6':'dash-c12'}"><div class="dash-h"><b>Temas SOS por Obra e Estado</b><small>estado atual de cada tema</small></div><div class="dash-chart" id="dc-sos" style="height:${Math.max(160,40+obrasS.length*26)}px"></div></div>
-    <div class="dash-card dash-c12"><div class="dash-h"><b>Temas Pendentes — Recorrência</b><small>ordenados pelo número de SOS em que persistem</small></div>${tabSos}</div>
-  </div>`;
-}
-
-/* ---------- Vista: Segurança (RVT) ---------- */
-function dashVistaSeg(ds,charts){
-  const rv=dashSubFiltro(dashDados.rvts).filter(r=>r.temPayload).sort((a,b)=>a.data.localeCompare(b.data)||a.num-b.num);
-  if(!rv.length) return dashSemDados('Sem RVT com checklist preenchida no filtro atual.');
-  const obrasR=[...new Set(rv.map(r=>r.obraId))].sort((a,b)=>dashObraSigla(a).localeCompare(dashObraSigla(b)));
-  const ult={}; rv.forEach(r=>{ if(!ult[r.obraId]||r.data>=ult[r.obraId].data) ult[r.obraId]=r; });
-  const ultArr=Object.values(ult);
-  const icMed=dashMedia(ultArr.filter(r=>r.ic!=null).map(r=>r.ic));
-  const ncAb=ultArr.reduce((a,r)=>a+r.cnt.NC,0), omAb=ultArr.reduce((a,r)=>a+r.cnt.OM,0);
-  /* Evolução IC por obra (linhas) */
-  const datas=[...new Set(rv.map(r=>r.data))].sort();
-  const series=obrasR.slice(0,8).map(id=>({name:dashObraSigla(id),type:'line',smooth:0.3,symbol:'circle',symbolSize:6,connectNulls:true,lineStyle:{width:2,color:dashCorObra(id)},itemStyle:{color:dashCorObra(id)},data:datas.map(dt=>{ const r=rv.find(x=>x.obraId===id&&x.data===dt); return r?r.ic:null; })}));
-  charts.push(['dc-ic',{ tooltip:{trigger:'axis',valueFormatter:v=>v==null?'—':amFmt(v,0)+' %'}, legend:{data:series.map(s=>s.name)}, grid:{left:8,right:16,top:26,bottom:4,containLabel:true},
-    xAxis:dashEixoX({type:'category',data:datas.map(d=>peDataPT(d).slice(0,5))}), yAxis:dashEixoY({type:'value',min:0,max:100,axisLabel:{formatter:'{value} %',color:'#6B7280',fontSize:10.5}}),
-    series:series.concat([{name:'Meta 80 %',type:'line',symbol:'none',lineStyle:{width:1,color:'#1A7A4A',type:'dashed'},data:datas.map(()=>80),tooltip:{show:false}}]) }]);
-  /* Distribuição por obra (último RVT), 100 % empilhado */
-  const stK=['C','OM','NC','NA','NV'];
-  charts.push(['dc-dist',{ tooltip:{trigger:'axis',axisPointer:{type:'shadow'}}, legend:{data:stK.map(k=>DASH_RVT_ST[k].rot)}, grid:{left:8,right:12,top:dashTopLeg(stK.length),bottom:4,containLabel:true},
-    xAxis:dashEixoX({type:'value',max:100,axisLabel:{formatter:'{value} %',color:'#6B7280',fontSize:10.5}}), yAxis:dashEixoY({type:'category',data:obrasR.map(dashObraSigla),inverse:true,splitLine:{show:false}}),
-    series:stK.map(k=>({name:DASH_RVT_ST[k].rot,type:'bar',stack:'r',barMaxWidth:18,itemStyle:{color:DASH_RVT_ST[k].cor,borderColor:'#fff',borderWidth:1},data:obrasR.map(id=>{ const r=ult[id]; return r&&r.cnt.total?Math.round(1000*r.cnt[k]/r.cnt.total)/10:0; })})) },
-    (p,ev)=>{ const id=obrasR[p.dataIndex]; if(id) dashToggle('obras',id,ev); }]);
-  /* NC + OM por secção (últimos RVT) */
-  const secs=Object.keys(DASH_RVT_SEC);
-  const porSec=secs.map(s=>({s,rot:DASH_RVT_SEC[s],nc:0,om:0})); ultArr.forEach(r=>r.ncItems.forEach(it=>{ const s=String(it.ref).split('.')[0]; const x=porSec.find(y=>y.s===s); if(x){ if(it.st==='NC') x.nc++; else x.om++; } }));
-  charts.push(['dc-sec',{ tooltip:{trigger:'axis',axisPointer:{type:'shadow'}}, legend:{data:['Não Conforme','Oport. Melhoria']}, grid:{left:8,right:16,top:26,bottom:4,containLabel:true},
-    xAxis:dashEixoX({type:'value',minInterval:1}), yAxis:dashEixoY({type:'category',data:porSec.map(x=>x.s+' · '+x.rot),inverse:true,splitLine:{show:false},axisLabel:{color:'#6B7280',fontSize:10.5,width:170,overflow:'truncate'}}),
-    series:[{name:'Não Conforme',type:'bar',stack:'n',barMaxWidth:16,itemStyle:{color:DASH_RVT_ST.NC.cor,borderColor:'#fff',borderWidth:1},data:porSec.map(x=>x.nc)},{name:'Oport. Melhoria',type:'bar',stack:'n',barMaxWidth:16,itemStyle:{color:DASH_RVT_ST.OM.cor,borderColor:'#fff',borderWidth:1},data:porSec.map(x=>x.om)}] }]);
-  /* Lista de NC abertas */
-  const ncList=[]; ultArr.forEach(r=>r.ncItems.filter(i=>i.st==='NC').forEach(i=>ncList.push({...i,obraId:r.obraId,sig:r.obraSigla,rvt:r.id,uid:r.uid,data:r.data})));
-  ncList.sort((a,b)=>a.sig.localeCompare(b.sig)||a.ref.localeCompare(b.ref,undefined,{numeric:true}));
-  const tab=`<table class="dash-tbl"><thead><tr><th class="l">Obra</th><th class="l">RVT</th><th>Data</th><th class="l">Item</th><th class="l">Secção</th><th class="l">Observação</th><th>Fotos</th><th></th></tr></thead><tbody>
-    ${ncList.slice(0,60).map(i=>`<tr><td class="l">${esc(i.sig)}</td><td class="l">${esc(i.rvt)}</td><td>${peDataPT(i.data)}</td><td class="l"><b>${esc(i.ref)}</b></td><td class="l">${esc(DASH_RVT_SEC[String(i.ref).split('.')[0]]||'')}</td><td class="l w" style="max-width:420px">${esc(i.obs||'—')}</td><td>${dashN(i.fotos)}</td><td><button class="dash-btn" style="padding:1px 8px" onclick="dashAbrirDoc('rvt','${i.obraId}','${i.uid}')">Abrir</button></td></tr>`).join('')||'<tr><td colspan="8" class="dash-vazio">Sem não conformidades no último RVT de cada obra.</td></tr>'}
-    </tbody></table>${ncList.length>60?`<div class="dash-leg">A mostrar 60 de ${amFmt(ncList.length,0)}.</div>`:''}`;
-  const kpis=`<div class="dash-kpis">
-    ${dashKpi('IC Médio — Últimos RVT',icMed==null?'—':amFmt(icMed,0),ultArr.length+' obra'+(ultArr.length===1?'':'s')+' · meta 80 %','','',icMed==null?'':'%')}
-    ${dashKpi('Não Conformidades Abertas',amFmt(ncAb,0),'no último RVT de cada obra','','')}
-    ${dashKpi('Oportunidades de Melhoria',amFmt(omAb,0),'no último RVT de cada obra','','')}
-    ${dashKpi('RVT no Período',amFmt(rv.length,0),'com checklist preenchida','','')}
-    ${dashKpi('Obras Abaixo da Meta',amFmt(ultArr.filter(r=>r.ic!=null&&r.ic<80).length,0),ultArr.filter(r=>r.ic!=null&&r.ic<60).length+' abaixo de 60 %','','')}
-  </div>`;
-  return kpis+`<div class="dash-grid">
-    <div class="dash-card dash-c8"><div class="dash-h"><b>Evolução do Índice de Conformidade</b><small>IC = C ÷ (C+OM+NC) · por visita${obrasR.length>8?' · 8 primeiras obras':''}</small></div><div class="dash-chart" id="dc-ic"></div></div>
-    <div class="dash-card dash-c4"><div class="dash-h"><b>Distribuição no Último RVT</b><small>% dos itens verificados</small></div><div class="dash-chart" id="dc-dist" style="height:${Math.max(200,60+obrasR.length*26)}px"></div></div>
-    <div class="dash-card dash-c4"><div class="dash-h"><b>NC e OM por Secção</b><small>último RVT de cada obra</small></div><div class="dash-chart" id="dc-sec" style="height:190px"></div></div>
-    <div class="dash-card dash-c8"><div class="dash-h"><b>Não Conformidades Abertas</b><small>${amFmt(ncList.length,0)} item${ncList.length===1?'':'s'}</small></div>${tab}</div>
-  </div>`;
-}
-
-/* ---------- Vista: Autos Mensais ---------- */
-function dashAmAcumulado(am){ /* por obra: última revisão válida de cada auto (ignora revisto/reaberto), acumulado e curva */
-  const porObra={};
-  am.forEach(a=>{ if(a.estado==='revisto'||a.estado==='reaberto') return; const o=porObra[a.obraId]||(porObra[a.obraId]={meses:{},acum:0,lpu:(dashDados.lpu[a.obraId]||{}).total||0,ultimo:null,porCap:{}}); const m=a.mesRef||('n'+a.num); if(!o.meses[m]||a.rev>o.meses[m].rev) o.meses[m]=a; });
-  Object.values(porObra).forEach(o=>{ let acc=0; Object.keys(o.meses).sort().forEach(m=>{ const a=o.meses[m]; acc+=a.valor||0; a.acum=acc; Object.entries(a.porCap||{}).forEach(([c,v])=>{ o.porCap[c]=(o.porCap[c]||0)+v; }); o.ultimo=a; }); o.acum=acc; });
-  return porObra;
-}
-function dashVistaAM(ds,charts){
-  const am=dashSubFiltro(dashDados.autos);
-  if(!am.length) return dashSemDados('Sem Autos Mensais no filtro atual.');
-  const acc=dashAmAcumulado(am); const obrasA=Object.keys(acc).sort((a,b)=>dashObraSigla(a).localeCompare(dashObraSigla(b)));
-  const meses=[...new Set(am.map(a=>a.mesRef).filter(Boolean))].sort();
-  /* Curva S (% executado acumulado) */
-  const series=obrasA.slice(0,8).map(id=>{ const o=acc[id]; let last=null; return {name:dashObraSigla(id),type:'line',smooth:0.3,symbol:'circle',symbolSize:6,lineStyle:{width:2,color:dashCorObra(id)},itemStyle:{color:dashCorObra(id)},data:meses.map(m=>{ const a=o.meses[m]; if(a&&o.lpu){ last=Math.round(1000*a.acum/o.lpu)/10; } return a?last:null; }),connectNulls:true}; });
-  charts.push(['dc-curva',{ tooltip:{trigger:'axis',valueFormatter:v=>v==null?'—':amFmt(v,1)+' %'}, legend:{data:series.map(s=>s.name)}, grid:{left:8,right:16,top:26,bottom:4,containLabel:true},
-    xAxis:dashEixoX({type:'category',data:meses.map(dashMesCurto)}), yAxis:dashEixoY({type:'value',min:0,max:100,axisLabel:{formatter:'{value} %',color:'#6B7280',fontSize:10.5}}), series }]);
-  /* Medição mensal (€) empilhada por obra */
-  charts.push(['dc-mensal',{ tooltip:{trigger:'axis',axisPointer:{type:'shadow'},valueFormatter:v=>dashEur(v)}, legend:{data:obrasA.slice(0,8).map(dashObraSigla)}, grid:{left:8,right:16,top:26,bottom:4,containLabel:true},
-    xAxis:dashEixoX({type:'category',data:meses.map(dashMesCurto)}), yAxis:dashEixoY({type:'value',axisLabel:{formatter:v=>amFmt(v/1000,0)+' k€',color:'#6B7280',fontSize:10.5}}),
-    series:obrasA.slice(0,8).map(id=>({name:dashObraSigla(id),type:'bar',stack:'m',barMaxWidth:28,itemStyle:{color:dashCorObra(id),borderColor:'#fff',borderWidth:1},data:meses.map(m=>{ const a=acc[id].meses[m]; return a?Math.round(a.valor||0):0; })})) },
-    (p,ev)=>{ const id=obrasA[p.seriesIndex]; if(id) dashToggle('obras',id,ev); }]);
-  /* Execução por capítulo (obra única ou soma) */
-  const caps={}; obrasA.forEach(id=>{ const L=dashDados.lpu[id]||{linhas:{},caps:{}}; Object.values(L.linhas).forEach(l=>{ caps[l.cap]=caps[l.cap]||{lpu:0,med:0,rot:L.caps[l.cap]||''}; caps[l.cap].lpu+=l.total; }); Object.entries(acc[id].porCap).forEach(([c,v])=>{ caps[c]=caps[c]||{lpu:0,med:0,rot:''}; caps[c].med+=v; }); });
-  const capArr=Object.entries(caps).sort((a,b)=>a[0].localeCompare(b[0],undefined,{numeric:true})).filter(c=>c[1].lpu>0).slice(0,20);
-  charts.push(['dc-cap',{ tooltip:{trigger:'axis',axisPointer:{type:'shadow'},formatter:ps=>{ const c=capArr[ps[0].dataIndex]; return `<b>Cap. ${esc(c[0])}</b> ${esc(c[1].rot)}<br>Medido ${dashEur(c[1].med)} de ${dashEur(c[1].lpu)} (${amFmt(100*c[1].med/c[1].lpu,1)} %)`; }}, grid:{left:8,right:36,top:8,bottom:4,containLabel:true},
-    xAxis:dashEixoX({type:'value',max:100,axisLabel:{formatter:'{value} %',color:'#6B7280',fontSize:10.5}}), yAxis:dashEixoY({type:'category',data:capArr.map(c=>c[0]+(c[1].rot?' · '+c[1].rot:'')),inverse:true,splitLine:{show:false},axisLabel:{color:'#6B7280',fontSize:10.5,width:170,overflow:'truncate'}}),
-    series:[{type:'bar',barMaxWidth:12,itemStyle:{color:'#2a78d6',borderRadius:[0,3,3,0]},data:capArr.map(c=>Math.round(1000*c[1].med/c[1].lpu)/10),label:{show:true,position:'right',fontSize:10,color:'#1A1D2E',formatter:p=>amFmt(p.value,1)+' %'}}] }]);
-  /* Estados dos autos */
-  const estA=AM_MOD.estados; const estK=DASH_DEF.am.ordemEst;
-  charts.push(['dc-amest',{ tooltip:{trigger:'axis',axisPointer:{type:'shadow'}}, legend:{data:estK.map(e=>estA[e].rot)}, grid:{left:8,right:12,top:dashTopLeg(estK.length),bottom:4,containLabel:true},
-    xAxis:dashEixoX({type:'value',minInterval:1}), yAxis:dashEixoY({type:'category',data:obrasA.map(dashObraSigla),inverse:true,splitLine:{show:false}}),
-    series:estK.map(e=>({name:estA[e].rot,type:'bar',stack:'a',barMaxWidth:18,itemStyle:{color:dashHex(estA[e].cor),borderColor:'#fff',borderWidth:1},data:obrasA.map(id=>am.filter(a=>a.obraId===id&&a.estado===e).length)})) },
-    (p,ev)=>{ const e=estK.find(x=>estA[x].rot===p.seriesName); if(e) dashToggle('estados','am:'+e,ev); }]);
-  const tab=`<table class="dash-tbl"><thead><tr><th class="l">Obra</th><th>LPU</th><th>Medido Acumulado</th><th>Executado</th><th>Saldo</th><th>Autos</th><th class="l">Último Auto</th><th class="l">Estado</th></tr></thead><tbody>
-    ${obrasA.map(id=>{ const o=acc[id], u=o.ultimo; const E=u?(estA[u.estado]||{rot:u.estado,cor:'#999'}):null; const pct=o.lpu?100*o.acum/o.lpu:null; return `<tr class="cl" onclick="dashToggle('obras','${id}',event)"><td class="l"><span class="dash-sem" style="background:${dashCorObra(id)}"></span><b>${esc(dashObraSigla(id))}</b></td><td>${dashEur(o.lpu)}</td><td>${dashEur(o.acum)}</td><td>${pct==null?'—':`<span class="dash-bar" style="width:${Math.min(100,pct)}px"></span> ${dashPct(pct,1)}`}</td><td>${o.lpu?dashEur(o.lpu-o.acum):'—'}</td><td>${dashN(Object.keys(o.meses).length)}</td><td class="l">${u?esc(u.id)+' · '+dashMesCurto(u.mesRef):'—'}</td><td class="l">${E?`<span class="dash-pill" style="background:${dashHex(E.cor)}">${E.rot}</span>`:'—'}</td></tr>`; }).join('')}
-    </tbody></table><div class="dash-leg">Valor medido = Σ quantidade × preço unitário da LPU importada. Autos revistos/reabertos não contam; de cada mês conta a última revisão.</div>`;
-  const totL=obrasA.reduce((s,id)=>s+acc[id].lpu,0), totM=obrasA.reduce((s,id)=>s+acc[id].acum,0);
-  const kpis=`<div class="dash-kpis">
-    ${dashKpi('LPU Total (Obras no Filtro)',totL?amFmt(totL/1000,0):'—','soma das listas de preços importadas','','',totL?'k€':'')}
-    ${dashKpi('Medido Acumulado',totM?amFmt(totM/1000,0):'—',totL?amFmt(100*totM/totL,1)+' % executado':'','','',totM?'k€':'')}
-    ${dashKpi('Autos em Curso',amFmt(am.filter(a=>!DASH_DEF.am.fechados.includes(a.estado)).length,0),amFmt(am.filter(a=>a.estado==='fechado').length,0)+' fechados','','')}
-    ${dashKpi('Obras com Autos',amFmt(obrasA.length,0),obrasA.filter(id=>!acc[id].lpu).length+' sem LPU importada','','')}
-  </div>`;
-  return kpis+`<div class="dash-grid">
-    <div class="dash-card dash-c6"><div class="dash-h"><b>Curva S — Executado Acumulado</b><small>% da LPU por mês de referência</small></div><div class="dash-chart" id="dc-curva"></div></div>
-    <div class="dash-card dash-c6"><div class="dash-h"><b>Medição Mensal</b><small>valor medido por mês e obra · clique para filtrar</small></div><div class="dash-chart" id="dc-mensal"></div></div>
-    <div class="dash-card dash-c6"><div class="dash-h"><b>Execução por Capítulo</b><small>medido ÷ LPU · ${capArr.length} capítulos</small></div><div class="dash-chart" id="dc-cap" style="height:${Math.max(180,30+capArr.length*22)}px"></div></div>
-    <div class="dash-card dash-c6"><div class="dash-h"><b>Estado dos Autos por Obra</b><small>clique num segmento para filtrar</small></div><div class="dash-chart" id="dc-amest" style="height:${Math.max(200,60+obrasA.length*26)}px"></div></div>
-    <div class="dash-card dash-c12"><div class="dash-h"><b>Quadro de Execução Financeira</b><small>por obra</small></div>${tab}</div>
-  </div>`;
-}
-
-/* ---------- Vista: Documentos (tabela analítica) ---------- */
-function dashVistaDocs(ds){
-  const todos=dashDocsOrdenados(); const tot=todos.length; const pag=todos.slice(dashPag*dashDocsPorPag,(dashPag+1)*dashDocsPorPag);
-  const th=(c,l,cls)=>`<th class="${cls||''}" onclick="dashOrdenar('${c}')">${l}${dashOrd.col===c?(dashOrd.dir>0?' ▲':' ▼'):''}</th>`;
-  const nPag=Math.max(1,Math.ceil(tot/dashDocsPorPag));
-  return `<div class="dash-card dash-c12">
-    <div class="dash-h"><b>Documentos</b><small>${amFmt(tot,0)} no filtro${dashF.pesq?' e pesquisa':''}</small>
-      <span style="margin-left:auto;display:flex;gap:6px;align-items:center"><input type="search" placeholder="Pesquisar…" value="${esc(dashF.pesq)}" style="font-family:inherit;font-size:12px;padding:4px 8px;border:1px solid var(--border-light);border-radius:4px;width:220px" oninput="dashSetPesq(this.value)"><button class="dash-btn" onclick="dashExportarCSV()">Exportar CSV</button></span></div>
-    <div id="dash-docs-tab">${dashDocsTabelaHTML(pag,tot,nPag,th)}</div></div>`;
-}
-function dashDocsTabelaHTML(pag,tot,nPag,th){
-  return `<table class="dash-tbl"><thead><tr>${th('tipo','Tipo','l')}${th('id','Id','l')}${th('obra','Obra','l')}<th class="l">Descrição</th>${th('cat','Categoria','l')}${th('estado','Estado','l')}${th('posse','Posse','l')}${th('criado','Criado')}${th('ultima','Última Ação')}${th('idade','Idade')}${th('ciclo','Ciclo')}${th('autor','Autor','l')}<th></th></tr></thead><tbody>
-    ${pag.map(d=>{ const E=DASH_DEF[d.k].estados()[d.estado]||{rot:d.estado,cor:'#999'}; return `<tr><td class="l"><span class="dash-pill" style="background:${DASH_DEF[d.k].cor}">${DASH_DEF[d.k].sig}</span></td><td class="l"><b>${esc(d.id)}</b>${d.histImport?' <span style="color:var(--danger);font-size:9px" title="Histórico importado">H</span>':''}</td><td class="l">${esc(d.obraSigla)}</td><td class="l w" style="max-width:300px">${esc((d.descr||'').slice(0,80))}</td><td class="l">${esc(d.cat||'')}</td><td class="l"><span class="dash-pill" style="background:${dashHex(E.cor)}">${E.rot}</span></td><td class="l">${esc(d.posse)}</td><td>${peDataPT(d.criado)}</td><td>${peDataPT(d.ultima)}</td><td>${d.idade==null?'—':dashN(d.idade)+' d'}</td><td>${d.ciclo==null?'—':dashN(d.ciclo)+' d'}</td><td class="l">${esc(d.autor)}</td><td><button class="dash-btn" style="padding:1px 8px" onclick="dashAbrirDoc('${d.k}','${d.obraId}','${d.uid}')">Abrir</button></td></tr>`; }).join('')||'<tr><td colspan="13" class="dash-vazio">Sem documentos.</td></tr>'}
-    </tbody></table>
-    <div class="dash-pag"><button class="dash-btn" ${dashPag<=0?'disabled':''} onclick="dashPagina(${dashPag-1})">‹</button> Página ${dashPag+1} de ${nPag} <button class="dash-btn" ${dashPag>=nPag-1?'disabled':''} onclick="dashPagina(${dashPag+1})">›</button></div>`;
-}
-function dashRenderDocsTabela(){ const el=document.getElementById('dash-docs-tab'); if(!el) return; const todos=dashDocsOrdenados(); const tot=todos.length; const nPag=Math.max(1,Math.ceil(tot/dashDocsPorPag)); if(dashPag>nPag-1) dashPag=0; const th=(c,l,cls)=>`<th class="${cls||''}" onclick="dashOrdenar('${c}')">${l}${dashOrd.col===c?(dashOrd.dir>0?' ▲':' ▼'):''}</th>`; el.innerHTML=dashDocsTabelaHTML(todos.slice(dashPag*dashDocsPorPag,(dashPag+1)*dashDocsPorPag),tot,nPag,th); const h=el.parentElement.querySelector('.dash-h small'); if(h) h.textContent=amFmt(tot,0)+' no filtro'+(dashF.pesq?' e pesquisa':''); }
 
 function dashDrillHTML(){
   if(!dashDrill) return '';
-  const linhas=dashDrill.docs.slice(0,300).map(d=>{ const E=DASH_DEF[d.k].estados()[d.estado]||{rot:d.estado,cor:'#999'}; return `<tr><td class="l"><span class="dash-pill" style="background:${DASH_DEF[d.k].cor}">${DASH_DEF[d.k].sig}</span></td><td class="l"><b>${esc(d.id)}</b></td><td class="l">${esc(d.obraSigla)}</td><td class="l w">${esc((d.descr||'').slice(0,70))}</td><td class="l"><span class="dash-pill" style="background:${dashHex(E.cor)}">${E.rot}</span></td><td>${peDataPT(d.ultima)}</td><td><button class="dash-btn" style="padding:1px 8px" onclick="dashAbrirDoc('${d.k}','${d.obraId}','${d.uid}')">Abrir</button></td></tr>`; }).join('');
-  return `<div class="dash-card" id="dash-drill" style="margin-bottom:10px"><div class="dash-h"><b>${esc(dashDrill.titulo)} · ${dashDrill.docs.length}</b><button class="dash-btn" onclick="dashDrillFechar()">Fechar ×</button></div>
-    <table class="dash-tbl"><thead><tr><th class="l">Tipo</th><th class="l">Id</th><th class="l">Obra</th><th class="l">Descrição</th><th class="l">Estado</th><th>Última Ação</th><th></th></tr></thead><tbody>${linhas||'<tr><td colspan="7" class="dash-vazio">Sem documentos.</td></tr>'}</tbody></table></div>`;
+  const linhas=dashDrill.docs.slice(0,300).map(d=>{
+    const D=DASH_DEF[d.k];
+    const est=(D.estados()[d.estado])||{rot:d.estado,cor:'#999'};
+    return `<tr>
+      <td style="text-align:left"><span class="dash-pill" style="background:${D.cor}">${D.sig}</span></td>
+      <td style="text-align:left"><b>${esc(d.id)}</b></td>
+      <td style="text-align:left">${esc(d.obraNome)}</td>
+      <td style="text-align:left">${esc((d.descr||'').slice(0,70))||'<span style="color:var(--text-muted)">—</span>'}</td>
+      <td style="text-align:left"><span class="dash-pill" style="background:${est.cor}">${est.rot}</span></td>
+      <td>${d.criado?peDataPT(d.criado):'—'}</td>
+      <td><button class="pe-btn" style="padding:2px 10px;font-size:10.5px" onclick="dashAbrirDoc('${d.k}','${d.obraId}','${d.uid}')">Abrir</button></td>
+    </tr>`;
+  }).join('');
+  return `<div class="dash-card" id="dash-drill">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <div class="dash-h" style="margin:0">${esc(dashDrill.titulo)} · ${dashDrill.docs.length}</div>
+      <button class="pe-btn" style="padding:2px 10px" onclick="dashDrillFechar()">Fechar ×</button>
+    </div>
+    <table class="dash-tbl"><thead><tr><th style="text-align:left">Tipo</th><th style="text-align:left">Id</th><th style="text-align:left">Obra</th><th style="text-align:left">Descrição</th><th style="text-align:left">Estado</th><th>Criado</th><th></th></tr></thead>
+    <tbody>${linhas||'<tr><td colspan="7" style="color:var(--text-muted)">Sem documentos.</td></tr>'}</tbody></table>
+    ${dashDrill.docs.length>300?'<div class="dash-leg">A mostrar os primeiros 300.</div>':''}</div>`;
 }
 
-/* ---------- Render principal ---------- */
 function renderDashboard(app){
   if(!peESuper()){ dashAtivo=false; render(); return; }
-  if(!dashDados){ app.innerHTML=DASH_CSS+`<div class="dash-wrap"><button class="back-btn" onclick="dashVoltar()">← Voltar</button><div class="dash-vazio">Dashboard sem dados carregados. <a style="color:var(--info);cursor:pointer;text-decoration:underline" onclick="dashRefrescar()">Carregar</a></div></div>`; return; }
-  const ds=dashDocs(); const charts=[]; let corpo='';
-  try{
-    if(dashTab==='portfolio') corpo=dashVistaPortfolio(ds,charts);
-    else if(dashTab==='gpe') corpo=dashVistaGPE(ds,charts);
-    else if(dashTab==='fisc') corpo=dashVistaFisc(ds,charts);
-    else if(dashTab==='seg') corpo=dashVistaSeg(ds,charts);
-    else if(dashTab==='am') corpo=dashVistaAM(ds,charts);
-    else corpo=dashVistaDocs(ds);
-  }catch(e){ console.error('Dashboard:',e); corpo=`<div class="dash-vazio" style="color:var(--danger)">Erro ao construir a vista: ${esc(e.message)}</div>`; }
-  app.innerHTML=DASH_CSS+`<div class="dash-wrap" onclick="if(dashDDAberto){dashDDAberto='';render();}">
-    <div class="dash-top"><div><button class="back-btn" onclick="dashVoltar()">← Voltar</button>
-      <div class="page-header" style="margin:4px 0 0"><div><div class="page-title">Dashboard</div><div style="font-size:11px;color:var(--text-muted)">${amFmt(dashDados.docs.length,0)} documentos · ${dashDados.obrasIds.length} obras · dados às ${dashDados.quando.toLocaleTimeString('pt-PT').slice(0,5)} · <a style="color:var(--info);cursor:pointer;text-decoration:underline" onclick="dashRefrescar()">Atualizar</a></div></div></div></div></div>
-    ${dashFiltrosHTML()}
-    ${dashChipsHTML()}
-    <div class="dash-tabs">${DASH_TABS.map(t=>`<span class="dash-tab ${dashTab===t[0]?'on':''}" onclick="dashSetTab('${t[0]}')">${t[1]}</span>`).join('')}</div>
-    ${dashDrillHTML()}
+  const ds=dashDocsTodos();
+  const base=dashDados?dashDados.docs:[];
+  const obras=dashObrasDe(base);
+  const meses=[...new Set(base.map(d=>dashYM(d.criado)).filter(Boolean))].sort().reverse();
+  const fiscais=dashFiscais();
+  let corpo='';
+  if(dashTab==='visao'){ corpo=dashVisaoGeral(ds); }
+  else{
+    const dsk=ds.filter(d=>d.k===dashTab);
+    corpo=dashSecUtilizacao(dashTab,dsk)+dashSecEstados(dashTab,dsk)+dashSecTempos(dashTab,dsk);
+  }
+  app.innerHTML=DASH_CSS+`<div class="dash-wrap">
+    <button class="back-btn" onclick="dashVoltar()">← Voltar</button>
+    <div class="page-header"><div>
+      <div class="page-title">Dashboard</div>
+      <div style="margin-top:4px;font-size:11px;color:var(--text-muted)">Dados carregados ${dashDados?('às '+dashDados.quando.toLocaleTimeString('pt-PT').slice(0,5)):'—'} · <a style="color:var(--info);cursor:pointer;text-decoration:underline" onclick="dashRefrescar()">Atualizar</a></div>
+    </div></div>
+    <div class="dash-filtros">
+      <span style="font-weight:700">Obra:</span>
+      <select onchange="dashSetObra(this.value)">
+        <option value="">Todas</option>
+        ${obras.map(o=>`<option value="${o.id}" ${dashObraF===o.id?'selected':''}>${esc(o.nome)}</option>`).join('')}
+      </select>
+      <span style="font-weight:700;margin-left:8px">Mês:</span>
+      <select onchange="dashSetMes(this.value)">
+        <option value="">Todos</option>
+        ${meses.map(m=>`<option value="${m}" ${dashMes===m?'selected':''}>${dashMesLabel(m)}</option>`).join('')}
+      </select>
+      <span style="font-weight:700;margin-left:8px">Fiscal:</span>
+      <select onchange="dashSetFisc(this.value)">
+        <option value="">Todos</option>
+        ${fiscais.map(u=>`<option value="${u.id}" ${dashFisc===String(u.id)?'selected':''}>${esc(u.nome)}</option>`).join('')}
+      </select>
+    </div>
+    <div class="dash-tabs">
+      ${DASH_ORDEM.map(k=>`<span class="dash-tab ${dashTab===k?'on':''}" style="${dashTab===k?'background:'+DASH_DEF[k].cor:''}" onclick="dashSetTab('${k}')">${DASH_DEF[k].sig}</span>`).join('')}
+      <span class="dash-tab ${dashTab==='visao'?'on':''}" style="${dashTab==='visao'?'background:var(--navy)':''}" onclick="dashSetTab('visao')">Visão Geral</span>
+    </div>
     ${corpo}
+    ${dashDrillHTML()}
   </div>`;
-  if(!window.echarts){ dashLoadEcharts().then(()=>{ if(dashAtivo) dashMontar(charts); }).catch(e=>console.error(e)); }
-  else dashMontar(charts);
 }
 
 function renderObras(app){
