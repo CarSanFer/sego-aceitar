@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.10.21.1543</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.10.21.1616</span>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-dash" title="Dashboard PE · PA · PB · QE" onclick="dashAbrir('')">📊 Dashboard</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
@@ -5672,7 +5672,7 @@ function qePreencherContagem(obraId){
 
 
 /* ####################  MET — Mapa de Empresas e Trabalhadores (CSO + Admin)  #################### */
-let metObraId=null, metDocs=[], metMes='', metPesq='', metForm=null;
+let metObraId=null, metDocs=[], metMes='', metPesq='', metForm=null, metOrigem='seg';
 function metObra(){ return DB.obras.find(o=>o.id===metObraId); }
 function metHoje(){ const t=new Date(),p=n=>String(n).padStart(2,'0'); return t.getFullYear()+'-'+p(t.getMonth()+1)+'-'+p(t.getDate()); }
 function metTot(r){ return (r.linhas||[]).reduce((a,l)=>a+(Number(l.trabalhadores)||0),0); }
@@ -5690,15 +5690,16 @@ async function metCarregar(){
   }
   metDocs=out;
 }
-window.metAbrirModulo=async function(obraId){
+window.metAbrirModulo=async function(obraId,origem){
   if(!rvtPode()){ alert('O MET está disponível apenas para o Coordenador de Segurança (CSO) e administradores.'); return; }
-  metObraId=obraId; segObraId=null; metMes=''; metPesq='';
+  metOrigem=origem==='ficha'?'ficha':'seg';
+  metObraId=obraId; segObraId=null; fichObraId=null; metMes=''; metPesq='';
   showLoadingOverlay('A carregar MET...');
   try{ await metCarregar(); }
-  catch(e){ hideLoadingOverlay(); alert('Erro ao carregar o MET: '+e.message+'\n\nConfirme que a tabela met_registos foi criada no Supabase (SEGO_met_registos.sql).'); metObraId=null; segObraId=obraId; render(); return; }
+  catch(e){ hideLoadingOverlay(); alert('Erro ao carregar o MET: '+e.message+'\n\nConfirme que a tabela met_registos foi criada no Supabase (SEGO_met_registos.sql).'); metObraId=null; if(metOrigem==='ficha') fichObraId=obraId; else segObraId=obraId; render(); return; }
   hideLoadingOverlay(); render();
 };
-window.metVoltar=function(){ const id=metObraId; metObraId=null; metDocs=[]; segObraId=id; render(); };
+window.metVoltar=function(){ const id=metObraId; metObraId=null; metDocs=[]; if(metOrigem==='ficha'){ fichObraId=id; page='obras'; } else segObraId=id; render(); };
 function metPreencherContagem(obraId){
   sbRel.get('met_registos','obra_id=eq.'+encodeURIComponent(obraId)+'&select=id')
     .then(r=>{ const el=document.getElementById('met-count-card'); if(el) el.textContent=r.length+' dia'+(r.length===1?'':'s')+' registado'+(r.length===1?'':'s'); })
@@ -5727,7 +5728,7 @@ function renderListaMET(app){
       <td><span class="badge ${r.origem==='excel'?'b-prep':'b-fiscal'}">${r.origem==='excel'?'Histórico':'SEGO'}</span></td>
     </tr>`;}).join(''):`<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:18px">Sem registos${(metMes||q)?' para o filtro aplicado':''}.</td></tr>`;
   app.innerHTML=`
-  <button class="back-btn" onclick="metVoltar()">← Voltar a Segurança</button>
+  <button class="back-btn" onclick="metVoltar()">${metOrigem==='ficha'?'← Voltar à Obra':'← Voltar a Segurança'}</button>
   <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap">
     <div>
       <div class="page-title"><span class="code-pill" style="font-size:13px">${o.codigo||''}</span>${o.sigla||''} — MET</div>
@@ -9110,7 +9111,8 @@ const CO_ICONS={
   ptq:`<svg viewBox="0 0 48 48" fill="none"><rect x="8" y="10" width="32" height="30" rx="2" stroke="currentColor" stroke-width="2.5"/><path d="M8 18h32M18 10v30M28 10v30" stroke="currentColor" stroke-width="2"/></svg>`,
   qe:`<svg viewBox="0 0 48 48" fill="none"><circle cx="21" cy="21" r="12" stroke="currentColor" stroke-width="2.5"/><path d="M30 30l8 8" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><path d="M16 21l4 4 7-8" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
   am:`<svg viewBox="0 0 48 48" fill="none"><rect x="10" y="6" width="28" height="36" rx="3" stroke="currentColor" stroke-width="2.5"/><path d="M28 17c-1.2-1.4-3-2.2-4.8-2.2-3.4 0-6.2 2.9-6.2 6.5s2.8 6.5 6.2 6.5c1.8 0 3.6-.8 4.8-2.2M14.5 20h9M14.5 24h9" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M16 36h16" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>`,
-  RVT:`<svg viewBox="0 0 48 48" fill="none"><path d="M24 6l14 6v9c0 9-6 15-14 21-8-6-14-12-14-21v-9l14-6Z" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/></svg>`
+  RVT:`<svg viewBox="0 0 48 48" fill="none"><path d="M24 6l14 6v9c0 9-6 15-14 21-8-6-14-12-14-21v-9l14-6Z" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/></svg>`,
+  met:`<svg viewBox="0 0 48 48" fill="none"><circle cx="17" cy="16" r="6" stroke="currentColor" stroke-width="2.5"/><circle cx="33" cy="18" r="5" stroke="currentColor" stroke-width="2.5"/><path d="M6 38c0-6.6 4.9-11 11-11s11 4.4 11 11" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><path d="M28.5 29.5c1.3-.6 2.8-1 4.5-1 5 0 9 3.6 9 9.5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>`
 };
 const CO_MODS=[
   {key:'ptq',sigla:'PTQ',kind:'gpe',tabela:'planos_quinzenais',grp:'fisc',open:'ptqAbrirModulo'},
@@ -9121,7 +9123,8 @@ const CO_MODS=[
   {key:'am',sigla:'AM',kind:'gpe',tabela:'autos_mensais',grp:'fisc',open:'amAbrirModulo'},
   {key:'RS',sigla:'RSO',kind:'rel',tipo:'fiscalizacao',subtipo:'RS',grp:'fisc',label:'Relatório Semanal de Obra'},
   {key:'SOS',sigla:'SOS',kind:'rel',tipo:'fiscalizacao',subtipo:'SOS',grp:'fisc',label:'Situações Operacionais Semanais'},
-  {key:'RVT',sigla:'RVT',kind:'rel',tipo:'seguranca',subtipo:'RVT',grp:'seg',label:'Relatório de Visita Técnica'}
+  {key:'RVT',sigla:'RVT',kind:'rel',tipo:'seguranca',subtipo:'RVT',grp:'seg',label:'Relatório de Visita Técnica'},
+  {key:'met',sigla:'MET',kind:'met',grp:'seg',open:'metAbrirModulo',soCSO:true}
 ];
 
 window.coAbrirRel=function(obraId,tipo,subtipo,sigla,label){
@@ -9130,7 +9133,7 @@ window.coAbrirRel=function(obraId,tipo,subtipo,sigla,label){
 };
 
 function renderCOPanel(o){
-  const boxes=CO_MODS.map(m=>{
+  const boxes=CO_MODS.filter(m=>!m.soCSO||rvtPode()).map(m=>{
     let cntHtml, recHtml, onclick;
     if(m.kind==='rel'){
       const rels=DB.relatorios.filter(r=>r.obra_id===o.id&&relVisivelParaUser(r)&&r.conteudo&&r.conteudo.tipo===m.tipo&&r.conteudo.subtipo===m.subtipo).sort((a,b)=>b.numero-a.numero||b.versao-a.versao);
@@ -9138,6 +9141,9 @@ function renderCOPanel(o){
       recHtml=rels.length?rels.slice(0,3).map(r=>`<div class="co-rec-item"><span class="co-id">${relNumero(r)}</span><span class="co-dt">${coFmtDia(r.criado_em)}</span></div>`).join(''):'<div class="co-rec-empty">—</div>';
       const lbl=(m.label||'').replace(/'/g,'’');
       onclick=`coAbrirRel('${o.id}','${m.tipo}','${m.subtipo}','${m.sigla}','${lbl}')`;
+    }else if(m.kind==='met'){
+      cntHtml='…'; recHtml='';
+      onclick=`metAbrirModulo('${o.id}','ficha')`;
     }else{
       cntHtml='…'; recHtml='';
       onclick=`${m.open}('${o.id}')`;
@@ -9164,6 +9170,16 @@ function coFillGpe(obraId,key,tabela){
       if(r) r.innerHTML=rows.length?rows.slice(0,3).map(x=>{ const dt=x.data_envio||x.data_criacao; return `<div class="co-rec-item"><span class="co-id">${x.id}</span><span class="co-dt">${coFmtDia(dt)}</span></div>`; }).join(''):'<div class="co-rec-empty">—</div>';
     })
     .catch(()=>{ const c=document.getElementById('co-cnt-'+key); if(c) c.textContent='—'; });
+}
+
+function coFillMet(obraId){
+  sbRel.get('met_registos',`obra_id=eq.${encodeURIComponent(obraId)}&order=data.desc&select=id,data,total_trabalhadores`)
+    .then(rows=>{
+      const c=document.getElementById('co-cnt-met'); if(c) c.textContent=rows.length+' dia'+(rows.length===1?'':'s');
+      const r=document.getElementById('co-rec-met');
+      if(r) r.innerHTML=rows.length?rows.slice(0,3).map(x=>`<div class="co-rec-item"><span class="co-id">${x.total_trabalhadores==null?'—':x.total_trabalhadores} trab.</span><span class="co-dt">${coFmtDia(x.data)}</span></div>`).join(''):'<div class="co-rec-empty">—</div>';
+    })
+    .catch(()=>{ const c=document.getElementById('co-cnt-met'); if(c) c.textContent='—'; });
 }
 
 /* ####### FIM CO EMBUTIDO ####### */
@@ -9369,6 +9385,7 @@ function renderFichaObra(app){
   coFillGpe(o.id,'ptq','planos_quinzenais');
   coFillGpe(o.id,'qe','qualidade_execucao');
   coFillGpe(o.id,'am','autos_mensais');
+  if(rvtPode()) coFillMet(o.id);
 }
 
 
