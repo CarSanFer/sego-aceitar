@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.10.21.2334</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.10.26.1429</span>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-dash" title="Dashboard PE · PA · PB · QE" onclick="dashAbrir('')">📊 Dashboard</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
@@ -3331,6 +3331,16 @@ td.pe-dt.pe-empty{color:#C7CDD6}
 .pe-fld input,.pe-fld select{height:31px}
 .pe-fld textarea{min-height:70px;resize:vertical}
 .pe-fld .pe-ro{background:#F5F6F8;border-radius:var(--radius);padding:6px 8px;min-height:30px;font-size:13px}
+.pe-ip{cursor:text;position:relative;border:1px dashed transparent;padding-right:22px !important;white-space:pre-wrap}
+.pe-ip:hover{border-color:var(--gold);background:#FFFBEF !important}
+.pe-ip:hover::after{content:'✎';position:absolute;right:7px;top:6px;color:var(--gold);font-size:12px}
+.pe-ip.ed{padding:2px !important;border-color:var(--gold);background:#fff !important}
+.pe-ip.ed::after{content:none}
+.pe-ip input,.pe-ip select,.pe-ip textarea{width:100%;box-sizing:border-box;border:0;outline:none;font:inherit;font-size:13px;padding:4px 6px;background:#fff}
+.pe-ip textarea{min-height:70px;resize:vertical}
+.pe-ipchk{cursor:pointer;border:1px dashed transparent;border-radius:4px;padding:2px 4px}
+.pe-ipchk:hover{border-color:var(--gold);background:#FFFBEF}
+.pe-ipnota{font-size:12px;color:#8A5A00;background:#FFF6E0;border:1px solid #F0DCA0;border-radius:4px;padding:6px 10px;margin:8px 0}
 .pe-mt{margin-top:10px}
 .pe-anexos{margin-top:4px}
 .pe-anx{display:inline-flex;align-items:center;gap:5px;background:#fff;border:1px solid var(--border-light);border-radius:999px;padding:3px 10px;font-size:12px;margin:4px 4px 0 0}
@@ -3942,7 +3952,81 @@ function renderListaPA(app){
 }
 
 /* ---- FICHA ---- */
+/* ---- Edição in place (Admin) ---- */
+const PA_COL={estado:'estado',dataCriacao:'data_criacao',dataEnvio:'data_envio',dataEnvioProj:'data_envio_proj',dataAnalisado:'data_analisado',dataResposta:'data_resposta',dataFecho:'data_fecho',
+  autorEmp:'autor_empreiteiro',especialidade:'especialidade',material:'material',tipoItem:'tipo_item',referencia:'referencia',localizacao:'localizacao',previsto:'previsto',proposto:'proposto',
+  temAmostras:'tem_amostras',temFichas:'tem_fichas',temConformidade:'tem_conformidade',temOutros:'tem_outros',obsEmp:'observacoes_emp',
+  autorFiscEnvio:'autor_fisc_envio',comentFiscEnvio:'comentario_fisc_envio',projDestNome:'proj_dest_nome',autorProj:'autor_projetista',projData:'proj_data',projParecer:'proj_parecer',obsProj:'proj_observacoes',
+  autorFiscResp:'autor_fisc_resp',fiscParecer:'fisc_parecer',obsFisc:'fisc_observacoes'};
+function paIPOpcoes(c){
+  if(c==='estado') return Object.keys(PA_MOD.estados).map(k=>[k,PA_MOD.estados[k].rot]);
+  if(c==='projParecer'||c==='fiscParecer') return [['','— aguarda —'],...Object.keys(DEC_PA).map(k=>[k,DEC_PA[k].rot])];
+  if(c==='tipoItem') return [['material','Material'],['equipamento','Equipamento']];
+  if(c==='especialidade') return [['','—'],...(DB.especialidades||[]).map(e=>[e.codigo,e.nome])];
+  return [];
+}
+function paIPValor(d,c){ return c==='lpu'?((d.capitulo||'')+(d.artigo?(d.capitulo?' · ':'')+d.artigo:'')):(d[c]==null?'':d[c]); }
+function paIPMostra(d,c,t){
+  const v=paIPValor(d,c);
+  if(c==='projParecer'||c==='fiscParecer') return paDecPill(v);
+  if(c==='estado') return `<span class="pe-estpill" style="background:${paEST(v).cor}">${paEST(v).rot}</span>`;
+  if(t==='select'){ const o=paIPOpcoes(c).find(x=>x[0]===v); return esc(o?o[1]:(v||'—')); }
+  if(t==='date') return esc(v?peDataPT(v):'—');
+  return esc(v===''?'—':String(v));
+}
+function paIP(rot,c,t){
+  const d=paFichaAtualDoc(); if(!d) return '';
+  const SEC={dataCriacao:'Identificação',autorEmp:'Identificação',obsEmp:'Empreiteiro',dataEnvioProj:'Envio ao Projetista',autorFiscEnvio:'Envio ao Projetista',projDestNome:'Envio ao Projetista',comentFiscEnvio:'Envio ao Projetista',
+    projData:'Projetista',autorProj:'Projetista',projParecer:'Projetista',obsProj:'Projetista',dataResposta:'Fiscalização',autorFiscResp:'Fiscalização',fiscParecer:'Fiscalização',obsFisc:'Fiscalização'};
+  const rotCurto=(SEC[c]?SEC[c]+' — ':'')+String(rot).replace(/\s*\(.*\)$/,'');
+  return `<div class="pe-fld"><label>${rot}</label><div class="pe-ro pe-ip" data-c="${c}" data-t="${t||'text'}" data-r="${esc(rotCurto)}" onclick="paIPEditar(this)" title="Clique para editar">${paIPMostra(d,c,t||'text')}</div></div>`;
+}
+window.paIPEditar=function(el){
+  if(!peESuper()||el.classList.contains('ed')) return;
+  const d=paFichaAtualDoc(); if(!d) return;
+  const c=el.dataset.c, t=el.dataset.t, v=paIPValor(d,c);
+  let ctl;
+  if(t==='textarea'){ ctl=document.createElement('textarea'); ctl.value=v; }
+  else if(t==='select'){ ctl=document.createElement('select'); ctl.innerHTML=paIPOpcoes(c).map(o=>`<option value="${esc(o[0])}" ${o[0]===v?'selected':''}>${esc(o[1])}</option>`).join(''); }
+  else { ctl=document.createElement('input'); ctl.type=(t==='date'?'date':'text'); ctl.value=(t==='date'?String(v||'').slice(0,10):v); }
+  el.classList.add('ed'); el.innerHTML=''; el.appendChild(ctl); ctl.focus();
+  let feito=false;
+  const sair=gravar=>{ if(feito) return; feito=true; if(gravar) paIPGravar(c,t,ctl.value,el.dataset.r); else render(); };
+  ctl.addEventListener('keydown',e=>{
+    if(e.key==='Escape'){ e.preventDefault(); sair(false); }
+    else if(e.key==='Enter'&&(t!=='textarea'||e.ctrlKey||e.metaKey)){ e.preventDefault(); sair(true); }
+  });
+  if(t==='select') ctl.addEventListener('change',()=>sair(true));
+  ctl.addEventListener('blur',()=>sair(true));
+};
+async function paIPGravar(c,t,valor,rot){
+  const d=paFichaAtualDoc(); if(!d||!peESuper()) return;
+  const antes=paIPValor(d,c);
+  const novo=(t==='date'||t==='select')?valor:String(valor).trim();
+  if(String(novo)===String(antes==null?'':antes)){ render(); return; }
+  const corpo={};
+  if(c==='lpu'){ d.capitulo=novo; d.artigo=''; corpo.capitulo=novo||null; corpo.artigo=null; }
+  else{
+    const nul=(t==='date'||c==='projParecer'||c==='fiscParecer')&&novo==='';
+    d[c]=nul?null:novo; corpo[PA_COL[c]]=nul?null:novo;
+  }
+  const fmt=x=>{ if(x==null||x==='') return '—'; if(t==='date') return peDataPT(x); if(t==='select'){ const o=paIPOpcoes(c).find(y=>y[0]===x); return o?o[1]:x; } return String(x).length>80?String(x).slice(0,80)+'…':String(x); };
+  paRegistar(d,`Edição Admin — ${rot}: "${fmt(antes)}" → "${fmt(novo)}"`);
+  corpo.historico=d.historico; corpo.updated_at=new Date().toISOString();
+  try{ await sbRel.patchWhere('pedidos_aprovacao',`id=eq.${encodeURIComponent(d.id)}&obra_id=eq.${encodeURIComponent(d.obraId)}`,corpo); }
+  catch(e){ alert('Erro ao gravar: '+e.message); }
+  render();
+}
+window.paIPToggle=async function(c,rot){
+  const d=paFichaAtualDoc(); if(!d||!peESuper()) return;
+  d[c]=!d[c];
+  paRegistar(d,`Edição Admin — ${rot}: ${d[c]?'assinalado':'desassinalado'}`);
+  try{ await sbRel.patchWhere('pedidos_aprovacao',`id=eq.${encodeURIComponent(d.id)}&obra_id=eq.${encodeURIComponent(d.obraId)}`,{[PA_COL[c]]:d[c],historico:d.historico,updated_at:new Date().toISOString()}); }
+  catch(e){ alert('Erro ao gravar: '+e.message); }
+  render();
+};
 function paChk(id,rot,val,ed){
+  if(!ed&&peESuper()) return `<label class="pe-ipchk" style="font-size:12px;color:${val?'var(--info)':'var(--text-muted)'}" title="Clique para alterar" onclick="paIPToggle('${id}','${esc(rot)}')">${val?'☑':'☐'} ${rot}</label>`;
   return ed
     ? `<label style="font-size:12px"><input type="checkbox" id="fa-${id}" ${val?'checked':''}> ${rot}</label>`
     : `<label style="font-size:12px;color:${val?'var(--info)':'var(--text-muted)'}">${val?'☑':'☐'} ${rot}</label>`;
@@ -4006,41 +4090,47 @@ function renderFichaPA(app){
     acoes.push(`<button class="pe-btn green" onclick="paFechar()">Fechar</button>`);
     acoes.push(`<button class="pe-btn" onclick="paRever()">Revisão</button>`);
   }
-  if(peESuper()){ acoes.push(`<button class="pe-btn" onclick="gpeAdmEditar('pa','${d.id}')">Editar (Admin)</button>`); acoes.push(`<button class="pe-btn red" onclick="paEliminar('${d.id}')">Eliminar</button>`); }
+  const SA=peESuper();
+  if(SA){ acoes.push(`<button class="pe-btn red" onclick="paEliminar('${d.id}')">Eliminar</button>`); }
+  const F=(rot,id,c,tipo,edEmp)=>edEmp?peCampo(rot,id,paIPValor(d,c),tipo,true):(SA?paIP(rot,c,tipo):peCampo(rot,'x',paIPValor(d,c),tipo,false));
 
   const espSel = eEmp
     ? `<div class="pe-fld"><label>Especialidade</label><select id="fa-especialidade">${'<option value="">— escolher —</option>'+(DB.especialidades||[]).map(e=>`<option value="${esc(e.codigo)}" ${e.codigo===d.especialidade?'selected':''}>${esc(e.nome)}</option>`).join('')}</select></div>`
-    : peCampo('Especialidade','x',peNomeEsp(d.especialidade),'text',false);
+    : (SA?paIP('Especialidade','especialidade','select'):peCampo('Especialidade','x',peNomeEsp(d.especialidade),'text',false));
 
   /* Identificação */
   const secId=`<div class="pe-zone pe-ident"><div class="pe-zh"><span class="pe-zdot"></span><span class="pe-zt">Identificação</span></div>
     <div class="pe-zb"><div class="pe-grid3">
       ${peCampo('Id','x',d.id,null,false)}
-      ${peCampo('Data','fa-dataCriacao',d.dataCriacao,'date',eEmp)}
-      ${peCampo('Autor','x',d.autorEmp,'text',false)}
-    </div></div></div>`;
+      ${F('Data','fa-dataCriacao','dataCriacao','date',eEmp)}
+      ${F('Autor','x','autorEmp','text',false)}
+    </div>${SA?`<div class="pe-grid3 pe-mt">
+      ${paIP('Estado','estado','select')}
+      ${paIP('Data de Envio à Fiscalização','dataEnvio','date')}
+      ${paIP('Data de Fecho','dataFecho','date')}
+    </div>`:''}</div></div>`;
 
   /* Empreiteiro */
   const tipoSel = eEmp
     ? `<div class="pe-fld"><label>Tipo</label><select id="fa-tipoItem"><option value="material" ${d.tipoItem!=='equipamento'?'selected':''}>Material</option><option value="equipamento" ${d.tipoItem==='equipamento'?'selected':''}>Equipamento</option></select></div>`
-    : `<div class="pe-fld"><label>Tipo</label><div class="pe-ro">${d.tipoItem==='equipamento'?'Equipamento':'Material'}</div></div>`;
+    : (SA?paIP('Tipo','tipoItem','select'):`<div class="pe-fld"><label>Tipo</label><div class="pe-ro">${d.tipoItem==='equipamento'?'Equipamento':'Material'}</div></div>`);
   const secEmp=`<div class="pe-zone pe-emp"><div class="pe-zh"><span class="pe-zdot"></span><span class="pe-zt">Empreiteiro — Pedido</span></div>
     <div class="pe-zb">
       <div class="pe-grid2">
-        ${peCampo('Designação','fa-material',d.material,'text',eEmp)}
-        ${peCampo('Localização (Indicar a Localização do Material ou Equipamento)','fa-localizacao',d.localizacao,'text',eEmp)}
+        ${F('Designação','fa-material','material','text',eEmp)}
+        ${F('Localização (Indicar a Localização do Material ou Equipamento)','fa-localizacao','localizacao','text',eEmp)}
       </div>
       <div class="pe-grid2 pe-mt">
         ${tipoSel}
         ${espSel}
       </div>
       <div class="pe-grid2 pe-mt">
-        ${peCampo('Id LPU','fa-capitulo',(d.capitulo||'')+(d.artigo?(d.capitulo?' · ':'')+d.artigo:''),'text',eEmp)}
-        ${peCampo('Referências (Memória Descritiva, Condições Técnicas, Peças Desenhadas, …)','fa-referencia',d.referencia,'text',eEmp)}
+        ${F('Id LPU','fa-capitulo','lpu','text',eEmp)}
+        ${F('Referências (Memória Descritiva, Condições Técnicas, Peças Desenhadas, …)','fa-referencia','referencia','text',eEmp)}
       </div>
       <div class="pe-grid2 pe-mt">
-        ${peCampo('Previsto (Indicar Marca e Modelo)','fa-previsto',d.previsto,'text',eEmp)}
-        ${peCampo('Proposta (Indicar Marca e Modelo)','fa-proposto',d.proposto,'text',eEmp)}
+        ${F('Previsto (Indicar Marca e Modelo)','fa-previsto','previsto','text',eEmp)}
+        ${F('Proposta (Indicar Marca e Modelo)','fa-proposto','proposto','text',eEmp)}
       </div>
       <div class="pe-mt"><label class="pe-rotanx">Documentação entregue</label>
         <div style="display:flex;gap:18px;flex-wrap:wrap">
@@ -4049,43 +4139,43 @@ function renderFichaPA(app){
           ${paChk('temConformidade','Docs de Conformidade',d.temConformidade,eEmp)}
           ${paChk('temOutros','Outros',d.temOutros,eEmp)}
         </div></div>
-      <div class="pe-mt">${peCampo('Observações','fa-obsEmp',d.obsEmp,'textarea',eEmp)}</div>
-      <div class="pe-mt"><label class="pe-rotanx">Anexos</label>${paHtmlAnexos(d.anexosEmp,eEmp,'emp')}
-        ${eEmp?`<button class="pe-btn pe-mt" onclick="paAdicionarAnexo('emp')">+ Anexar Ficheiro</button>`:''}</div>
+      <div class="pe-mt">${F('Observações','fa-obsEmp','obsEmp','textarea',eEmp)}</div>
+      <div class="pe-mt"><label class="pe-rotanx">Anexos</label>${paHtmlAnexos(d.anexosEmp,eEmp||SA,'emp')}
+        ${(eEmp||SA)?`<button class="pe-btn pe-mt" onclick="paAdicionarAnexo('emp')">+ Anexar Ficheiro</button>`:''}</div>
     </div></div>`;
 
   /* Envio ao projetista */
   const secEnvio=d.dataEnvioProj
     ? `<div class="pe-zone pe-fisc"><div class="pe-zh"><span class="pe-zdot"></span><span class="pe-zt">Fiscalização — Envio ao Projetista</span></div>
         <div class="pe-zb"><div class="pe-grid3">
-          ${peCampo('Data de envio','x',d.dataEnvioProj,'date',false)}
-          ${peCampo('Autor','x',d.autorFiscEnvio,'text',false)}
-          ${peCampo('Projetista','x',d.projDestNome,'text',false)}
-        </div>${d.comentFiscEnvio?`<div class="pe-mt">${peCampo('Comentário','x',d.comentFiscEnvio,'textarea',false)}</div>`:''}</div></div>` : '';
+          ${F('Data de envio','x','dataEnvioProj','date',false)}
+          ${F('Autor','x','autorFiscEnvio','text',false)}
+          ${F('Projetista','x','projDestNome','text',false)}
+        </div>${(d.comentFiscEnvio||SA)?`<div class="pe-mt">${F('Comentário','x','comentFiscEnvio','textarea',false)}</div>`:''}</div></div>` : '';
 
   /* Projetista — parecer */
   const secProj=(d.dataEnvioProj||d.projParecer)
     ? `<div class="pe-zone pe-proj"><div class="pe-zh"><span class="pe-zdot"></span><span class="pe-zt">Projetista — Parecer</span></div>
         <div class="pe-zb">
           <div class="pe-grid3">
-            ${peCampo('Data','x',d.projData,'date',false)}
-            ${peCampo('Autor','x',d.autorProj||d.projDestNome,'text',false)}
-            <div class="pe-fld"><label>Parecer</label><div class="pe-ro">${paDecPill(d.projParecer)}</div></div>
+            ${F('Data','x','projData','date',false)}
+            ${SA?paIP('Autor','autorProj','text'):peCampo('Autor','x',d.autorProj||d.projDestNome,'text',false)}
+            ${SA?paIP('Parecer','projParecer','select'):`<div class="pe-fld"><label>Parecer</label><div class="pe-ro">${paDecPill(d.projParecer)}</div></div>`}
           </div>
-          <div class="pe-mt">${peCampo('Observações','x',d.obsProj,'textarea',false)}</div>
-          <div class="pe-mt"><label class="pe-rotanx">Anexos</label>${paHtmlAnexos(d.anexosProj,false,'proj')}</div>
+          <div class="pe-mt">${F('Observações','x','obsProj','textarea',false)}</div>
+          <div class="pe-mt"><label class="pe-rotanx">Anexos</label>${paHtmlAnexos(d.anexosProj,SA,'proj')}${SA?`<button class="pe-btn pe-mt" onclick="paAdicionarAnexo('proj')">+ Anexar Ficheiro</button>`:''}</div>
         </div></div>` : '';
 
   /* Fiscalização — decisão */
   const secFisc=`<div class="pe-zone pe-fisc"><div class="pe-zh"><span class="pe-zdot"></span><span class="pe-zt">Fiscalização — Decisão</span></div>
     <div class="pe-zb">
       <div class="pe-grid3">
-        ${peCampo('Data','x',d.dataResposta,'date',false)}
-        ${peCampo('Autor','x',d.autorFiscResp||d.autorFiscEnvio,'text',false)}
-        <div class="pe-fld"><label>Parecer</label><div class="pe-ro">${paDecPill(d.fiscParecer)}</div></div>
+        ${F('Data','x','dataResposta','date',false)}
+        ${SA?paIP('Autor','autorFiscResp','text'):peCampo('Autor','x',d.autorFiscResp||d.autorFiscEnvio,'text',false)}
+        ${SA?paIP('Parecer','fiscParecer','select'):`<div class="pe-fld"><label>Parecer</label><div class="pe-ro">${paDecPill(d.fiscParecer)}</div></div>`}
       </div>
-      <div class="pe-mt">${peCampo('Observações','x',d.obsFisc,'textarea',false)}</div>
-      <div class="pe-mt"><label class="pe-rotanx">Anexos</label>${paHtmlAnexos(d.anexosFisc,false,'fisc')}</div>
+      <div class="pe-mt">${F('Observações','x','obsFisc','textarea',false)}</div>
+      <div class="pe-mt"><label class="pe-rotanx">Anexos</label>${paHtmlAnexos(d.anexosFisc,SA,'fisc')}${SA?`<button class="pe-btn pe-mt" onclick="paAdicionarAnexo('fisc')">+ Anexar Ficheiro</button>`:''}</div>
     </div></div>`;
 
   app.innerHTML=PE_CSS+`
@@ -4101,6 +4191,7 @@ function renderFichaPA(app){
     </div>
     ${notas.length?`<div class="pe-nota">${notas.map(esc).join(' ')}</div>`:''}
     ${lig.length?`<div class="pe-lig">${lig.join(' · ')}</div>`:''}
+    ${SA?`<div class="pe-ipnota">✎ <b>Edição Admin:</b> clique em qualquer campo para o alterar. Grava ao sair do campo ou com Enter (Ctrl+Enter nas observações); Esc cancela. Cada alteração fica registada no Histórico.</div>`:''}
     ${secId}${secEmp}${secEnvio}${secProj}${secFisc}
     <div class="pe-hist"><b>Histórico</b>
       ${(d.historico||[]).map(h=>`<div>· ${esc(h.data)} — [${esc(h.autor)}] ${esc(h.acao)}</div>`).join('')||'<div>—</div>'}
