@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.10.26.1429</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.10.28.0951</span>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-dash" title="Dashboard PE · PA · PB · QE" onclick="dashAbrir('')">📊 Dashboard</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
@@ -3222,8 +3222,9 @@ async function peConfirmarEnvioProj(projId,coment,cc){
 window.peSubmeterEsclarecimento=async function(){
   const d=peFichaAtualDoc(); if(!d) return; peLerFormProj(d);
   if(!d.esclarecimento){ alert('Preencha o Esclarecimento antes de submeter.'); return; }
-  d.autorProj=currentUser?currentUser.nome:''; d.projData=d.projData||peHoje(); d.dataEsclarecido=peHoje(); d.estado='esclarecido';
-  peRegistar(d,'Esclarecimento submetido pelo Projetista — passa a Esclarecido.');
+  const _sa=peESuper();
+  d.autorProj=_sa?(String(d.autorProj||'').trim()||d.projDestNome||(currentUser?currentUser.nome:'')):(currentUser?currentUser.nome:''); d.projData=d.projData||peHoje(); d.dataEsclarecido=peHoje(); d.estado='esclarecido';
+  peRegistar(d,_sa?'Esclarecimento do Projetista registado pelo Superadmin ('+(currentUser?currentUser.nome:'')+') — passa a Esclarecido.':'Esclarecimento submetido pelo Projetista — passa a Esclarecido.');
   await peNotificar(d,peEmailsFiscSemCSO(),'Enviamos o PE '+d.id+' da Obra '+(peObra()?peObra().nome:d.obraNome)+' devidamente esclarecido.','Fiscalização');
   await pePersistir(d); peAbrirFicha(d.id);
 };
@@ -3563,8 +3564,8 @@ function renderFichaPE(app){
 function peFecharModal(){ const v=document.getElementById('pe-veu'); if(v) v.remove(); }
 window.peAbrirModalProjetista=function(){
   const d=peFichaAtualDoc(); if(!d) return;
-  const projs=peProjetistas();
-  if(!projs.length){ alert('Esta obra não tem projetistas associados no SID.'); return; }
+  const projs=peProjetistas().filter(p=>p.email);
+  if(!projs.length){ peAbrirModalSemProj(); return; }
   const linhas=projs.map((p,i)=>{
     const tags=(p.especialidades||[]).map(c=>`<span class="pe-esptag">${esc(peNomeEsp(c))}</span>`).join('')||'<span class="pe-muted">—</span>';
     return `<tr onclick="document.getElementById('pe-rp-${i}').checked=true">
@@ -3594,6 +3595,38 @@ window.peAbrirModalProjetista=function(){
       <button class="pe-btn gold" onclick="peSubmeterEscolhaProj()">Enviar Link →</button>
     </div></div>`;
   document.body.appendChild(veu);
+};
+/* Obra sem projetista no SID: passa a Pendente sem notificação (projetista responde por email; Superadmin regista a resposta) */
+window.peAbrirModalSemProj=function(){
+  const d=peFichaAtualDoc(); if(!d) return;
+  const veu=document.createElement('div'); veu.className='pe-veu'; veu.id='pe-veu';
+  veu.innerHTML=`<div class="pe-modal">
+    <h3>Enviar ao Projetista — sem projetista no SID</h3>
+    <div class="pe-mb">
+      <div class="pe-msub"><b style="color:var(--text)">Esta obra não tem projetistas (com email) associados no SID.</b></div>
+      <div class="pe-msub">O PE passa a <b>Pendente</b> sem notificação automática. Envie o pedido ao projetista por email; quando ele responder, o Superadmin regista o esclarecimento no SEGO.</div>
+      <div class="pe-fld pe-mt"><label>Projetista (nome / entidade)</label><input id="pe-sp-nome" placeholder="Ex.: Gabinete XYZ — Arq. Silva"></div>
+      <div class="pe-fld pe-mt"><label>Email do Projetista (opcional, só para registo)</label><input id="pe-sp-email" type="email" placeholder="projetista@exemplo.pt"></div>
+      <div class="pe-fld pe-mt"><label>Comentário (opcional)</label><textarea id="pe-sp-coment" placeholder="Ex.: Enviado por email em ..."></textarea></div>
+    </div>
+    <div class="pe-mrod">
+      <button class="pe-btn" onclick="peFecharModal()">Cancelar</button>
+      <button class="pe-btn gold" onclick="peConfirmarSemProj()">Passar a Pendente →</button>
+    </div></div>`;
+  document.body.appendChild(veu);
+  setTimeout(()=>{ const i=document.getElementById('pe-sp-nome'); if(i) i.focus(); },50);
+};
+window.peConfirmarSemProj=async function(){
+  const d=peFichaAtualDoc(); if(!d) return;
+  const g=id=>{ const e=document.getElementById(id); return e?e.value.trim():''; };
+  const nome=g('pe-sp-nome'), email=g('pe-sp-email'), coment=g('pe-sp-coment');
+  if(!nome){ alert('Indique o Projetista (nome ou entidade).'); return; }
+  peFecharModal();
+  d.autorFiscEnvio=currentUser?currentUser.nome:''; d.estado='pendente'; d.dataEnvioProj=peHoje();
+  d.comentFiscEnvio=coment||'';
+  d.projDestId=null; d.projDestNome=nome; d.projDestEmail=email||'';
+  peRegistar(d,'Enviado ao Projetista '+nome+(email?' ('+email+')':'')+' fora do SEGO (sem projetista no SID) — passa a Pendente, sem notificação.'+(coment?' Comentário: '+coment:''));
+  await pePersistir(d); peAbrirFicha(d.id);
 };
 window.peSubmeterEscolhaProj=function(){
   const s=document.querySelector('input[name="pe-rp"]:checked');
@@ -3803,11 +3836,13 @@ window.paGuardarRascunho=async function(){
   const d=paFichaAtualDoc(); if(!d) return; paLerFormEmp(d);
   paRegistar(d,'Rascunho guardado.'); await paPersistir(d); paAbrirFicha(d.id);
 };
+/* Autor nas transições: o Admin que atua em nome de outro mantém o autor já indicado */
+function paAutor(atual){ return (peESuper()&&String(atual||'').trim())?atual:(currentUser?currentUser.nome:''); }
 window.paEnviarFisc=async function(){
   const d=paFichaAtualDoc(); if(!d) return; paLerFormEmp(d);
   if(!d.material){ alert('Indique o Material / Equipamento.'); return; }
   if(!d.especialidade){ alert('Indique a Especialidade.'); return; }
-  d.autorEmp=currentUser?currentUser.nome:''; d.estado='aberto'; d.dataEnvio=peHoje();
+  d.autorEmp=paAutor(d.autorEmp); d.estado='aberto'; d.dataEnvio=peHoje();
   paRegistar(d,'Enviado à Fiscalização — passa a Aberto.');
   await paNotificar(d,paEmailsFiscSemCSO(),'Enviamos o PA '+d.id+' da Obra '+(paObra()?paObra().nome:d.obraNome)+' para o qual solicitamos a v/melhor atenção.','Fiscalização');
   await paPersistir(d); paAbrirFicha(d.id);
@@ -3818,7 +3853,7 @@ async function paConfirmarEnvioProj(projId,coment,cc){
   if(!p){ alert('Projetista inválido.'); return; }
   if(!p.email){ alert('O projetista escolhido não tem email no SID.'); return; }
   paFecharModal();
-  d.autorFiscEnvio=currentUser?currentUser.nome:''; d.estado='pendente'; d.dataEnvioProj=peHoje();
+  d.autorFiscEnvio=paAutor(d.autorFiscEnvio); d.estado='pendente'; d.dataEnvioProj=peHoje();
   d.comentFiscEnvio=coment||'';
   d.projDestId=p.id; d.projDestNome=p.nome; d.projDestEmail=p.email;
   const ccFinal=[...new Set((cc||[]).filter(e=>e&&e!==p.email))];
@@ -3828,7 +3863,7 @@ async function paConfirmarEnvioProj(projId,coment,cc){
 }
 async function paConfirmarParecerProj(parecer,obs){
   const d=paFichaAtualDoc(); if(!d) return; paFecharModal();
-  d.autorProj=currentUser?currentUser.nome:''; d.projParecer=parecer; d.obsProj=obs;
+  d.autorProj=paAutor(d.autorProj); d.projParecer=parecer; d.obsProj=obs;
   d.projData=d.projData||peHoje(); d.dataAnalisado=peHoje(); d.estado='analisado';
   if(paModalAnexos.length){ d.anexosProj=[...(d.anexosProj||[]),...paModalAnexos]; }
   paRegistar(d,'Parecer do Projetista: '+DEC_PA[parecer].rot+' — passa a Analisado.'+(paModalAnexos.length?' ('+paModalAnexos.length+' anexo'+(paModalAnexos.length>1?'s':'')+')':''));
@@ -3838,7 +3873,7 @@ async function paConfirmarParecerProj(parecer,obs){
 }
 async function paConfirmarDecisao(parecer,obs,direta,cc){
   const d=paFichaAtualDoc(); if(!d) return; paFecharModal();
-  d.autorFiscResp=currentUser?currentUser.nome:''; d.fiscParecer=parecer; d.obsFisc=obs;
+  d.autorFiscResp=paAutor(d.autorFiscResp); d.fiscParecer=parecer; d.obsFisc=obs;
   d.dataResposta=peHoje(); d.estado='respondido';
   if(direta) d.viaDireta=true;
   if(paModalAnexos.length){ d.anexosFisc=[...(d.anexosFisc||[]),...paModalAnexos]; }
