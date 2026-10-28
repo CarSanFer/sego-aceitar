@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.10.28.0951</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.10.28.1003</span>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-dash" title="Dashboard PE · PA · PB · QE" onclick="dashAbrir('')">📊 Dashboard</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
@@ -3577,14 +3577,26 @@ window.peAbrirModalProjetista=function(){
   veu.innerHTML=`<div class="pe-modal">
     <h3>Enviar ao Projetista</h3>
     <div class="pe-mb">
-      <div class="pe-msub"><b style="color:var(--text)">A notificação segue obrigatoriamente para o Projetista selecionado abaixo.</b></div>
+      <label style="display:flex;gap:8px;align-items:flex-start;background:#FFF6E0;border:1px solid #F0DCA0;border-radius:4px;padding:8px 10px;margin-bottom:10px;cursor:pointer;font-size:13px">
+        <input type="checkbox" id="pe-sem-mail" onchange="peSemMailToggle()" style="margin-top:2px">
+        <span><b>Não Enviar Email ao Projetista</b><br><span class="pe-muted">O PE passa a Pendente sem notificação; o pedido é enviado manualmente e o Superadmin regista a resposta.</span></span>
+      </label>
+      <div class="pe-msub" id="pe-msg-notif"><b style="color:var(--text)">A notificação segue obrigatoriamente para o Projetista selecionado abaixo.</b></div>
       <div class="pe-msub">As especialidades mostradas são as que cada projetista cobre nesta obra.</div>
-      <table class="pe-seltab"><tbody>${linhas}</tbody></table>
+      <table class="pe-seltab"><tbody>${linhas}
+        <tr id="pe-rp-outro-tr" style="display:none" onclick="document.getElementById('pe-rp-outro').checked=true;peSemMailToggle()">
+          <td style="width:28px"><input type="radio" name="pe-rp" id="pe-rp-outro" value="__outro__" onchange="peSemMailToggle()"></td>
+          <td colspan="2"><b>Outro Projetista</b> <span class="pe-muted">(não associado à obra — indicar abaixo)</span></td></tr>
+      </tbody></table>
+      <div id="pe-outro-flds" style="display:none">
+        <div class="pe-fld pe-mt"><label>Projetista (nome / entidade)</label><input id="pe-sp-nome" placeholder="Ex.: Gabinete XYZ — Arq. Silva"></div>
+        <div class="pe-fld pe-mt"><label>Email do Projetista (opcional, só para registo)</label><input id="pe-sp-email" type="email" placeholder="projetista@exemplo.pt"></div>
+      </div>
       <div class="pe-fld pe-mt"><label>Comentário ao Projetista (opcional)</label><textarea id="pe-coment-envio" placeholder="Comentário a incluir na notificação"></textarea></div>
       ${(function(){
         const eq=peEquipaDaObra();
         if(!eq.length) return '';
-        return `<div class="pe-fld pe-mt"><label>Com Conhecimento — Cc (opcional)</label>
+        return `<div class="pe-fld pe-mt" id="pe-cc-bloco"><label>Com Conhecimento — Cc (opcional)</label>
           <table class="pe-seltab"><tbody>${eq.map((u,i)=>`<tr onclick="var c=document.getElementById('pe-cc-${i}');c.checked=!c.checked">
             <td style="width:28px"><input type="checkbox" class="pe-ccx" id="pe-cc-${i}" value="${esc(u.email)}" onclick="event.stopPropagation()"></td>
             <td><b>${esc(u.nome)}</b> <span class="pe-muted">(${u.papel})</span><br><span class="pe-muted">${esc(u.email)}</span></td></tr>`).join('')}</tbody></table></div>`;
@@ -3592,7 +3604,7 @@ window.peAbrirModalProjetista=function(){
     </div>
     <div class="pe-mrod">
       <button class="pe-btn" onclick="peFecharModal()">Cancelar</button>
-      <button class="pe-btn gold" onclick="peSubmeterEscolhaProj()">Enviar Link →</button>
+      <button class="pe-btn gold" id="pe-btn-envproj" onclick="peSubmeterEscolhaProj()">Enviar Link →</button>
     </div></div>`;
   document.body.appendChild(veu);
 };
@@ -3616,21 +3628,40 @@ window.peAbrirModalSemProj=function(){
   document.body.appendChild(veu);
   setTimeout(()=>{ const i=document.getElementById('pe-sp-nome'); if(i) i.focus(); },50);
 };
-window.peConfirmarSemProj=async function(){
-  const d=peFichaAtualDoc(); if(!d) return;
+window.peConfirmarSemProj=async function(comentExt){
   const g=id=>{ const e=document.getElementById(id); return e?e.value.trim():''; };
-  const nome=g('pe-sp-nome'), email=g('pe-sp-email'), coment=g('pe-sp-coment');
+  const nome=g('pe-sp-nome'), email=g('pe-sp-email'), coment=(typeof comentExt==='string')?comentExt:g('pe-sp-coment');
   if(!nome){ alert('Indique o Projetista (nome ou entidade).'); return; }
+  return peRegistarSemNotif({id:null,nome,email,esp:''},coment,(typeof comentExt==='string')?'não associado à obra, sem notificação (envio manual)':'fora do SEGO (sem projetista no SID), sem notificação');
+};
+async function peRegistarSemNotif(p,coment,motivo){
+  const d=peFichaAtualDoc(); if(!d) return;
   peFecharModal();
   d.autorFiscEnvio=currentUser?currentUser.nome:''; d.estado='pendente'; d.dataEnvioProj=peHoje();
   d.comentFiscEnvio=coment||'';
-  d.projDestId=null; d.projDestNome=nome; d.projDestEmail=email||'';
-  peRegistar(d,'Enviado ao Projetista '+nome+(email?' ('+email+')':'')+' fora do SEGO (sem projetista no SID) — passa a Pendente, sem notificação.'+(coment?' Comentário: '+coment:''));
+  d.projDestId=p.id||null; d.projDestNome=p.nome; d.projDestEmail=p.email||''; if(p.esp) d.projEspecialidade=p.esp;
+  peRegistar(d,'Enviado ao Projetista '+p.nome+(p.email?' ('+p.email+')':'')+' '+motivo+' — passa a Pendente.'+(coment?' Comentário: '+coment:''));
   await pePersistir(d); peAbrirFicha(d.id);
+}
+window.peSemMailToggle=function(){
+  const sem=!!(document.getElementById('pe-sem-mail')||{}).checked;
+  const tr=document.getElementById('pe-rp-outro-tr'), outro=document.getElementById('pe-rp-outro');
+  if(tr) tr.style.display=sem?'':'none';
+  if(!sem&&outro&&outro.checked){ const r=document.querySelector('input[name="pe-rp"]:not(#pe-rp-outro)'); if(r) r.checked=true; }
+  const fl=document.getElementById('pe-outro-flds'); if(fl) fl.style.display=(sem&&outro&&outro.checked)?'':'none';
+  const cc=document.getElementById('pe-cc-bloco'); if(cc) cc.style.display=sem?'none':'';
+  const m=document.getElementById('pe-msg-notif'); if(m) m.style.display=sem?'none':'';
+  const b=document.getElementById('pe-btn-envproj'); if(b) b.textContent=sem?'Passar a Pendente →':'Enviar Link →';
 };
 window.peSubmeterEscolhaProj=function(){
   const s=document.querySelector('input[name="pe-rp"]:checked');
   if(!s){ alert('Selecione um projetista.'); return; }
+  if((document.getElementById('pe-sem-mail')||{}).checked){
+    const coment=((document.getElementById('pe-coment-envio')||{}).value||'').trim();
+    if(s.value==='__outro__') return peConfirmarSemProj(coment);
+    const p=peProjetistas().find(x=>String(x.id)===String(s.value)); if(!p){ alert('Projetista inválido.'); return; }
+    return peRegistarSemNotif({id:p.id,nome:p.nome,email:p.email||'',esp:(p.especialidades||[]).map(peNomeEsp).join(', ')},coment,'sem notificação (envio manual)');
+  }
   const c=document.getElementById('pe-coment-envio');
   const cc=Array.from(document.querySelectorAll('.pe-ccx:checked')).map(x=>x.value);
   peConfirmarEnvioProj(s.value,(c&&c.value?c.value.trim():''),cc);
