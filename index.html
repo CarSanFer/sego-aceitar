@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.10.29.1544</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.10.29.1612</span>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-dash" title="Dashboard PE · PA · PB · QE" onclick="dashAbrir('')">📊 Dashboard</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
@@ -5768,7 +5768,7 @@ window.qeImprimir=async function(id){
         {stack:[
           {text:'QUALIDADE DE EXECUÇÃO — QE '+d.id,bold:true,fontSize:12,color:NAVY},
           {text:(o.codigo?o.codigo+' · ':'')+(o.sigla||'')+' — '+(o.nome||d.obraNome||''),bold:true,fontSize:9,margin:[0,2,0,0]},
-          {text:['Estado: ',{text:' '+qeEST(d.estado).rot+' ',bold:true,color:'#ffffff',background:d.estado==='fechado'?'#15803D':'#6B7280'}],fontSize:9,margin:[0,3,0,0]}
+          {text:['Estado: ',{text:' '+qeEST(d.estado).rot+' ',bold:true,color:'#ffffff',background:({fechado:'#15803D',pendente:'#D97706',respondido:'#B8860B',reaberto:'#B91C1C'})[d.estado]||'#6B7280'}],fontSize:9,margin:[0,3,0,0]}
         ],margin:[10,2,0,0]},
         {width:'auto',alignment:'right',fontSize:8,lineHeight:1.25,text:'Criado: '+dt(d.dataCriacao)+'\nEnviado: '+dt(d.dataEnvio)+'\nResposta: '+dt(d.dataResposta)+'\nParecer: '+dt(d.dataParecer)+'\nFecho: '+dt(d.dataFecho)}
       ]},
@@ -5778,7 +5778,7 @@ window.qeImprimir=async function(id){
     if(lig.length) conteudo.push({text:lig.join(' · '),fontSize:8,color:'#444',margin:[0,-4,0,8]});
     conteudo.push(sec('Identificação',NAVY,[[g3([fld('Id',d.id),fld('Data',dt(d.dataCriacao)),fld('Autor',v(d.autorFisc))]),g3([fld('Especialidade',v(peNomeEsp(d.especialidade))),fld('Resposta Pretendida',dt(d.respostaPretendida))])]]));
     conteudo.push(sec('Fiscalização — Identificação',NAVY,[fld('Descrição da Falta de Qualidade de Execução',v(d.descricao)),await fotos(d.anexosFisc)]));
-    if(d.dataEnvio) conteudo.push(sec('Empreiteiro — Resposta','#2563EB',[[g3([fld('Data',dt(d.dataResposta)),fld('Autor',v(d.autorEmp))]),fld('Origem',v(d.origem)),fld('Correção Efetuada',v(d.correcao))],await fotos(d.anexosEmp)]));
+    if(d.dataResposta||v(d.origem)||v(d.correcao)||(d.anexosEmp||[]).length) conteudo.push(sec('Empreiteiro — Resposta','#2563EB',[[g3([fld('Data',dt(d.dataResposta)),fld('Autor',v(d.autorEmp))]),fld('Origem',v(d.origem)),fld('Correção Efetuada',v(d.correcao))],await fotos(d.anexosEmp)]));
     if(d.parecer||d.dataParecer) conteudo.push(sec('Fiscalização — Parecer','#B45309',[[g3([fld('Data',dt(d.dataParecer)),fld('Autor',v(d.autorParecer)),fld('Parecer',parTxt,parTxt?{bold:true,color:d.parecer==='aceite'?'#15803D':'#B91C1C'}:null)]),fld(d.parecer==='nao_aceite'?'Motivo da Não Aceitação':'Observações',v(d.obsFisc))]]));
     const gerado=new Date().toLocaleString('pt-PT');
     const dd={pageSize:'A4',pageOrientation:'portrait',pageMargins:[MG,42.5,MG,45],
@@ -5825,7 +5825,7 @@ function renderFichaQE(app){
     acoes.push(`<button class="pe-btn gold" onclick="qeModalParecer()">Dar Parecer →</button>`);
     notas.push('Aceite a correção (fecha) ou peça revisão indicando o motivo (gera nova revisão para o Empreiteiro).');
   }
-  if(d.estado==='fechado'){ acoes.push(`<button class="pe-btn info" onclick="qeImprimir('${d.id}')">📄 PDF</button>`); }
+  if(d.estado!=='rascunho'){ acoes.push(`<button class="pe-btn info" onclick="qeImprimir('${d.id}')" title="Descarregar a QE em PDF (ex.: para reencaminhar a um subempreiteiro)">📄 PDF</button>`); }
   if(peESuper()){ acoes.push(`<button class="pe-btn" onclick="gpeAdmEditar('qe','${d.id}')">Editar (Admin)</button>`); acoes.push(`<button class="pe-btn red" onclick="qeEliminar('${d.id}')">Eliminar</button>`); }
 
   const espSel = eFisc
