@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.10.28.1003</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.10.29.1532</span>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-dash" title="Dashboard PE · PA · PB · QE" onclick="dashAbrir('')">📊 Dashboard</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
@@ -5697,6 +5697,88 @@ window.qeAbrirFicha=async function(id){
 window.qeVoltarLista=function(){ qeFichaId=null; render(); };
 window.qeVoltarCapa=function(){ const o=qeObra(); qeFichaId=null; qeObraId=null; fichObraId=o?o.id:null; render(); };
 
+/* ---- Impressão / PDF da QE (A4 vertical, com fotos) ---- */
+window.qeImprimir=async function(id){
+  const d=qePorId(id||qeFichaId); if(!d) return;
+  if(d._leve){
+    try{
+      showLoadingOverlay('A preparar impressão…');
+      const rows=await sbRel.get('qualidade_execucao',`id=eq.${encodeURIComponent(d.id)}&obra_id=eq.${encodeURIComponent(d.obraId)}&select=anexos_fisc,anexos_emp`);
+      if(rows.length){ d.anexosFisc=rows[0].anexos_fisc||[]; d.anexosEmp=rows[0].anexos_emp||[]; d._leve=false; }
+    }catch(e){ hideLoadingOverlay(); alert('Não foi possível carregar as fotos desta QE. Tente novamente.'); return; }
+    hideLoadingOverlay();
+  }
+  const o=qeObra()||{codigo:'',sigla:'',nome:d.obraNome||''};
+  const dt=x=>x?peDataPT(x):'—';
+  const txt=x=>(x&&String(x).trim())?esc(String(x)).replace(/\n/g,'<br>'):'<span class="vz">—</span>';
+  const eImg=a=>a&&a.dados&&(/^data:image\//i.test(a.dados)||/\.(jpe?g|png|gif|webp|bmp|heic)$/i.test(a.nome||''));
+  const fotos=(lista,titulo)=>{
+    const L=(lista||[]);
+    if(!L.length) return '<div class="campo"><div class="rot">'+titulo+'</div><div class="val"><span class="vz">Sem fotos</span></div></div>';
+    const imgs=L.filter(eImg), outros=L.filter(a=>!eImg(a));
+    return '<div class="campo"><div class="rot">'+titulo+' ('+L.length+')</div>'+
+      (imgs.length?'<div class="fotos">'+imgs.map((a,i)=>'<figure><div class="fimg"><img src="'+a.dados+'" alt=""></div><figcaption>'+(i+1)+' · '+esc(a.nome||'')+'</figcaption></figure>').join('')+'</div>':'')+
+      (outros.length?'<div class="val">'+outros.map(a=>'📎 '+esc(a.nome||'')).join('<br>')+'</div>':'')+'</div>';
+  };
+  const cel=(r,v)=>'<div class="campo"><div class="rot">'+r+'</div><div class="val">'+v+'</div></div>';
+  const sec=(cls,tit,cab,resto)=>'<div class="sec '+cls+'"><div class="keep"><div class="sh">'+tit+'</div><div class="sb">'+cab+'</div></div>'+(resto?'<div class="sb sb2">'+resto+'</div>':'')+'</div>';
+  const par=d.parecer&&QE_PAR[d.parecer]?'<span class="pill" style="background:'+(d.parecer==='aceite'?'#15803D':'#B91C1C')+'">'+QE_PAR[d.parecer].rot+'</span>':'<span class="vz">—</span>';
+  const lig=[]; if(d.prevId) lig.push('Revisão do registo <b>'+esc(d.prevId)+'</b>'); if(d.nextId) lig.push('Substituído pela revisão <b>'+esc(d.nextId)+'</b>');
+  const gerado=new Date().toLocaleString('pt-PT');
+  const html='<!DOCTYPE html><html lang="pt"><head><meta charset="utf-8">'+
+    '<title>QE '+esc(d.id)+' — '+esc(o.sigla||'')+'</title><style>'+
+    '@page{size:A4 portrait;margin:14mm 14mm 16mm 14mm;'+
+      '@bottom-left{content:"Documento gerado pelo SEGO em '+gerado+'";font-family:Carlito,Calibri,sans-serif;font-size:7.5pt;color:#555}'+
+      '@bottom-right{content:counter(page) " / " counter(pages);font-family:Carlito,Calibri,sans-serif;font-size:7.5pt;color:#555}}'+
+    '*{box-sizing:border-box}'+
+    'body{font-family:Carlito,Calibri,sans-serif;font-size:9.5pt;color:#111;margin:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}'+
+    '.top{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #E8A33D;padding-bottom:8px;margin-bottom:12px}'+
+    '.hdrl{display:flex;align-items:center;gap:12px}.hdrl img{height:14mm;width:auto}'+
+    '.t1{font-size:12pt;font-weight:700;color:#1E3A5F}.t2{font-weight:700;margin-top:2px}.t3{margin-top:2px}'+
+    '.dts{text-align:right;font-size:8.5pt;line-height:1.45}'+
+    '.pill{display:inline-block;color:#fff;font-weight:700;border-radius:10px;padding:1px 9px;font-size:8.5pt}'+
+    '.sec{border:1px solid #D5DCE6;border-left:4px solid #1E3A5F;border-radius:4px;margin-bottom:10px;page-break-inside:auto}'+
+    '.sec.emp{border-left-color:#2563EB}.sec.par{border-left-color:#B45309}'+
+    '.sh{background:#EEF2F7;font-weight:700;color:#1E3A5F;text-transform:uppercase;letter-spacing:.4px;font-size:8.5pt;padding:5px 10px;border-bottom:1px solid #D5DCE6}'+
+    '.sb{padding:8px 10px}.sb2{padding-top:0}.keep{break-inside:avoid;page-break-inside:avoid}'+
+    '.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px 12px}'+
+    '.campo{margin-top:6px}.g3 .campo{margin-top:0}'+
+    '.rot{font-size:7.5pt;font-weight:700;color:#5A6472;text-transform:uppercase;letter-spacing:.3px;margin-bottom:2px}'+
+    '.val{background:#F5F6F8;border-radius:3px;padding:4px 7px;min-height:20px;text-align:justify}'+
+    '.vz{color:#999}'+
+    '.fotos{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:3px}'+
+    'figure{margin:0;border:1px solid #D5DCE6;border-radius:4px;padding:4px;page-break-inside:avoid;break-inside:avoid}'+
+    '.fimg{height:68mm;display:flex;align-items:center;justify-content:center;background:#FAFBFC}'+
+    '.fimg img{max-width:100%;max-height:68mm;object-fit:contain}'+
+    'figcaption{font-size:7.5pt;color:#5A6472;margin-top:3px;text-align:center;word-break:break-all}'+
+    '.lig{font-size:8.5pt;color:#444;margin:-4px 0 10px}'+
+    '.bar{position:fixed;top:8px;right:8px}.bar button{font-family:inherit;font-size:10pt;padding:6px 14px;border:0;border-radius:4px;background:#1E3A5F;color:#fff;cursor:pointer}'+
+    '@media print{.bar{display:none}}'+
+    '</style></head><body>'+
+    '<div class="bar"><button onclick="window.print()">🖨 Imprimir / PDF</button></div>'+
+    '<div class="top"><div class="hdrl">'+
+      '<img src="data:image/png;base64,'+LOGO_ACEITAR_MED_B64+'" alt="Aceitar">'+
+      '<div><div class="t1">QUALIDADE DE EXECUÇÃO — QE '+esc(d.id)+'</div>'+
+      '<div class="t2">'+esc(o.codigo||'')+(o.codigo?' · ':'')+esc(o.sigla||'')+' — '+esc(o.nome||d.obraNome||'')+'</div>'+
+      '<div class="t3">Estado: <span class="pill" style="background:'+(d.estado==='fechado'?'#15803D':'#6B7280')+'">'+esc(qeEST(d.estado).rot)+'</span></div></div>'+
+    '</div><div class="dts">Criado: '+dt(d.dataCriacao)+'<br>Enviado: '+dt(d.dataEnvio)+'<br>Resposta: '+dt(d.dataResposta)+'<br>Parecer: '+dt(d.dataParecer)+'<br>Fecho: '+dt(d.dataFecho)+'</div></div>'+
+    (lig.length?'<div class="lig">'+lig.join(' · ')+'</div>':'')+
+    sec('','Identificação','<div class="g3">'+
+      cel('Id',esc(d.id))+cel('Data',dt(d.dataCriacao))+cel('Autor',txt(d.autorFisc))+
+      cel('Especialidade',txt(peNomeEsp(d.especialidade)))+cel('Resposta Pretendida',dt(d.respostaPretendida))+'<div></div></div>','')+
+    sec('','Fiscalização — Identificação',cel('Descrição da Falta de Qualidade de Execução',txt(d.descricao)),fotos(d.anexosFisc,'Fotos'))+
+    (d.dataEnvio?sec('emp','Empreiteiro — Resposta','<div class="g3">'+cel('Data',dt(d.dataResposta))+cel('Autor',txt(d.autorEmp))+'<div></div></div>'+
+      cel('Origem',txt(d.origem))+cel('Correção Efetuada',txt(d.correcao)),fotos(d.anexosEmp,'Fotos')):'')+
+    ((d.parecer||d.dataParecer)?sec('par','Fiscalização — Parecer','<div class="g3">'+cel('Data',dt(d.dataParecer))+cel('Autor',txt(d.autorParecer))+cel('Parecer',par)+'</div>'+
+      cel(d.parecer==='nao_aceite'?'Motivo da Não Aceitação':'Observações',txt(d.obsFisc)),''):'')+
+    '<script>(function(){var im=[].slice.call(document.images),n=im.length;function go(){setTimeout(function(){window.print();},250);}'+
+      'if(!n){go();return;}var k=0;im.forEach(function(i){if(i.complete){if(++k===n)go();}else{i.onload=i.onerror=function(){if(++k===n)go();};}});})();<'+'/script>'+
+    '</body></html>';
+  const w=window.open('','_blank');
+  if(!w){ alert('O browser bloqueou a janela de impressão — permita pop-ups para o SEGO.'); return; }
+  w.document.write(html); w.document.close();
+};
+
 function renderFichaQE(app){
   const d=qeFichaAtualDoc();
   if(!d){ qeFichaId=null; render(); return; }
@@ -5730,6 +5812,7 @@ function renderFichaQE(app){
     acoes.push(`<button class="pe-btn gold" onclick="qeModalParecer()">Dar Parecer →</button>`);
     notas.push('Aceite a correção (fecha) ou peça revisão indicando o motivo (gera nova revisão para o Empreiteiro).');
   }
+  if(d.estado==='fechado'){ acoes.push(`<button class="pe-btn info" onclick="qeImprimir('${d.id}')">🖨 Imprimir / PDF</button>`); }
   if(peESuper()){ acoes.push(`<button class="pe-btn" onclick="gpeAdmEditar('qe','${d.id}')">Editar (Admin)</button>`); acoes.push(`<button class="pe-btn red" onclick="qeEliminar('${d.id}')">Eliminar</button>`); }
 
   const espSel = eFisc
