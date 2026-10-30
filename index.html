@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.10.29.1612</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.10.30.0900</span>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-dash" title="Dashboard PE · PA · PB · QE" onclick="dashAbrir('')">📊 Dashboard</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
@@ -6454,29 +6454,34 @@ window.amImportarLPU=function(){
         const wb=XLSX.read(buf,{cellDates:false});
         const ws=wb.Sheets[wb.SheetNames[0]];
         const raw=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+        const rawTxt=XLSX.utils.sheet_to_json(ws,{header:1,defval:'',raw:false}); // texto tal como aparece (Art.º 1.10 não vira 1.1)
         const norm=t=>String(t||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,'');
+        const ID_CAB=['id','art','arts','artg','artgo','artigo','artigos','artn','nart','item','itens','ref','referencia','cod','codigo'];
         let hr=-1,ci=-1,cd=-1;
-        for(let r=0;r<Math.min(raw.length,20);r++){
+        for(let r=0;r<Math.min(raw.length,30);r++){
           const row=raw[r]||[];
-          const i=row.findIndex(c=>norm(c)==='id');
-          const dIx=row.findIndex(c=>norm(c).startsWith('descri'));
-          if(i>=0&&dIx>=0){ hr=r; ci=i; cd=dIx; break; }
+          const dIx=row.findIndex(c=>norm(c).startsWith('descri')||norm(c)==='designacao');
+          if(dIx<0) continue;
+          let i=row.findIndex((c,k)=>k<dIx&&ID_CAB.includes(norm(c)));
+          if(i<0) i=row.findIndex((c,k)=>k<dIx&&/^(art|id|item|cod)/.test(norm(c)));
+          if(i>=0){ hr=r; ci=i; cd=dIx; break; }
         }
-        if(hr<0){ hideLoadingOverlay(); alert('Não encontrei o cabeçalho (colunas "Id" e "Descrição") nas primeiras 20 linhas.'); return; }
+        if(hr<0){ hideLoadingOverlay(); alert('Não encontrei o cabeçalho nas primeiras 30 linhas.\n\nPreciso de uma coluna de artigo (Id / Art. / Artigo / Item) e de uma coluna Descrição.'); return; }
         const head=raw[hr];
-        const achar=(...alvos)=>{ for(let i=cd+1;i<Math.min(head.length,cd+12);i++){ if(alvos.includes(norm(head[i]))) return i; } return -1; };
+        const achar=teste=>{ for(let i=cd+1;i<Math.min(head.length,cd+12);i++){ if(teste(norm(head[i]))) return i; } return -1; };
         let cn=-1; for(let i=0;i<head.length;i++){ if(['nivel','niv','nv'].includes(norm(head[i]))){ cn=i; break; } }
-        const cu=achar('un','und','unidade');
-        const cq=achar('qt','qtd','quant','quantidade');
-        const cp=achar('prunit','pu','precounit','precounitario','punit','punitario');
-        const ct=achar('total','valortotal');
-        if(cq<0||cu<0||cp<0){ hideLoadingOverlay(); alert('Cabeçalho incompleto — preciso de Un, Qt e Pr Unit a seguir à Descrição.\nEncontrado: '+head.slice(ci,ci+10).join(' | ')); return; }
+        const cu=achar(k=>['un','und','unid','unidade','unidades'].includes(k));
+        const cq=achar(k=>['qt','qtd','qtde','qts','quant','quantidade','quantidades'].includes(k));
+        const cp=achar(k=>/^(pu|prunit|preco|precounit|precounitario|punit|punitario|pun|puni|prun|preu|precou)/.test(k));
+        const ct=achar(k=>k.startsWith('total')||k==='valortotal'||k==='valor'||k==='importancia');
+        if(cq<0||cu<0||cp<0){ hideLoadingOverlay(); alert('Cabeçalho incompleto — preciso de Un, Quantidade e Preço Unitário a seguir à Descrição.\n\nEncontrado: '+head.slice(ci,ci+10).map(x=>String(x).trim()).filter(Boolean).join(' | ')+'\n\nEm falta: '+[cu<0?'Un':'',cq<0?'Quantidade':'',cp<0?'Preço Unitário':''].filter(Boolean).join(', ')); return; }
 
         const linhas=[]; let ordem=0, ultimoNivCap=0;
         for(let r=hr+1;r<raw.length;r++){
           const row=raw[r]||[];
           const linhaExcel=r+1; // 1-based
-          const idRaw=String(row[ci]==null?'':row[ci]).trim().replace(/\s+/g,' ');
+          const rowT=rawTxt[r]||[];
+          const idRaw=String(rowT[ci]==null||rowT[ci]===''?(row[ci]==null?'':row[ci]):rowT[ci]).trim().replace(/\s+/g,' ').replace(/\.+$/,''); // "1.1." → "1.1"
           const desc=String(row[cd]==null?'':row[cd]).trim();
           if(!idRaw&&!desc) continue;
           const nid=norm(idRaw);
