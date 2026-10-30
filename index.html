@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.10.30.0900</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.10.30.0929</span>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-dash" title="Dashboard PE · PA · PB · QE" onclick="dashAbrir('')">📊 Dashboard</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
@@ -6381,7 +6381,8 @@ function amNum(v){
   return isNaN(n)?null:n;
 }
 function amDisc(l){
-  return l.tipo==='linha'&&l.qt!=null&&l.pu!=null&&l.total!=null&&Math.abs(l.qt*l.pu-Number(l.total))>=0.005;
+  // tolera o arredondamento ao cêntimo (ex.: 2 383,50 × 25,77 = 61 422,795 → 61 422,80): só é discrepância acima de meio cêntimo
+  return l.tipo==='linha'&&l.qt!=null&&l.pu!=null&&l.total!=null&&Math.abs(l.qt*l.pu-Number(l.total))>0.0051;
 }
 function amProgress(pct,txt){
   showLoadingOverlay(`<div style="min-width:320px">
