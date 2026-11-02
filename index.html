@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.10.30.0929</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.11.02.1422</span>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-dash" title="Dashboard PE · PA · PB · QE" onclick="dashAbrir('')">📊 Dashboard</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
@@ -3928,6 +3928,14 @@ window.paEliminar=async function(id){
   if(!confirm('Eliminar definitivamente o pedido '+id+'? Esta acção não pode ser anulada.')) return;
   try{ const _o=paObra(); await sbRel.deleteWhere('pedidos_aprovacao',`id=eq.${encodeURIComponent(id)}&obra_id=eq.${encodeURIComponent(_o?_o.id:'')}`); }catch(e){ alert('Erro ao eliminar: '+e.message); return; }
   paDocs=paDocs.filter(x=>x.id!==id);
+  // limpa ligações de revisão que apontavam para o PA eliminado
+  for(const x of paDocs){
+    const corpo={};
+    if(x.prevId===id){ x.prevId=null; corpo.prev_id=null; }
+    if(x.nextId===id){ x.nextId=null; corpo.next_id=null; }
+    if(Object.keys(corpo).length){ paRegistar(x,'Ligação removida: o PA '+id+' foi eliminado.'); corpo.historico=x.historico;
+      try{ await sbRel.patchWhere('pedidos_aprovacao',`id=eq.${encodeURIComponent(x.id)}&obra_id=eq.${encodeURIComponent(x.obraId)}`,corpo); }catch(e){ console.error(e); } }
+  }
   paFichaId=null; render();
 };
 
@@ -4070,6 +4078,7 @@ async function paIPGravar(c,t,valor,rot){
   const antes=paIPValor(d,c);
   const novo=(t==='date'||t==='select')?valor:String(valor).trim();
   if(String(novo)===String(antes==null?'':antes)){ render(); return; }
+  if(c==='id') return paRenumerar(d,novo);
   const corpo={};
   if(c==='lpu'){ d.capitulo=novo; d.artigo=''; corpo.capitulo=novo||null; corpo.artigo=null; }
   else{
@@ -4081,6 +4090,31 @@ async function paIPGravar(c,t,valor,rot){
   corpo.historico=d.historico; corpo.updated_at=new Date().toISOString();
   try{ await sbRel.patchWhere('pedidos_aprovacao',`id=eq.${encodeURIComponent(d.id)}&obra_id=eq.${encodeURIComponent(d.obraId)}`,corpo); }
   catch(e){ alert('Erro ao gravar: '+e.message); }
+  render();
+}
+async function paRenumerar(d,novoTxt){
+  const m=String(novoTxt).trim().match(/^(\d{1,4})\.(\d{1,2})$/);
+  if(!m){ alert('Formato inválido. Use Nº.Revisão — ex.: 012.0'); render(); return; }
+  const num=parseInt(m[1],10), rev=parseInt(m[2],10), novo=peIdFmt(num,rev), velho=d.id;
+  if(novo===velho){ render(); return; }
+  if(paDocs.some(x=>x.id===novo)){ alert('Já existe o PA '+novo+' nesta obra.\nElimine-o ou renumere-o primeiro.'); render(); return; }
+  if(!confirm('Renumerar o PA '+velho+' para '+novo+'?\n\nAs ligações de revisão (anterior / seguinte) são atualizadas. Links antigos enviados por email deixam de abrir este PA.')) { render(); return; }
+  const q=id=>`id=eq.${encodeURIComponent(id)}&obra_id=eq.${encodeURIComponent(d.obraId)}`;
+  try{
+    showLoadingOverlay('A renumerar…');
+    paRegistar(d,`Edição Admin — Id renumerado: "${velho}" → "${novo}"`);
+    await sbRel.patchWhere('pedidos_aprovacao',q(velho),{id:novo,num,rev,historico:d.historico,updated_at:new Date().toISOString()});
+    d.id=novo; d.num=num; d.rev=rev;
+    for(const x of paDocs){
+      const corpo={};
+      if(x.prevId===velho){ x.prevId=novo; corpo.prev_id=novo; }
+      if(x.nextId===velho){ x.nextId=novo; corpo.next_id=novo; }
+      if(Object.keys(corpo).length){ paRegistar(x,`Ligação atualizada: ${velho} passou a ${novo}`); corpo.historico=x.historico; await sbRel.patchWhere('pedidos_aprovacao',q(x.id),corpo); }
+    }
+    paDocs.sort((a,b)=>(b.num-a.num)||(b.rev-a.rev));
+    paFichaId=novo;
+  }catch(e){ alert('Erro ao renumerar: '+e.message); }
+  finally{ hideLoadingOverlay(); }
   render();
 }
 window.paIPToggle=async function(c,rot){
@@ -4167,7 +4201,7 @@ function renderFichaPA(app){
   /* Identificação */
   const secId=`<div class="pe-zone pe-ident"><div class="pe-zh"><span class="pe-zdot"></span><span class="pe-zt">Identificação</span></div>
     <div class="pe-zb"><div class="pe-grid3">
-      ${peCampo('Id','x',d.id,null,false)}
+      ${SA?paIP('Id (Nº.Revisão)','id','text'):peCampo('Id','x',d.id,null,false)}
       ${F('Data','fa-dataCriacao','dataCriacao','date',eEmp)}
       ${F('Autor','x','autorEmp','text',false)}
     </div>${SA?`<div class="pe-grid3 pe-mt">
@@ -7048,6 +7082,27 @@ window.amSolicitarRevisao=async function(){
 };
 
 /* ---- FASE 4: PDF horizontal para assinatura (2 variantes) ---- */
+/* Assinatura do Empreiteiro no Auto = Diretor de Obra do Empreiteiro (funcao no SID) */
+function amDirObra(d){
+  const norm=t=>String(t||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  const emps=amUtilsDaObra('empreiteiro').filter(u=>!segoEhCSO(u));
+  const eDir=u=>/\bdir(etor|\.)?\s*(de\s*)?obra\b|\bdo\b/.test(norm(u.funcao));
+  const dirs=emps.filter(eDir);
+  const principal=dirs.find(u=>!/adjunt/.test(norm(u.funcao)))||dirs[0];
+  if(principal) return principal.nome||'';
+  const autor=(DB.utilizadores||[]).find(u=>u.nome===d.autor_emp);
+  if(autor&&autor.role==='empreiteiro') return d.autor_emp;
+  return emps.length===1?(emps[0].nome||''):'';
+}
+/* Assinaturas Fiscalização / Dono de Obra: quem fez o passo, se for desse perfil; senão o utilizador da obra com esse perfil (nunca o admin) */
+function amAssinante(role,autor,preferir){
+  const norm=t=>String(t||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  const us=amUtilsDaObra(role).filter(u=>!segoEhCSO(u));
+  const a=us.find(u=>u.nome===autor); if(a) return a.nome;
+  const pref=preferir?us.filter(u=>preferir.test(norm(u.funcao))):[];
+  if(pref.length) return pref[0].nome||'';
+  return us.length===1?(us[0].nome||''):'';
+}
 window.amPDF=function(variante){
   const o=amObra(); const d=amPorId(amFichaId); if(!o||!d) return;
   const acc=amAcumAnt(d.num);
@@ -7136,9 +7191,9 @@ window.amPDF=function(variante){
     '<td class="bl"></td><td class="n">'+amFmt(tAcum)+'</td><td class="bl"></td><td class="n br">'+amFmt(tSaldo)+'</td></tr>'+
     '</tbody></table>'+
     '<div class="ass">'+
-      '<div>O Empreiteiro<div class="lin">'+esc(d.autor_emp||'')+'<br>Data: ____ / ____ / ________</div></div>'+
-      '<div>A Fiscalização<div class="lin">'+esc(d.autor_fisc||'')+'<br>Data: ____ / ____ / ________</div></div>'+
-      '<div>O Dono de Obra<div class="lin">'+esc(d.autor_do||'')+'<br>Data: ____ / ____ / ________</div></div>'+
+      '<div>O Empreiteiro<div class="lin">'+esc(amDirObra(d))+'<br>Data: ____ / ____ / ________</div></div>'+
+      '<div>A Fiscalização<div class="lin">'+esc(amAssinante('fiscalizacao',d.autor_fisc,/^fiscal\b/))+'<br>Data: ____ / ____ / ________</div></div>'+
+      '<div>O Dono de Obra<div class="lin">'+esc(amAssinante('dono_obra',d.autor_do,null))+'<br>Data: ____ / ____ / ________</div></div>'+
     '</div>'+
     '<script>window.onload=function(){window.print();};<'+'/script>'+
     '</body></html>';
