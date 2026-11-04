@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.11.04.0910</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.11.04.1502</span>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-dash" title="Dashboard PE · PA · PB · QE" onclick="dashAbrir('')">📊 Dashboard</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
@@ -3886,6 +3886,17 @@ window.paGuardarRascunho=async function(){
 };
 /* Autor nas transições: o Admin que atua em nome de outro mantém o autor já indicado */
 function paAutor(atual){ return (peESuper()&&String(atual||'').trim())?atual:(currentUser?currentUser.nome:''); }
+/* Superadmin: publica o PA (Rascunho → Aberto) sem enviar qualquer notificação */
+window.paPublicarSemNotif=async function(){
+  if(!peESuper()) return;
+  const d=paFichaAtualDoc(); if(!d) return; paLerFormEmp(d);
+  if(!d.material){ alert('Indique o Material / Equipamento.'); return; }
+  if(!d.especialidade){ alert('Indique a Especialidade.'); return; }
+  if(!confirm('Publicar o PA '+d.id+' sem notificar ninguém?\n\nPassa a Aberto, com a Fiscalização. Não é enviado nenhum email.')) return;
+  d.autorEmp=paAutor(d.autorEmp); d.estado='aberto'; d.dataEnvio=d.dataEnvio||peHoje();
+  paRegistar(d,'Publicado sem notificação por '+(currentUser?currentUser.nome:'Admin')+' — passa a Aberto.');
+  await paPersistir(d); paAbrirFicha(d.id);
+};
 window.paEnviarFisc=async function(){
   const d=paFichaAtualDoc(); if(!d) return; paLerFormEmp(d);
   if(!d.material){ alert('Indique o Material / Equipamento.'); return; }
@@ -4380,6 +4391,7 @@ function renderFichaPA(app){
   if(d.estado==='rascunho'&&peEEmp()&&!paEhImportado(d)){
     acoes.push(`<button class="pe-btn" onclick="paGuardarRascunho()">Guardar Rascunho</button>`);
     acoes.push(`<button class="pe-btn green" onclick="paEnviarFisc()">Enviar à Fiscalização →</button>`);
+    if(peESuper()) acoes.push(`<button class="pe-btn info" onclick="paPublicarSemNotif()" title="Passa a Aberto sem enviar emails">Publicar Sem Notificar →</button>`);
   }
   if(d.estado==='aberto'&&peEFisc()){
     acoes.push(`<button class="pe-btn gold" onclick="paModalProjetista()">Enviar ao Projetista →</button>`);
