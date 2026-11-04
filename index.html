@@ -231,6 +231,8 @@ tr.tr-click:hover td{background:#F5F7FA}
   .page-actions{width:100%}
   .btn{flex:1;justify-content:center}
 }
+.rel-env-ed{cursor:pointer;text-decoration:underline dotted}
+.rel-env-ed:hover{background:#FFF8E6}
 </style>
 </head>
 <body>
@@ -280,7 +282,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.11.04.1522</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.11.04.1552</span>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-dash" title="Dashboard PE · PA · PB · QE" onclick="dashAbrir('')">📊 Dashboard</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
@@ -1171,14 +1173,53 @@ function renderCapaObra(app){
       <td>${relBadge(r.estado)}</td>
       <td style="font-size:12px;color:var(--text-muted)">${r.criado_por_nome||'—'}</td>
       <td style="font-size:12px">${r.criado_em?fmtDate(r.criado_em.split('T')[0]):'—'}</td>
-      <td style="font-size:12px;color:var(--text-muted)">${(r.conteudo&&r.conteudo.envio&&r.conteudo.envio.nome)||'—'}</td>
-      <td style="font-size:12px">${fmtEnvioDT(r.conteudo&&r.conteudo.envio&&r.conteudo.envio.data)}</td>
+      <td style="font-size:12px;color:var(--text-muted)"${canAdmin()?` onclick="event.stopPropagation();relEditarEnvio('${r.id}')" title="Clique para alterar quem enviou e quando" class="rel-env-ed"`:''}>${(r.conteudo&&r.conteudo.envio&&r.conteudo.envio.nome)||'—'}</td>
+      <td style="font-size:12px"${canAdmin()?` onclick="event.stopPropagation();relEditarEnvio('${r.id}')" title="Clique para alterar quem enviou e quando" class="rel-env-ed"`:''}>${fmtEnvioDT(r.conteudo&&r.conteudo.envio&&r.conteudo.envio.data)}</td>
       <td onclick="event.stopPropagation()"><div class="actions-cell" style="display:flex;gap:6px;align-items:center;justify-content:flex-end">${rvtRowBtns(r)}${canAdmin()?`<button class="btn-icon del" onclick="confirmDel('relatorio','${r.id}','${relNumero(r)}')">🗑️</button>`:''}</div></td>
     </tr>`;
     }).join(''):`<tr><td colspan="8" class="empty-state">Sem relatórios para esta obra${filtroLbl?' ('+capaContext.sigla+')':''}.</td></tr>`}
     </tbody>
   </table></div></div>`;
 }
+/* Superadmin: alterar "Enviado por" e "Data/Hora envio" de um relatório */
+window.relEditarEnvio=function(relId){
+  if(!canAdmin()) return;
+  const rel=DB.relatorios.find(x=>x.id===relId); if(!rel) return;
+  const env=(rel.conteudo&&rel.conteudo.envio)||{};
+  const p=n=>String(n).padStart(2,'0');
+  let dt=''; if(env.data){ const d=new Date(env.data); if(!isNaN(d)) dt=d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'T'+p(d.getHours())+':'+p(d.getMinutes()); }
+  const nomes=[...new Set((DB.utilizadores||[]).filter(u=>u.nome&&(u.role==='fiscalizacao'||u.role==='superadmin')).map(u=>u.nome))].sort((a,b)=>a.localeCompare(b,'pt'));
+  const _sig=siglaRel((rel.conteudo&&rel.conteudo.subtipo)||'');
+  showModal('Envio — '+_sig+' '+relNumero(rel),`
+    <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">Enviado Por</div>
+    <input id="env-nome" class="form-input" style="width:100%;margin-bottom:14px" list="env-nomes" value="${esc(env.nome||'')}">
+    <datalist id="env-nomes">${nomes.map(n=>`<option value="${esc(n)}">`).join('')}</datalist>
+    <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">Data/Hora do Envio</div>
+    <input id="env-data" type="datetime-local" class="form-input" style="width:100%" value="${dt}">
+    <div style="font-size:11px;color:var(--text-muted);margin-top:10px">Só altera o registo — não envia nenhum email.</div>
+  `,[
+    {label:'Cancelar',cls:'btn-outline',fn:'closeModal()'},
+    {label:'✓ Gravar',cls:'btn-gold',fn:`relGravarEnvio('${relId}')`},
+  ]);
+};
+window.relGravarEnvio=async function(relId){
+  const rel=DB.relatorios.find(x=>x.id===relId); if(!rel||!canAdmin()) return;
+  const nome=(document.getElementById('env-nome').value||'').trim();
+  const dv=document.getElementById('env-data').value;
+  if(!nome&&!dv){ alert('Indique o nome e/ou a data.'); return; }
+  const d=dv?new Date(dv):null;
+  if(dv&&isNaN(d)){ alert('Data inválida.'); return; }
+  if(!rel.conteudo) rel.conteudo={};
+  const env=Object.assign({},rel.conteudo.envio||{});
+  const u=(DB.utilizadores||[]).find(x=>x.nome===nome);
+  env.nome=nome||env.nome||'—'; if(u&&u.email) env.email=u.email;
+  if(d) env.data=d.toISOString();
+  if(!env.tipo) env.tipo='manual';
+  env.editadoPor=(currentUser&&currentUser.nome)||''; env.editadoEm=new Date().toISOString();
+  rel.conteudo.envio=env;
+  try{ await sbRel.patch('relatorios',relId,{conteudo:JSON.stringify(rel.conteudo)}); closeModal(); render(); }
+  catch(e){ alert('Erro ao gravar: '+e.message); }
+};
 function fmtEnvioDT(iso){
   if(!iso) return '—';
   const d=new Date(iso); if(isNaN(d)) return '—';
@@ -2892,7 +2933,6 @@ function rvtRowBtns(r){
   if(podeNovoRever) b+=`<button class="btn btn-outline btn-sm" style="${S}" onclick="event.stopPropagation();criarRevisao('${r.id}')">✎ Rever</button>`;
   if(r.estado==='disponibilizado'){
     b+=`<button class="btn btn-outline btn-sm" style="${S}" onclick="event.stopPropagation();abrirReenviar('${r.id}')">📧 Reenviar</button>`;
-    if(canAdmin()&&relEhRSO(r)) b+=`<button class="btn btn-outline btn-sm" style="${S}" onclick="event.stopPropagation();relEnviarMeLink('${r.id}')" title="Envia o link só para o seu email (sem mais ninguém)">✉ Enviar-me o Link</button>`;
   } else {
     b+=`<button class="btn btn-gold btn-sm" style="${S}" onclick="event.stopPropagation();abrirPublicar('${r.id}')">✓ Publicar</button>`;
   }
@@ -9187,7 +9227,6 @@ function fiscActionBtn(r){
   if(podeNovoRever) b+=`<button class="btn btn-outline btn-sm" onclick="criarRevisao('${r.id}')">✎ Criar revisão</button>`;
   if(r.estado==='disponibilizado'){
     b+=`<button class="btn btn-outline btn-sm" onclick="abrirReenviar('${r.id}')">📧 Reenviar</button>`;
-    if(canAdmin()) b+=`<button class="btn btn-outline btn-sm" onclick="relEnviarMeLink('${r.id}')" title="Envia o link só para o seu email (sem mais ninguém)">✉ Enviar-me o Link</button>`;
     if(canAdmin()) b+=`<button class="btn btn-outline btn-sm" onclick="reverterParaRascunho('${r.id}')" style="color:#B91C1C;border-color:#fca5a5" title="Reverter para rascunho (apenas superadmin)">↩ Reverter</button>`;
   } else {
     b+=`<button class="btn btn-gold btn-sm" onclick="abrirPublicar('${r.id}')">✓ Publicar RSO</button>`;
