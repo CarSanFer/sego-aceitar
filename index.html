@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.11.04.1516</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.11.04.1522</span>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-dash" title="Dashboard PE · PA · PB · QE" onclick="dashAbrir('')">📊 Dashboard</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
@@ -2463,7 +2463,6 @@ window.abrirPublicar=function(relId){
     <div style="font-size:11px;color:var(--text-muted);margin-top:10px">Link do documento: <code style="font-size:11px">${link}</code></div>
   `,[
     {label:'Cancelar',cls:'btn-outline',fn:'closeModal()'},
-    ...(_ehRSO&&currentUser&&currentUser.role==='superadmin'?[{label:'🔕 Publicar Sem Notificar',cls:'btn-outline',fn:`publicarSemNotif('${relId}')`}]:[]),
     {label:'✓ Publicar e enviar',cls:'btn-gold',fn:`publicarEnviar('${relId}')`},
   ]);
 };
@@ -2483,6 +2482,27 @@ window.publicarSemNotif=async function(relId){
     hideLoadingOverlay(); closeModal(); render();
     alert(_sigla+' publicado.\nNão foram enviados emails.');
   }catch(e){ hideLoadingOverlay(); alert('Erro: '+e.message); }
+};
+/* Superadmin: envia o link do RSO publicado apenas para o próprio (sem Cc fixo) — p/ abrir e imprimir em PDF */
+window.relEnviarMeLink=async function(relId){
+  const rel=DB.relatorios.find(x=>x.id===relId); if(!rel) return;
+  if(!canAdmin()||!relEhRSO(rel)) return;
+  if(rel.estado!=='disponibilizado'){ alert('O RSO tem de estar publicado.'); return; }
+  const para=(currentUser&&currentUser.email)||'';
+  if(!para){ alert('O seu utilizador não tem email.'); return; }
+  const o=DB.obras.find(x=>x.id===rel.obra_id)||{};
+  const ref=siglaRel((rel.conteudo&&rel.conteudo.subtipo)||'')+' '+relNumero(rel);
+  const obraTxt=((o.sigla?o.sigla+' — ':'')+(o.nome||'')).trim();
+  const link=location.origin+'/?doc='+encodeURIComponent(relId);
+  if(!confirm('Enviar o link do '+ref+' apenas para:\n'+para+'\n\nNinguém mais recebe este email.')) return;
+  if(!window.emailjs){ alert('EmailJS não carregou.'); return; }
+  try{
+    showLoadingOverlay('A enviar...');
+    const html='<div style="font-family:Calibri,Carlito,Arial,sans-serif;font-size:14px;line-height:1.5;color:#333"><p>Link do '+ref+' da Obra '+obraTxt.replace(/</g,'&lt;')+':</p><p><a href="'+link+'" style="color:#1B4F9B;text-decoration:underline">Abrir documento</a></p></div>';
+    await emailjs.send(EJS.service, PE_EJS_TEMPLATE, {to_email:para,to_name:(currentUser.nome||''),from_name:'SEGO',reply_to:para,pe_id:ref,obra:obraTxt,assunto:ref,estado:'Publicado',
+      mensagem:html,link:link,password:'',app_url:link,role:'Cópia interna',cc:''});
+    hideLoadingOverlay(); alert('Link do '+ref+' enviado para '+para+'.');
+  }catch(e){ hideLoadingOverlay(); console.error(e); alert('O envio falhou: '+((e&&(e.text||e.message))||e)); }
 };
 window.publicarEnviar=async function(relId){
   const rel=DB.relatorios.find(x=>x.id===relId); if(!rel)return;
@@ -2872,9 +2892,9 @@ function rvtRowBtns(r){
   if(podeNovoRever) b+=`<button class="btn btn-outline btn-sm" style="${S}" onclick="event.stopPropagation();criarRevisao('${r.id}')">✎ Rever</button>`;
   if(r.estado==='disponibilizado'){
     b+=`<button class="btn btn-outline btn-sm" style="${S}" onclick="event.stopPropagation();abrirReenviar('${r.id}')">📧 Reenviar</button>`;
+    if(canAdmin()&&relEhRSO(r)) b+=`<button class="btn btn-outline btn-sm" style="${S}" onclick="event.stopPropagation();relEnviarMeLink('${r.id}')" title="Envia o link só para o seu email (sem mais ninguém)">✉ Enviar-me o Link</button>`;
   } else {
     b+=`<button class="btn btn-gold btn-sm" style="${S}" onclick="event.stopPropagation();abrirPublicar('${r.id}')">✓ Publicar</button>`;
-    if(canAdmin()&&relEhRSO(r)) b+=`<button class="btn btn-outline btn-sm" style="${S}" onclick="event.stopPropagation();publicarSemNotif('${r.id}')" title="Publica sem enviar emails">🔕 Publicar Sem Notificar</button>`;
   }
   return b;
 }
@@ -9167,10 +9187,10 @@ function fiscActionBtn(r){
   if(podeNovoRever) b+=`<button class="btn btn-outline btn-sm" onclick="criarRevisao('${r.id}')">✎ Criar revisão</button>`;
   if(r.estado==='disponibilizado'){
     b+=`<button class="btn btn-outline btn-sm" onclick="abrirReenviar('${r.id}')">📧 Reenviar</button>`;
+    if(canAdmin()) b+=`<button class="btn btn-outline btn-sm" onclick="relEnviarMeLink('${r.id}')" title="Envia o link só para o seu email (sem mais ninguém)">✉ Enviar-me o Link</button>`;
     if(canAdmin()) b+=`<button class="btn btn-outline btn-sm" onclick="reverterParaRascunho('${r.id}')" style="color:#B91C1C;border-color:#fca5a5" title="Reverter para rascunho (apenas superadmin)">↩ Reverter</button>`;
   } else {
     b+=`<button class="btn btn-gold btn-sm" onclick="abrirPublicar('${r.id}')">✓ Publicar RSO</button>`;
-    if(canAdmin()) b+=`<button class="btn btn-outline btn-sm" onclick="publicarSemNotif('${r.id}')" title="Publica sem enviar emails">🔕 Publicar Sem Notificar</button>`;
   }
   return b;
 }
