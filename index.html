@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.11.04.1511</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.11.04.1516</span>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-dash" title="Dashboard PE · PA · PB · QE" onclick="dashAbrir('')">📊 Dashboard</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
@@ -2463,7 +2463,7 @@ window.abrirPublicar=function(relId){
     <div style="font-size:11px;color:var(--text-muted);margin-top:10px">Link do documento: <code style="font-size:11px">${link}</code></div>
   `,[
     {label:'Cancelar',cls:'btn-outline',fn:'closeModal()'},
-    ...(_ehRSO&&currentUser&&currentUser.role==='superadmin'?[{label:'Publicar Sem Notificar',cls:'btn-outline',fn:`publicarSemNotif('${relId}')`}]:[]),
+    ...(_ehRSO&&currentUser&&currentUser.role==='superadmin'?[{label:'🔕 Publicar Sem Notificar',cls:'btn-outline',fn:`publicarSemNotif('${relId}')`}]:[]),
     {label:'✓ Publicar e enviar',cls:'btn-gold',fn:`publicarEnviar('${relId}')`},
   ]);
 };
@@ -2874,6 +2874,7 @@ function rvtRowBtns(r){
     b+=`<button class="btn btn-outline btn-sm" style="${S}" onclick="event.stopPropagation();abrirReenviar('${r.id}')">📧 Reenviar</button>`;
   } else {
     b+=`<button class="btn btn-gold btn-sm" style="${S}" onclick="event.stopPropagation();abrirPublicar('${r.id}')">✓ Publicar</button>`;
+    if(canAdmin()&&relEhRSO(r)) b+=`<button class="btn btn-outline btn-sm" style="${S}" onclick="event.stopPropagation();publicarSemNotif('${r.id}')" title="Publica sem enviar emails">🔕 Publicar Sem Notificar</button>`;
   }
   return b;
 }
@@ -9169,6 +9170,7 @@ function fiscActionBtn(r){
     if(canAdmin()) b+=`<button class="btn btn-outline btn-sm" onclick="reverterParaRascunho('${r.id}')" style="color:#B91C1C;border-color:#fca5a5" title="Reverter para rascunho (apenas superadmin)">↩ Reverter</button>`;
   } else {
     b+=`<button class="btn btn-gold btn-sm" onclick="abrirPublicar('${r.id}')">✓ Publicar RSO</button>`;
+    if(canAdmin()) b+=`<button class="btn btn-outline btn-sm" onclick="publicarSemNotif('${r.id}')" title="Publica sem enviar emails">🔕 Publicar Sem Notificar</button>`;
   }
   return b;
 }
