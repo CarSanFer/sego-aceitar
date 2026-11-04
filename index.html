@@ -280,7 +280,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.11.02.1443</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.11.04.0623</span>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-dash" title="Dashboard PE · PA · PB · QE" onclick="dashAbrir('')">📊 Dashboard</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
@@ -1056,7 +1056,8 @@ let paObraId=null, paFichaId=null, paDocs=[];
 let pbObraId=null, pbFichaId=null, pbDocs=[];
 let ptqObraId=null, ptqFichaId=null, ptqDocs=[];
 let qeObraId=null, qeFichaId=null, qeDocs=[];
-let amObraId=null, amVista='lpu', amSub='resumo', amDocs=[], amLPU=[], amLpuCap='', amLpuPesq='', amSoDisc=false, amColapso={}, amResNiv=2;
+let amSel=new Set(), amFaturas={}, amFatErro=false, amCfg=null, amCfgErro=false;
+let amObraId=null, amVista='autos', amSub='resumo', amDocs=[], amLPU=[], amLpuCap='', amLpuPesq='', amSoDisc=false, amColapso={}, amResNiv=2;
 let amFichaId=null, amFichaMed={}, amFichaAcc={}, amFCap='', amFPesq='', amFColapso={}, amFSoMed=false, amFSoObs=false;
 let capaContext={tipo:null,subtipo:null,sigla:null,label:null,backVar:null};
 function resetCapaContext(){capaContext={tipo:null,subtipo:null,sigla:null,label:null,backVar:null};}
@@ -2403,6 +2404,14 @@ function renderPublicSOS(rel,o,conteudo){
   </div>`;
   document.body.innerHTML=html;
 }
+/* CSO que recebe obrigatoriamente PTQ e RSO: CSO (Fiscalização) associada à obra; se nenhuma estiver associada, todas as CSO ativas */
+function segoCSOsDaObra(o){
+  const inObra=u=>u.obras==='todas'||(Array.isArray(u.obras)&&u.obras.some(oid=>String(oid)===String(o.id)||(o.codigo&&String(oid)===String(o.codigo))||(o.sigla&&String(oid)===String(o.sigla))));
+  const csos=(DB.utilizadores||[]).filter(u=>u.email&&u.ativo!==false&&u.role==='fiscalizacao'&&segoEhCSO(u));
+  const daObra=csos.filter(inObra);
+  return daObra.length?daObra:csos;
+}
+function relEhRSO(rel){ const c=(rel&&rel.conteudo)||{}; return c.tipo==='fiscalizacao'&&c.subtipo!=='SOS'; }
 window.abrirPublicar=function(relId){
   const rel=DB.relatorios.find(x=>x.id===relId); if(!rel){alert('Relatório não encontrado.');return;}
   const o=DB.obras.find(x=>x.id===rel.obra_id)||{};
@@ -2414,7 +2423,8 @@ window.abrirPublicar=function(relId){
   const _ehSeg=(rel.conteudo&&rel.conteudo.tipo)==='seguranca';
   if(_ehSeg&&!rvtPode()){ alert('Apenas o Coordenador de Segurança (CSO) pode publicar RVT.'); return; }
   const obrig=_ehSeg?people.filter(u=>u.role==='empreiteiro'&&!segoEhCSO(u)):people.filter(u=>(u.role==='dono_obra'||u.role==='empreiteiro')&&!segoEhCSO(u));
-  const ccAuto=_ehSeg?people.filter(u=>u.role==='fiscalizacao'&&!segoEhCSO(u)):[];
+  const _ehRSO=relEhRSO(rel);
+  const ccAuto=_ehSeg?people.filter(u=>u.role==='fiscalizacao'&&!segoEhCSO(u)):(_ehRSO?segoCSOsDaObra(o):[]);
   let opcionais;
   if(_ehSeg){
     const _m=new Map();
@@ -2422,7 +2432,7 @@ window.abrirPublicar=function(relId){
     ((o.intervenientes_do)||[]).forEach(id=>{ const u=(DB.utilizadores||[]).find(x=>String(x.id)===String(id)); if(u&&u.email&&u.ativo!==false) _m.set(String(u.id),u); });
     opcionais=[..._m.values()];
   } else {
-    opcionais=people.filter(u=>!(u.role==='dono_obra'||u.role==='empreiteiro')||segoEhCSO(u));
+    opcionais=people.filter(u=>!(u.role==='dono_obra'||u.role==='empreiteiro')||segoEhCSO(u)).filter(u=>!ccAuto.some(c=>c.email===u.email));
   }
   const ccHtml=ccAuto.length?('<div style="font-size:12px;margin-bottom:4px"><b>Com conhecimento (Cc) automático:</b></div><div style="border:1px solid var(--border-light);border-radius:var(--radius);padding:4px 10px;margin-bottom:14px;background:#F7F9FC">'+ccAuto.map(u=>'<div style="padding:4px 0;font-size:13px"><b>'+(u.nome||u.email)+'</b> <span style="color:var(--text-muted)">· Fiscalização · '+u.email+'</span></div>').join('')+'</div>'):'';
   const link=location.origin+'/?doc='+encodeURIComponent(relId);
@@ -2465,7 +2475,7 @@ window.publicarEnviar=async function(relId){
   const _inObraP=u=>u.obras==='todas'||(Array.isArray(u.obras)&&u.obras.some(oid=>String(oid)===String(o.id)));
   const _ehSegP=(rel.conteudo&&rel.conteudo.tipo)==='seguranca';
   const obrig=(DB.utilizadores||[]).filter(u=>u.email&&!segoEhCSO(u)&&_inObraP(u)&&(_ehSegP?u.role==='empreiteiro':(u.role==='dono_obra'||u.role==='empreiteiro'))).map(u=>({email:u.email,nome:u.nome||''}));
-  const ccFisc=_ehSegP?(DB.utilizadores||[]).filter(u=>u.email&&u.role==='fiscalizacao'&&!segoEhCSO(u)&&_inObraP(u)).map(u=>u.email):[];
+  const ccFisc=_ehSegP?(DB.utilizadores||[]).filter(u=>u.email&&u.role==='fiscalizacao'&&!segoEhCSO(u)&&_inObraP(u)).map(u=>u.email):(relEhRSO(rel)?segoCSOsDaObra(o).map(u=>u.email):[]);
   const _alSim=_ehSegP&&((document.querySelector('input[name="pub-alerta"]:checked')||{}).value==='sim');
   const _alTxt=_alSim?((document.getElementById('pub-alerta-txt')||{}).value||'').trim():'';
   if(_alSim&&!_alTxt){ alert('Escreva o texto do alerta, ou escolha "Não".'); const _t=document.getElementById('pub-alerta-txt'); if(_t) _t.focus(); return; }
@@ -2501,7 +2511,7 @@ window.publicarEnviar=async function(relId){
     }
     hideLoadingOverlay(); closeModal(); render();
     if(dest.length){
-      if(okEmail){ alert(_sigla+' publicado.\nEmail enviado a '+dest.length+' destinatário(s).'+(ccFisc.length?'\nCc (Fiscalização): '+ccFisc.join(', '):'')+(_alTxt?'\nAlerta incluído no email.':'')); }
+      if(okEmail){ alert(_sigla+' publicado.\nEmail enviado a '+dest.length+' destinatário(s).'+(ccFisc.length?'\nCc ('+(_ehSegP?'Fiscalização':'CSO')+'): '+ccFisc.join(', '):'')+(_alTxt?'\nAlerta incluído no email.':'')); }
       else { alert(_sigla+' publicado, mas o envio de email FALHOU.\n\nErro: '+emailErr+'\n(serviço '+EJS.service+' · template '+EJS_TPL_RVT+')'); }
     } else {
       alert(_sigla+' publicado.\n(Sem destinatários seleccionados — não foram enviados emails.)');
@@ -2526,6 +2536,7 @@ window.abrirReenviar=function(relId){
   showModal('Reenviar — '+_sigla+' '+relNumero(rel),`
     <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">Mensagem (parametrizável)</div>
     <textarea id="reenv-msg" class="form-input" style="width:100%;min-height:90px;margin-bottom:14px">${defMsg}</textarea>
+    ${relEhRSO(rel)&&segoCSOsDaObra(o).length?'<div style="font-size:12px;margin-bottom:4px"><b>Com conhecimento (Cc) automático — CSO:</b></div><div style="border:1px solid var(--border-light);border-radius:var(--radius);padding:4px 10px;margin-bottom:14px;background:#F7F9FC">'+segoCSOsDaObra(o).map(u=>'<div style="padding:4px 0;font-size:13px"><b>'+(u.nome||u.email)+'</b> <span style="color:var(--text-muted)">· CSO · '+u.email+'</span></div>').join('')+'</div>':''}
     <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">Intervenientes — seleccione quem deve receber o reenvio</div>
     <div style="max-height:170px;overflow:auto;border:1px solid var(--border-light);border-radius:var(--radius);padding:4px 10px;margin-bottom:14px">${opts}</div>
     <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">Emails adicionais (separados por vírgula)</div>
@@ -2547,6 +2558,7 @@ window.reenviarEnviar=async function(relId){
   const extra=(document.getElementById('reenv-extra')?.value||'').split(/[\n,;]+/).map(x=>x.trim()).filter(x=>x.includes('@')).map(e=>({email:e,nome:''}));
   const dest=[...checks,...extra];
   if(!dest.length){alert('Selecione pelo menos um destinatário.');return;}
+  const ccFisc=relEhRSO(rel)?segoCSOsDaObra(o).map(u=>u.email).filter(e=>!dest.some(d=>d.email.toLowerCase()===e.toLowerCase())):[];
   const link=location.origin+'/?doc='+encodeURIComponent(relId);
   const obraTxt=((o.sigla?o.sigla+' — ':'')+(o.nome||'')).trim();
   try{
@@ -2574,7 +2586,7 @@ window.reenviarEnviar=async function(relId){
     hideLoadingOverlay();
     closeModal();
     render();
-    if(okEmail){ alert('Reenvio concluído.\nEmail enviado a '+dest.length+' destinatário(s).'); }
+    if(okEmail){ alert('Reenvio concluído.\nEmail enviado a '+dest.length+' destinatário(s).'+(ccFisc.length?'\nCc (CSO): '+ccFisc.join(', '):'')); }
     else { alert('Reenvio FALHOU.\n\nErro: '+emailErr); }
   }catch(e){
     hideLoadingOverlay();
@@ -3849,7 +3861,7 @@ async function paFecharCadeia(doc){
   }
 }
 
-function paPodeEmp(d){ return peEEmp()&&d.estado==='rascunho'; }
+function paPodeEmp(d){ return (peEEmp()||(peEFisc()&&paEhImportado(d)))&&d.estado==='rascunho'; }
 function paPodeProj(d){ return peEProj()&&d.estado==='pendente'; }
 function paFichaAtualDoc(){ return paPorId(paFichaId); }
 function paLerFormEmp(d){
@@ -3973,6 +3985,191 @@ function paHtmlAnexos(lista,podeRemover,chave){
 }
 
 /* ---- LISTAGEM ---- */
+/* ####################  IMPORTAÇÃO PAM (sistema do Empreiteiro → PA)  ####################
+   ZIP com PDFs: o "PAM_*.pdf" é o impresso (estrutura fixa); os restantes são anexos.
+   A referência externa (ex.: CC-007.00) fica em pedidos_aprovacao.motivo como "EXT:<ref>". */
+function paEhImportado(d){ return /^EXT:/.test(String((d&&d.motivo)||'')); }
+function paRefExterna(d){ return paEhImportado(d)?String(d.motivo).slice(4):''; }
+function pamCarregarLibs(){
+  const add=src=>new Promise((res,rej)=>{ const s=document.createElement('script'); s.src=src; s.onload=res; s.onerror=()=>rej(new Error('Não foi possível carregar '+src)); document.head.appendChild(s); });
+  const ps=[];
+  if(!window.JSZip) ps.push(add('https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js'));
+  if(!window.pdfjsLib) ps.push(add('https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js'));
+  return Promise.all(ps).then(()=>{ pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js'; });
+}
+function pamB64(bytes){ let s=''; const CH=0x8000; for(let i=0;i<bytes.length;i+=CH) s+=String.fromCharCode.apply(null,bytes.subarray(i,i+CH)); return btoa(s); }
+function pamDataISO(t){ const m=String(t||'').match(/(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{4})/); return m?m[3]+'-'+m[2].padStart(2,'0')+'-'+m[1].padStart(2,'0'):''; }
+async function pamTextoItens(bytes){
+  const doc=await pdfjsLib.getDocument({data:bytes.slice(0)}).promise; const pg=await doc.getPage(1); const tc=await pg.getTextContent();
+  return tc.items.map(i=>({s:String(i.str||'').trim(),x:i.transform[4],y:i.transform[5]})).filter(i=>i.s);
+}
+function pamExtrair(L){
+  const N=s=>String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().trim();
+  const ehRot=s=>/:\s*$/.test(s);
+  const acha=(re,f)=>L.find(i=>re.test(N(i.s))&&(!f||f(i)));
+  const valor=(re,f)=>{
+    const it=acha(re,f); if(!it) return '';
+    const m=it.s.match(/:\s*(.+)$/); if(m&&m[1].trim()) return m[1].trim();
+    const nx=L.filter(j=>Math.abs(j.y-it.y)<3&&j.x>it.x+1).sort((a,b)=>a.x-b.x)[0];
+    return (nx&&!ehRot(nx.s))?nx.s:'';
+  };
+  const yDe=(re)=>{ const it=acha(re); return it?it.y:null; };
+  const yIdent=yDe(/^identificacao do material/)||0;
+  const caixa=(yTopo,yBase)=>(yTopo==null||yBase==null)?'':L.filter(i=>i.y<yTopo-2&&i.y>yBase+2).sort((a,b)=>(b.y-a.y)||(a.x-b.x)).map(i=>i.s).join(' ').trim();
+  const yDocRef=yDe(/^documentos de referencia/), yObs=yDe(/^observacoes:?$/), yLim=yDe(/^data limite/);
+  const dir=acha(/^direcao de obra:\s*\S/)||acha(/^direcao de obra/);
+  const dirNome=dir?(valor(/^direcao de obra/,i=>i===dir)):'';
+  const dataEnt=dir?valor(/^data:/,i=>Math.abs(i.y-dir.y)<3&&i.x<dir.x):'';
+  // Documentação apresentada (grelha Sim / Não / N.A.)
+  const yDoc=yDe(/^documentacao apresentada/), yLQ=yDe(/^ref\. lista de quantidades/);
+  const docs={};
+  if(yDoc!=null){
+    const naSec=i=>i.y<yDoc&&(yLQ==null||i.y>yLQ);
+    const cab=L.filter(i=>naSec(i)&&/^(sim|nao|n\.a\.)$/.test(N(i.s))).sort((a,b)=>a.x-b.x);
+    const glifos=L.filter(i=>naSec(i)&&i.s.length<=2&&i.s.codePointAt(0)>=0x2000);
+    const rotulos=L.filter(i=>naSec(i)&&/[a-z]/i.test(i.s)&&!/^(sim|nao|n\.a\.)$/.test(N(i.s)));
+    const meio=cab.length>=6?(cab[2].x+cab[3].x)/2:300;
+    const chave=t=>{ t=N(t); return /desempenho|marcacao ce/.test(t)?'ce':/fabricante/.test(t)?'declConf':/homologa/.test(t)?'homolog':/certificado/.test(t)?'certif':/catalogo/.test(t)?'catalogo':/especificacao tecnica/.test(t)?'espTec':/amostras/.test(t)?'amostras':/outros/.test(t)?'outros':''; };
+    glifos.forEach(g=>{
+      const esq=g.x<meio;
+      const col=cab.filter(c=>(c.x<meio)===esq).sort((a,b)=>Math.abs(a.x-g.x)-Math.abs(b.x-g.x))[0];
+      const naZona=r=>cab.length>=6?(esq?r.x<cab[0].x:(r.x>cab[2].x&&r.x<cab[3].x)):((r.x<meio)===esq);
+      const rot=rotulos.filter(r=>naZona(r)&&r.x<g.x&&chave(r.s)).sort((a,b)=>Math.abs(a.y-g.y)-Math.abs(b.y-g.y))[0];
+      if(!col||!rot||Math.abs(rot.y-g.y)>12) return;
+      const k=chave(rot.s); const marcado=g.s!=='☐'&&g.s!=='□';
+      if(marcado) docs[k]=N(col.s)==='sim'?'sim':(N(col.s)==='nao'?'nao':'na');
+      else if(!(k in docs)) docs[k]='';
+    });
+  }
+  return {
+    titulo:(acha(/pedido de aprovacao/)||{}).s||'',
+    obra:valor(/^obra:/), donoObra:valor(/^dono de obra/), ref:valor(/^ref:/),
+    data:valor(/^data:/,i=>i.y>yIdent&&i.x>300),
+    descricao:valor(/^descricao:/), local:valor(/^local de aplicacao/), fornecedor:valor(/^fornecedor/), especificacoes:valor(/^especificacoes/),
+    refLQ:valor(/^ref\. lista de quantidades/), docRef:caixa(yDocRef,yObs), observacoes:caixa(yObs,yLim),
+    dataLimite:valor(/^data limite/), dirObra:dirNome, dataEntrega:dataEnt, docs
+  };
+}
+const PAM_DOCS=[['ce','Marcação CE / Dec. de Desempenho'],['declConf','Decl. de Conf. de Fabricante'],['homolog','Doc. de Homologação'],['certif','Prod. Certificado'],['catalogo','Catálogo'],['espTec','Especificação Técnica'],['amostras','Amostras'],['outros','Outros']];
+function pamParaPA(c){
+  const sim=k=>c.docs[k]==='sim';
+  const rotD={sim:'Sim',nao:'Não',na:'N.A.','':'—'};
+  const obs=[
+    'Ref. Empreiteiro: '+(c.ref||'—'),
+    c.dataLimite?'Data limite para aprovação: '+c.dataLimite:'',
+    c.observacoes||''
+  ].filter(Boolean).join('\n');
+  return {
+    material:c.descricao, localizacao:c.local, tipoItem:'material',
+    capitulo:c.refLQ, referencia:c.docRef,
+    proposto:[c.especificacoes,c.fornecedor?'Fornecedor: '+c.fornecedor:''].filter(Boolean).join(' | '),
+    previsto:'',
+    temConformidade:sim('ce')||sim('declConf')||sim('homolog')||sim('certif'),
+    temFichas:sim('espTec'), temAmostras:sim('catalogo')||sim('amostras'), temOutros:sim('outros'),
+    obsEmp:obs, autorEmp:c.dirObra, dataCriacao:pamDataISO(c.dataEntrega)||pamDataISO(c.data)||peHoje()
+  };
+}
+let pamImport=null;
+window.paImportarPAM=function(){
+  if(!peEFisc()){ alert('A importação é feita pela Fiscalização.'); return; }
+  if(!paObra()){ alert('Sem obra selecionada.'); return; }
+  const input=document.createElement('input'); input.type='file'; input.accept='.zip,.pdf'; input.multiple=true;
+  input.onchange=async()=>{
+    const fs=Array.from(input.files||[]); if(!fs.length) return;
+    showLoadingOverlay('A ler o ficheiro…');
+    try{
+      await pamCarregarLibs();
+      let pdfs=[];
+      for(const f of fs){
+        if(/\.zip$/i.test(f.name)){
+          const z=await JSZip.loadAsync(await f.arrayBuffer());
+          for(const nome of Object.keys(z.files)){
+            const e=z.files[nome]; if(e.dir||/(^|\/)__MACOSX\//.test(nome)||/(^|\/)\./.test(nome)) continue;
+            pdfs.push({nome:nome.split('/').pop(),bytes:await e.async('uint8array')});
+          }
+        } else pdfs.push({nome:f.name,bytes:new Uint8Array(await f.arrayBuffer())});
+      }
+      if(!pdfs.length){ hideLoadingOverlay(); alert('O ficheiro não tem documentos.'); return; }
+      let pam=pdfs.find(p=>/^pam/i.test(p.nome)&&/\.pdf$/i.test(p.nome));
+      let itens=null;
+      if(pam) itens=await pamTextoItens(pam.bytes);
+      else{
+        for(const p of pdfs.filter(p=>/\.pdf$/i.test(p.nome))){ const it=await pamTextoItens(p.bytes).catch(()=>[]); if(it.some(i=>/APROVA..O DE MATERIAL/i.test(i.s))){ pam=p; itens=it; break; } }
+      }
+      if(!pam){ hideLoadingOverlay(); alert('Não encontrei o impresso PAM (PDF "PAM_…" com "Pedido de Aprovação de Material").'); return; }
+      const c=pamExtrair(itens||[]);
+      const anexos=[pam,...pdfs.filter(p=>p!==pam)].map(p=>({nome:p.nome,tam:p.bytes.length,tipo:/\.pdf$/i.test(p.nome)?'application/pdf':'application/octet-stream',bytes:p.bytes,pam:p===pam}));
+      pamImport={c,pa:pamParaPA(c),anexos};
+      hideLoadingOverlay();
+      pamPreview();
+    }catch(e){ hideLoadingOverlay(); console.error(e); alert('Erro na importação: '+e.message); }
+  };
+  input.click();
+};
+function pamPreview(){
+  const {c,pa,anexos}=pamImport; const o=paObra()||{};
+  const dup=c.ref?paDocs.find(d=>paRefExterna(d)===c.ref):null;
+  const inp=(id,rot,val,area,obrig)=>`<div class="pe-fld"><label>${rot}${obrig?' <span style="color:var(--danger)">*</span>':''}</label>${area?`<textarea id="pam-${id}" style="min-height:${area}px">${esc(val||'')}</textarea>`:`<input id="pam-${id}" value="${esc(val||'')}" ${!val&&obrig?'style="border-color:var(--danger)"':''}>`}</div>`;
+  const chk=(id,rot,v)=>`<label style="font-size:12px;margin-right:14px"><input type="checkbox" id="pam-${id}" ${v?'checked':''}> ${rot}</label>`;
+  const veu=document.createElement('div'); veu.className='pe-veu'; veu.id='pe-veu';
+  veu.innerHTML=`<div class="pe-modal" style="max-width:900px;width:95vw">
+    <h3>Importar PA — ${esc(c.ref||'sem referência')}</h3>
+    <div class="pe-mb" style="max-height:68vh;overflow:auto">
+      <div class="pe-msub">O PA é criado na obra <b>${esc((o.codigo?o.codigo+' · ':'')+(o.sigla||'')+' — '+(o.nome||''))}</b>, com o número sequencial seguinte (<b>${peIdFmt(paProximoNum(),0)}</b>). A Ref. do Empreiteiro fica nas Observações.</div>
+      ${dup?`<div class="pe-ipnota" style="background:#FDECEE;border-color:#F5B5B5;color:#7F1D1D">⚠️ A referência <b>${esc(c.ref)}</b> já foi importada como <b>PA ${esc(dup.id)}</b>.</div>`:''}
+      <div class="pe-grid3 pe-mt">${inp('ref','Ref. do Empreiteiro',c.ref,0,true)}${inp('data','Data (entregue à Fiscalização)',pa.dataCriacao?peDataPT(pa.dataCriacao):'',0,true)}${inp('autor','Autor (Direção de Obra)',pa.autorEmp,0,true)}</div>
+      <div class="pe-grid2 pe-mt">${inp('material','Designação',pa.material,0,true)}${inp('localizacao','Localização',pa.localizacao,0,false)}</div>
+      <div class="pe-grid2 pe-mt">
+        <div class="pe-fld"><label>Tipo</label><select id="pam-tipo"><option value="material" selected>Material</option><option value="equipamento">Equipamento</option></select></div>
+        <div class="pe-fld"><label>Especialidade</label><select id="pam-esp"><option value="">— escolher —</option>${(DB.especialidades||[]).map(e=>`<option value="${esc(e.codigo)}">${esc(e.nome)}</option>`).join('')}</select></div>
+      </div>
+      <div class="pe-grid2 pe-mt">${inp('capitulo','Id LPU (Ref. Lista de Quantidades)',pa.capitulo,0,false)}${inp('referencia','Referências (Documentos de referência)',pa.referencia,0,false)}</div>
+      <div class="pe-grid2 pe-mt">${inp('previsto','Previsto (Marca e Modelo)',pa.previsto,0,false)}${inp('proposto','Proposta (Marca e Modelo)',pa.proposto,0,false)}</div>
+      <div class="pe-mt"><label class="pe-rotanx">Documentação Entregue</label><div>${chk('amostras','Amostras / Catálogos',pa.temAmostras)}${chk('fichas','Fichas / Cond. Técnicas',pa.temFichas)}${chk('conf','Docs de Conformidade',pa.temConformidade)}${chk('outros','Outros',pa.temOutros)}</div></div>
+      <div class="pe-mt">${inp('obs','Observações',pa.obsEmp,110,false)}</div>
+      <div class="pe-mt"><label class="pe-rotanx">Anexos (${anexos.length})</label>
+        ${anexos.map((a,i)=>`<label style="display:block;font-size:12px;padding:2px 0"><input type="checkbox" class="pam-anx" data-i="${i}" checked> 📎 ${esc(a.nome)} <span class="pe-muted">(${Math.round(a.tam/1024)} KB${a.pam?' · impresso original':''}${a.tam>3*1024*1024?' · <b style="color:var(--danger)">excede 3 MB</b>':''})</span></label>`).join('')}
+      </div>
+    </div>
+    <div class="pe-mrod">
+      <button class="pe-btn" onclick="document.getElementById('pe-veu').remove();pamImport=null">Cancelar</button>
+      <button class="pe-btn gold" onclick="pamCriar()">Criar PA em Rascunho →</button>
+    </div></div>`;
+  document.body.appendChild(veu);
+}
+window.pamCriar=async function(){
+  if(!pamImport) return;
+  const g=id=>{ const e=document.getElementById('pam-'+id); return e?(e.type==='checkbox'?e.checked:String(e.value||'').trim()):''; };
+  const ref=g('ref'), material=g('material'), esp=g('esp'), dataISO=pamDataISO(g('data'))||peHoje();
+  if(!ref){ alert('Indique a Ref. do Empreiteiro.'); return; }
+  if(!material){ alert('Indique a Designação.'); return; }
+  const dup=paDocs.find(d=>paRefExterna(d)===ref);
+  if(dup&&!confirm('A referência '+ref+' já foi importada como PA '+dup.id+'.\n\nImportar novamente como um novo PA?')) return;
+  const sel=Array.from(document.querySelectorAll('.pam-anx:checked')).map(x=>pamImport.anexos[+x.dataset.i]);
+  const grandes=sel.filter(a=>a.tam>3*1024*1024);
+  if(grandes.length&&!confirm(grandes.length+' anexo(s) excedem 3 MB e não serão importados:\n'+grandes.map(a=>a.nome).join('\n')+'\n\nContinuar?')) return;
+  const d=paDocNovo(paProximoNum(),0,null);
+  Object.assign(d,{dataCriacao:dataISO,autorEmp:g('autor'),material,localizacao:g('localizacao'),tipoItem:g('tipo')||'material',especialidade:esp,
+    capitulo:g('capitulo'),artigo:'',referencia:g('referencia'),previsto:g('previsto'),proposto:g('proposto'),
+    temAmostras:g('amostras'),temFichas:g('fichas'),temConformidade:g('conf'),temOutros:g('outros'),obsEmp:g('obs'),motivo:'EXT:'+ref,
+    anexosEmp:sel.filter(a=>a.tam<=3*1024*1024).map(a=>({nome:a.nome,tam:a.tam,dados:'data:'+a.tipo+';base64,'+pamB64(a.bytes)}))});
+  paRegistar(d,'Importado do sistema do Empreiteiro (Ref. '+ref+', '+d.anexosEmp.length+' anexo'+(d.anexosEmp.length===1?'':'s')+') por '+(currentUser?currentUser.nome:'?')+' — Rascunho.');
+  const v=document.getElementById('pe-veu'); if(v) v.remove();
+  showLoadingOverlay('A criar o PA…');
+  try{ paDocs.unshift(d); await paPersistir(d); }
+  finally{ hideLoadingOverlay(); }
+  pamImport=null;
+  paAbrirFicha(d.id);
+};
+window.paAbrirImportado=async function(){
+  const d=paFichaAtualDoc(); if(!d) return; paLerFormEmp(d);
+  if(!d.material){ alert('Indique a Designação.'); return; }
+  if(!confirm('Abrir o PA '+d.id+' (Ref. '+paRefExterna(d)+')?\n\nPassa a Aberto, com a Fiscalização. Não são enviadas notificações.')) return;
+  d.estado='aberto'; d.dataEnvio=d.dataCriacao||peHoje();
+  paRegistar(d,'Aberto pela Fiscalização (importado do sistema do Empreiteiro) — passa a Aberto.');
+  await paPersistir(d); paAbrirFicha(d.id);
+};
+
 function renderListaPA(app){
   const o=paObra();
   if(!o){ paObraId=null; render(); return; }
@@ -4010,7 +4207,7 @@ function renderListaPA(app){
       </div>
       <div class="page-actions"></div>
     </div>
-    <div style="margin-bottom:12px;display:flex;gap:8px;align-items:center">${peEEmp()?`<button class="btn btn-gold btn-sm" onclick="paNovoPedido()">+ Novo Pedido</button>`:''}${(peEFisc()||peESuper())&&lst.some(d=>d.estado==='pendente')?`<button class="btn btn-sm" id="pa-alert-btn" style="border:1px solid var(--warning);background:#fff;color:#8a5a00" onclick="paAlertar()">Alertar Projetista${paSel.size?' ('+paSel.size+')':''}</button>`:''}${peESuper()?`<span style="margin-left:auto;display:flex;gap:8px"><button class="btn btn-sm" style="border:1px solid var(--border-light);background:#fff" onclick="gpeAdmRenumerar('pa')">Renumerar</button><button class="btn btn-sm" style="border:1px solid var(--border-light);background:#fff" onclick="gpeAdmImportar('pa')">Importar Histórico</button></span>`:''}</div>
+    <div style="margin-bottom:12px;display:flex;gap:8px;align-items:center">${peEEmp()?`<button class="btn btn-gold btn-sm" onclick="paNovoPedido()">+ Novo Pedido</button>`:''}${peEFisc()?`<button class="btn btn-outline btn-sm" onclick="paImportarPAM()" title="Importar um PA do sistema do Empreiteiro (ZIP com o PAM e os anexos)">⇩ Importar PA</button>`:''}${(peEFisc()||peESuper())&&lst.some(d=>d.estado==='pendente')?`<button class="btn btn-sm" id="pa-alert-btn" style="border:1px solid var(--warning);background:#fff;color:#8a5a00" onclick="paAlertar()">Alertar Projetista${paSel.size?' ('+paSel.size+')':''}</button>`:''}${peESuper()?`<span style="margin-left:auto;display:flex;gap:8px"><button class="btn btn-sm" style="border:1px solid var(--border-light);background:#fff" onclick="gpeAdmRenumerar('pa')">Renumerar</button><button class="btn btn-sm" style="border:1px solid var(--border-light);background:#fff" onclick="gpeAdmImportar('pa')">Importar Histórico</button></span>`:''}</div>
     <div class="table-card">
       ${lst.length?`<table>
         <thead><tr>
@@ -4168,9 +4365,15 @@ function renderFichaPA(app){
   if(d.nextId) lig.push(`Substituído pela revisão <a onclick="paAbrirFicha('${d.nextId}')">${d.nextId}</a>`);
   if(d.estado==='reaberto') lig.push('Permanece <b>Reaberto</b> até a revisão ser fechada.');
   if(d.viaDireta) lig.push('Aprovação <b>directa</b> da Fiscalização (não passou pelo Projetista).');
+  if(paEhImportado(d)) lig.push('Importado do sistema do Empreiteiro — Ref. <b>'+esc(paRefExterna(d))+'</b>');
 
   const acoes=[],notas=[];
-  if(d.estado==='rascunho'&&peEEmp()){
+  if(d.estado==='rascunho'&&peEFisc()&&paEhImportado(d)){
+    acoes.push(`<button class="pe-btn" onclick="paGuardarRascunho()">Guardar Rascunho</button>`);
+    acoes.push(`<button class="pe-btn green" onclick="paAbrirImportado()">Abrir Pedido →</button>`);
+    notas.push('PA importado do sistema do Empreiteiro: reveja os campos e abra o pedido para seguir o fluxo normal.');
+  }
+  if(d.estado==='rascunho'&&peEEmp()&&!paEhImportado(d)){
     acoes.push(`<button class="pe-btn" onclick="paGuardarRascunho()">Guardar Rascunho</button>`);
     acoes.push(`<button class="pe-btn green" onclick="paEnviarFisc()">Enviar à Fiscalização →</button>`);
   }
@@ -5052,7 +5255,7 @@ function ptqEmails(role){
   const campo={fiscalizacao:'intervenientes_fisc',empreiteiro:'intervenientes_emp'}[role];
   const porObra=((campo&&o[campo])||[]).map(id=>(DB.utilizadores||[]).find(u=>String(u.id)===String(id))).filter(u=>{ if(!u||u.ativo===false) return false; const refs=(u.obras||[]).map(String); return refs.includes(oid)||(ocod&&refs.includes(ocod))||(osig&&refs.includes(osig)); });
   const m=new Map(); [...porUtil,...porObra].forEach(u=>m.set(String(u.id),u));
-  return [...m.values()].filter(u=>u.email).map(u=>u.email);
+  return [...m.values()].filter(u=>u.email&&!segoEhCSO(u)).map(u=>u.email); // CSO / Técn. Segurança nunca recebem notificações automáticas
 }
 
 function ptqMap(r){
@@ -5235,7 +5438,7 @@ window.ptqEnviar=async function(){
   if(!comAtiv.length){ alert('Preencha pelo menos uma actividade com descrição e localização.'); return; }
   d.autorEmp=currentUser?currentUser.nome:''; d.estado='enviado'; d.dataEnvio=peHoje();
   ptqRegistar(d,'Plano enviado à Fiscalização — passa a Enviado.');
-  await ptqNotificar(d,ptqEmails('fiscalizacao'),'Enviamos o PTQ '+d.id+' da Obra '+(ptqObra()?ptqObra().nome:d.obraNome)+' para o qual solicitamos a v/melhor atenção.','Fiscalização');
+  await ptqNotificar(d,[...new Set([...ptqEmails('fiscalizacao'),...segoCSOsDaObra(ptqObra()||{}).map(u=>u.email)])],'Enviamos o PTQ '+d.id+' da Obra '+(ptqObra()?ptqObra().nome:d.obraNome)+' para o qual solicitamos a v/melhor atenção.','Fiscalização');
   await ptqPersistir(d); ptqAbrirFicha(d.id);
 };
 
@@ -5534,7 +5737,7 @@ window.paPDF=function(id){
   const fDec=(r,k)=>{ const x=dec(k); return K0=>K0.fld(r,x?x.text:'',x?{bold:true,color:x.color}:null); };
   gpeGerarPdf({titulo:'PEDIDO DE APROVAÇÃO — PA '+d.id,obra:o,obraNome:d.obraNome,estado:d.estado,estadoRot:paEST(d.estado).rot,
     datas:[['Criado',d.dataCriacao],['Enviado',d.dataEnvio],['Env. Projetista',d.dataEnvioProj],['Analisado',d.dataAnalisado||d.projData],['Resposta',d.dataResposta],['Fecho',d.dataFecho]],
-    lig:gpeLig(d).concat(d.viaDireta?['Aprovação direta da Fiscalização (sem Projetista)']:[]),historico:d.historico,ficheiro:'PA_'+d.id+'_'+(o.sigla||''),
+    lig:gpeLig(d).concat(d.viaDireta?['Aprovação direta da Fiscalização (sem Projetista)']:[]).concat(paEhImportado(d)?['Importado do sistema do Empreiteiro — Ref. '+paRefExterna(d)]:[]),historico:d.historico,ficheiro:'PA_'+d.id+'_'+(o.sigla||''),
     seccoes:async K=>[
       K.sec('Identificação',K.NAVY,[K.cols([K.fld('Id',d.id),K.fld('Data',K.dt(d.dataCriacao)),K.fld('Autor',K.v(d.autorEmp))])]),
       K.sec('Empreiteiro — Pedido','#2563EB',[[
@@ -6279,7 +6482,7 @@ window.segoBackup=async function(){
   if(!peESuper()) return;
   const PROJ={
     SID:{ cfg:SUPA, tabelas:['utilizadores','obras'] },
-    SEGO:{ cfg:SUPA_SEGO, tabelas:['relatorios','pedidos_esclarecimento','pedidos_aprovacao','pedidos_betonagem','planos_quinzenais','qualidade_execucao','lpu_obra','autos_mensais','met_registos'] }
+    SEGO:{ cfg:SUPA_SEGO, tabelas:['relatorios','pedidos_esclarecimento','pedidos_aprovacao','pedidos_betonagem','planos_quinzenais','qualidade_execucao','lpu_obra','autos_mensais','am_faturas','am_config','met_registos'] }
   };
   const backup={ gerado:new Date().toISOString(), app:'SEGO', dados:{} };
   let totalLinhas=0, avisos=[];
@@ -6540,6 +6743,7 @@ const AM_CSS=`<style>
   .am-btn.on{background:var(--gold);border-color:var(--gold);color:#fff;font-weight:700}
   .am-chip{height:24px;padding:2px 10px;border:1px solid var(--border-light);border-radius:12px;background:#fff;cursor:pointer;white-space:nowrap}
   .am-chip.on{background:#1E3A5F;border-color:#1E3A5F;color:#fff;font-weight:700}
+  .am-subbar{display:flex;gap:8px;align-items:center;min-height:30px;margin-bottom:10px;flex-wrap:wrap}
   .am-total{font-weight:700;font-size:10pt;background:#FFF6E0;border:1px solid #F0DCA0;border-radius:4px;padding:6px 14px;display:inline-block}
 </style>`;
 function amEST(e){ return AM_MOD.estados[e]||{rot:e,cor:'#999',posse:'—'}; }
@@ -6588,9 +6792,13 @@ async function amCarregar(){
       off+=1000;
     }
   }catch(e){ console.error(e); }
+  amFaturas={}; amFatErro=false; amCfg=null; amCfgErro=false;
+  try{ (await sbRel.get('am_faturas',`obra_id=eq.${encodeURIComponent(o.id)}&select=auto_id,data,nome,tam`)).forEach(f=>{ amFaturas[f.auto_id]=f; }); }catch(e){ amFatErro=true; }
+  try{ const c=await sbRel.get('am_config',`obra_id=eq.${encodeURIComponent(o.id)}`); amCfg=c[0]||null; }catch(e){ amCfgErro=true; }
 }
 window.amAbrirModulo=async function(obraId){
-  amObraId=obraId; amVista='lpu'; amSub='resumo'; amLpuCap=''; amLpuPesq=''; amSoDisc=false; amColapso={}; amResNiv=2;
+  amSel=new Set();
+  amObraId=obraId; amVista='autos'; amSub='resumo'; amLpuCap=''; amLpuPesq=''; amSoDisc=false; amColapso={}; amResNiv=2;
   fiscObraId=null; fichObraId=null;
   await amCarregar(); render();
 };
@@ -6758,7 +6966,7 @@ function renderListaAM(app){
   const nDisc=amLPU.filter(amDisc).length;
   const caps1=amLPU.filter(l=>l.tipo==='capitulo'&&l.nivel===1);
 
-  let corpo='';
+  let corpo='', nivChips='';
   if(amVista==='lpu'){
     if(amSub==='resumo'){
       // totais por agrupador (soma sequencial das linhas descendentes)
@@ -6772,11 +6980,9 @@ function renderListaAM(app){
       const nivRes=Math.min(amResNiv||2,nivMax);
       const nomesPeso=Array.from({length:nivRes},(_,i)=>'Peso N'+(i+1));
       const pesoCels=l=>nomesPeso.map((_,c)=>`<td style="text-align:right;font-weight:${l.nivel===1?'700':'400'}">${(c+1)===l.nivel&&totalG?amFmt((tot[l.item_id]||0)/totalG*100)+'%':''}</td>`).join('');
-      corpo=`<div style="display:flex;gap:6px;align-items:center;margin-bottom:8px">
-        <span style="font-weight:700">Níveis:</span>
-        ${Array.from({length:nivMax},(_,i)=>i+1).map(n=>`<span class="am-chip ${nivRes===n?'on':''}" onclick="amSetResNiv(${n})">${n}</span>`).join('')}
-      </div>
-      <div class="table-card"><table>
+      nivChips=`<span style="font-weight:700;margin-left:10px">Níveis:</span>
+        ${Array.from({length:nivMax},(_,i)=>i+1).map(n=>`<span class="am-chip ${nivRes===n?'on':''}" onclick="amSetResNiv(${n})">${n}</span>`).join('')}`;
+      corpo=`<div class="table-card"><table>
         <thead><tr><th style="width:90px">Id</th><th>Descrição</th><th style="width:120px">Total</th>${nomesPeso.map(nm=>`<th style="width:86px">${nm}</th>`).join('')}</tr></thead>
         <tbody>
           ${amLPU.filter(l=>l.tipo==='capitulo'&&l.nivel<=nivRes).map(l=>`<tr ${l.nivel===1?'style="background:#EEF1F5"':''}>
@@ -6840,17 +7046,22 @@ function renderListaAM(app){
         </div>`;
     }
     corpo=`
-      <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px">
+      <div class="am-subbar">
         <button class="am-btn ${amSub==='resumo'?'on':''}" onclick="amVerSub('resumo')">Resumo</button>
         <button class="am-btn ${amSub==='detalhe'?'on':''}" onclick="amVerSub('detalhe')">Detalhe</button>
-        <span style="margin-left:auto" class="am-total">Total da LPU: ${amFmt(totalG)} €</span>
+        ${amSub==='resumo'?nivChips:''}
+        <span style="margin-left:auto;display:flex;gap:8px">${amCondBtn('adiantamento')}${amCondBtn('retencao')}</span>
       </div>`+corpo;
   } else {
-    corpo=`<div style="margin-bottom:10px">${(peEEmp()||peESuper())?`<button class="am-btn on" onclick="amNovoAuto()">+ Novo Auto</button>`:''}</div>
+    const SA=peESuper();
+    [...amSel].forEach(id=>{ if(!amDocs.some(d=>d.id===id)) amSel.delete(id); });
+    corpo=`<div class="am-subbar">${(peEEmp()||SA)?`<button class="am-btn on" onclick="amNovoAuto()">+ Novo Auto</button>`:''}
+      ${SA&&amSel.size?`<span style="margin-left:auto"><button class="am-btn" style="color:#B91C1C;border-color:#fca5a5" onclick="amEliminarSelecionados()">✕ Eliminar Selecionados (${amSel.size})</button></span>`:''}</div>
     <div class="table-card">
       ${amDocs.length?`<table>
-        <thead><tr><th>Id</th><th>Mês de Referência</th><th>Estado</th><th>Criado</th><th>Enviado</th><th>Verificado</th><th>Aprovado</th><th>Fechado</th></tr></thead>
-        <tbody>${amDocs.map(d=>`<tr onclick="amAbrirFicha('${d.id}')" style="cursor:pointer">
+        <thead><tr>${SA?`<th style="width:30px"><input type="checkbox" ${amSel.size===amDocs.length?'checked':''} onclick="amToggleSelTodos(event)" title="Selecionar todos"></th>`:''}<th>Id</th><th>Mês de Referência</th><th>Estado</th><th>Criado</th><th>Enviado</th><th>Verificado</th><th>Aprovado</th><th>Fechado</th><th>Fatura</th>${SA?'<th style="width:34px"></th>':''}</tr></thead>
+        <tbody>${amDocs.map(d=>{ const f=amFaturas[d.id]; return `<tr onclick="amAbrirFicha('${d.id}')" style="cursor:pointer${amSel.has(d.id)?';background:#FFF6E0':''}">
+          ${SA?`<td style="text-align:center" onclick="event.stopPropagation()"><input type="checkbox" ${amSel.has(d.id)?'checked':''} onclick="amToggleSel('${d.id}',event)"></td>`:''}
           <td><span class="pe-idp">${esc(d.id)}</span>${d.prev_id?`<br><span class="pe-revlink">↳ rev. de ${esc(d.prev_id)}</span>`:''}${d.next_id?`<br><span class="pe-revlink">↳ revisto por ${esc(d.next_id)}</span>`:''}</td>
           <td style="text-align:center">${esc(d.mes_ref||'—')}</td>
           <td style="text-align:center"><span class="pe-estpill" style="background:${amEST(d.estado).cor}">${amEST(d.estado).rot}</span></td>
@@ -6858,11 +7069,13 @@ function renderListaAM(app){
           <td class="pe-dt" style="text-align:center">${d.data_envio?peDataPT(d.data_envio):'—'}</td>
           <td class="pe-dt" style="text-align:center">${d.data_verificacao?peDataPT(d.data_verificacao):'—'}</td>
           <td class="pe-dt" style="text-align:center">${d.data_aprovacao?peDataPT(d.data_aprovacao):'—'}</td>
-          <td class="pe-dt" style="text-align:center">${d.data_fecho?peDataPT(d.data_fecho):'—'}</td></tr>`).join('')}
+          <td class="pe-dt" style="text-align:center">${d.data_fecho?peDataPT(d.data_fecho):'—'}</td>
+          <td style="text-align:center;white-space:nowrap">${f?`<a onclick="amVerFatura('${d.id}',event)" title="${esc(f.nome||'')}" style="cursor:pointer;color:#1B4F9B;text-decoration:underline">📄 ${peDataPT(f.data)}</a>`:(d.estado==='fechado'&&amPodeFatura()?`<span onclick="event.stopPropagation();amAnexarFatura('${d.id}')" style="cursor:pointer;color:var(--text-muted)" title="Anexar fatura">+ anexar</span>`:'<span class="pe-muted">—</span>')}</td>
+          ${SA?`<td style="text-align:center"><span onclick="amEliminarUm('${d.id}',event)" title="Eliminar este Auto" style="cursor:pointer;color:#B91C1C;font-weight:700">✕</span></td>`:''}</tr>`; }).join('')}
         </tbody></table>`
       :`<div class="pe-vazio">${amLPU.length
-          ?'Sem Autos Mensais nesta obra. A criação e medição dos Autos chega na Fase 2.'
-          :'Comece por importar a LPU da obra'+(peESuper()?' com o botão "Importar LPU".':'.')}</div>`}
+          ?'Sem Autos Mensais nesta obra.'
+          :'Comece por importar a LPU da obra'+(peESuper()?' (separador LPU → "Importar LPU").':'.')}</div>`}
     </div>`;
   }
 
@@ -6878,14 +7091,197 @@ function renderListaAM(app){
     </div>
     <div style="margin-bottom:10px;display:flex;gap:8px;align-items:center">
       <button class="am-btn ${amVista==='lpu'?'on':''}" onclick="amVerVista('lpu')">LPU${amLPU.length?' ('+amLPU.filter(l=>l.tipo==='linha').length+')':''}</button>
-      <button class="am-btn ${amVista!=='lpu'?'on':''}" onclick="amVerVista('autos')">AM${amDocs.length?' ('+amDocs.length+')':''}</button>
-      ${peESuper()?`<span style="margin-left:auto;display:flex;gap:8px">
+      <button class="am-btn ${amVista!=='lpu'?'on':''}" onclick="amVerVista('autos')" title="Número de Autos Fechados">AM${(()=>{ const n=amDocs.filter(d=>d.estado==='fechado').length; return n?' ('+n+')':''; })()}</button>
+      ${amVista==='lpu'&&peESuper()?`<span style="margin-left:auto;display:flex;gap:8px">
         <button class="am-btn" onclick="amImportarLPU()">Importar LPU</button>
         ${amLPU.length?`<button class="am-btn" style="color:#B91C1C" onclick="amEliminarLPU()">Eliminar LPU</button>`:''}
+      </span>`:''}
+      ${amVista!=='lpu'&&amPodeFatura()&&amDocs.some(d=>d.estado==='fechado')?`<span style="margin-left:auto;display:flex;gap:8px">
+        <button class="am-btn" onclick="amAnexarFatura()">📎 Anexar Fatura</button>
       </span>`:''}
     </div>
     ${corpo}
   </div>`;
+}
+
+/* ---- AM: seleção múltipla e eliminação na lista ---- */
+window.amToggleSel=function(id,ev){ if(ev) ev.stopPropagation(); if(amSel.has(id)) amSel.delete(id); else amSel.add(id); render(); };
+window.amToggleSelTodos=function(ev){ if(ev) ev.stopPropagation(); if(amSel.size===amDocs.length) amSel.clear(); else amDocs.forEach(d=>amSel.add(d.id)); render(); };
+async function amEliminarIds(ids){
+  const o=amObra(); if(!o||!ids.length) return;
+  showLoadingOverlay('A eliminar…');
+  const falhas=[];
+  for(const id of ids){
+    try{
+      await sbRel.deleteWhere('autos_mensais',`id=eq.${encodeURIComponent(id)}&obra_id=eq.${encodeURIComponent(o.id)}`);
+      try{ await sbRel.deleteWhere('am_faturas',`id=eq.${encodeURIComponent(o.id+'_'+id)}`); }catch(e){}
+      amDocs=amDocs.filter(x=>x.id!==id); delete amFaturas[id]; amSel.delete(id);
+    }catch(e){ falhas.push(id+' ('+e.message+')'); }
+  }
+  // limpa ligações de revisão para Autos eliminados
+  for(const d of amDocs){
+    const corpo={};
+    if(d.prev_id&&ids.includes(d.prev_id)){ d.prev_id=null; corpo.prev_id=null; }
+    if(d.next_id&&ids.includes(d.next_id)){ d.next_id=null; corpo.next_id=null; }
+    if(Object.keys(corpo).length){ try{ await sbRel.patchWhere('autos_mensais',`id=eq.${encodeURIComponent(d.id)}&obra_id=eq.${encodeURIComponent(o.id)}`,corpo); }catch(e){} }
+  }
+  hideLoadingOverlay(); render();
+  if(falhas.length) alert('Não foi possível eliminar:\n'+falhas.join('\n'));
+}
+window.amEliminarUm=function(id,ev){
+  if(ev) ev.stopPropagation(); if(!peESuper()) return;
+  if(!confirm('Eliminar definitivamente o Auto '+id+'? Esta ação não pode ser anulada.')) return;
+  amEliminarIds([id]);
+};
+window.amEliminarSelecionados=function(){
+  if(!peESuper()||!amSel.size) return;
+  const ids=[...amSel];
+  if(!confirm('Eliminar definitivamente '+ids.length+' Auto'+(ids.length>1?'s':'')+'?\n\n'+ids.join(', ')+'\n\nEsta ação não pode ser anulada.')) return;
+  amEliminarIds(ids);
+};
+
+/* ---- AM: Fatura (PDF + data) dos Autos fechados ---- */
+function amPodeFatura(){ return peEFisc()||peESuper(); }
+window.amAnexarFatura=function(idPre){
+  if(!amPodeFatura()) return;
+  if(amFatErro){ alert('A funcionalidade de faturas ainda não está ativa.\n\nCorra primeiro o SQL "SEGO_am_faturas_config.sql" no Supabase do SEGO.'); return; }
+  const fech=amDocs.filter(d=>d.estado==='fechado');
+  if(!fech.length){ alert('Só é possível anexar fatura a Autos Fechados — ainda não existe nenhum nesta obra.'); return; }
+  const def=idPre||(fech.find(d=>!amFaturas[d.id])||fech[0]).id;
+  const veu=document.createElement('div'); veu.className='pe-veu'; veu.id='pe-veu';
+  veu.innerHTML=`<div class="pe-modal"><h3>Anexar Fatura</h3>
+    <div class="pe-mb">
+      <div class="pe-fld"><label>Auto (Fechado)</label><select id="amf-auto">${fech.map(d=>`<option value="${esc(d.id)}" ${d.id===def?'selected':''}>${esc(d.id)} · ${esc(d.mes_ref||'')}${amFaturas[d.id]?' · já tem fatura ('+peDataPT(amFaturas[d.id].data)+')':''}</option>`).join('')}</select></div>
+      <div class="pe-fld pe-mt"><label>Data da Fatura</label><input type="date" id="amf-data" value="${peHoje()}"></div>
+      <div class="pe-fld pe-mt"><label>Fatura (PDF, máx. 3 MB)</label><input type="file" id="amf-file" accept="application/pdf,.pdf"></div>
+    </div>
+    <div class="pe-mrod">
+      <button class="pe-btn" onclick="document.getElementById('pe-veu').remove()">Cancelar</button>
+      <button class="pe-btn gold" onclick="amGuardarFatura()">Guardar Fatura</button>
+    </div></div>`;
+  document.body.appendChild(veu);
+};
+window.amGuardarFatura=async function(){
+  const o=amObra(); if(!o) return;
+  const id=(document.getElementById('amf-auto')||{}).value, data=(document.getElementById('amf-data')||{}).value, f=((document.getElementById('amf-file')||{}).files||[])[0];
+  if(!id){ alert('Escolha o Auto.'); return; }
+  if(!data){ alert('Indique a data da fatura.'); return; }
+  if(!f){ alert('Escolha o PDF da fatura.'); return; }
+  if(!/\.pdf$/i.test(f.name)&&f.type!=='application/pdf'){ alert('A fatura tem de ser um PDF.'); return; }
+  if(f.size>3*1024*1024){ alert('O PDF excede 3 MB.'); return; }
+  if(amFaturas[id]&&!confirm('O Auto '+id+' já tem fatura ('+amFaturas[id].nome+'). Substituir?')) return;
+  const dados=await new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(f); });
+  showLoadingOverlay('A guardar a fatura…');
+  try{
+    const fid=o.id+'_'+id;
+    try{ await sbRel.deleteWhere('am_faturas',`id=eq.${encodeURIComponent(fid)}`); }catch(e){}
+    await sbRel.post('am_faturas',{id:fid,obra_id:o.id,auto_id:id,data,nome:f.name,tam:f.size,pdf:dados,autor:currentUser?currentUser.nome:''});
+    amFaturas[id]={data,nome:f.name,tam:f.size};
+    const d=amPorId(id);
+    if(d){ amRegistar(d,'Fatura anexada: '+f.name+' (data '+peDataPT(data)+').');
+      try{ await sbRel.patchWhere('autos_mensais',`id=eq.${encodeURIComponent(id)}&obra_id=eq.${encodeURIComponent(o.id)}`,{historico:d.historico}); }catch(e){} }
+    const v=document.getElementById('pe-veu'); if(v) v.remove();
+    hideLoadingOverlay(); render();
+  }catch(e){ hideLoadingOverlay(); alert('Erro ao guardar a fatura: '+e.message+'\n\nJá correu o SQL "SEGO_am_faturas_config.sql"?'); }
+};
+window.amVerFatura=async function(id,ev){
+  if(ev) ev.stopPropagation();
+  const o=amObra(); if(!o) return;
+  try{
+    showLoadingOverlay('A abrir a fatura…');
+    const r=await sbRel.get('am_faturas',`id=eq.${encodeURIComponent(o.id+'_'+id)}&select=nome,pdf`);
+    hideLoadingOverlay();
+    if(!r.length||!r[0].pdf){ alert('Fatura não encontrada.'); return; }
+    const b64=r[0].pdf.split(',')[1]||''; const bin=atob(b64); const u8=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u8[i]=bin.charCodeAt(i);
+    const url=URL.createObjectURL(new Blob([u8],{type:'application/pdf'}));
+    const w=window.open(url,'_blank');
+    if(!w){ const a=document.createElement('a'); a.href=url; a.download=r[0].nome||('Fatura_'+id+'.pdf'); document.body.appendChild(a); a.click(); a.remove(); }
+  }catch(e){ hideLoadingOverlay(); alert('Erro ao abrir a fatura: '+e.message); }
+};
+
+/* ---- LPU: Adiantamento / Retenção (popup) ---- */
+const AM_COND={adiantamento:'Adiantamento',retencao:'Retenção'};
+function amCondTxt(c){ if(!c) return ''; if(!c.sim) return 'Não'; return (c.valor!=null&&c.valor!==''?amFmt(Number(c.valor),(c.unidade==='%'?(Number(c.valor)%1?2:0):2))+' '+(c.unidade||'€'):'Sim'); }
+function amCondBtn(k){
+  const c=amCfg&&amCfg[k];
+  return `<button class="am-btn ${c?'on':''}" onclick="amCondicao('${k}')" title="${c?'Ver':'Definir'} ${AM_COND[k]}">${AM_COND[k]}${c?': '+esc(amCondTxt(c)):' ?'}</button>`;
+}
+function amPodeCond(){ return peESuper()||peEFisc(); }
+window.amCondicao=function(k,editar){
+  if(amCfgErro){ alert('Esta funcionalidade ainda não está ativa.\n\nCorra primeiro o SQL "SEGO_am_faturas_config.sql" no Supabase do SEGO.'); return; }
+  const c=amCfg&&amCfg[k], rot=AM_COND[k];
+  const veu=document.createElement('div'); veu.className='pe-veu'; veu.id='pe-veu';
+  if(c&&!editar){
+    veu.innerHTML=`<div class="pe-modal"><h3>${rot}</h3>
+      <div class="pe-mb">
+        <div class="pe-fld"><label>${rot}</label><div class="pe-ro"><b>${c.sim?'Sim':'Não'}</b></div></div>
+        ${c.sim?`<div class="pe-grid2 pe-mt"><div class="pe-fld"><label>Valor</label><div class="pe-ro">${esc(amCondTxt(c))}</div></div><div></div></div>
+        <div class="pe-fld pe-mt"><label>Momento</label><div class="pe-ro" style="white-space:pre-wrap">${esc(c.momento||'—')}</div></div>`:''}
+        ${amCfg.autor?`<div class="pe-msub pe-mt">Definido por ${esc(amCfg.autor)}${amCfg.updated_at?' · '+new Date(amCfg.updated_at).toLocaleDateString('pt-PT'):''}</div>`:''}
+      </div>
+      <div class="pe-mrod">
+        <button class="pe-btn" onclick="document.getElementById('pe-veu').remove()">Fechar</button>
+        ${amPodeCond()?`<button class="pe-btn gold" onclick="document.getElementById('pe-veu').remove();amCondicao('${k}',true)">Editar</button>`:''}
+      </div></div>`;
+  } else {
+    if(!amPodeCond()){ alert(rot+' ainda não definido(a) para esta obra.'); return; }
+    const v=c||{sim:false,valor:'',unidade:'%',momento:''};
+    veu.innerHTML=`<div class="pe-modal"><h3>${rot}</h3>
+      <div class="pe-mb">
+        <div class="pe-fld"><label>Existe ${rot.toLowerCase()}?</label>
+          <div style="display:flex;gap:18px;padding:4px 0">
+            <label style="font-size:13px;cursor:pointer"><input type="radio" name="amc-sim" value="sim" ${c&&v.sim?'checked':''} onchange="document.getElementById('amc-det').style.display='block'"> Sim</label>
+            <label style="font-size:13px;cursor:pointer"><input type="radio" name="amc-sim" value="nao" ${c&&!v.sim?'checked':''} onchange="document.getElementById('amc-det').style.display='none'"> Não</label>
+          </div></div>
+        <div id="amc-det" style="display:${c&&v.sim?'block':'none'}">
+          <div class="pe-grid2 pe-mt">
+            <div class="pe-fld"><label>Valor</label><input id="amc-valor" type="number" step="0.01" min="0" value="${v.valor==null?'':esc(String(v.valor))}"></div>
+            <div class="pe-fld"><label>Unidade</label><select id="amc-un"><option value="%" ${v.unidade!=='€'?'selected':''}>% (percentagem)</option><option value="€" ${v.unidade==='€'?'selected':''}>€ (valor)</option></select></div>
+          </div>
+          <div class="pe-fld pe-mt"><label>Momento (em que é feito)</label><textarea id="amc-momento" placeholder="Ex.: Com a consignação; deduzido proporcionalmente em cada Auto…">${esc(v.momento||'')}</textarea></div>
+        </div>
+      </div>
+      <div class="pe-mrod">
+        <button class="pe-btn" onclick="document.getElementById('pe-veu').remove()">Cancelar</button>
+        <button class="pe-btn gold" onclick="amGuardarCondicao('${k}')">Guardar</button>
+      </div></div>`;
+  }
+  document.body.appendChild(veu);
+};
+window.amGuardarCondicao=async function(k){
+  const o=amObra(); if(!o||!amPodeCond()) return;
+  const sel=document.querySelector('input[name="amc-sim"]:checked');
+  if(!sel){ alert('Responda Sim ou Não.'); return; }
+  const sim=sel.value==='sim';
+  const val={sim};
+  if(sim){
+    const vv=(document.getElementById('amc-valor')||{}).value;
+    if(vv===''||isNaN(Number(vv))){ alert('Indique o valor.'); return; }
+    val.valor=Number(vv); val.unidade=(document.getElementById('amc-un')||{}).value||'%';
+    val.momento=((document.getElementById('amc-momento')||{}).value||'').trim();
+    if(!val.momento){ alert('Indique o momento em que é feito.'); return; }
+  }
+  const novo=Object.assign({obra_id:o.id,adiantamento:null,retencao:null},amCfg||{});
+  novo[k]=val; novo.autor=currentUser?currentUser.nome:''; novo.updated_at=new Date().toISOString();
+  try{
+    showLoadingOverlay('A guardar…');
+    try{ await sbRel.deleteWhere('am_config',`obra_id=eq.${encodeURIComponent(o.id)}`); }catch(e){}
+    await sbRel.post('am_config',{obra_id:o.id,adiantamento:novo.adiantamento,retencao:novo.retencao,autor:novo.autor,updated_at:novo.updated_at});
+    amCfg=novo;
+    const v=document.getElementById('pe-veu'); if(v) v.remove();
+    hideLoadingOverlay(); render();
+  }catch(e){ hideLoadingOverlay(); alert('Erro ao guardar: '+e.message+'\n\nJá correu o SQL "SEGO_am_faturas_config.sql"?'); }
+};
+
+/* ---- Card AM no Controlo Operacional: conta só Autos Fechados ---- */
+function coFillAm(obraId){
+  sbRel.get('autos_mensais',`obra_id=eq.${encodeURIComponent(obraId)}&estado=eq.fechado&order=num.desc,rev.desc&select=id,data_fecho,mes_ref`)
+    .then(rows=>{
+      const c=document.getElementById('co-cnt-am'); if(c) c.textContent=rows.length+' fechado'+(rows.length===1?'':'s');
+      const r=document.getElementById('co-rec-am');
+      if(r) r.innerHTML=rows.length?rows.slice(0,3).map(x=>`<div class="co-rec-item"><span class="co-id">${x.id}</span><span class="co-dt">${coFmtDia(x.data_fecho)}</span></div>`).join(''):'<div class="co-rec-empty">—</div>';
+    })
+    .catch(()=>{ const c=document.getElementById('co-cnt-am'); if(c) c.textContent='—'; });
 }
 
 /* ---- FASE 2: Autos — criação e medição mensal ---- */
@@ -9851,7 +10247,7 @@ function renderFichaObra(app){
   coFillGpe(o.id,'pb','pedidos_betonagem');
   coFillGpe(o.id,'ptq','planos_quinzenais');
   coFillGpe(o.id,'qe','qualidade_execucao');
-  coFillGpe(o.id,'am','autos_mensais');
+  coFillAm(o.id);
   if(rvtPode()) coFillMet(o.id);
 }
 
