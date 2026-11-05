@@ -1,0 +1,18 @@
+{
+  "id": "/",
+  "name": "SEGO — Sistema Externo de Gestão de Obra",
+  "short_name": "SEGO",
+  "description": "Gestão de obra da Aceitar Sucessos — PE, PA, PB, PTQ, QE, RSO, SOS, RVT, Autos e TCm.",
+  "lang": "pt-PT",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#1E3A5F",
+  "theme_color": "#1E3A5F",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

@@ -3,6 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- PWA: instalável como app no telemóvel/PC; no browser funciona exatamente como antes -->
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#1E3A5F">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="SEGO">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="/favicon-48.png">
 <title>SEGO — Sistema Externo de Gestão de Obra | aceitar</title>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <style>
@@ -282,12 +291,14 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.11.05.0901</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.11.05.2022</span>
+    <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-pwa-instalar" title="Instalar o SEGO como app neste dispositivo" onclick="pwaInstalar()">📲 Instalar App</button>
+    <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-pwa-atualizar" title="Recarregar a app (dados e versão mais recentes)" onclick="location.reload()">↻ Atualizar</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-dash" title="Dashboard PE · PA · PB · QE" onclick="dashAbrir('')">📊 Dashboard</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
       🚀 Deploy
-      <input type="file" style="display:none" onchange="deployToGitHub(this)">
+      <input type="file" multiple style="display:none" onchange="deployToGitHub(this)">
     </label>
     <div class="nav-avatar" id="nav-avatar" onclick="doLogout()" style="cursor:pointer" title="Sair">AD</div>
   </div>
@@ -368,6 +379,19 @@ tr.tr-click:hover td{background:#F5F7FA}
 
 <script>
 // ================================================================
+// PWA — service worker (só https) + botão Instalar / Atualizar
+// ================================================================
+let pwaPrompt=null;
+function pwaStandalone(){ return (window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true; }
+if('serviceWorker' in navigator && location.protocol==='https:'){
+  window.addEventListener('load',()=>{ navigator.serviceWorker.register('/sw.js').catch(e=>console.warn('SW não registado:',e)); });
+}
+window.addEventListener('beforeinstallprompt',e=>{ e.preventDefault(); pwaPrompt=e; const b=document.getElementById('btn-pwa-instalar'); if(b&&!pwaStandalone()) b.style.display='flex'; });
+window.addEventListener('appinstalled',()=>{ pwaPrompt=null; const b=document.getElementById('btn-pwa-instalar'); if(b) b.style.display='none'; });
+window.pwaInstalar=async function(){ if(!pwaPrompt) return; pwaPrompt.prompt(); try{ await pwaPrompt.userChoice; }catch(e){} pwaPrompt=null; const b=document.getElementById('btn-pwa-instalar'); if(b) b.style.display='none'; };
+window.addEventListener('DOMContentLoaded',()=>{ if(pwaStandalone()){ const b=document.getElementById('btn-pwa-atualizar'); if(b) b.style.display='flex'; } });
+
+// ================================================================
 // DEPLOY TO GITHUB
 // ================================================================
 const GITHUB_REPO = 'CarSanFer/sego-aceitar';
@@ -381,28 +405,37 @@ function pathForFile(name) {
 }
 
 async function deployToGitHub(input) {
-  const file = input.files[0];
-  if (!file) return;
+  const files = [...(input.files||[])];
+  if (!files.length) return;
+  if (files.length > 1) {
+    for (const f of files) { const ok = await deployUmFicheiro(f, input); if (!ok) break; }
+    input.value = '';
+    return;
+  }
+  await deployUmFicheiro(files[0], input);
+  input.value = '';
+}
+async function deployUmFicheiro(file, input) {
   const targetPath = pathForFile(file.name);
-  const text = await file.text();
+  const buf = new Uint8Array(await file.arrayBuffer());
+  const text = targetPath === 'index.html' ? new TextDecoder().decode(buf) : '';
   if (targetPath === 'index.html' && !text.trim().toLowerCase().startsWith('<!doctype html')) {
     if (!confirm('⚠️ Este ficheiro não parece ser HTML mas vai ser enviado para index.html.\n\nIsto pode partir o site. Continuar?')) {
-      input.value = '';
-      return;
+      return false;
     }
   }
   const btn = document.getElementById('btn-deploy');
-  const origText = btn.innerHTML;
+  const origText = btn.dataset.orig || (btn.dataset.orig = btn.innerHTML);
   btn.innerHTML = '⏳ ' + targetPath + '...';
   btn.style.pointerEvents = 'none';
   let token = localStorage.getItem('gh_token');
   if (!token) {
     token = prompt('GitHub Personal Access Token (scope: repo):');
-    if (!token) { btn.innerHTML = origText; btn.style.pointerEvents = ''; return; }
+    if (!token) { btn.innerHTML = origText; btn.style.pointerEvents = ''; return false; }
     localStorage.setItem('gh_token', token.trim());
   }
   try {
-    const bytes = new TextEncoder().encode(text);
+    const bytes = buf; // binário tal e qual (HTML, JS, JSON, PNG…)
     let binary = '';
     const chunkSize = 8192;
     for (let i = 0; i < bytes.length; i += chunkSize) {
@@ -429,11 +462,13 @@ async function deployToGitHub(input) {
     }
     btn.innerHTML = '✅ ' + targetPath;
     setTimeout(() => { btn.innerHTML = origText; btn.style.pointerEvents = ''; }, 3000);
+    return true;
   } catch (e) {
     alert('Erro no deploy: ' + e.message);
     localStorage.removeItem('gh_token');
     btn.innerHTML = origText;
     btn.style.pointerEvents = '';
+    return false;
   }
 }
 
@@ -633,7 +668,6 @@ function mapObra(r) {
     tipoObra: r.tipo_obra, subtipo: r.subtipo, area: r.area,
     pisosAcima: r.pisos_acima, pisosAbaixo: r.pisos_abaixo,
     ambito: r.ambito, principaisDesafios: r.principais_desafios,
-    relMensal: r.rel_mensal||false,
     valor: r.valor, valorObra: r.valor_obra, afetacao: r.afetacao,
     diaFaturacao: r.dia_faturacao, nifFaturacao: r.nif_faturacao,
     moradaFaturacao: r.morada_faturacao, cpFaturacao: r.cp_faturacao, localFaturacao: r.local_faturacao,
@@ -658,7 +692,6 @@ function unmapObra(o) {
     tipo_obra: o.tipoObra, subtipo: o.subtipo, area: o.area,
     pisos_acima: o.pisosAcima, pisos_abaixo: o.pisosAbaixo,
     ambito: o.ambito, principais_desafios: o.principaisDesafios,
-    rel_mensal: o.relMensal||false,
     valor: o.valor, valor_obra: o.valorObra, afetacao: o.afetacao,
     dia_faturacao: o.diaFaturacao, nif_faturacao: o.nifFaturacao,
     morada_faturacao: o.moradaFaturacao, cp_faturacao: o.cpFaturacao, local_faturacao: o.localFaturacao,
@@ -1099,7 +1132,7 @@ function relVisivelParaUser(r){
 // RELATÓRIOS — LISTA DE OBRAS
 // ================================================================
 function renderRelatorios(app){
-  const obras=getObrasVisiveis().filter(o=>o.relMensal);
+  const obras=getObrasVisiveis();
   app.innerHTML=`
   <div class="page-header">
     <div><div class="page-title">Controlo Operacional</div><div class="page-count">${obras.length} obra(s) com controlo operacional</div></div>
@@ -10564,7 +10597,7 @@ function renderDashboard(app){
 
 function renderObras(app){
   const states=['Todos os Estados','Em Curso','Concluída','Suspensa','Em Preparação'];
-  let obras=getObrasVisiveis().filter(o=>o.relMensal).sort((a,b)=>(a.codigo||'').localeCompare(b.codigo||''));
+  let obras=getObrasVisiveis().slice().sort((a,b)=>(a.codigo||'').localeCompare(b.codigo||''));
   if(obrasFilter!=='Todos os Estados') obras=obras.filter(o=>o.estado===obrasFilter);
   if(obrasSearch) obras=obras.filter(o=>[o.nome,o.sigla,o.codigo,o.localidade].join(' ').toLowerCase().includes(obrasSearch));
 
@@ -10988,7 +11021,7 @@ function renderFichaObra(app){
     intvSec('Projetistas',projs,u=>{const esp=DB.especialidades?.find(e=>e.id===u.especialidade);return esp?esp.nome:(u.funcao||u.email||'—');})
   );
 
-  const novoBtn=o.relMensal&&(currentUser?.role==='fiscalizacao'||canAdmin())?`<div style="display:flex;gap:6px;align-items:center"><button class="btn btn-outline btn-sm" style="font-size:11px;padding:3px 10px" onclick="event.stopPropagation();abrirCapaFisc('${o.id}')">Fiscalização</button><button class="btn btn-gold btn-sm" style="font-size:11px;padding:3px 10px" onclick="event.stopPropagation();abrirCapaSeg('${o.id}')">Segurança</button></div>`:'';
+  const novoBtn=(currentUser?.role==='fiscalizacao'||canAdmin())?`<div style="display:flex;gap:6px;align-items:center"><button class="btn btn-outline btn-sm" style="font-size:11px;padding:3px 10px" onclick="event.stopPropagation();abrirCapaFisc('${o.id}')">Fiscalização</button><button class="btn btn-gold btn-sm" style="font-size:11px;padding:3px 10px" onclick="event.stopPropagation();abrirCapaSeg('${o.id}')">Segurança</button></div>`:'';
   const coCols='grid-template-columns:1fr 1fr 1fr 1fr 1fr';
   const coHeader=`<div style="display:grid;${coCols};gap:8px;padding:5px 4px 6px;font-size:9px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--text-muted);border-bottom:0.5px solid var(--border-light);text-align:center">
     <div>Nº</div>
@@ -11093,10 +11126,9 @@ function obraModalContent(tab,o={}){
     <div class="form-row">
       <div><label class="form-label">Morada</label><input class="form-input" id="f-mor" placeholder="Rua, número..." value="${o.morada||''}"></div>
     </div>
-    <div class="form-row f3">
+    <div class="form-row f2">
       <div><label class="form-label">Código Postal</label><input class="form-input" id="f-cp" placeholder="0000-000" value="${o.codigoPostal||''}"></div>
       <div><label class="form-label">Localidade</label><input class="form-input" id="f-loc" placeholder="Localidade" value="${o.localidade||''}"></div>
-      <div><label class="form-label">Rel. Mensal</label><select class="form-select" id="f-rel"><option value="0" ${!o.relMensal?'selected':''}>Não</option><option value="1" ${o.relMensal?'selected':''}>Sim</option></select></div>
     </div>
     <div class="sec-div" style="margin-top:10px">Características</div>
     <div class="form-row f4">
@@ -11334,7 +11366,7 @@ function collectObraForm(){
 function modalNovaObra(){
   editingObraId=null;
   modalObraTab='Principal';
-  obraBuffer={estado:'Em Preparação',relMensal:false,docs:[],prorrogacoes:[],
+  obraBuffer={estado:'Em Preparação',docs:[],prorrogacoes:[],
     intervenientes_do:[],intervenientes_fisc:[],intervenientes_emp:[],intervenientes_proj:[]};
   showModal('Nova Obra',obraModalTabs()+obraModalContent('Principal',obraBuffer),[
     {label:'Cancelar',cls:'btn-outline',fn:'closeModal()'},
