@@ -282,7 +282,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.11.04.1552</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.11.05.0901</span>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-dash" title="Dashboard PE · PA · PB · QE" onclick="dashAbrir('')">📊 Dashboard</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <label class="btn btn-outline btn-sm" style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:flex;align-items:center;gap:4px" id="btn-deploy" title="Deploy para GitHub/Vercel">
@@ -5448,7 +5448,10 @@ window.ptqEliminar=async function(id){
 
 /* ---- interações do calendário ---- */
 function ptqFichaAtualDoc(){ return ptqPorId(ptqFichaId); }
-function pqEditavel(d){ return peEEmp() && d.estado==='rascunho'; }
+function pqEditavel(d){ return (peEEmp() && d.estado==='rascunho') || peESuper(); }
+/* registo de edição admin (1x por abertura da ficha) quando o PTQ já não está em rascunho */
+let ptqAdmLogId=null;
+function ptqAdmMarca(d,txt){ if(!peESuper()||d.estado==='rascunho') return; if(ptqAdmLogId===d.id&&!txt) return; ptqRegistar(d,txt||'Edição Admin — grelha / observações alteradas em linha.'); if(!txt) ptqAdmLogId=d.id; }
 function pqDias(d){ return pqDiasDoPlano(d.inicioPlano); }
 function pqEhSabado(dias,c){ return dias[c] && dias[c].dow===6; }
 function pqEhFeriado(d,dias,c){ return dias[c] && !!(d.feriados||{})[dias[c].iso]; }
@@ -5465,7 +5468,9 @@ window.pqLerForm=function(){
   (d.subs||[]).forEach((s,i)=>{ if(g('pq-s-nome-'+i)) s.sub=g('pq-s-nome-'+i).value.trim(); });
   (d.equipamentos||[]).forEach((e,i)=>{ if(g('pq-e-desc-'+i)) e.desc=g('pq-e-desc-'+i).value.trim(); });
 };
-async function pqRefrescar(){ const d=ptqFichaAtualDoc(); await ptqPersistir(d); ptqAbrirFicha(d.id); }
+/* Admin em PTQ já enviado: grava logo cada texto alterado (não há botão Guardar) */
+window.pqLerFormAdm=async function(){ const d=ptqFichaAtualDoc(); if(!d) return; pqLerForm(); if(peESuper()&&d.estado!=='rascunho'){ ptqAdmMarca(d); await ptqPersistir(d); } };
+async function pqRefrescar(){ const d=ptqFichaAtualDoc(); ptqAdmMarca(d); await ptqPersistir(d); ptqAbrirFicha(d.id); }
 window.pqAlterarInicio=function(v){
   const d=ptqFichaAtualDoc(); if(!d) return; pqLerForm();
   let iso=v||'';
@@ -5597,9 +5602,65 @@ function renderListaPTQ(app){
   </div>`;
 }
 
+/* ---- Edição Admin em linha (Identificação) ---- */
+const PTQ_COL={dataCriacao:'data_criacao',dataEnvio:'data_envio',autorEmp:'autor_empreiteiro',entidade:'entidade_executante',estado:'estado'};
+function ptqIPValor(d,c){ return c==='id'?d.id:(d[c]==null?'':d[c]); }
+function ptqIPMostra(d,c,t){ const v=ptqIPValor(d,c); if(v===''||v==null) return '<span class="pe-muted">—</span>'; if(t==='date') return esc(peDataPT(v)); if(c==='estado') return esc(ptqEST(v).rot); return esc(v); }
+function ptqIP(rot,c,t){
+  const d=ptqFichaAtualDoc(); if(!d) return '';
+  return `<div class="pe-fld"><label>${rot}</label><div class="pe-ro pe-ip" data-c="${c}" data-t="${t||'text'}" data-r="${esc(rot)}" onclick="ptqIPEditar(this)" title="Clique para editar">${ptqIPMostra(d,c,t||'text')}</div></div>`;
+}
+window.ptqIPEditar=function(el){
+  if(!peESuper()||el.classList.contains('ed')) return;
+  const d=ptqFichaAtualDoc(); if(!d) return;
+  const c=el.dataset.c, t=el.dataset.t, v=ptqIPValor(d,c);
+  let ctl;
+  if(t==='select'){ ctl=document.createElement('select'); ctl.innerHTML=PTQ_MOD.ordem.map(k=>`<option value="${k}" ${k===v?'selected':''}>${esc(PTQ_MOD.estados[k].rot)}</option>`).join(''); }
+  else { ctl=document.createElement('input'); ctl.type=(t==='date'?'date':'text'); ctl.value=(t==='date'?String(v||'').slice(0,10):v); }
+  el.classList.add('ed'); el.innerHTML=''; el.appendChild(ctl); ctl.focus();
+  let feito=false;
+  const sair=gravar=>{ if(feito) return; feito=true; if(gravar) ptqIPGravar(c,t,ctl.value,el.dataset.r); else render(); };
+  ctl.addEventListener('keydown',e=>{ if(e.key==='Escape'){ e.preventDefault(); sair(false); } else if(e.key==='Enter'){ e.preventDefault(); sair(true); } });
+  if(t==='select') ctl.addEventListener('change',()=>sair(true));
+  ctl.addEventListener('blur',()=>sair(true));
+};
+async function ptqIPGravar(c,t,valor,rot){
+  const d=ptqFichaAtualDoc(); if(!d||!peESuper()) return;
+  pqLerForm();
+  const antes=ptqIPValor(d,c);
+  const novo=(t==='date'||t==='select')?valor:String(valor).trim();
+  if(String(novo)===String(antes==null?'':antes)){ render(); return; }
+  if(c==='id') return ptqRenumerar(d,novo);
+  const nul=(t==='date')&&novo==='';
+  d[c]=nul?null:novo;
+  const fmt=x=>{ if(x==null||x==='') return '—'; if(t==='date') return peDataPT(x); if(c==='estado') return ptqEST(x).rot; return String(x); };
+  ptqRegistar(d,`Edição Admin — ${rot}: "${fmt(antes)}" → "${fmt(novo)}"`);
+  const corpo={[PTQ_COL[c]]:nul?null:novo,historico:d.historico,updated_at:new Date().toISOString()};
+  try{ await sbRel.patchWhere('planos_quinzenais',`id=eq.${encodeURIComponent(d.id)}&obra_id=eq.${encodeURIComponent(d.obraId)}`,corpo); }
+  catch(e){ alert('Erro ao gravar: '+e.message); }
+  render();
+}
+async function ptqRenumerar(d,novoTxt){
+  const m=String(novoTxt).trim().match(/^(\d{1,4})\.(\d{1,2})$/);
+  if(!m){ alert('Formato inválido. Use Nº.Revisão — ex.: 010.0'); render(); return; }
+  const num=parseInt(m[1],10), rev=parseInt(m[2],10), novo=peIdFmt(num,rev), velho=d.id;
+  if(novo===velho){ render(); return; }
+  if(ptqDocs.some(x=>x.id===novo)){ alert('Já existe o PTQ '+novo+' nesta obra.\nElimine-o ou renumere-o primeiro.'); render(); return; }
+  if(!confirm('Renumerar o PTQ '+velho+' para '+novo+'?\n\nLinks antigos enviados por email deixam de abrir este PTQ.')){ render(); return; }
+  try{
+    showLoadingOverlay('A renumerar…');
+    ptqRegistar(d,`Edição Admin — Id renumerado: "${velho}" → "${novo}"`);
+    await sbRel.patchWhere('planos_quinzenais',`id=eq.${encodeURIComponent(velho)}&obra_id=eq.${encodeURIComponent(d.obraId)}`,{id:novo,num,rev,historico:d.historico,updated_at:new Date().toISOString()});
+    d.id=novo; d.num=num; d.rev=rev; ptqFichaId=novo; ptqAdmLogId=null;
+    ptqDocs.sort((a,b)=>(b.num-a.num)||(b.rev-a.rev));
+  }catch(e){ alert('Erro ao renumerar: '+e.message); }
+  finally{ hideLoadingOverlay(); }
+  render();
+}
+
 /* ---- FICHA ---- */
 window.ptqAbrirFicha=function(id){ ptqFichaId=id; render(); };
-window.ptqVoltarLista=function(){ ptqFichaId=null; render(); };
+window.ptqVoltarLista=function(){ ptqFichaId=null; ptqAdmLogId=null; render(); };
 window.ptqVoltarCapa=function(){ const o=ptqObra(); ptqFichaId=null; ptqObraId=null; fichObraId=o?o.id:null; render(); };
 
 function renderFichaPTQ(app){
@@ -5607,6 +5668,7 @@ function renderFichaPTQ(app){
   if(!d){ ptqFichaId=null; render(); return; }
   const M=PTQ_MOD;
   const ed=pqEditavel(d);
+  const adm=peESuper();
   const dias=pqDias(d);
   const fer=c=>(d.feriados||{})[dias[c]?dias[c].iso:''];
 
@@ -5626,7 +5688,7 @@ function renderFichaPTQ(app){
     acoes.push(`<button class="pe-btn gold" onclick="ptqDuplicar()">Duplicar →</button>`);
   }
   if(d.estado==='enviado'){ acoes.push(`<button class="pe-btn info" onclick="ptqPDF('${d.id}')" title="Descarregar o documento completo em PDF">📄 PDF</button>`); }
-  if(peESuper()){ acoes.push(`<button class="pe-btn" onclick="gpeAdmEditar('ptq','${d.id}')">Editar (Admin)</button>`); acoes.push(`<button class="pe-btn red" onclick="ptqEliminar('${d.id}')">Eliminar</button>`); }
+  if(peESuper()){ acoes.push(`<button class="pe-btn red" onclick="ptqEliminar('${d.id}')">Eliminar</button>`); }
 
   const cg=`<colgroup><col class="c-num"><col class="c-trab"><col class="c-sec">`+dias.map(()=>'<col class="c-dia">').join('')+`<col class="c-del"></colgroup>`;
   const cabDatas=dias.map((x,c)=>{ const e=fer(c); return `<th class="dia-cab ${e?'esp-'+e:''} ${x.dow===6?'sab':''} ${ed?'clic':''}" ${ed?`onclick="pqCicloDiaEspecial(${c})"`:''} title="${ed?'Clique para marcar Feriado / Ponte':''}"><span class="d-data">${x.dm}</span></th>`; }).join('');
@@ -5637,8 +5699,8 @@ function renderFichaPTQ(app){
   const totA=Array(12).fill(0); (d.atividades||[]).forEach(a=>a.dias.forEach((v,c)=>{ if(v) totA[c]++; }));
   const linhasA=(d.atividades||[]).map((a,i)=>`<tr>
     <td class="nlin">${i+1}</td>
-    <td>${ed?`<input id="pq-a-desc-${i}" value="${esc(a.desc)}" onchange="pqLerForm()" placeholder="Trabalho a executar">`:esc(a.desc)||'—'}</td>
-    <td>${ed?`<input id="pq-a-local-${i}" value="${esc(a.local)}" onchange="pqLerForm()" placeholder="Localização">`:esc(a.local)||'—'}</td>
+    <td>${ed?`<input id="pq-a-desc-${i}" value="${esc(a.desc)}" onchange="pqLerFormAdm()" placeholder="Trabalho a executar">`:esc(a.desc)||'—'}</td>
+    <td>${ed?`<input id="pq-a-local-${i}" value="${esc(a.local)}" onchange="pqLerFormAdm()" placeholder="Localização">`:esc(a.local)||'—'}</td>
     ${a.dias.map((v,c)=>{ const e=fer(c); if(e) return `<td class="cel esp-${e} fp">${e==='feriado'?'F':'P'}</td>`; const cls=(dias[c].dow===6?'sab':''); return `<td class="cel ${cls}" ${ed?`onclick="pqToggleAtividade(${i},${c})"`:''}>${v?'✕':''}</td>`; }).join('')}
     <td class="c-del">${ed?`<button class="pq-btnx" onclick="pqDelLinha('a',${i})" title="Eliminar linha">×</button>`:''}</td></tr>`).join('');
 
@@ -5646,23 +5708,27 @@ function renderFichaPTQ(app){
   const linhasS=(d.subs||[]).map((s,i)=>{ const ativ=((d.atividades||[])[i]||{}).desc||''; return `<tr>
     <td class="nlin">${i+1}</td>
     <td class="espelho">${esc(ativ)||'<span class="pe-muted">—</span>'}</td>
-    <td>${ed?`<input id="pq-s-nome-${i}" value="${esc(s.sub)}" onchange="pqLerForm()" placeholder="Subempreiteiro">`:esc(s.sub)||'—'}</td>
+    <td>${ed?`<input id="pq-s-nome-${i}" value="${esc(s.sub)}" onchange="pqLerFormAdm()" placeholder="Subempreiteiro">`:esc(s.sub)||'—'}</td>
     ${s.dias.map((v,c)=>{ const e=fer(c); if(e) return `<td class="cel num esp-${e} fp">${e==='feriado'?'F':'P'}</td>`; return `<td class="cel num ${dias[c].dow===6?'sab':''}">${ed?(v!==''?`<div class="pq-numcell" title="Clique para remover este dia" onmousedown="event.preventDefault();pqSetNum('s',${i},${c},'')">${esc(v)}</div>`:`<input type="text" inputmode="numeric" value="" onchange="pqSetNum('s',${i},${c},this.value)">`):(v===''?'':esc(v))}</td>`; }).join('')}
     <td class="c-del"></td></tr>`; }).join('');
 
   const totE=Array(12).fill(0); (d.equipamentos||[]).forEach(e=>e.dias.forEach((v,c)=>{ const n=Number(v); if(!isNaN(n)) totE[c]+=n; }));
   const linhasE=(d.equipamentos||[]).map((e,i)=>`<tr>
     <td class="nlin">${i+1}</td>
-    <td colspan="2">${ed?`<input id="pq-e-desc-${i}" value="${esc(e.desc)}" onchange="pqLerForm()" placeholder="Equipamento">`:esc(e.desc)||'—'}</td>
+    <td colspan="2">${ed?`<input id="pq-e-desc-${i}" value="${esc(e.desc)}" onchange="pqLerFormAdm()" placeholder="Equipamento">`:esc(e.desc)||'—'}</td>
     ${e.dias.map((v,c)=>{ const f=fer(c); if(f) return `<td class="cel num esp-${f} fp">${f==='feriado'?'F':'P'}</td>`; return `<td class="cel num ${dias[c].dow===6?'sab':''}">${ed?(v!==''?`<div class="pq-numcell" title="Clique para remover este dia" onmousedown="event.preventDefault();pqSetNum('e',${i},${c},'')">${esc(v)}</div>`:`<input type="text" inputmode="numeric" value="" onchange="pqSetNum('e',${i},${c},this.value)">`):(v===''?'':esc(v))}</td>`; }).join('')}
     <td class="c-del">${ed?`<button class="pq-btnx" onclick="pqDelLinha('e',${i})" title="Eliminar linha">×</button>`:''}</td></tr>`).join('');
 
   const secId=`<div class="pe-zone pe-ident"><div class="pe-zh"><span class="pe-zdot"></span><span class="pe-zt">Identificação</span></div>
     <div class="pe-zb"><div class="pe-grid3">
-      ${peCampo('Id','x',d.id,null,false)}
-      ${peCampo('Data','x',d.dataCriacao,'date',false)}
-      ${peCampo('Autor','x',d.autorEmp,'text',false)}
-    </div><div class="pe-grid3 pe-mt">
+      ${adm?ptqIP('Id','id'):peCampo('Id','x',d.id,null,false)}
+      ${adm?ptqIP('Data','dataCriacao','date'):peCampo('Data','x',d.dataCriacao,'date',false)}
+      ${adm?ptqIP('Autor','autorEmp'):peCampo('Autor','x',d.autorEmp,'text',false)}
+    </div>${adm?`<div class="pe-grid3 pe-mt">
+      ${ptqIP('Estado','estado','select')}
+      ${ptqIP('Data de Envio','dataEnvio','date')}
+      ${ptqIP('Entidade Executante','entidade')}
+    </div>`:''}<div class="pe-grid3 pe-mt">
       <div class="pe-fld"><label>Início do plano (segunda)</label>${ed?`<input type="date" value="${esc(d.inicioPlano)}" onchange="pqAlterarInicio(this.value)">`:`<div class="pe-ro">${peDataPT(d.inicioPlano)}</div>`}</div>
       ${peCampo('Período','x',d.periodo,'text',false)}
       ${peCampo('Semanas','x',d.semanas,'text',false)}
@@ -5676,7 +5742,7 @@ function renderFichaPTQ(app){
   const cabE=`<tr><th rowspan="3" class="nlin">#</th><th rowspan="3" colspan="2">Equipamento</th>${cabDatas}<th rowspan="3"></th></tr>${cabLetras}${cabTotais(totE)}`;
 
   const secObs=`<div class="pe-zone pe-emp"><div class="pe-zh"><span class="pe-zdot"></span><span class="pe-zt">Observações</span></div>
-    <div class="pe-zb">${ed?`<textarea id="pq-obs" class="pq-obs" onchange="pqLerForm()">${esc(d.observacoes)}</textarea>`:`<div class="pe-ro" style="min-height:60px">${esc(d.observacoes)||'—'}</div>`}</div></div>`;
+    <div class="pe-zb">${ed?`<textarea id="pq-obs" class="pq-obs" onchange="pqLerFormAdm()">${esc(d.observacoes)}</textarea>`:`<div class="pe-ro" style="min-height:60px">${esc(d.observacoes)||'—'}</div>`}</div></div>`;
 
   app.innerHTML=PE_CSS+PTQ_CSS+`
   <div class="pe-wrap">
@@ -5689,6 +5755,7 @@ function renderFichaPTQ(app){
       <div class="pe-fluxo" style="flex:1;justify-content:center;margin:0">${fluxo}</div>
       <div class="pe-actbar" style="display:flex;gap:8px;flex-wrap:wrap">${acoes.join('')}</div>
     </div>
+    ${adm&&d.estado!=='rascunho'?`<div class="pe-nota" style="border-color:#E0B000;background:#FFF8E1"><b>Edição Admin em linha</b> — clique em qualquer campo de Identificação para o alterar; a grelha e as observações também são editáveis. Cada alteração é gravada de imediato e fica no Histórico. Não são enviados emails.</div>`:''}
     ${ed?`<div class="pe-nota">Clique num dia (cabeçalho) para marcar Feriado (F) / Ponte (P). Nas Actividades, clique nos dias para marcar (✕ = marcado; sugestão preenche os dias seguintes da semana). Mão de Obra e Equipamentos: escreva o número.</div>`:''}
     ${(d.rsosRef&&d.rsosRef.length)?`<div class="pe-lig">Referenciado em: ${d.rsosRef.map(x=>`<a onclick="rsoAbrirRSOref('${d.obraId}','${x.relId}')">RSO ${esc(x.numero)}${x.semana?' (S'+x.semana+')':''}</a>`).join(' · ')}</div>`:''}
     ${secId}
