@@ -291,7 +291,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.11.06.1620</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.11.06.1653</span>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-pwa-instalar" title="Instalar o SEGO como app neste dispositivo" onclick="pwaInstalar()">📲 Instalar App</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-pwa-atualizar" title="Recarregar a app (dados e versão mais recentes)" onclick="location.reload()">↻ Atualizar</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-dash" title="Dashboard PE · PA · PB · QE" onclick="dashAbrir('')">📊 Dashboard</button>
@@ -2283,7 +2283,7 @@ function sosActionBtn(r){
   const isUltimoGlobal=(r.numero||0)===maxNum && isUltimaVersao;
   const podeNovoRever=isUltimoGlobal && lista.length>1 && r.estado==='disponibilizado';
   let b='';
-  if(podeNovoRever) b+=`<button class="btn btn-outline btn-sm" onclick="criarSOS('${r.obra_id}')">⧉ Novo SOS</button>`;
+  if(podeNovoRever) b+=`<button class="btn btn-outline btn-sm" onclick="criarSOS('${r.obra_id}')" title="Cria o SOS seguinte a partir deste">⧉ Duplicar</button>`;
   if(podeNovoRever) b+=`<button class="btn btn-outline btn-sm" onclick="criarRevisao('${r.id}')">✎ Criar revisão</button>`;
   if(r.estado==='disponibilizado'){
     b+=`<button class="btn btn-outline btn-sm" onclick="abrirReenviar('${r.id}')">📧 Reenviar</button>`;
@@ -2988,7 +2988,7 @@ function rvtRowBtns(r){
   const S='font-size:10px;padding:2px 7px';
   let b='';
   // ORDEM: Novo (esquerda) · Rever (centro) · Publicar/Reenviar (direita)
-  if(podeNovoRever) b+=`<button class="btn btn-outline btn-sm" style="${S}" onclick="event.stopPropagation();criarCOdoUltimo('${r.obra_id}','${tipo}','${subtipo}')">⧉ Novo</button>`;
+  if(podeNovoRever) b+=`<button class="btn btn-outline btn-sm" style="${S}" onclick="event.stopPropagation();criarCOdoUltimo('${r.obra_id}','${tipo}','${subtipo}')" title="Cria o relatório seguinte a partir deste">⧉ Duplicar</button>`;
   if(podeNovoRever) b+=`<button class="btn btn-outline btn-sm" style="${S}" onclick="event.stopPropagation();criarRevisao('${r.id}')">✎ Rever</button>`;
   if(r.estado==='disponibilizado'){
     b+=`<button class="btn btn-outline btn-sm" style="${S}" onclick="event.stopPropagation();abrirReenviar('${r.id}')">📧 Reenviar</button>`;
@@ -9349,7 +9349,7 @@ function fiscActionBtn(r){
   const podeNovoRever=isUltimoGlobal && lista.length>1 && r.estado==='disponibilizado';
   let b='';
   // ORDEM: Novo · Rever · Publicar/Reenviar
-  if(podeNovoRever) b+=`<button class="btn btn-outline btn-sm" onclick="criarCOdoUltimo('${r.obra_id}','fiscalizacao','RS')">⧉ Novo RSO</button>`;
+  if(podeNovoRever) b+=`<button class="btn btn-outline btn-sm" onclick="criarCOdoUltimo('${r.obra_id}','fiscalizacao','RS')" title="Cria o RSO seguinte a partir deste">⧉ Duplicar</button>`;
   if(podeNovoRever) b+=`<button class="btn btn-outline btn-sm" onclick="criarRevisao('${r.id}')">✎ Criar revisão</button>`;
   if(r.estado==='disponibilizado'){
     b+=`<button class="btn btn-outline btn-sm" onclick="abrirReenviar('${r.id}')">📧 Reenviar</button>`;
@@ -9729,7 +9729,7 @@ function rvtActionBtn(r){
   const podeNovoRever=isUltimoGlobal && lista.length>1 && r.estado==='disponibilizado';
   let b='';
   // ORDEM: Novo · Rever · Publicar/Reenviar
-  if(podeNovoRever) b+=`<button class="btn btn-outline btn-sm" onclick="criarCOdoUltimo('${r.obra_id}','seguranca','RVT')">⧉ Novo RVT</button>`;
+  if(podeNovoRever) b+=`<button class="btn btn-outline btn-sm" onclick="criarCOdoUltimo('${r.obra_id}','seguranca','RVT')" title="Cria o RVT seguinte a partir deste">⧉ Duplicar</button>`;
   if(podeNovoRever) b+=`<button class="btn btn-outline btn-sm" onclick="criarRevisao('${r.id}')">✎ Criar revisão</button>`;
   if(r.estado==='disponibilizado'){
     b+=`<button class="btn btn-outline btn-sm" onclick="abrirReenviar('${r.id}')">📧 Reenviar</button>`;
