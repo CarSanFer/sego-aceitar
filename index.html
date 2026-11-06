@@ -291,7 +291,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.11.05.2022</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.11.06.1620</span>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-pwa-instalar" title="Instalar o SEGO como app neste dispositivo" onclick="pwaInstalar()">📲 Instalar App</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-pwa-atualizar" title="Recarregar a app (dados e versão mais recentes)" onclick="location.reload()">↻ Atualizar</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-dash" title="Dashboard PE · PA · PB · QE" onclick="dashAbrir('')">📊 Dashboard</button>
@@ -914,7 +914,7 @@ window.doLogin=function(){
     document.getElementById('login-error').textContent='Sem permissão para aceder ao SEGO. Contacte o administrador para activar o acesso a esta aplicação no SID.';
     return;
   }
-  currentUser={id:u.id,nome:u.nome,email:u.email,role:u.role,obras:u.obras,apps:userApps};
+  currentUser={id:u.id,nome:u.nome,email:u.email,role:u.role,funcao:u.funcao||'',obras:u.obras,apps:userApps};
   showApp();
 };
 
@@ -1250,6 +1250,7 @@ window.relGravarEnvio=async function(relId){
   if(!env.tipo) env.tipo='manual';
   env.editadoPor=(currentUser&&currentUser.nome)||''; env.editadoEm=new Date().toISOString();
   rel.conteudo.envio=env;
+  relHistAdd(rel,'Registo do envio alterado (Admin): '+env.nome+(d?' · '+d.toLocaleString('pt-PT',{dateStyle:'short',timeStyle:'short'}):''));
   try{ await sbRel.patch('relatorios',relId,{conteudo:JSON.stringify(rel.conteudo)}); closeModal(); render(); }
   catch(e){ alert('Erro ao gravar: '+e.message); }
 };
@@ -2184,7 +2185,8 @@ function renderFichaRVT(app,r){
       ${rvtActionBtn(r)}
     </div>
   </div>
-  <iframe id="rvtFrame" title="RVT" style="width:100%;height:600px;border:1px solid var(--border-light);border-radius:var(--radius);background:#fff"></iframe>`;
+  <iframe id="rvtFrame" title="RVT" style="width:100%;height:600px;border:1px solid var(--border-light);border-radius:var(--radius);background:#fff"></iframe>
+  ${relHistHTML(r)}`;
   const fr=document.getElementById('rvtFrame'); if(fr){ rvtAutoAltura(fr); fr.srcdoc=html; }
 }
 const SEG_TIPOS=[{key:'RVT',sigla:'RVT',label:'Relatório de Visita Técnica',icon:`<svg viewBox=\"0 0 48 48\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M24 6l14 5v9c0 9-6 15-14 17-8-2-14-8-14-17v-9l14-5z\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linejoin=\"round\"/><path d=\"M18 24l4 4 8-9\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>`}];
@@ -2404,7 +2406,7 @@ function renderFichaSOS(app,r){
       <div style="${sectTitle};margin-bottom:8px">OBSERVAÇÕES GERAIS</div>
       <textarea ${ro?'readonly':''} oninput="sosCommit('observacoesGerais',this.value)" placeholder="Notas gerais sobre o relatório SOS..." rows="3" style="${ro?inpRO:inpS};resize:vertical;min-height:60px">${esc(d.observacoesGerais||'')}</textarea>
     </div>
-
+    ${relHistHTML(r)}
   </div>`;
 }
 
@@ -2482,12 +2484,32 @@ function renderPublicSOS(rel,o,conteudo){
   </div>`;
   document.body.innerHTML=html;
 }
-/* CSO que recebe obrigatoriamente PTQ e RSO: CSO (Fiscalização) associada à obra; se nenhuma estiver associada, todas as CSO ativas */
+/* CSO que recebe obrigatoriamente PTQ e RSO: SÓ a(s) CSO da própria obra —
+   associada na ficha do utilizador (obras) OU na equipa de Fiscalização da obra (intervenientes_fisc). Sem CSO na obra → ninguém. */
 function segoCSOsDaObra(o){
-  const inObra=u=>u.obras==='todas'||(Array.isArray(u.obras)&&u.obras.some(oid=>String(oid)===String(o.id)||(o.codigo&&String(oid)===String(o.codigo))||(o.sigla&&String(oid)===String(o.sigla))));
-  const csos=(DB.utilizadores||[]).filter(u=>u.email&&u.ativo!==false&&u.role==='fiscalizacao'&&segoEhCSO(u));
-  const daObra=csos.filter(inObra);
-  return daObra.length?daObra:csos;
+  if(!o||!o.id) return [];
+  const equipa=((o.intervenientes_fisc)||[]).map(String);
+  const inObra=u=>(Array.isArray(u.obras)&&u.obras.some(oid=>String(oid)===String(o.id)||(o.codigo&&String(oid)===String(o.codigo))||(o.sigla&&String(oid)===String(o.sigla))))||equipa.includes(String(u.id));
+  return (DB.utilizadores||[]).filter(u=>u.email&&u.ativo!==false&&u.role==='fiscalizacao'&&segoEhCSO(u)&&inObra(u));
+}
+const REL_CC_FIXO=['carlos.ferreira@aceitar.pt','tiago.faria@aceitar.pt']; // Cc fixo do template EmailJS dos relatórios
+function relHistAdd(rel,acao){
+  if(!rel.conteudo) rel.conteudo={};
+  if(!Array.isArray(rel.conteudo.historico)) rel.conteudo.historico=[];
+  rel.conteudo.historico.push({data:new Date().toISOString(),autor:(currentUser&&currentUser.nome)||'—',acao});
+}
+function relHistTxtEnvio(para,cc){
+  const ccT=[...new Set([...(cc||[]),...REL_CC_FIXO].map(e=>String(e).toLowerCase()))];
+  return 'Para: '+(para.length?para.join(', '):'—')+' · Cc: '+ccT.join(', ');
+}
+function relHistHTML(r){
+  const dt=iso=>{ const d=new Date(iso); if(isNaN(d)) return esc(String(iso||'')); const p=n=>String(n).padStart(2,'0'); return p(d.getDate())+'/'+p(d.getMonth()+1)+'/'+d.getFullYear()+' '+p(d.getHours())+':'+p(d.getMinutes()); };
+  const c=r.conteudo||{}; const h=Array.isArray(c.historico)?c.historico:[];
+  const linhas=[];
+  if(r.criado_em) linhas.push(`<div>· ${dt(r.criado_em)} — [${esc(r.criado_por_nome||'—')}] Criado (Rascunho).</div>`);
+  h.forEach(x=>linhas.push(`<div>· ${dt(x.data)} — [${esc(x.autor||'—')}] ${esc(x.acao||'')}</div>`));
+  if(!h.length&&c.envio&&c.envio.data) linhas.push(`<div>· ${dt(c.envio.data)} — [${esc(c.envio.nome||'—')}] ${c.envio.tipo==='reenvio'?'Reenviado':'Publicado e enviado'} (destinatários não registados — envio anterior ao histórico).</div>`);
+  return `<div class="table-card" style="padding:12px 14px;margin-top:14px;font-size:11px;color:var(--text-muted)"><b style="color:var(--navy)">Histórico</b>${linhas.join('')||'<div>—</div>'}</div>`;
 }
 function relEhRSO(rel){ const c=(rel&&rel.conteudo)||{}; return c.tipo==='fiscalizacao'&&c.subtipo!=='SOS'; }
 window.abrirPublicar=function(relId){
@@ -2512,7 +2534,7 @@ window.abrirPublicar=function(relId){
   } else {
     opcionais=people.filter(u=>!(u.role==='dono_obra'||u.role==='empreiteiro')||segoEhCSO(u)).filter(u=>!ccAuto.some(c=>c.email===u.email));
   }
-  const ccHtml=ccAuto.length?('<div style="font-size:12px;margin-bottom:4px"><b>Com conhecimento (Cc) automático:</b></div><div style="border:1px solid var(--border-light);border-radius:var(--radius);padding:4px 10px;margin-bottom:14px;background:#F7F9FC">'+ccAuto.map(u=>'<div style="padding:4px 0;font-size:13px"><b>'+(u.nome||u.email)+'</b> <span style="color:var(--text-muted)">· Fiscalização · '+u.email+'</span></div>').join('')+'</div>'):'';
+  const ccHtml=ccAuto.length?('<div style="font-size:12px;margin-bottom:4px"><b>Com conhecimento (Cc) automático:</b></div><div style="border:1px solid var(--border-light);border-radius:var(--radius);padding:4px 10px;margin-bottom:14px;background:#F7F9FC">'+ccAuto.map(u=>'<div style="padding:4px 0;font-size:13px"><b>'+(u.nome||u.email)+'</b> <span style="color:var(--text-muted)">· Fiscalização · '+u.email+'</span></div>').join('')+'</div>'):(_ehRSO?'<div style="font-size:12px;margin-bottom:14px;padding:6px 10px;border-left:3px solid #E0B000;background:#FFF8E1"><b>Sem CSO associada a esta obra</b> — o RSO não segue para nenhuma CSO. Associe a CSO à obra no SID (ficha do utilizador ou equipa de Fiscalização da obra).</div>':'');
   const link=location.origin+'/?doc='+encodeURIComponent(relId);
   const obraTxt=((o.sigla?o.sigla+' — ':'')+(o.nome||'')).trim();
   const defMsg='Disponibiliza-se o '+_sigla+' '+relNumero(rel)+' da Obra '+obraTxt+', cujo link de acesso é:';
@@ -2551,6 +2573,7 @@ window.publicarSemNotif=async function(relId){
     showLoadingOverlay('A publicar...');
     if(!rel.conteudo) rel.conteudo={};
     rel.conteudo.publicadoSemNotif={nome:(currentUser&&currentUser.nome)||'—',email:(currentUser&&currentUser.email)||'',data:new Date().toISOString()};
+    relHistAdd(rel,'Publicado sem notificação (nenhum email enviado).');
     await sbRel.patch('relatorios',relId,{estado:'disponibilizado',conteudo:JSON.stringify(rel.conteudo)});
     rel.estado='disponibilizado';
     hideLoadingOverlay(); closeModal(); render();
@@ -2623,8 +2646,9 @@ window.publicarEnviar=async function(relId){
       if(!rel.conteudo) rel.conteudo={};
       rel.conteudo.envio={nome:(currentUser&&currentUser.nome)||'—',email:(currentUser&&currentUser.email)||'',data:new Date().toISOString(),tipo:'inicial'};
       if(_alTxt) rel.conteudo.envio.alerta=_alTxt;
-      try{ await sbRel.patch('relatorios',relId,{conteudo:JSON.stringify(rel.conteudo)}); }catch(e){ console.error('Falha a registar envio:',e); }
     }
+    relHistAdd(rel,'Publicado — '+(dest.length?(okEmail?'email enviado. '+relHistTxtEnvio(dest.map(d=>d.email),ccFisc)+(_alTxt?' · Com alerta.':''):'envio de email FALHOU ('+emailErr+'). Destinatários previstos: '+dest.map(d=>d.email).join(', ')):'sem destinatários (nenhum email enviado).'));
+    try{ await sbRel.patch('relatorios',relId,{conteudo:JSON.stringify(rel.conteudo)}); }catch(e){ console.error('Falha a registar envio:',e); }
     hideLoadingOverlay(); closeModal(); render();
     if(dest.length){
       if(okEmail){ alert(_sigla+' publicado.\nEmail enviado a '+dest.length+' destinatário(s).'+(ccFisc.length?'\nCc ('+(_ehSegP?'Fiscalização':'CSO')+'): '+ccFisc.join(', '):'')+(_alTxt?'\nAlerta incluído no email.':'')); }
@@ -2697,8 +2721,9 @@ window.reenviarEnviar=async function(relId){
     if(okEmail){
       if(!rel.conteudo) rel.conteudo={};
       rel.conteudo.envio={nome:(currentUser&&currentUser.nome)||'—',email:(currentUser&&currentUser.email)||'',data:new Date().toISOString(),tipo:'reenvio'};
-      try{ await sbRel.patch('relatorios',relId,{conteudo:JSON.stringify(rel.conteudo)}); }catch(e){ console.error('Falha a registar reenvio:',e); }
     }
+    relHistAdd(rel,'Reenviado — '+(okEmail?relHistTxtEnvio(dest.map(d=>d.email),ccFisc):'envio FALHOU ('+emailErr+'). Destinatários previstos: '+dest.map(d=>d.email).join(', ')));
+    try{ await sbRel.patch('relatorios',relId,{conteudo:JSON.stringify(rel.conteudo)}); }catch(e){ console.error('Falha a registar reenvio:',e); }
     hideLoadingOverlay();
     closeModal();
     render();
@@ -2717,7 +2742,8 @@ window.reverterParaRascunho=async function(relId){
   if(!confirm('Reverter este relatório para rascunho?\n\nO estado "Disponibilizado" será removido mas o conteúdo é mantido. Os emails já enviados não são afetados.'))return;
   try{
     showLoadingOverlay('A reverter...');
-    await sbRel.patch('relatorios',relId,{estado:'rascunho'});
+    relHistAdd(rel,'Revertido para Rascunho.');
+    await sbRel.patch('relatorios',relId,{estado:'rascunho',conteudo:JSON.stringify(rel.conteudo)});
     rel.estado='rascunho';
     hideLoadingOverlay();
     render();
@@ -9689,6 +9715,7 @@ function renderFichaRS(app,r){
         </div>`).join('')}
       </div>`:empty('Sem fotos'))}
     </div>
+    ${relHistHTML(r)}
   </div>`;
 }
 function rvtActionBtn(r){
