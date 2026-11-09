@@ -293,7 +293,7 @@ tr.tr-click:hover td{background:#F5F7FA}
   <button id="nav-home" type="button" title="Início — Lista de Obras" aria-label="Início" onclick="navInicio()" style="display:none;margin-left:18px;width:30px;height:30px;border-radius:50%;border:1px solid rgba(232,168,48,.55);background:transparent;color:#fff;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg></button>
   <button id="nav-back" type="button" title="Voltar" aria-label="Voltar" onclick="navVoltar()" style="display:none;margin-right:auto;margin-left:8px;width:30px;height:30px;border-radius:50%;border:1px solid rgba(232,168,48,.55);background:transparent;color:#fff;cursor:pointer;align-items:center;justify-content:center;font-size:16px;line-height:1;padding:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 010 11H11"/></svg></button>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.11.09.1534</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.11.09.1540</span>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-pwa-instalar" title="Instalar o SEGO como app neste dispositivo" onclick="pwaInstalar()">📲 Instalar App</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-pwa-atualizar" title="Recarregar a app (dados e versão mais recentes)" onclick="location.reload()">↻ Atualizar</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-dash" title="Dashboard PE · PA · PB · QE" onclick="dashAbrir('')">📊 Dashboard</button>
@@ -2650,7 +2650,7 @@ window.abrirPublicar=function(relId){
   const people=(DB.utilizadores||[]).filter(u=>u.email&&roleL[u.role]&&inObra(u));
   const _ehSeg=(rel.conteudo&&rel.conteudo.tipo)==='seguranca';
   if(_ehSeg&&!rvtPode()){ alert('Apenas o Coordenador de Segurança (CSO) pode publicar RVT.'); return; }
-  const obrig=_ehSeg?people.filter(u=>u.role==='empreiteiro'&&!segoEhCSO(u)):people.filter(u=>(u.role==='dono_obra'||u.role==='empreiteiro')&&!segoEhCSO(u));
+  const obrig=_ehSeg?people.filter(u=>u.role==='empreiteiro'):people.filter(u=>(u.role==='dono_obra'||u.role==='empreiteiro')&&!segoEhCSO(u));
   const _ehRSO=relEhRSO(rel);
   const ccAuto=_ehSeg?[...people.filter(u=>u.role==='fiscalizacao'&&!segoEhCSO(u)),...segoCSOsDaObra(o)].filter((u,i,a)=>u.email&&a.findIndex(x=>x.email===u.email)===i):(_ehRSO?segoCSOsDaObra(o):[]);
   let opcionais;
@@ -2750,7 +2750,7 @@ window.publicarEnviar=async function(relId){
   const extra=(document.getElementById('pub-extra')?.value||'').split(/[\n,;]+/).map(x=>x.trim()).filter(x=>x.includes('@')).map(e=>({email:e,nome:''}));
   const _inObraP=u=>u.obras==='todas'||(Array.isArray(u.obras)&&u.obras.some(oid=>String(oid)===String(o.id)));
   const _ehSegP=(rel.conteudo&&rel.conteudo.tipo)==='seguranca';
-  const obrig=(DB.utilizadores||[]).filter(u=>u.email&&!segoEhCSO(u)&&_inObraP(u)&&(_ehSegP?u.role==='empreiteiro':(u.role==='dono_obra'||u.role==='empreiteiro'))).map(u=>({email:u.email,nome:u.nome||''}));
+  const obrig=(DB.utilizadores||[]).filter(u=>u.email&&_inObraP(u)&&(_ehSegP?u.role==='empreiteiro':((u.role==='dono_obra'||u.role==='empreiteiro')&&!segoEhCSO(u)))).map(u=>({email:u.email,nome:u.nome||''}));
   const ccFisc=[...new Set(_ehSegP?[...(DB.utilizadores||[]).filter(u=>u.email&&u.role==='fiscalizacao'&&!segoEhCSO(u)&&_inObraP(u)).map(u=>u.email),...segoCSOsDaObra(o).map(u=>u.email)]:(relEhRSO(rel)?segoCSOsDaObra(o).map(u=>u.email):[]))];
   const _alSim=_ehSegP&&((document.querySelector('input[name="pub-alerta"]:checked')||{}).value==='sim');
   const _alTxt=_alSim?((document.getElementById('pub-alerta-txt')||{}).value||'').trim():'';
