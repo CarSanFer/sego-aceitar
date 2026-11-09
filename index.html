@@ -291,7 +291,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     </div>
   </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.11.06.1941</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.11.09.1019</span>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-pwa-instalar" title="Instalar o SEGO como app neste dispositivo" onclick="pwaInstalar()">📲 Instalar App</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-pwa-atualizar" title="Recarregar a app (dados e versão mais recentes)" onclick="location.reload()">↻ Atualizar</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-dash" title="Dashboard PE · PA · PB · QE" onclick="dashAbrir('')">📊 Dashboard</button>
@@ -2111,7 +2111,7 @@ window.sosRemoveAnexo=function(idxTema,idxAnexo){
   sosSaveDebounced(r);
   render();
 };
-window.criarCO=async function(obraId,tipo,subtipo){
+window.criarCO=async function(obraId,tipo,subtipo,opts){
   if(tipo==='seguranca'&&!rvtPode()){ alert('Apenas o Coordenador de Segurança (CSO) pode criar RVT.'); return; }
   const relsAll=DB.relatorios.filter(r=>r.obra_id===obraId);
   // Numeração por (tipo,subtipo) — cada série tem o seu contador
@@ -2142,6 +2142,7 @@ window.criarCO=async function(obraId,tipo,subtipo){
     criado_em:agora.toISOString(),
     conteudo:{tipo,subtipo,dados:dadosIniciais},
   };
+  if(subtipo==='RS'&&opts&&opts.semanaIni) rsoSemanaAplica(novo,opts.semanaIni);
   try{
     showLoadingOverlay('A criar...');
     await sbRel.post('relatorios',{...novo,conteudo:JSON.stringify(novo.conteudo)});
@@ -2220,12 +2221,20 @@ function renderCapaSeguranca(app){
     </div>`:''}</div>`;
   if(rvtPode()) metPreencherContagem(o.id);
 }
-window.criarCOdoUltimo=async function(obraId,tipo,subtipo){
+window.criarCOdoUltimo=async function(obraId,tipo,subtipo,opts){
   if(tipo==='seguranca'&&!rvtPode()){ alert('Apenas o Coordenador de Segurança (CSO) pode criar RVT.'); return; }
   const lista=DB.relatorios.filter(r=>r.obra_id===obraId&&r.conteudo&&r.conteudo.tipo===tipo&&r.conteudo.subtipo===subtipo);
   if(!lista.length){ alert('Não há relatório anterior para copiar.'); return; }
   const prev=lista.slice().sort((a,b)=>(b.numero||0)-(a.numero||0))[0];
   const isRSO=(tipo==='fiscalizacao' && subtipo==='RS');
+  if(isRSO&&!(opts&&opts.semanaIni)){
+    showModal('Duplicar RSO '+relNumero(prev),rsoSemanaCampoHTML('','Obrigatório. Indique a semana do novo RSO; o Período é calculado automaticamente.'),[
+      {cls:'btn-outline',fn:'closeModal()',label:'Cancelar'},
+      {cls:'btn-gold',fn:`(function(){const s=rsoSemanaLida(); if(!s) return; closeModal(); criarCOdoUltimo('${obraId}','${tipo}','${subtipo}',{semanaIni:s});})()`,label:'Duplicar'}
+    ]);
+    setTimeout(()=>{ const i=document.getElementById('rso-semini'); if(i) i.focus(); },50);
+    return;
+  }
   try{
     showLoadingOverlay('A copiar último '+(isRSO?'RSO':'RVT')+'...');
     const agora=new Date();
@@ -2257,6 +2266,7 @@ window.criarCOdoUltimo=async function(obraId,tipo,subtipo){
       };
     }
     const novo={ id:uid(), obra_id:obraId, numero:proximoNum, versao:0, mes:agora.getMonth()+1, ano:agora.getFullYear(), estado:'rascunho', criado_por:currentUser.id, criado_por_nome:currentUser.nome, criado_em:agora.toISOString(), conteudo:{tipo,subtipo,dados:dadosNovo} };
+    if(isRSO) rsoSemanaAplica(novo,opts.semanaIni);
     await sbRel.post('relatorios',{...novo,conteudo:JSON.stringify(novo.conteudo)});
     DB.relatorios.push(novo);
     // Para RVT, também copiar o payload checklists_amb_seg
@@ -2541,6 +2551,7 @@ window.abrirPublicar=function(relId){
   const obrigHtml=obrig.length?obrig.map(u=>`<div style="padding:4px 0;font-size:13px"><b>${u.nome||u.email}</b> <span style="color:var(--text-muted)">· ${roleL[u.role]} · ${u.email}</span></div>`).join(''):('<div style="font-size:12px;color:var(--danger)">— sem '+(_ehSeg?'Empreiteiro':'Dono de Obra / Empreiteiro')+' com email nesta obra (verifique o SID) —</div>');
   const opts=opcionais.length?opcionais.map(u=>`<label style="display:flex;gap:8px;align-items:center;padding:5px 0"><input type="checkbox" class="pub-cb" value="${u.email}" data-nome="${(u.nome||'').replace(/"/g,'')}"><span style="font-size:13px">${u.nome||u.email} <span style="color:var(--text-muted)">· ${roleL[u.role]}${segoEhCSO(u)?' · CSO':''} · ${u.email}</span></span></label>`).join(''):('<div style="font-size:12px;color:var(--text-muted)">'+(_ehSeg?'Sem elementos do Dono de Obra com email nesta obra (verifique a ficha da obra no SID).':'Sem outros intervenientes com email nesta obra.')+'</div>');
   showModal('Publicar e enviar — '+_sigla+' '+relNumero(rel),`
+    ${_ehRSO?rsoSemanaCampoHTML((rel.conteudo&&rel.conteudo.dados&&rel.conteudo.dados.semanaIni)||'','Confirme a semana deste RSO antes de publicar.'):''}
     <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">Mensagem (parametrizável)</div>
     <textarea id="pub-msg" class="form-input" style="width:100%;min-height:90px;margin-bottom:14px">${defMsg}</textarea>
     <div style="font-size:12px;margin-bottom:4px"><b>Esta notificação será enviada obrigatoriamente a:</b></div>
@@ -2603,6 +2614,13 @@ window.relEnviarMeLink=async function(relId){
 };
 window.publicarEnviar=async function(relId){
   const rel=DB.relatorios.find(x=>x.id===relId); if(!rel)return;
+  if(relEhRSO(rel)&&document.getElementById('rso-semini')){
+    const seg=rsoSemanaLida(); if(!seg) return;
+    if(!rel.conteudo||!rel.conteudo.dados||rel.conteudo.dados.semanaIni!==seg){
+      rsoSemanaAplica(rel,seg);
+      try{ await sbRel.patch('relatorios',rel.id,{conteudo:JSON.stringify(rel.conteudo),mes:rel.mes,ano:rel.ano}); }catch(e){ alert('Erro ao gravar a semana: '+e.message); return; }
+    }
+  }
   // Limpar linhas em branco antes de publicar
   if(typeof rsCleanupBlankRows==='function') rsCleanupBlankRows(relId);
   const o=DB.obras.find(x=>x.id===rel.obra_id)||{};
@@ -9361,6 +9379,37 @@ function fiscActionBtn(r){
 }
 const RS_DAY_LETTERS=['S','T','Q','Q','S','S'];
 const RS_DAY_NAMES=['Seg','Ter','Qua','Qui','Sex','Sáb'];
+/* segunda-feira da semana de uma data ISO */
+function rsoSegunda(iso){ if(!iso) return ''; const d=new Date(iso+'T00:00:00'); if(isNaN(d)) return ''; d.setDate(d.getDate()-((d.getDay()+6)%7)); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+/* campo "Início da Semana" (obrigatório) + Período automático — usado em Novo em Branco, Duplicar e Publicar */
+function rsoSemanaCampoHTML(valor,nota){
+  const seg=rsoSegunda(valor||'');
+  return `<div style="border:1px solid #E0B000;background:#FFF8E1;border-radius:var(--radius);padding:10px 12px;margin-bottom:14px">
+    <div style="display:grid;grid-template-columns:1fr 1.4fr;gap:12px;align-items:end">
+      <div><div style="font-size:12px;margin-bottom:4px"><b>Início da Semana *</b></div>
+        <input type="date" id="rso-semini" class="form-input" style="width:100%" value="${seg}" oninput="rsoSemanaPreview()"></div>
+      <div><div style="font-size:12px;margin-bottom:4px"><b>Período</b> (automático)</div>
+        <div id="rso-semper" class="form-input" style="background:#F1F3F7;min-height:34px;display:flex;align-items:center">${seg?esc(rsoPeriodo(seg)):'—'}</div></div>
+    </div>
+    ${nota?`<div style="font-size:11px;color:var(--text-muted);margin-top:6px">${nota}</div>`:''}
+  </div>`;
+}
+window.rsoSemanaPreview=function(){
+  const i=document.getElementById('rso-semini'), o=document.getElementById('rso-semper'); if(!i||!o) return;
+  const seg=rsoSegunda(i.value);
+  o.textContent=seg?rsoPeriodo(seg)+(seg!==i.value?'  (ajustado à segunda-feira)':''):'—';
+};
+function rsoSemanaLida(){
+  const i=document.getElementById('rso-semini'); const seg=rsoSegunda(i&&i.value);
+  if(!seg){ alert('Indique o Início da Semana.'); if(i) i.focus(); return null; }
+  return seg;
+}
+function rsoSemanaAplica(r,seg){
+  r.conteudo=r.conteudo||{tipo:'fiscalizacao',subtipo:'RS',dados:{}};
+  r.conteudo.dados=r.conteudo.dados||{};
+  r.conteudo.dados.semanaIni=seg; r.conteudo.dados.semana=rsoPeriodo(seg);
+  const dt=new Date(seg+'T00:00:00'); r.mes=dt.getMonth()+1; r.ano=dt.getFullYear();
+}
 function rsoPeriodo(semanaIni){
   if(!semanaIni) return '';
   const ini=new Date(semanaIni+'T00:00:00'); if(isNaN(ini)) return '';
@@ -10699,13 +10748,21 @@ window.rsoNovoModal=function(obraId){
   const body=`<div style="padding:4px 0">
     <div style="color:var(--text-muted);font-size:13px;margin-bottom:14px">Criar um RSO novo em branco, ou importar os dados de um Plano Quinzenal (PTQ)?</div>
     <div style="display:flex;gap:10px;flex-wrap:wrap">
-      <button class="btn btn-gold" onclick="closeModal();criarCO('${obraId}','fiscalizacao','RS')">Criar Novo (em Branco)</button>
+      <button class="btn btn-gold" onclick="rsoBrancoModal('${obraId}')">Criar Novo (em Branco)</button>
       <button class="btn btn-outline" onclick="rsoImportarPTQ('${obraId}')">Importar de um PTQ →</button>
     </div>
   </div>`;
   showModal('Novo RSO',body,[{cls:'btn-outline',fn:'closeModal()',label:'Cancelar'}]);
 };
 
+window.rsoBrancoModal=function(obraId){
+  showModal('Novo RSO (em Branco)',rsoSemanaCampoHTML('','Obrigatório. O Período é calculado a partir da segunda-feira escolhida (Seg a Sáb).'),[
+    {cls:'btn-outline',fn:'closeModal()',label:'Cancelar'},
+    {cls:'btn-gold',fn:`rsoBrancoCriar('${obraId}')`,label:'Criar RSO'}
+  ]);
+  setTimeout(()=>{ const i=document.getElementById('rso-semini'); if(i) i.focus(); },50);
+};
+window.rsoBrancoCriar=function(obraId){ const seg=rsoSemanaLida(); if(!seg) return; criarCO(obraId,'fiscalizacao','RS',{semanaIni:seg}); };
 window.rsoImportarPTQ=async function(obraId){
   let rows=[];
   try{ showLoadingOverlay('A carregar PTQs...'); rows=await sbRel.get('planos_quinzenais',`obra_id=eq.${encodeURIComponent(obraId)}&order=num.desc,rev.desc`); hideLoadingOverlay(); }
