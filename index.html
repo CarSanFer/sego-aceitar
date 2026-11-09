@@ -308,7 +308,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-modulos" title="Módulos visíveis por obra (Superadmin)" onclick="modPgAbrir()">🧩 Módulos</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-guia" title="Guia do SEGO" onclick="guiaAbrir()">📘 Guia</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.09.2151</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.09.2155</span>
     <button type="button" id="btn-tema" title="Tema escuro / claro" aria-label="Tema" onclick="segoTema()"><svg class="ic-lua" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/></svg><svg class="ic-sol" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button>
     <div class="nav-avatar" id="nav-avatar" onclick="doLogout()" style="cursor:pointer" title="Sair">AD</div>
   </div>
@@ -420,6 +420,99 @@ window.segoTema=function(){
       d.textContent='Documento aberto — para sair use o botão Voltar do SEGO (barra de cima).'; document.body.appendChild(d); }
     d.style.display='block'; clearTimeout(tAv); tAv=setTimeout(()=>{ d.style.display='none'; },3000);
   };
+})();
+</script>
+<style>
+  .sms-cb{width:14px;height:14px;cursor:pointer;vertical-align:middle;accent-color:#B91C1C;margin-right:6px}
+  tr.sms-on td{background:rgba(185,28,28,.08) !important}
+  .sms-bar{display:flex;align-items:center;gap:10px;padding:6px 10px;margin-bottom:8px;border:1px solid #fca5a5;border-radius:4px;background:rgba(185,28,28,.06)}
+  .sms-bar b{color:#B91C1C}
+  .sms-bar button{cursor:pointer;border-radius:4px;padding:3px 10px;border:1px solid #fca5a5;background:var(--bg-card);color:#B91C1C;font-weight:700}
+  .sms-bar button.sec{color:var(--text-muted);border-color:var(--border-light);font-weight:400}
+</style>
+<script>
+/* ===== Seleção múltipla para eliminar (Superadmin) — PE, PA, PB, PTQ, QE, TCm e Relatórios (RSO/SOS/RVT)
+   Acrescenta uma caixa de seleção junto do "×" de cada linha e "selecionar todos" no cabeçalho dessa coluna.
+   O AM tem a sua própria seleção múltipla. ===== */
+(function(){
+  const SMS={mod:null, ids:new Set()};
+  const ROT={pe:'PE',pa:'PA',pb:'PB',ptq:'PTQ',qe:'QE',tcm:'TCm',rel:'Relatórios'};
+  function idDe(el){
+    const oc=el.getAttribute('onclick')||'';
+    let m=oc.match(/\b(pe|pa|pb|ptq|qe|tcm)Eliminar\('([^']+)'/); if(m) return {mod:m[1],id:m[2],rot:m[2]};
+    m=oc.match(/confirmDel\('relatorio','([^']+)','([^']*)'\)/); if(m) return {mod:'rel',id:m[1],rot:m[2]};
+    return null;
+  }
+  function barra(tbl){
+    const ancora=tbl.closest('.table-card')||tbl;
+    let b=ancora.previousElementSibling&&ancora.previousElementSibling.classList.contains('sms-bar')?ancora.previousElementSibling:null;
+    if(!SMS.ids.size){ if(b) b.remove(); return; }
+    if(!b){ b=document.createElement('div'); b.className='sms-bar'; ancora.parentNode.insertBefore(b,ancora); }
+    b.innerHTML=`<b>${SMS.ids.size} selecionado${SMS.ids.size>1?'s':''}</b><button onclick="segoSmsEliminar()">✕ Eliminar Selecionados</button><button class="sec" onclick="segoSmsLimpar()">Limpar seleção</button>`;
+  }
+  function aplicar(){
+    const app=document.getElementById('app'); if(!app) return;
+    if(!(typeof peESuper==='function'&&peESuper())&&!(typeof canAdmin==='function'&&canAdmin())) return;
+    app.querySelectorAll('table').forEach(tbl=>{
+      if(tbl.dataset.sms) return;
+      const linhas=[]; let mod=null;
+      tbl.querySelectorAll('tbody tr').forEach(tr=>{
+        const el=[...tr.querySelectorAll('[onclick]')].find(x=>idDe(x)); if(!el) return;
+        const inf=idDe(el); mod=mod||inf.mod; linhas.push({tr,el,inf});
+      });
+      if(!linhas.length) return;
+      tbl.dataset.sms='1';
+      if(SMS.mod!==mod){ SMS.mod=mod; SMS.ids.clear(); }
+      const vivos=new Set(linhas.map(l=>l.inf.id)); [...SMS.ids].forEach(i=>{ if(!vivos.has(i)) SMS.ids.delete(i); });
+      linhas.forEach(({tr,el,inf})=>{
+        const td=el.closest('td'); if(!td) return;
+        const cb=document.createElement('input'); cb.type='checkbox'; cb.className='sms-cb'; cb.title='Selecionar para eliminar';
+        cb.checked=SMS.ids.has(inf.id); tr.classList.toggle('sms-on',cb.checked);
+        cb.addEventListener('click',e=>{ e.stopPropagation(); if(cb.checked) SMS.ids.add(inf.id); else SMS.ids.delete(inf.id); tr.classList.toggle('sms-on',cb.checked); sincTodos(); barra(tbl); });
+        cb.dataset.id=inf.id; cb.dataset.rot=inf.rot;
+        const alvo=td.querySelector('.actions-cell')||td; alvo.insertBefore(cb,alvo.firstChild);
+      });
+      // "selecionar todos" no cabeçalho da coluna do ×
+      const tdRef=linhas[0].el.closest('td'), col=tdRef?[...tdRef.parentNode.children].indexOf(tdRef):-1;
+      const th=col>=0?tbl.querySelectorAll('thead tr:last-child th')[col]:null;
+      let mestre=null;
+      if(th){ mestre=document.createElement('input'); mestre.type='checkbox'; mestre.className='sms-cb'; mestre.title='Selecionar todos';
+        mestre.addEventListener('click',e=>{ e.stopPropagation(); tbl.querySelectorAll('tbody .sms-cb').forEach(c=>{ c.checked=mestre.checked; c.closest('tr').classList.toggle('sms-on',c.checked); if(c.checked) SMS.ids.add(c.dataset.id); else SMS.ids.delete(c.dataset.id); }); barra(tbl); });
+        th.insertBefore(mestre,th.firstChild); }
+      function sincTodos(){ if(!mestre) return; const cs=[...tbl.querySelectorAll('tbody .sms-cb')]; mestre.checked=cs.length&&cs.every(c=>c.checked); mestre.indeterminate=!mestre.checked&&cs.some(c=>c.checked); }
+      sincTodos(); barra(tbl);
+    });
+  }
+  window.segoSmsLimpar=function(){ SMS.ids.clear(); document.querySelectorAll('#app table[data-sms]').forEach(t=>{ delete t.dataset.sms; }); render(); };
+  async function relEliminarDireto(id){
+    const r=(DB.relatorios||[]).find(x=>String(x.id)===String(id));
+    await sbRel.delete('relatorios',id);
+    try{ if(r&&r.conteudo&&r.conteudo.tipo==='seguranca') await sbRel.deleteWhere('checklists_amb_seg',`rvt=eq.${encodeURIComponent(id)}`); }catch(e){}
+    DB.relatorios=DB.relatorios.filter(x=>String(x.id)!==String(id)); if(relRelId===id) relRelId=null;
+    try{ auditLog('relatorio',r?relNumero(r):id,'eliminado'); }catch(e){}
+  }
+  window.segoSmsEliminar=async function(){
+    const ids=[...SMS.ids]; if(!ids.length) return;
+    const rots=ids.map(i=>{ const c=document.querySelector(`#app .sms-cb[data-id="${CSS.escape(i)}"]`); return c?c.dataset.rot:i; });
+    if(!confirm(`Eliminar definitivamente ${ids.length} documento${ids.length>1?'s':''} (${ROT[SMS.mod]||''})?\n\n${rots.join(', ')}\n\nEsta ação não pode ser anulada.`)) return;
+    const mod=SMS.mod, falhas=[];
+    const confOrig=window.confirm; window.confirm=()=>true;            // as funções de eliminar já pedem confirmação individual
+    showLoadingOverlay('A eliminar '+ids.length+'…');
+    try{
+      for(const id of ids){
+        try{
+          if(mod==='rel') await relEliminarDireto(id);
+          else await window[mod+'Eliminar'](id);
+          SMS.ids.delete(id);
+        }catch(e){ falhas.push(id+' ('+e.message+')'); }
+      }
+    } finally { window.confirm=confOrig; hideLoadingOverlay(); }
+    SMS.ids.clear(); render();
+    if(falhas.length) alert('Não foi possível eliminar:\n'+falhas.join('\n'));
+  };
+  const iniciar=()=>{ const app=document.getElementById('app'); if(!app) return setTimeout(iniciar,300);
+    new MutationObserver(()=>{ clearTimeout(window.__smsT); window.__smsT=setTimeout(aplicar,0); }).observe(app,{childList:true}); aplicar(); };
+  iniciar();
 })();
 </script>
 <!-- FLOATING CHATBOT -->
