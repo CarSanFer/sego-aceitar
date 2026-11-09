@@ -293,7 +293,7 @@ tr.tr-click:hover td{background:#F5F7FA}
   <button id="nav-home" type="button" title="Início — Lista de Obras" aria-label="Início" onclick="navInicio()" style="display:none;margin-left:18px;width:30px;height:30px;border-radius:50%;border:1px solid rgba(232,168,48,.55);background:transparent;color:#fff;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg></button>
   <button id="nav-back" type="button" title="Voltar" aria-label="Voltar" onclick="navVoltar()" style="display:none;margin-right:auto;margin-left:8px;width:30px;height:30px;border-radius:50%;border:1px solid rgba(232,168,48,.55);background:transparent;color:#fff;cursor:pointer;align-items:center;justify-content:center;font-size:16px;line-height:1;padding:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 010 11H11"/></svg></button>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.11.09.1522</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.11.09.1534</span>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-pwa-instalar" title="Instalar o SEGO como app neste dispositivo" onclick="pwaInstalar()">📲 Instalar App</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-pwa-atualizar" title="Recarregar a app (dados e versão mais recentes)" onclick="location.reload()">↻ Atualizar</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-dash" title="Dashboard PE · PA · PB · QE" onclick="dashAbrir('')">📊 Dashboard</button>
@@ -11007,8 +11007,8 @@ const CO_CSS=`<style>
 .co-mhead .cc{font-size:10px;color:var(--text-muted)}
 .co-mrec{flex:1;border-top:.5px solid var(--border-light);background:#FAFBFC;padding:7px 8px}
 .co-rec-item{display:flex;justify-content:space-between;gap:6px;font-size:11px;padding:2px 0}
-.co-rec-item .co-id{font-family:monospace;font-weight:700;color:var(--navy)}
-.co-rec-item .co-dt{color:var(--text-muted)}
+.co-rec-item .co-id{font-weight:700;color:var(--text-muted)}
+.co-rec-item .co-dt{color:var(--text);font-weight:400}
 .co-rec-empty{font-size:11px;color:#C7CDD6}
 </style>`;
 
