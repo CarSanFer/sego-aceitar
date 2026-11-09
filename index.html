@@ -293,7 +293,7 @@ tr.tr-click:hover td{background:#F5F7FA}
   <button id="nav-home" type="button" title="Início — Lista de Obras" aria-label="Início" onclick="navInicio()" style="display:none;margin-left:18px;width:30px;height:30px;border-radius:50%;border:1px solid rgba(232,168,48,.55);background:transparent;color:#fff;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg></button>
   <button id="nav-back" type="button" title="Voltar" aria-label="Voltar" onclick="navVoltar()" style="display:none;margin-right:auto;margin-left:8px;width:30px;height:30px;border-radius:50%;border:1px solid rgba(232,168,48,.55);background:transparent;color:#fff;cursor:pointer;align-items:center;justify-content:center;font-size:16px;line-height:1;padding:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 010 11H11"/></svg></button>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.11.09.1505</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.11.09.1515</span>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-pwa-instalar" title="Instalar o SEGO como app neste dispositivo" onclick="pwaInstalar()">📲 Instalar App</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-pwa-atualizar" title="Recarregar a app (dados e versão mais recentes)" onclick="location.reload()">↻ Atualizar</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-dash" title="Dashboard PE · PA · PB · QE" onclick="dashAbrir('')">📊 Dashboard</button>
@@ -1264,7 +1264,7 @@ function renderCapaObra(app){
     <div class="page-actions">
     </div>
   </div>
-  ${createBtn?`<div style="margin-bottom:12px">${createBtn}</div>`:''}
+  ${(createBtn||(peESuper()&&capaContext.subtipo==='RVT'))?`<div style="margin-bottom:12px;display:flex;gap:8px;align-items:center">${createBtn||''}${peESuper()&&capaContext.subtipo==='RVT'?`<span style="margin-left:auto;display:flex;gap:8px"><button class="btn btn-sm" style="border:1px solid var(--border-light);background:#fff" onclick="relAdmRenumerar('${o.id}','${capaContext.tipo}','${capaContext.subtipo}')">Renumerar</button></span>`:''}</div>`:''}
   <!-- Lista de relatórios -->
   <div class="table-card"><div class="table-wrap"><table>
     <thead><tr><th>Referência</th><th>Período</th><th>Estado</th><th>Criado por</th><th>Data</th><th>Enviado por</th><th>Data/Hora envio</th><th>Ações</th></tr></thead>
@@ -2611,6 +2611,33 @@ function relPodeAgir(r){
   return currentUser.role==='fiscalizacao'||canAdmin();
 }
 function relPodeAgirAviso(r){ if(relPodeAgir(r)) return true; alert('Só a Fiscalização (ou o Superadmin) pode publicar ou reenviar este documento.'); return false; }
+/* Superadmin: soma um desvio aos números de todos os relatórios de uma série da obra (ex.: RVT) — as versões mantêm-se; os links não mudam */
+window.relAdmRenumerar=async function(obraId,tipo,subtipo){
+  if(!peESuper()) return;
+  const o=DB.obras.find(x=>x.id===obraId)||{};
+  const sig=siglaRel(subtipo)||subtipo;
+  const lista=DB.relatorios.filter(r=>r.obra_id===obraId&&r.conteudo&&r.conteudo.tipo===tipo&&r.conteudo.subtipo===subtipo);
+  if(!lista.length){ alert('Sem registos de '+sig+' nesta obra.'); return; }
+  const desvio=parseInt(prompt('Desvio a somar aos números atuais dos '+sig+' (ex.: 10 para passar 001 → 011; negativo para descer):'),10);
+  if(!desvio||isNaN(desvio)) return;
+  if(lista.some(r=>(r.numero||0)+desvio<1)){ alert('Desvio inválido: geraria números menores que 001.'); return; }
+  const ord=lista.slice().sort((a,b)=>(a.numero-b.numero)||(a.versao-b.versao));
+  const plano=ord.map(r=>'  '+sig+' '+relNumero(r)+' → '+String((r.numero||0)+desvio).padStart(3,'0')+'.'+(r.versao||0));
+  if(!confirm('Renumerar '+lista.length+' '+sig+' da obra '+(o.sigla||'')+' (desvio '+(desvio>0?'+':'')+desvio+')?\n\n'+plano.slice(0,14).join('\n')+(plano.length>14?'\n  …':'')+'\n\nOs links já enviados continuam a abrir os documentos.')) return;
+  showLoadingOverlay('A renumerar…');
+  let n=0,erros=0;
+  for(const r of ord){
+    const novo=(r.numero||0)+desvio;
+    try{
+      if(!r.conteudo) r.conteudo={};
+      relHistAdd(r,'Renumerado (Admin): '+sig+' '+relNumero(r)+' → '+String(novo).padStart(3,'0')+'.'+(r.versao||0));
+      await sbRel.patch('relatorios',r.id,{numero:novo,conteudo:JSON.stringify(r.conteudo)});
+      r.numero=novo; n++;
+    }catch(e){ console.error('Falhou',r.id,e); erros++; }
+  }
+  hideLoadingOverlay(); render();
+  alert('Renumeração concluída: '+n+'/'+lista.length+' '+sig+'.'+(erros?'\n'+erros+' com erro (ver consola).':''));
+};
 function relEhRSO(rel){ const c=(rel&&rel.conteudo)||{}; return c.tipo==='fiscalizacao'&&c.subtipo!=='SOS'; }
 window.abrirPublicar=function(relId){
   const rel=DB.relatorios.find(x=>x.id===relId); if(!rel){alert('Relatório não encontrado.');return;}
