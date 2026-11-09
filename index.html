@@ -292,7 +292,7 @@ tr.tr-click:hover td{background:#F5F7FA}
   </div>
   <button id="nav-back" type="button" title="Voltar" aria-label="Voltar" onclick="navVoltar()" style="display:none;margin-right:auto;margin-left:18px;width:30px;height:30px;border-radius:50%;border:1px solid rgba(255,255,255,.35);background:transparent;color:#fff;cursor:pointer;align-items:center;justify-content:center;font-size:16px;line-height:1;padding:0">←</button>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.11.09.1436</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.11.09.1440</span>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-pwa-instalar" title="Instalar o SEGO como app neste dispositivo" onclick="pwaInstalar()">📲 Instalar App</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-pwa-atualizar" title="Recarregar a app (dados e versão mais recentes)" onclick="location.reload()">↻ Atualizar</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-dash" title="Dashboard PE · PA · PB · QE" onclick="dashAbrir('')">📊 Dashboard</button>
@@ -312,6 +312,12 @@ tr.tr-click:hover td{background:#F5F7FA}
   #nav-back:hover{background:rgba(255,255,255,.12)}
   /* Assistente (chat) escondido por agora */
   #chat-bubble,#chat-panel{display:none !important}
+</style>
+<style>
+  /* ===== Tipografia única: Calibri 10 pt em toda a app (hierarquia só por negrito e cor) ===== */
+  body, body *:not(svg):not(svg *):not(.nav-logo-text):not(.nav-logo-sub){font-family:Calibri,Carlito,sans-serif !important}
+  body *:not(svg):not(svg *):not(.nav-logo-text):not(.nav-logo-sub):not(#verBadge):not(#nav-back){font-size:10pt !important}
+  .page-title,.ficha-title{font-weight:700 !important}
 </style>
 <!-- FLOATING CHATBOT -->
 <div id="chat-bubble" onclick="toggleChat()" style="position:fixed;bottom:20px;right:20px;width:52px;height:52px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.25);z-index:500;transition:transform .2s" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
@@ -11384,7 +11390,7 @@ function renderFichaObra(app){
 
   <div style="background:${corEstado(o.estado)};border-radius:var(--radius);padding:14px 18px;margin-bottom:14px">
     <div style="font-size:11px;color:rgba(255,255,255,.6);margin-bottom:3px;letter-spacing:.4px">${o.codigo} · ${o.sigla} · ${o.estado||''}</div>
-    <div style="font-size:20px;font-weight:400;color:#fff">${o.nome}</div>
+    <div style="font-size:20px;font-weight:700;color:#fff">${o.nome}</div>
     ${o.morada||o.localidade?`<div style="font-size:12px;color:rgba(255,255,255,.55);margin-top:4px">${[o.morada,o.localidade].filter(Boolean).join(' · ')}</div>`:''}
   </div>
 
