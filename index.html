@@ -292,8 +292,15 @@ tr.tr-click:hover td{background:#F5F7FA}
   </div>
   <button id="nav-home" type="button" title="Início — Lista de Obras" aria-label="Início" onclick="navInicio()" style="display:none;margin-left:18px;width:30px;height:30px;border-radius:50%;border:1px solid rgba(232,168,48,.55);background:transparent;color:#fff;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg></button>
   <button id="nav-back" type="button" title="Voltar" aria-label="Voltar" onclick="navVoltar()" style="display:none;margin-right:auto;margin-left:8px;width:30px;height:30px;border-radius:50%;border:1px solid rgba(232,168,48,.55);background:transparent;color:#fff;cursor:pointer;align-items:center;justify-content:center;font-size:16px;line-height:1;padding:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 010 11H11"/></svg></button>
+  <div id="nav-obras" style="display:none;align-items:center;gap:8px;margin-left:18px;margin-right:auto">
+    <span id="nav-obras-n" title="N.º de obras"></span>
+    <span class="nav-obras-q"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input id="nav-obras-q" type="search" placeholder="Pesquisar obra, sigla ou código…" oninput="obrasSearch=this.value;render()"></span>
+    <select id="nav-obras-est" title="Estado da obra" onchange="obrasFilter=this.value;render()">
+      <option>Todos os Estados</option><option>Em Curso</option><option>Concluída</option><option>Suspensa</option><option>Em Preparação</option>
+    </select>
+  </div>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.11.09.1604</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.11.09.1624</span>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-pwa-instalar" title="Instalar o SEGO como app neste dispositivo" onclick="pwaInstalar()">📲 Instalar App</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-pwa-atualizar" title="Recarregar a app (dados e versão mais recentes)" onclick="location.reload()">↻ Atualizar</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-dash" title="Dashboard PE · PA · PB · QE" onclick="dashAbrir('')">📊 Dashboard</button>
@@ -311,6 +318,15 @@ tr.tr-click:hover td{background:#F5F7FA}
   /* Voltar passa para a barra de cima (ícone ← junto ao logótipo); os botões Voltar das páginas ficam escondidos */
   #app .back-btn{display:none !important}
   #nav-back:hover,#nav-home:hover{background:rgba(232,168,48,.18)}
+  /* Lista de Obras: n.º de obras, pesquisa e estado na barra de cima */
+  #nav-obras-n{min-width:30px;height:30px;padding:0 7px;box-sizing:border-box;border-radius:15px;border:1px solid rgba(232,168,48,.55);color:var(--gold-light);font-weight:700;display:inline-flex;align-items:center;justify-content:center}
+  .nav-obras-q{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 8px;border:1px solid rgba(255,255,255,.3);border-radius:4px;background:rgba(255,255,255,.06)}
+  .nav-obras-q:focus-within,#nav-obras-est:focus{border-color:var(--gold)}
+  #nav-obras-q{background:transparent;border:none;outline:none;color:#fff;width:210px;padding:0}
+  #nav-obras-q::placeholder{color:rgba(255,255,255,.55)}
+  #nav-obras-est{height:26px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.3);border-radius:4px;color:rgba(255,255,255,.9);padding:0 6px;cursor:pointer;outline:none}
+  #nav-obras-est option{color:#1a1a1a;background:#fff}
+  @media (max-width:760px){ #nav-obras{margin-left:8px;gap:6px} #nav-obras-q{width:90px} }
   /* Assistente (chat) escondido por agora */
   #chat-bubble,#chat-panel{display:none !important}
 </style>
@@ -420,6 +436,11 @@ window.addEventListener('DOMContentLoaded',()=>{ if(pwaStandalone()){ const b=do
     const vaiInicio=/^Voltar a Obras$/i.test(lbl);           // na ficha da obra: Voltar = Início → só o botão Início
     nb.style.display=(bb&&!vaiInicio)?'flex':'none'; nb.title=lbl;
     if(nh){ nh.style.display=bb?'flex':'none'; nh.style.marginRight=(bb&&!vaiInicio)?'0':'auto'; }
+    const no=document.getElementById('nav-obras'), mk=document.querySelector('#app #obras-lista-mark');
+    if(no){ no.style.display=mk?'flex':'none';
+      if(mk){ document.getElementById('nav-obras-n').textContent=mk.dataset.n; document.getElementById('nav-obras-n').title=mk.dataset.n+' obra(s)';
+        const q=document.getElementById('nav-obras-q'); if(q&&document.activeElement!==q) q.value=obrasSearch||'';
+        const e=document.getElementById('nav-obras-est'); if(e) e.value=obrasFilter||'Todos os Estados'; } }
   };
   window.navInicio=function(){
     ['peObraId','peFichaId','paObraId','paFichaId','pbObraId','pbFichaId','ptqObraId','ptqFichaId','qeObraId','qeFichaId','tcmObraId','tcmFichaId','amObraId','amFichaId',
@@ -10800,7 +10821,7 @@ function renderObras(app){
   const states=['Todos os Estados','Em Curso','Concluída','Suspensa','Em Preparação'];
   let obras=getObrasVisiveis().slice().sort((a,b)=>(a.codigo||'').localeCompare(b.codigo||''));
   if(obrasFilter!=='Todos os Estados') obras=obras.filter(o=>o.estado===obrasFilter);
-  if(obrasSearch) obras=obras.filter(o=>[o.nome,o.sigla,o.codigo,o.localidade].join(' ').toLowerCase().includes(obrasSearch));
+  if(obrasSearch) obras=obras.filter(o=>[o.nome,o.sigla,o.codigo,o.localidade].join(' ').toLowerCase().includes(String(obrasSearch).toLowerCase().trim()));
 
   const corEstado=e=>({
     'Em Curso':'#0F6E56',
@@ -10845,15 +10866,7 @@ function renderObras(app){
   }).join('');
 
   app.innerHTML=`
-  <div class="page-header">
-    <div><div class="page-title">Obras</div><div class="page-count">${obras.length} obra(s)</div></div>
-  </div>
-  <div style="display:flex;gap:8px;margin-bottom:14px;align-items:center">
-    <input class="filter-select" style="flex:1;max-width:320px" placeholder="Pesquisar obra, sigla ou código..." value="${obrasSearch}" oninput="obrasSearch=this.value;render()">
-    <select class="filter-select" onchange="obrasFilter=this.value;render()">
-      ${states.map(s=>`<option ${obrasFilter===s?'selected':''}>${s}</option>`).join('')}
-    </select>
-  </div>
+  <div id="obras-lista-mark" data-n="${obras.length}" style="display:none"></div>
   ${obras.length?`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px">${cards}</div>`
   :`<div class="empty-state">Nenhuma obra encontrada.</div>`}`;
 }
