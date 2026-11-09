@@ -13,6 +13,7 @@
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="icon" type="image/png" href="/favicon-48.png">
 <title>SEGO — Sistema Externo de Gestão de Obra | aceitar</title>
+<script>try{ if(localStorage.getItem('sego-tema')==='escuro') document.documentElement.setAttribute('data-theme','dark'); }catch(e){}</script>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Calibri:wght@400;700&display=swap');
@@ -306,7 +307,8 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-modulos" title="Módulos visíveis por obra (Superadmin)" onclick="modPgAbrir()">🧩 Módulos</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-guia" title="Guia do SEGO" onclick="guiaAbrir()">📘 Guia</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.09.1636</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.09.1643</span>
+    <button type="button" id="btn-tema" title="Tema escuro / claro" aria-label="Tema" onclick="segoTema()"><svg class="ic-lua" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/></svg><svg class="ic-sol" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button>
     <div class="nav-avatar" id="nav-avatar" onclick="doLogout()" style="cursor:pointer" title="Sair">AD</div>
   </div>
 </nav>
@@ -344,6 +346,54 @@ tr.tr-click:hover td{background:#F5F7FA}
   /* sem MAIÚSCULAS forçadas nem espaçamento entre letras (fazem o texto parecer de outro tamanho) */
   body *:not(svg):not(svg *):not(.nav-logo-text):not(.nav-logo-sub){text-transform:none !important;letter-spacing:normal !important}
 </style>
+
+<style>
+  /* ===== Barra: todas as caixas com a mesma altura ===== */
+  .navbar .nav-right>button,#verBadge,.nav-avatar,#nav-home,#nav-back,#nav-obras-n,#nav-obras-est,.nav-obras-q{height:24px !important;box-sizing:border-box !important}
+  .nav-avatar{width:24px !important}
+  #nav-home,#nav-back{width:24px !important}
+  #nav-obras-n{min-width:24px !important}
+  #btn-tema{width:24px;padding:0 !important;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);border-radius:4px}
+  #btn-tema:hover{background:rgba(232,168,48,.18)}
+  #btn-tema .ic-sol{display:none} html[data-theme=dark] #btn-tema .ic-sol{display:block} html[data-theme=dark] #btn-tema .ic-lua{display:none}
+
+  /* ===== Tema escuro ===== */
+  html[data-theme=dark]{color-scheme:dark;
+    --navy:#3B6EA8;--navy2:#4A7DB8;--border:#3A4A60;--border-light:#2C3A4D;
+    --bg:#0F1724;--bg-card:#18222F;--text:#E6E9EF;--text-muted:#9AA4B2;
+    --success:#3FBF7F;--success-bg:#12372A;--warning:#E3B341;--warning-bg:#3A2F0E;
+    --danger:#F87171;--danger-bg:#3D1717;--info:#7AA7F0;--info-bg:#132B4D;--purple:#A78BFA;--purple-bg:#2A1F4D}
+  html[data-theme=dark] .navbar{background:#0B1320}
+  html[data-theme=dark] input:not(#nav-obras-q),html[data-theme=dark] select:not(#nav-obras-est),html[data-theme=dark] textarea{background-color:var(--bg-card);color:var(--text);border-color:var(--border-light)}
+  html[data-theme=dark] [style*="background:#fff" i],html[data-theme=dark] [style*="background:white" i],html[data-theme=dark] [style*="background: #fff" i]{background:var(--bg-card) !important}
+  html[data-theme=dark] [style*="background:#F8F9FB" i],html[data-theme=dark] [style*="background:#EEF1F6" i],html[data-theme=dark] [style*="background:#f0f2f5" i],
+  html[data-theme=dark] [style*="background:#fafbfc" i],html[data-theme=dark] [style*="background:#f5f7fa" i],html[data-theme=dark] [style*="background:#F7F9FC" i],
+  html[data-theme=dark] [style*="background:#F3F4F6" i],html[data-theme=dark] [style*="background:#EEF1F5" i],html[data-theme=dark] [style*="background:#F8FAFC" i],
+  html[data-theme=dark] [style*="background:#F5F6F8" i],html[data-theme=dark] [style*="background:#dde2e8" i],html[data-theme=dark] [style*="background:#EEEDFE" i]{background:#1F2B3A !important}
+  html[data-theme=dark] [style*="background:#FFF6E0" i],html[data-theme=dark] [style*="background:#FFF8E1" i],html[data-theme=dark] [style*="background:#FFFBEF" i],html[data-theme=dark] [style*="background:#FFFBF2" i],html[data-theme=dark] [style*="background:#FEF3CD" i]{background:var(--warning-bg) !important}
+  html[data-theme=dark] [style*="background:#FDE7E7" i],html[data-theme=dark] [style*="background:#FDECEE" i],html[data-theme=dark] [style*="background:#FEF2F2" i],html[data-theme=dark] [style*="background:#FDECEC" i],html[data-theme=dark] [style*="background:#FEE2E2" i]{background:var(--danger-bg) !important}
+  html[data-theme=dark] [style*="background:#F0FDF4" i],html[data-theme=dark] [style*="background:#E6F4ED" i]{background:var(--success-bg) !important}
+  html[data-theme=dark] [style*="color:#333"],html[data-theme=dark] [style*="color:#1F2A44" i],html[data-theme=dark] [style*="color:#1A1D2E" i],html[data-theme=dark] [style*="color:#111"],html[data-theme=dark] [style*="color:#000"]{color:var(--text) !important}
+  html[data-theme=dark] [style*="color:#666"],html[data-theme=dark] [style*="color:#777"],html[data-theme=dark] [style*="color:#888"],html[data-theme=dark] [style*="color:#6B7280" i]{color:var(--text-muted) !important}
+  html[data-theme=dark] [style*="border:1px solid #d1d5db" i],html[data-theme=dark] [style*="border:1px solid #c8ccd1" i],html[data-theme=dark] [style*="border:1px solid #D8DCE6" i],html[data-theme=dark] [style*="border-top:1px solid #e5e7eb" i]{border-color:var(--border-light) !important}
+  html[data-theme=dark] iframe{background:#fff}
+
+  html[data-theme=dark] .b-prep,html[data-theme=dark] .b-inativo,html[data-theme=dark] .b-editado,html[data-theme=dark] .form-input[readonly],html[data-theme=dark] .pe-passo,html[data-theme=dark] .pe-fld .pe-ro,html[data-theme=dark] table.pq-grade th,html[data-theme=dark] .am-cap-tr,html[data-theme=dark] .co-mrec,html[data-theme=dark] tr.tr-click:hover td,html[data-theme=dark] table.pq-grade tr.lin-tot th,html[data-theme=dark] table.pq-grade th.dia-cab.clic:hover{background:#1F2B3A !important}
+  html[data-theme=dark] table.pq-grade th.sab,html[data-theme=dark] table.pq-grade td.sab{background:#1B2533 !important}
+  html[data-theme=dark] .search-input:focus,html[data-theme=dark] .form-input:focus,html[data-theme=dark] .form-select:focus,html[data-theme=dark] .form-textarea:focus,html[data-theme=dark] .pe-fld input,html[data-theme=dark] .pe-fld select,html[data-theme=dark] .pe-fld textarea,html[data-theme=dark] .pe-ip.ed,html[data-theme=dark] .pe-ip input,html[data-theme=dark] .pe-ip select,html[data-theme=dark] .pe-ip textarea,html[data-theme=dark] .pe-anx,html[data-theme=dark] .pe-modal,html[data-theme=dark] .pe-btn,html[data-theme=dark] table.pq-grade input:focus,html[data-theme=dark] table.pq-grade td.cel.num input:focus,html[data-theme=dark] .pq-btnmais,html[data-theme=dark] .am-btn,html[data-theme=dark] .am-chip{background:var(--bg-card) !important;color:var(--text)}
+  html[data-theme=dark] .cal-cell.cal-today,html[data-theme=dark] .rel-env-ed:hover,html[data-theme=dark] .pe-ip:hover,html[data-theme=dark] .pe-ipchk:hover,html[data-theme=dark] .pe-ipnota,html[data-theme=dark] table.pq-grade th.esp-ponte,html[data-theme=dark] table.pq-grade td.esp-ponte,html[data-theme=dark] .am-total{background:var(--warning-bg) !important}
+  html[data-theme=dark] .cal-evt-fim,html[data-theme=dark] table.pq-grade th.esp-feriado,html[data-theme=dark] table.pq-grade td.esp-feriado{background:var(--danger-bg) !important}
+  html[data-theme=dark] .pe-passo.feito{background:var(--success-bg) !important}
+  html[data-theme=dark] [style*="background:#E6F1FB" i],html[data-theme=dark] [style*="background:#E1F5EE" i],html[data-theme=dark] [style*="background:#FCEBEB" i],html[data-theme=dark] [style*="background:#FAEEDA" i],html[data-theme=dark] [style*="background:#EEEDFE" i],html[data-theme=dark] [style*="background:#E5EFFA" i],html[data-theme=dark] [style*="background:#E5F4EC" i],html[data-theme=dark] [style*="background:#FEF9EC" i]{background:rgba(255,255,255,.07) !important}
+</style>
+<script>
+window.segoTema=function(){
+  const esc=document.documentElement.getAttribute('data-theme')!=='dark';
+  if(esc) document.documentElement.setAttribute('data-theme','dark'); else document.documentElement.removeAttribute('data-theme');
+  try{ localStorage.setItem('sego-tema',esc?'escuro':'claro'); }catch(e){}
+  const m=document.querySelector('meta[name="theme-color"]'); if(m) m.content=esc?'#0B1320':'#1E3A5F';
+};
+</script>
 <!-- FLOATING CHATBOT -->
 <div id="chat-bubble" onclick="toggleChat()" style="position:fixed;bottom:20px;right:20px;width:52px;height:52px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.25);z-index:500;transition:transform .2s" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
   <svg width="24" height="24" fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
