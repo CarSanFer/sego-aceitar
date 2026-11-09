@@ -47,7 +47,7 @@ html,body{height:100%;font-family:'Calibri',Calibri,sans-serif;font-size:13px;ba
 .nav-item.active{color:#fff;background:var(--gold);border-bottom-color:var(--gold-light)}
 .nav-item svg{width:13px;height:13px;flex-shrink:0}
 .nav-right{display:flex;align-items:center;gap:6px;margin-left:auto;padding-left:8px;flex-shrink:0}
-.nav-avatar{width:28px;height:28px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;cursor:pointer;flex-shrink:0}
+.nav-avatar{width:26px;height:26px;background:var(--gold);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;cursor:pointer;flex-shrink:0}
 
 /* CONTENT */
 .content{flex:1;padding:16px 20px}
@@ -290,23 +290,23 @@ tr.tr-click:hover td{background:#F5F7FA}
       <span class="nav-logo-sub">Sist Ext Gest Obra</span>
     </div>
   </div>
-  <button id="nav-home" type="button" title="Início — Lista de Obras" aria-label="Início" onclick="navInicio()" style="display:none;margin-left:18px;width:30px;height:30px;border-radius:50%;border:1px solid rgba(232,168,48,.55);background:transparent;color:#fff;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg></button>
-  <button id="nav-back" type="button" title="Voltar" aria-label="Voltar" onclick="navVoltar()" style="display:none;margin-right:auto;margin-left:8px;width:30px;height:30px;border-radius:50%;border:1px solid rgba(232,168,48,.55);background:transparent;color:#fff;cursor:pointer;align-items:center;justify-content:center;font-size:16px;line-height:1;padding:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 010 11H11"/></svg></button>
-  <div id="nav-obras" style="display:none;align-items:center;gap:8px;margin-left:18px;margin-right:auto">
+  <button id="nav-home" type="button" title="Início — Lista de Obras" aria-label="Início" onclick="navInicio()" style="display:none;margin-left:18px;width:26px;height:26px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;color:#fff;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg></button>
+  <button id="nav-back" type="button" title="Voltar" aria-label="Voltar" onclick="navVoltar()" style="display:none;margin-right:auto;margin-left:8px;width:26px;height:26px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;color:#fff;cursor:pointer;align-items:center;justify-content:center;font-size:16px;line-height:1;padding:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 010 11H11"/></svg></button>
+  <div id="nav-obras" style="display:none;align-items:center;gap:4px;margin-left:18px;margin-right:auto">
     <span id="nav-obras-n" title="N.º de obras"></span>
-    <span class="nav-obras-q"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input id="nav-obras-q" type="search" placeholder="Pesquisar obra, sigla ou código…" oninput="obrasSearch=this.value;render()"></span>
     <select id="nav-obras-est" title="Estado da obra" onchange="obrasFilter=this.value;render()">
       <option>Todos os Estados</option><option>Em Curso</option><option>Concluída</option><option>Suspensa</option><option>Em Preparação</option>
     </select>
   </div>
+  <span class="nav-obras-q" id="nav-obras-qbox" style="display:none"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input id="nav-obras-q" type="search" placeholder="Pesquisar obra, sigla ou código…" oninput="obrasSearch=this.value;render()"></span>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.11.09.1624</span>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-pwa-instalar" title="Instalar o SEGO como app neste dispositivo" onclick="pwaInstalar()">📲 Instalar App</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-pwa-atualizar" title="Recarregar a app (dados e versão mais recentes)" onclick="location.reload()">↻ Atualizar</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-dash" title="Dashboard PE · PA · PB · QE" onclick="dashAbrir('')">📊 Dashboard</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-modulos" title="Módulos visíveis por obra (Superadmin)" onclick="modPgAbrir()">🧩 Módulos</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-guia" title="Guia do SEGO" onclick="guiaAbrir()">📘 Guia</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.09.1636</span>
     <div class="nav-avatar" id="nav-avatar" onclick="doLogout()" style="cursor:pointer" title="Sair">AD</div>
   </div>
 </nav>
@@ -319,14 +319,18 @@ tr.tr-click:hover td{background:#F5F7FA}
   #app .back-btn{display:none !important}
   #nav-back:hover,#nav-home:hover{background:rgba(232,168,48,.18)}
   /* Lista de Obras: n.º de obras, pesquisa e estado na barra de cima */
-  #nav-obras-n{min-width:30px;height:30px;padding:0 7px;box-sizing:border-box;border-radius:15px;border:1px solid rgba(232,168,48,.55);color:var(--gold-light);font-weight:700;display:inline-flex;align-items:center;justify-content:center}
-  .nav-obras-q{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 8px;border:1px solid rgba(255,255,255,.3);border-radius:4px;background:rgba(255,255,255,.06)}
+  #nav-obras-n{min-width:26px;height:26px;padding:0 7px;box-sizing:border-box;border-radius:4px;border:1px solid rgba(232,168,48,.55);color:var(--gold-light);font-weight:700;display:inline-flex;align-items:center;justify-content:center}
+  .navbar{position:sticky}
+  #nav-obras-qbox{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}
+  .nav-obras-q{display:inline-flex;align-items:center;gap:6px;height:26px;box-sizing:border-box;padding:0 8px;border:1px solid rgba(255,255,255,.3);border-radius:4px;background:rgba(255,255,255,.06)}
   .nav-obras-q:focus-within,#nav-obras-est:focus{border-color:var(--gold)}
   #nav-obras-q{background:transparent;border:none;outline:none;color:#fff;width:210px;padding:0}
   #nav-obras-q::placeholder{color:rgba(255,255,255,.55)}
-  #nav-obras-est{height:26px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.3);border-radius:4px;color:rgba(255,255,255,.9);padding:0 6px;cursor:pointer;outline:none}
+  #nav-obras-est{height:26px;box-sizing:border-box;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.3);border-radius:4px;color:rgba(255,255,255,.9);padding:0 6px;cursor:pointer;outline:none}
   #nav-obras-est option{color:#1a1a1a;background:#fff}
-  @media (max-width:760px){ #nav-obras{margin-left:8px;gap:6px} #nav-obras-q{width:90px} }
+  #nav-obras-q{width:240px}
+  @media (max-width:1100px){ #nav-obras-qbox{position:static;transform:none;margin-left:8px} }
+  @media (max-width:760px){ #nav-obras{margin-left:8px} #nav-obras-q{width:90px} }
   /* Assistente (chat) escondido por agora */
   #chat-bubble,#chat-panel{display:none !important}
 </style>
@@ -436,7 +440,8 @@ window.addEventListener('DOMContentLoaded',()=>{ if(pwaStandalone()){ const b=do
     const vaiInicio=/^Voltar a Obras$/i.test(lbl);           // na ficha da obra: Voltar = Início → só o botão Início
     nb.style.display=(bb&&!vaiInicio)?'flex':'none'; nb.title=lbl;
     if(nh){ nh.style.display=bb?'flex':'none'; nh.style.marginRight=(bb&&!vaiInicio)?'0':'auto'; }
-    const no=document.getElementById('nav-obras'), mk=document.querySelector('#app #obras-lista-mark');
+    const no=document.getElementById('nav-obras'), mk=document.querySelector('#app #obras-lista-mark'), qb=document.getElementById('nav-obras-qbox');
+    if(qb) qb.style.display=mk?'inline-flex':'none';
     if(no){ no.style.display=mk?'flex':'none';
       if(mk){ document.getElementById('nav-obras-n').textContent=mk.dataset.n; document.getElementById('nav-obras-n').title=mk.dataset.n+' obra(s)';
         const q=document.getElementById('nav-obras-q'); if(q&&document.activeElement!==q) q.value=obrasSearch||'';
@@ -1070,7 +1075,7 @@ document.addEventListener('keydown',function(e){
 // ================================================================
 // STATE
 // ================================================================
-let page='obras', obrasTab='Principal', obrasFilter='Todos os Estados', obrasSearch='';
+let page='obras', obrasTab='Principal', obrasFilter='Em Curso', obrasSearch='';
 let intervTab='donosObra', fichObraId=null, fichObraTab='Principal';
 
 // ================================================================
