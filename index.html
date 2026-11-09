@@ -293,7 +293,7 @@ tr.tr-click:hover td{background:#F5F7FA}
   <button id="nav-home" type="button" title="Início — Lista de Obras" aria-label="Início" onclick="navInicio()" style="display:none;margin-left:18px;width:30px;height:30px;border-radius:50%;border:1px solid rgba(232,168,48,.55);background:transparent;color:#fff;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg></button>
   <button id="nav-back" type="button" title="Voltar" aria-label="Voltar" onclick="navVoltar()" style="display:none;margin-right:auto;margin-left:8px;width:30px;height:30px;border-radius:50%;border:1px solid rgba(232,168,48,.55);background:transparent;color:#fff;cursor:pointer;align-items:center;justify-content:center;font-size:16px;line-height:1;padding:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 010 11H11"/></svg></button>
   <div class="nav-right">
-    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.11.09.1458</span>
+    <span id="verBadge" style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#0f2236;background:var(--gold);padding:2px 7px;border-radius:999px;margin-right:4px">v26.11.09.1505</span>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-pwa-instalar" title="Instalar o SEGO como app neste dispositivo" onclick="pwaInstalar()">📲 Instalar App</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-pwa-atualizar" title="Recarregar a app (dados e versão mais recentes)" onclick="location.reload()">↻ Atualizar</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-dash" title="Dashboard PE · PA · PB · QE" onclick="dashAbrir('')">📊 Dashboard</button>
@@ -319,6 +319,8 @@ tr.tr-click:hover td{background:#F5F7FA}
   body, body *:not(svg):not(svg *):not(.nav-logo-text):not(.nav-logo-sub){font-family:Calibri,Carlito,sans-serif !important}
   body *:not(svg):not(svg *):not(.nav-logo-text):not(.nav-logo-sub):not(#verBadge):not(#nav-back){font-size:8pt !important}
   .page-title,.ficha-title{font-weight:700 !important}
+  /* Rótulos (labels) uniformes em toda a app: cinzento + negrito; valores a preto normal */
+  .field-label,.form-label,.ident-label,.kpi-label,.stat-label,.upload-label-txt,.pe-fld label,.pe-fld>.pe-l{color:var(--text-muted) !important;font-weight:700 !important}
   /* sem MAIÚSCULAS forçadas nem espaçamento entre letras (fazem o texto parecer de outro tamanho) */
   body *:not(svg):not(svg *):not(.nav-logo-text):not(.nav-logo-sub){text-transform:none !important;letter-spacing:normal !important}
 </style>
@@ -1292,10 +1294,10 @@ window.relEditarEnvio=function(relId){
   const nomes=[...new Set((DB.utilizadores||[]).filter(u=>u.nome&&(u.role==='fiscalizacao'||u.role==='superadmin')).map(u=>u.nome))].sort((a,b)=>a.localeCompare(b,'pt'));
   const _sig=siglaRel((rel.conteudo&&rel.conteudo.subtipo)||'');
   showModal('Envio — '+_sig+' '+relNumero(rel),`
-    <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">Enviado Por</div>
+    <div style="font-size:12px;color:var(--text-muted);font-weight:700;margin-bottom:4px">Enviado Por</div>
     <input id="env-nome" class="form-input" style="width:100%;margin-bottom:14px" list="env-nomes" value="${esc(env.nome||'')}">
     <datalist id="env-nomes">${nomes.map(n=>`<option value="${esc(n)}">`).join('')}</datalist>
-    <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">Data/Hora do Envio</div>
+    <div style="font-size:12px;color:var(--text-muted);font-weight:700;margin-bottom:4px">Data/Hora do Envio</div>
     <input id="env-data" type="datetime-local" class="form-input" style="width:100%" value="${dt}">
     <div style="font-size:11px;color:var(--text-muted);margin-top:10px">Só altera o registo — não envia nenhum email.</div>
   `,[
@@ -2399,7 +2401,7 @@ function renderFichaSOS(app,r){
   d.temas.forEach(t=>{ if(window._sosCollapsed[t.id]===undefined) window._sosCollapsed[t.id]=true; });
   const inpS='width:100%;padding:5px 7px;border:0.5px solid var(--border-light);border-radius:3px;font-size:12px;font-family:inherit;background:#fff;box-sizing:border-box';
   const inpRO='width:100%;padding:5px 7px;border:0.5px solid var(--border-light);border-radius:3px;font-size:12px;font-family:inherit;background:#f0f2f5;color:#666;cursor:not-allowed;box-sizing:border-box';
-  const lbl='font-size:10px;color:var(--text-muted);margin-bottom:3px;letter-spacing:.3px';
+  const lbl='font-size:10px;color:var(--text-muted);font-weight:700;margin-bottom:3px';
   const sectTitle='font-size:10px;font-weight:700;color:var(--text-muted);letter-spacing:.8px';
   const estadoBadge=(est)=>{
     const map={pendente:{bg:'#FEF3C7',col:'#854F0B',txt:'Pendente'},resolvido:{bg:'#D1FAE5',col:'#065F46',txt:'Resolvido'},fechado:{bg:'#E5E7EB',col:'#374151',txt:'Fechado'}};
@@ -2633,7 +2635,7 @@ window.abrirPublicar=function(relId){
   } else {
     opcionais=people.filter(u=>!(u.role==='dono_obra'||u.role==='empreiteiro')||segoEhCSO(u)).filter(u=>!ccAuto.some(c=>c.email===u.email));
   }
-  const ccHtml=ccAuto.length?('<div style="font-size:12px;margin-bottom:4px"><b>Com conhecimento (Cc) automático:</b></div><div style="border:1px solid var(--border-light);border-radius:var(--radius);padding:4px 10px;margin-bottom:14px;background:#F7F9FC">'+ccAuto.map(u=>'<div style="padding:4px 0;font-size:13px"><b>'+(u.nome||u.email)+'</b> <span style="color:var(--text-muted)">· Fiscalização · '+u.email+'</span></div>').join('')+'</div>'):(_ehRSO?'<div style="font-size:12px;margin-bottom:14px;padding:6px 10px;border-left:3px solid #E0B000;background:#FFF8E1"><b>Sem CSO associada a esta obra</b> — o RSO não segue para nenhuma CSO. Associe a CSO à obra no SID (ficha do utilizador ou equipa de Fiscalização da obra).</div>':'');
+  const ccHtml=ccAuto.length?('<div style="font-size:12px;margin-bottom:4px;color:var(--text-muted)"><b>Com conhecimento (Cc) automático:</b></div><div style="border:1px solid var(--border-light);border-radius:var(--radius);padding:4px 10px;margin-bottom:14px;background:#F7F9FC">'+ccAuto.map(u=>'<div style="padding:4px 0;font-size:13px"><b>'+(u.nome||u.email)+'</b> <span style="color:var(--text-muted)">· Fiscalização · '+u.email+'</span></div>').join('')+'</div>'):(_ehRSO?'<div style="font-size:12px;margin-bottom:14px;padding:6px 10px;border-left:3px solid #E0B000;background:#FFF8E1"><b>Sem CSO associada a esta obra</b> — o RSO não segue para nenhuma CSO. Associe a CSO à obra no SID (ficha do utilizador ou equipa de Fiscalização da obra).</div>':'');
   const link=location.origin+'/?doc='+encodeURIComponent(relId);
   const obraTxt=((o.sigla?o.sigla+' — ':'')+(o.nome||'')).trim();
   const defMsg='Disponibiliza-se o '+_sigla+' '+relNumero(rel)+' da Obra '+obraTxt+', cujo link de acesso é:';
@@ -2641,14 +2643,14 @@ window.abrirPublicar=function(relId){
   const opts=opcionais.length?opcionais.map(u=>`<label style="display:flex;gap:8px;align-items:center;padding:5px 0"><input type="checkbox" class="pub-cb" value="${u.email}" data-nome="${(u.nome||'').replace(/"/g,'')}"><span style="font-size:13px">${u.nome||u.email} <span style="color:var(--text-muted)">· ${roleL[u.role]}${segoEhCSO(u)?' · CSO':''} · ${u.email}</span></span></label>`).join(''):('<div style="font-size:12px;color:var(--text-muted)">'+(_ehSeg?'Sem elementos do Dono de Obra com email nesta obra (verifique a ficha da obra no SID).':'Sem outros intervenientes com email nesta obra.')+'</div>');
   showModal('Publicar e enviar — '+_sigla+' '+relNumero(rel),`
     ${_ehRSO?rsoSemanaCampoHTML((rel.conteudo&&rel.conteudo.dados&&rel.conteudo.dados.semanaIni)||'','Confirme a semana deste RSO antes de publicar.'):''}
-    <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">Mensagem (parametrizável)</div>
+    <div style="font-size:12px;color:var(--text-muted);font-weight:700;margin-bottom:4px">Mensagem (parametrizável)</div>
     <textarea id="pub-msg" class="form-input" style="width:100%;min-height:90px;margin-bottom:14px">${defMsg}</textarea>
-    <div style="font-size:12px;margin-bottom:4px"><b>Esta notificação será enviada obrigatoriamente a:</b></div>
+    <div style="font-size:12px;margin-bottom:4px;color:var(--text-muted)"><b>Esta notificação será enviada obrigatoriamente a:</b></div>
     <div style="border:1px solid var(--border-light);border-radius:var(--radius);padding:4px 10px;margin-bottom:14px;background:#F7F9FC">${obrigHtml}</div>
     ${ccHtml}
-    <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">${_ehSeg?'Dono de Obra — opcional (por defeito ninguém é seleccionado)':'Outros intervenientes — opcional (por defeito ninguém é seleccionado)'}</div>
+    <div style="font-size:12px;color:var(--text-muted);font-weight:700;margin-bottom:4px">${_ehSeg?'Dono de Obra — opcional (por defeito ninguém é seleccionado)':'Outros intervenientes — opcional (por defeito ninguém é seleccionado)'}</div>
     <div style="max-height:150px;overflow:auto;border:1px solid var(--border-light);border-radius:var(--radius);padding:4px 10px;margin-bottom:14px">${opts}</div>
-    <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">Emails adicionais (separados por vírgula)</div>
+    <div style="font-size:12px;color:var(--text-muted);font-weight:700;margin-bottom:4px">Emails adicionais (separados por vírgula)</div>
     <input id="pub-extra" class="form-input" style="width:100%" placeholder="ceo@empresa.pt, ...">
     ${_ehSeg?`<div style="border:1px solid var(--border-light);border-radius:var(--radius);padding:10px 12px;margin:14px 0 4px;background:#FFFBF2">
       <div style="font-size:12px;margin-bottom:6px"><b>Alertas</b> <span style="color:var(--text-muted)">— incluir um alerta no email de notificação?</span></div>
@@ -2783,12 +2785,12 @@ window.abrirReenviar=function(relId){
   const defMsg='Reenvia-se o '+_sigla+' '+relNumero(rel)+' da Obra '+obraTxt+', cujo link de acesso é:';
   const opts=people.length?people.map(u=>`<label style="display:flex;gap:8px;align-items:center;padding:5px 0"><input type="checkbox" class="reenv-cb" value="${u.email}" data-nome="${(u.nome||'').replace(/"/g,'')}"><span style="font-size:13px">${u.nome||u.email} <span style="color:var(--text-muted)">· ${roleL[u.role]}${segoEhCSO(u)?' · CSO':''} · ${u.email}</span></span></label>`).join(''):'<div style="font-size:12px;color:var(--text-muted)">Sem intervenientes com email nesta obra.</div>';
   showModal('Reenviar — '+_sigla+' '+relNumero(rel),`
-    <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">Mensagem (parametrizável)</div>
+    <div style="font-size:12px;color:var(--text-muted);font-weight:700;margin-bottom:4px">Mensagem (parametrizável)</div>
     <textarea id="reenv-msg" class="form-input" style="width:100%;min-height:90px;margin-bottom:14px">${defMsg}</textarea>
-    ${relEhRSO(rel)&&segoCSOsDaObra(o).length?'<div style="font-size:12px;margin-bottom:4px"><b>Com conhecimento (Cc) automático — CSO:</b></div><div style="border:1px solid var(--border-light);border-radius:var(--radius);padding:4px 10px;margin-bottom:14px;background:#F7F9FC">'+segoCSOsDaObra(o).map(u=>'<div style="padding:4px 0;font-size:13px"><b>'+(u.nome||u.email)+'</b> <span style="color:var(--text-muted)">· CSO · '+u.email+'</span></div>').join('')+'</div>':''}
-    <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">Intervenientes — seleccione quem deve receber o reenvio</div>
+    ${relEhRSO(rel)&&segoCSOsDaObra(o).length?'<div style="font-size:12px;margin-bottom:4px;color:var(--text-muted)"><b>Com conhecimento (Cc) automático — CSO:</b></div><div style="border:1px solid var(--border-light);border-radius:var(--radius);padding:4px 10px;margin-bottom:14px;background:#F7F9FC">'+segoCSOsDaObra(o).map(u=>'<div style="padding:4px 0;font-size:13px"><b>'+(u.nome||u.email)+'</b> <span style="color:var(--text-muted)">· CSO · '+u.email+'</span></div>').join('')+'</div>':''}
+    <div style="font-size:12px;color:var(--text-muted);font-weight:700;margin-bottom:4px">Intervenientes — seleccione quem deve receber o reenvio</div>
     <div style="max-height:170px;overflow:auto;border:1px solid var(--border-light);border-radius:var(--radius);padding:4px 10px;margin-bottom:14px">${opts}</div>
-    <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">Emails adicionais (separados por vírgula)</div>
+    <div style="font-size:12px;color:var(--text-muted);font-weight:700;margin-bottom:4px">Emails adicionais (separados por vírgula)</div>
     <input id="reenv-extra" class="form-input" style="width:100%" placeholder="ceo@empresa.pt, ...">
     <div style="font-size:11px;color:var(--text-muted);margin-top:10px">Link do documento: <code style="font-size:11px">${link}</code></div>
   `,[
@@ -9481,9 +9483,9 @@ function rsoSemanaCampoHTML(valor,nota){
   const seg=rsoSegunda(valor||'');
   return `<div style="border:1px solid #E0B000;background:#FFF8E1;border-radius:var(--radius);padding:10px 12px;margin-bottom:14px">
     <div style="display:grid;grid-template-columns:1fr 1.4fr;gap:12px;align-items:end">
-      <div><div style="font-size:12px;margin-bottom:4px"><b>Início da Semana *</b></div>
+      <div><div style="font-size:12px;margin-bottom:4px;color:var(--text-muted)"><b>Início da Semana *</b></div>
         <input type="date" id="rso-semini" class="form-input" style="width:100%" value="${seg}" oninput="rsoSemanaPreview()"></div>
-      <div><div style="font-size:12px;margin-bottom:4px"><b>Período</b> (automático)</div>
+      <div><div style="font-size:12px;margin-bottom:4px;color:var(--text-muted)"><b>Período</b> (automático)</div>
         <div id="rso-semper" class="form-input" style="background:#F1F3F7;min-height:34px;display:flex;align-items:center">${seg?esc(rsoPeriodo(seg)):'—'}</div></div>
     </div>
     ${nota?`<div style="font-size:11px;color:var(--text-muted);margin-top:6px">${nota}</div>`:''}
@@ -9555,7 +9557,7 @@ function renderFichaRS(app,r){
   const esc=(s)=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   const inpS='width:100%;padding:5px 7px;border:0.5px solid var(--border-light);border-radius:3px;font-size:12px;font-family:inherit;background:#fff;box-sizing:border-box';
   const inpRO='width:100%;padding:5px 7px;border:0.5px solid var(--border-light);border-radius:3px;font-size:12px;font-family:inherit;background:#f0f2f5;color:#666;cursor:not-allowed;box-sizing:border-box';
-  const lbl='font-size:10px;color:var(--text-muted);margin-bottom:3px;letter-spacing:.3px';
+  const lbl='font-size:10px;color:var(--text-muted);font-weight:700;margin-bottom:3px';
   const sectTitle='font-size:10px;font-weight:700;color:var(--text-muted);letter-spacing:.8px';
   const removeBtn=(s,i)=>{
     if(ro) return '';
@@ -10666,7 +10668,7 @@ function dashVisaoGeral(ds){
     let ult=''; dd.forEach(d=>{ d.hist.forEach(h=>{ if(h&&h.data&&h.data>ult) ult=h.data; }); if((d.criado||'')>ult) ult=d.criado; });
     return {o,n:dd.length,pct:ds.length?Math.round(1000*dd.length/ds.length)/10:0,ult};
   }).sort((a,b)=>b.n-a.n);
-  const tile=(lbl,val,sub)=>`<div class="dash-card" style="margin-bottom:0"><div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px">${lbl}</div><div style="font-size:22px;font-weight:700;color:var(--navy);margin:2px 0">${val}</div><div style="font-size:11px;color:var(--text-muted)">${sub||''}</div></div>`;
+  const tile=(lbl,val,sub)=>`<div class="dash-card" style="margin-bottom:0"><div style="font-size:11px;color:var(--text-muted);font-weight:700">${lbl}</div><div style="font-size:22px;font-weight:700;color:var(--navy);margin:2px 0">${val}</div><div style="font-size:11px;color:var(--text-muted)">${sub||''}</div></div>`;
   const bullets=[];
   bullets.push(`<b>${comAtividade.length}</b> obra${comAtividade.length===1?'':'s'} com atividade e <b>${semAtividade.length}</b> sem atividade${semAtividade.length?' ('+semAtividade.slice(0,8).map(o=>esc(o.sigla||o.nome)).join(', ')+(semAtividade.length>8?', …':'')+')':''}.`);
   if(pesos.length) bullets.push(`A obra <b>${esc(pesos[0].o.nome)}</b> concentra <b>${String(pesos[0].pct).replace('.',',')}%</b> da atividade registada.`);
@@ -11254,7 +11256,7 @@ function renderFichaObra(app){
   // Helpers
   const row=(lbl,val,valColor='var(--text)')=>`
     <div style="display:flex;justify-content:space-between;align-items:center;padding:3px 0">
-      <span style="font-size:11px;color:var(--text-muted)">${lbl}</span>
+      <span style="font-size:11px;color:var(--text-muted);font-weight:700">${lbl}</span>
       <span style="font-size:12px;font-weight:500;color:${valColor}">${val||'—'}</span>
     </div>`;
   const divider=`<div style="height:0.5px;background:var(--border-light);margin:6px 0"></div>`;
@@ -11283,11 +11285,11 @@ function renderFichaObra(app){
       ${avatar(u)}
       <div style="flex:1;min-width:0">
         <div style="font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${u.nome}</div>
-        <div style="font-size:10px;color:var(--text-muted)">${sub}</div>
+        <div style="font-size:10px;color:var(--text-muted);font-weight:700">${sub}</div>
       </div>
     </div>`;
 
-  const secLbl=t=>`<div style="font-size:9px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.6px;margin:10px 0 4px;padding-bottom:3px;border-bottom:0.5px solid var(--border-light)">${t}</div>`;
+  const secLbl=t=>`<div style="font-size:9px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.6px;margin:10px 0 4px;padding-bottom:3px;border-bottom:0.5px solid var(--border-light)">${t}</div>`;
 
   const intvSec=(titulo,users,extraFn=u=>u.funcao||u.email||'—')=>
     secLbl(titulo)+(users.length?users.map(u=>row(extraFn(u),u.nome)).join(''):`<div style="font-size:12px;color:var(--text-muted);font-style:italic;padding:4px 0">Não definido</div>`);
