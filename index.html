@@ -310,7 +310,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-def" title="Definições" onclick="defMenuAbrir(event)">⚙ Definições</button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.10.0114</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.10.0116</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -612,7 +612,10 @@ window.segoTema=function(){
 
 <style>
   /* Paletas: Aceitar (laranja + azul, por defeito) · Azul e Dourado */
-  :root{--est-curso:#2F6F96;--est-prep:#C9772E;--est-susp:#A32D2D;--est-concl:#5F7180;--cg-faixa:#E39A55;--pal-1:#2F6F96;--pal-1-bg:#E3F0F8}
+  :root{--est-curso:#69A1C2;--est-prep:#E39956;--est-susp:#A32D2D;--est-concl:#5F7180;--cg-faixa:#E39956;--pal-1:#3F7FA6;--pal-1-bg:#E6F1F8} /* cores exatas do logótipo: azul #69A1C2 · laranja #E39956 */
+  html:not([data-paleta=navy]) .cg-cab [style*="rgba(255,255,255,.7)"]{color:#fff !important}
+  html:not([data-paleta=navy]) .cg-cab{text-shadow:0 1px 1px rgba(0,0,0,.18)}
+  html:not([data-paleta=navy]) .cg-cab[style*="est-prep"]{border-bottom-color:#69A1C2}
   html[data-paleta=navy]{--est-curso:#1E3A5F;--est-prep:#2E5C8A;--est-susp:#7F2424;--est-concl:#4F5B69;--cg-faixa:#C9922A;--pal-1:#1E3A5F;--pal-1-bg:#EEF1F6}
   html[data-theme=dark]{--pal-1-bg:rgba(255,255,255,.07)}
   html[data-theme=dark] {--pal-1:#7FB3D5} html[data-theme=dark][data-paleta=navy]{--pal-1:#E8C26A}
