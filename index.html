@@ -313,7 +313,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.10.0306</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.10.0309</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -791,9 +791,14 @@ window.segoTema=function(){
   /* Pontilhado entre label e valor (como num índice) */
   .cg-r{align-items:baseline !important}
   .cg-r .cg-rl{display:flex;flex:1 1 auto;min-width:0;align-items:baseline}
-  .cg-r .cg-rl::after{content:'';flex:1 1 auto;min-width:12px;margin:0 6px;border-bottom:1px dotted var(--text-muted);opacity:.22;transform:translateY(-3px)}
+  .cg-r .cg-rl::after{content:'';flex:1 1 auto;min-width:12px;margin:0 2px 0 6px;border-bottom:1px dotted var(--text-muted);opacity:.22;transform:translateY(-3px)}
   .cg-r .cg-rl:empty::after{margin-left:0}
   .cg-r .cg-rv{flex:0 0 var(--cg-vw,auto);width:var(--cg-vw,auto)}
+  .co-cx{cursor:pointer;transition:border-color .15s}
+  .co-cx:hover{border-color:var(--gold) !important}
+  .co-cx .co-cnt{color:var(--text-muted);white-space:nowrap;align-self:flex-start}
+  .co-cx .co-vazio .cg-rl::after,.co-cx .co-semreg .cg-rl::after{display:none}
+  .co-cx .co-semreg .cg-rl{color:var(--text-muted);font-weight:400}
 </style>
 <script>
 /* Pontilhado alinhado: em cada card, todos os pontilhados param no início do valor mais comprido */
@@ -8820,7 +8825,7 @@ function coFillAm(obraId){
       let nTC=0; try{ nTC=(await sbRel.get('autos_tcm',`obra_id=eq.${encodeURIComponent(obraId)}&estado=eq.fechado&select=id`)).length; }catch(e){}
       const c=document.getElementById('co-cnt-am'); if(c) c.textContent=nTC?(rows.length+' TN · '+nTC+' TCm'):(rows.length+' fechado'+(rows.length===1?'':'s'));
       const r=document.getElementById('co-rec-am');
-      if(r) r.innerHTML=rows.length?rows.slice(0,3).map(x=>`<div class="co-rec-item"><span class="co-id">${x.id}</span><span class="co-dt">${coFmtDia(x.data_fecho)}</span></div>`).join(''):'<div class="co-rec-empty">—</div>';
+      if(r) r.innerHTML=coPad(rows.length?rows.slice(0,5).map(x=>`<div class="cg-r"><span class="cg-rl">${x.id}</span><span class="cg-rv">${coFmtDia(x.data_fecho)}</span></div>`).join(''):'<div class="co-rec-empty">—</div>');
     })
     .catch(()=>{ const c=document.getElementById('co-cnt-am'); if(c) c.textContent='—'; });
 }
@@ -12088,6 +12093,9 @@ const CO_CSS=`<style>
 .co-rec-empty{font-size:11px;color:#C7CDD6}
 </style>`;
 
+const CO_TIT={ptq:'Plano Quinzenal de Trabalhos',pb:'Pedidos de Betonagem',pe:'Pedidos de Esclarecimento',pa:'Pedidos de Aprovação',qe:'Qualidade de Execução',am:'Autos Mensais',tcm:'Trabalhos Complementares',met:'Mapa de Empresas e Trabalhadores'};
+function coPad(h){ h=String(h||''); if(h.indexOf('co-rec-empty')>=0) h='<div class="cg-r co-semreg"><span class="cg-rl">Sem registos</span><span class="cg-rv"></span></div>';
+  const n=(h.match(/class="cg-r[ "]/g)||[]).length; for(let i=n;i<5;i++) h+='<div class="cg-r co-vazio"><span class="cg-rl"></span><span class="cg-rv">&nbsp;</span></div>'; return h; }
 function coFmtDia(d){ if(!d) return ''; const p=String(d).slice(0,10).split('-'); return p.length===3?p[2]+'/'+p[1]:''; }
 
 const CO_ICONS={
@@ -12109,10 +12117,10 @@ const CO_MODS=[
   {key:'pe',sigla:'PE',kind:'gpe',tabela:'pedidos_esclarecimento',grp:'fisc',open:'peAbrirModulo'},
   {key:'pa',sigla:'PA',kind:'gpe',tabela:'pedidos_aprovacao',grp:'fisc',open:'paAbrirModulo'},
   {key:'qe',sigla:'QE',kind:'gpe',tabela:'qualidade_execucao',grp:'fisc',open:'qeAbrirModulo'},
-  {key:'am',sigla:'AM',kind:'gpe',tabela:'autos_mensais',grp:'fisc',open:'amAbrirModulo'},
-  {key:'tcm',sigla:'TCm',kind:'gpe',tabela:'tcm',grp:'fisc',open:'tcmAbrirModulo'},
   {key:'RS',sigla:'RSO',kind:'rel',tipo:'fiscalizacao',subtipo:'RS',grp:'fisc',label:'Relatório Semanal de Obra'},
   {key:'SOS',sigla:'SOS',kind:'rel',tipo:'fiscalizacao',subtipo:'SOS',grp:'fisc',label:'Situações Operacionais Semanais'},
+  {key:'am',sigla:'AM',kind:'gpe',tabela:'autos_mensais',grp:'fisc',open:'amAbrirModulo'},
+  {key:'tcm',sigla:'TCm',kind:'gpe',tabela:'tcm',grp:'fisc',open:'tcmAbrirModulo'},
   {key:'RVT',sigla:'RVT',kind:'rel',tipo:'seguranca',subtipo:'RVT',grp:'seg',label:'Relatório de Visita Técnica'},
   {key:'met',sigla:'MET',kind:'met',grp:'seg',open:'metAbrirModulo',soCSO:true}
 ];
@@ -12279,7 +12287,7 @@ function renderCOPanel(o){
     if(m.kind==='rel'){
       const rels=DB.relatorios.filter(r=>r.obra_id===o.id&&relVisivelParaUser(r)&&r.conteudo&&r.conteudo.tipo===m.tipo&&r.conteudo.subtipo===m.subtipo).sort((a,b)=>b.numero-a.numero||b.versao-a.versao);
       cntHtml=rels.length+' registo'+(rels.length===1?'':'s');
-      recHtml=rels.length?rels.slice(0,3).map(r=>`<div class="co-rec-item"><span class="co-id">${relNumero(r)}</span><span class="co-dt">${coFmtDia(r.criado_em)}</span></div>`).join(''):'<div class="co-rec-empty">—</div>';
+      recHtml=coPad(rels.length?rels.slice(0,5).map(r=>`<div class="cg-r"><span class="cg-rl">${relNumero(r)}</span><span class="cg-rv">${coFmtDia(r.criado_em)}</span></div>`).join(''):'<div class="co-rec-empty">—</div>');
       const lbl=(m.label||'').replace(/'/g,'’');
       onclick=`coAbrirRel('${o.id}','${m.tipo}','${m.subtipo}','${m.sigla}','${lbl}')`;
     }else if(m.kind==='met'){
@@ -12289,18 +12297,16 @@ function renderCOPanel(o){
       cntHtml='…'; recHtml='';
       onclick=`${m.open}('${o.id}')`;
     }
-    return `<div class="co-mod ${m.grp}" onclick="${onclick}"${_oc?' style="opacity:.55;border-style:dashed" title="Oculto para os utilizadores desta obra (só o Superadmin vê)"':''}>
-      <div class="co-mhead"><div class="cs">${m.sigla}${_oc?' <span style="font-size:8px;font-weight:700;color:#B42318;vertical-align:middle">OCULTO</span>':''}</div><div class="ci">${CO_ICONS[m.key]||''}</div><div class="cc" id="co-cnt-${m.key}">${cntHtml}</div></div>
-      <div class="co-mrec" id="co-rec-${m.key}">${recHtml}</div>
+    const cor=m.grp==='seg'?'#A32D2D':'#185FA5', cbg=m.grp==='seg'?'#FCEBEB':'#E6F1FB';
+    const tit=m.label||CO_TIT[m.key]||m.sigla;
+    return `<div class="cg-cx co-cx ${m.grp}" onclick="${onclick}"${_oc?' style="opacity:.55;border-style:dashed" title="Oculto para os utilizadores desta obra (só o Superadmin vê)"':''}>
+      <div class="cg-cx-h"><div class="cg-cx-ic" style="color:${cor};background:${cbg}">${(CO_ICONS[m.key]||'').replace('<svg ','<svg width="18" height="18" ')}</div>
+        <div style="min-width:0;flex:1"><div style="font-weight:700;color:${cor}">${m.sigla}${_oc?' <span style="font-weight:700;color:#B42318">OCULTO</span>':''}</div><div style="color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${tit}">${tit}</div></div>
+        <div class="co-cnt" id="co-cnt-${m.key}">${cntHtml}</div></div>
+      <div class="cg-cx-b" id="co-rec-${m.key}">${coPad(recHtml)}</div>
     </div>`;
   }).join('');
-  return CO_CSS+`<div style="grid-column:2 / -1;background:var(--bg-card);border:1px solid var(--border-light);border-radius:var(--radius);overflow:hidden;height:100%;box-sizing:border-box">
-    <div style="display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:.5px solid var(--border-light)">
-      <div style="width:34px;height:34px;border-radius:var(--radius);background:#EEEDFE;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="18" height="18" viewBox="0 0 48 48" fill="none"><rect x="8" y="10" width="24" height="30" rx="3" stroke="#534AB7" stroke-width="2.5"/><path d="M14 18h12M14 24h8M14 30h10" stroke="#534AB7" stroke-width="2" stroke-linecap="round"/></svg></div>
-      <div><div style="font-size:9px;font-weight:700;color:#534AB7;letter-spacing:.7px;text-transform:uppercase">CO</div><div style="font-size:13px;font-weight:500;color:var(--text)">Controlo Operacional</div></div>
-    </div>
-    <div style="padding:12px 14px"><div class="co-grid7">${boxes}</div></div>
-  </div>`;
+  return CO_CSS+`<div class="cg-cxs cg-2 co-cxs">${boxes}</div>`;
 }
 
 function coFillGpe(obraId,key,tabela){
@@ -12308,7 +12314,7 @@ function coFillGpe(obraId,key,tabela){
     .then(rows=>{
       const c=document.getElementById('co-cnt-'+key); if(c) c.textContent=rows.length+' registo'+(rows.length===1?'':'s');
       const r=document.getElementById('co-rec-'+key);
-      if(r) r.innerHTML=rows.length?rows.slice(0,3).map(x=>{ const dt=x.data_envio||x.data_criacao; return `<div class="co-rec-item"><span class="co-id">${x.id}</span><span class="co-dt">${coFmtDia(dt)}</span></div>`; }).join(''):'<div class="co-rec-empty">—</div>';
+      if(r) r.innerHTML=coPad(rows.length?rows.slice(0,5).map(x=>{ const dt=x.data_envio||x.data_criacao; return `<div class="cg-r"><span class="cg-rl">${x.id}</span><span class="cg-rv">${coFmtDia(dt)}</span></div>`; }).join(''):'<div class="co-rec-empty">—</div>');
     })
     .catch(()=>{ const c=document.getElementById('co-cnt-'+key); if(c) c.textContent='—'; });
 }
@@ -12318,7 +12324,7 @@ function coFillMet(obraId){
     .then(rows=>{
       const c=document.getElementById('co-cnt-met'); if(c) c.textContent=rows.length+' dia'+(rows.length===1?'':'s');
       const r=document.getElementById('co-rec-met');
-      if(r) r.innerHTML=rows.length?rows.slice(0,3).map(x=>`<div class="co-rec-item"><span class="co-id">${x.total_trabalhadores==null?'—':x.total_trabalhadores} trab.</span><span class="co-dt">${coFmtDia(x.data)}</span></div>`).join(''):'<div class="co-rec-empty">—</div>';
+      if(r) r.innerHTML=coPad(rows.length?rows.slice(0,5).map(x=>`<div class="cg-r"><span class="cg-rl">${x.total_trabalhadores==null?'—':x.total_trabalhadores} trab.</span><span class="cg-rv">${coFmtDia(x.data)}</span></div>`).join(''):'<div class="co-rec-empty">—</div>');
     })
     .catch(()=>{ const c=document.getElementById('co-cnt-met'); if(c) c.textContent='—'; });
 }
