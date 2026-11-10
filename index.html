@@ -310,7 +310,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-def" title="Definições" onclick="defMenuAbrir(event)">⚙ Definições</button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.10.0110</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.10.0114</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -609,6 +609,16 @@ window.segoTema=function(){
   #ver-dev{display:none;margin-right:4px;border:1px solid #f87171;color:#fca5a5;border-radius:4px;padding:0 6px;height:24px;align-items:center;box-sizing:border-box}
 </style>
 <script>try{ if(!/^sego\.aceitar\.pt$/.test(location.hostname)) document.addEventListener('DOMContentLoaded',()=>{ const v=document.getElementById('verBadge'); if(v){ const d=document.createElement('span'); d.id='ver-dev'; d.textContent='DEV'; d.style.display='inline-flex'; d.title='Versão de desenvolvimento (dados do SEGO)'; v.parentNode.insertBefore(d,v); } }); }catch(e){}</script>
+
+<style>
+  /* Paletas: Aceitar (laranja + azul, por defeito) · Azul e Dourado */
+  :root{--est-curso:#2F6F96;--est-prep:#C9772E;--est-susp:#A32D2D;--est-concl:#5F7180;--cg-faixa:#E39A55;--pal-1:#2F6F96;--pal-1-bg:#E3F0F8}
+  html[data-paleta=navy]{--est-curso:#1E3A5F;--est-prep:#2E5C8A;--est-susp:#7F2424;--est-concl:#4F5B69;--cg-faixa:#C9922A;--pal-1:#1E3A5F;--pal-1-bg:#EEF1F6}
+  html[data-theme=dark]{--pal-1-bg:rgba(255,255,255,.07)}
+  html[data-theme=dark] {--pal-1:#7FB3D5} html[data-theme=dark][data-paleta=navy]{--pal-1:#E8C26A}
+  .cg-cab{border-bottom:3px solid var(--cg-faixa)}
+</style>
+<script>try{ if(localStorage.getItem('sego-paleta')==='navy') document.documentElement.setAttribute('data-paleta','navy'); }catch(e){}</script>
 <!-- FLOATING CHATBOT -->
 <div id="chat-bubble" onclick="toggleChat()" style="position:fixed;bottom:20px;right:20px;width:52px;height:52px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.25);z-index:500;transition:transform .2s" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
   <svg width="24" height="24" fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
@@ -11392,7 +11402,7 @@ function renderFasesObra(app){
 const CG_ATALHOS=[['IA','Identificação e Âmbito'],['DP','Datas e Prazos'],['ID','Intervenientes e Documentos'],['CO','Controlo Operacional']];
 function cgAtalhos(o,atual){ return `<div class="cg-at">${CG_ATALHOS.map(([k,t])=>`<button class="${atual===k?'on':''}" title="${t}" onclick="event.stopPropagation();${k==='CO'?`cgAbrirCO('${o.id}')`:`cgAbrir('${o.id}','${k}')`}">${k}</button>`).join('')}</div>`; }
 function cgCardHTML(o,ehFase){
-  const corEstado=e=>({'Em Curso':'#0F6E56','Em Preparação':'#185FA5','Suspensa':'#A32D2D','Concluída':'#854F0B'}[e]||'#1E3A5F');
+  const corEstado=e=>({'Em Curso':'var(--est-curso)','Em Preparação':'var(--est-prep)','Suspensa':'var(--est-susp)','Concluída':'var(--est-concl)'}[e]||'var(--est-curso)');
   const prrs=o.prorrogacoes||[];
   const row=(l,v,st)=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0"><span style="font-weight:700;color:var(--text-muted)">${l}</span><span style="color:var(--text);${st||''}">${v||'—'}</span></div>`;
   const nf=o.comFases?cgFases(o.id).length:0;
@@ -11403,7 +11413,7 @@ function cgCardHTML(o,ehFase){
       ${row('Prorrogações',prrs.length?prrs.length+' prorrogaç'+(prrs.length===1?'ão':'ões'):'0',prrs.length?'color:var(--danger)':'color:var(--text-muted)')}`;
   const cod=ehFase?((cgMae(o)||{}).codigo||o.codigo):o.codigo;
   return `<div onclick="${o.comFases?`cgAbrir('${o.id}')`:`cgAbrirCO('${o.id}')`}" class="cg-card" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border-light)'">
-    <div style="background:${corEstado(o.estado)};padding:10px 10px 10px 14px;display:flex;align-items:center;gap:8px">
+    <div class="cg-cab" style="background:${corEstado(o.estado)};padding:10px 10px 10px 14px;display:flex;align-items:center;gap:8px">
       <div style="min-width:0;flex:1"><div style="font-weight:700;color:rgba(255,255,255,.7);margin-bottom:3px">${esc(cod||'')} · ${esc(o.sigla||'')}${o.comFases?' · Com fases':''}</div>
         <div style="color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(o.nome||'')}</div></div>
       ${o.comFases?'':cgAtalhos(o,null)}</div>
@@ -11434,17 +11444,17 @@ function cgIn(k,tipo,ops){
 const CG_IC={
   IDE:['#185FA5','#E6F1FB','<rect x="9" y="10" width="30" height="28" rx="3" stroke="C" stroke-width="2.5"/><circle cx="19" cy="21" r="4" stroke="C" stroke-width="2.2"/><path d="M13 32c1.5-3.5 10.5-3.5 12 0M28 19h6M28 25h6" stroke="C" stroke-width="2.2" stroke-linecap="round"/>'],
   EMP:['#185FA5','#E6F1FB','<rect x="8" y="20" width="32" height="22" rx="2" stroke="C" stroke-width="2.5"/><path d="M16 20v-6a8 8 0 0116 0v6" stroke="C" stroke-width="2.5" stroke-linecap="round"/>'],
-  VAL:['#0F6E56','#E1F5EE','<circle cx="24" cy="24" r="15" stroke="C" stroke-width="2.5"/><path d="M29 18c-1.5-1.5-3.3-2-5.5-2-4 0-6.5 3.5-6.5 8s2.5 8 6.5 8c2.2 0 4-.5 5.5-2M14 22h10M14 27h10" stroke="C" stroke-width="2.2" stroke-linecap="round"/>'],
+  VAL:['var(--pal-1)','var(--pal-1-bg)','<circle cx="24" cy="24" r="15" stroke="C" stroke-width="2.5"/><path d="M29 18c-1.5-1.5-3.3-2-5.5-2-4 0-6.5 3.5-6.5 8s2.5 8 6.5 8c2.2 0 4-.5 5.5-2M14 22h10M14 27h10" stroke="C" stroke-width="2.2" stroke-linecap="round"/>'],
   AMB:['#534AB7','#EEEDFE','<path d="M10 12h28M10 20h28M10 28h20M10 36h14" stroke="C" stroke-width="2.5" stroke-linecap="round"/>'],
   DES:['#A32D2D','#FCEBEB','<path d="M24 8l17 30H7z" stroke="C" stroke-width="2.5" stroke-linejoin="round"/><path d="M24 20v8M24 33v1" stroke="C" stroke-width="2.6" stroke-linecap="round"/>'],
-  CTR:['#0F6E56','#E1F5EE','<rect x="10" y="8" width="28" height="32" rx="3" stroke="C" stroke-width="2.5"/><path d="M16 18h16M16 24h10M16 30h13" stroke="C" stroke-width="2" stroke-linecap="round"/>'],
+  CTR:['var(--pal-1)','var(--pal-1-bg)','<rect x="10" y="8" width="28" height="32" rx="3" stroke="C" stroke-width="2.5"/><path d="M16 18h16M16 24h10M16 30h13" stroke="C" stroke-width="2" stroke-linecap="round"/>'],
   REAL:['#534AB7','#EEEDFE','<circle cx="12" cy="24" r="3" fill="C"/><circle cx="24" cy="24" r="3" fill="C"/><circle cx="36" cy="24" r="3" fill="C"/><path d="M15 24h6M27 24h6" stroke="C" stroke-width="2"/>'],
   DEV:['#A32D2D','#FCEBEB','<path d="M10 34l10-14 8 8 10-16" stroke="C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>'],
   PRR:['#854F0B','#FEF9EC','<circle cx="24" cy="24" r="14" stroke="C" stroke-width="2.5"/><path d="M24 16v8l5 5" stroke="C" stroke-width="2.5" stroke-linecap="round"/>'],
   INT:['#854F0B','#FEF9EC','<circle cx="18" cy="18" r="6" stroke="C" stroke-width="2.5"/><circle cx="30" cy="18" r="6" stroke="C" stroke-width="2.5"/><path d="M6 38c0-6.6 5.4-12 12-12s12 5.4 12 12M30 26c6.6 0 12 5.4 12 12" stroke="C" stroke-width="2.5" stroke-linecap="round"/>'],
   DOC:['#1E3A5F','#EEF1F6','<path d="M14 6h14l8 8v28H14z" stroke="C" stroke-width="2.5" stroke-linejoin="round"/><path d="M28 6v8h8M19 24h12M19 30h12" stroke="C" stroke-width="2.2" stroke-linecap="round"/>']};
 function cgCartao(sig,titulo,corpo,ic,extra){ const [c,bg,p]=CG_IC[ic||sig]||CG_IC.DOC;
-  return `<div class="cg-cx"><div class="cg-cx-h"><div class="cg-cx-ic" style="background:${bg}"><svg width="18" height="18" viewBox="0 0 48 48" fill="none">${p.replace(/"C"/g,'"'+c+'"')}</svg></div>
+  return `<div class="cg-cx"><div class="cg-cx-h"><div class="cg-cx-ic" style="background:${bg}"><svg width="18" height="18" viewBox="0 0 48 48" fill="none" style="color:${c}">${p.replace(/"C"/g,'"currentColor"')}</svg></div>
     <div style="min-width:0;flex:1"><div style="font-weight:700;color:${c}">${sig}</div><div style="color:var(--text)">${titulo}</div></div>${extra||''}</div><div class="cg-cx-b">${corpo}</div></div>`; }
 function cgR(l,v,st){ return `<div class="cg-r"><span class="cg-rl">${l}</span><span class="cg-rv" style="${st||''}">${v===undefined||v===null||v===''?'—':v}</span></div>`; }
 const cgDiv='<div class="cg-div"></div>';
@@ -11482,7 +11492,7 @@ function renderCardGeral(app){
   } else {
     const doObra=u=>u.obras==='todas'||(Array.isArray(u.obras)&&u.obras.some(x=>String(x)===String(o0.id)));
     const ini=n=>String(n||'').split(' ').filter(Boolean).map((x,i,a)=>i===0||i===a.length-1?x[0]:'').join('').toUpperCase();
-    const grupos=[['DO','Dono de Obra',u=>u.role==='dono_obra','#185FA5','#E6F1FB'],['FISC','Fiscalização',u=>u.role==='fiscalizacao'||u.role==='superadmin','#0F6E56','#E1F5EE'],['EMP','Empreiteiro',u=>u.role==='empreiteiro','#A32D2D','#FCEBEB'],['PROJ','Projetistas',u=>u.role==='projetista','#534AB7','#EEEDFE']];
+    const grupos=[['DO','Dono de Obra',u=>u.role==='dono_obra','#185FA5','#E6F1FB'],['FISC','Fiscalização',u=>u.role==='fiscalizacao'||u.role==='superadmin','var(--pal-1)','var(--pal-1-bg)'],['EMP','Empreiteiro',u=>u.role==='empreiteiro','#A32D2D','#FCEBEB'],['PROJ','Projetistas',u=>u.role==='projetista','#534AB7','#EEEDFE']];
     grupos.forEach(([sg,t,f,c,bg])=>{ const us=DB.utilizadores.filter(u=>f(u)&&doObra(u)&&u.ativo!==false).sort((a,b)=>a.nome.localeCompare(b.nome));
       cards.push(cgCartao(sg,t+' · '+us.length,us.length?us.map(u=>`<div class="cg-u"><div class="cg-av" style="background:${bg};color:${c}">${ini(u.nome)}</div><div style="min-width:0"><div>${esc(u.nome)}</div><div style="color:var(--text-muted)">${esc(u.funcao||u.email||'')}</div></div></div>`).join(''):`<div style="${mut}">Ninguém associado.</div>`,'INT')); });
     cards.push(cgCartao('DOC','Documentos',`<div style="${mut}">Os Documentos da obra/fase chegam na Fase 2.</div>`));
@@ -11638,8 +11648,11 @@ window.userMenuAbrir=function(ev){ ev&&ev.stopPropagation(); defMenuFechar(); co
     <div><b>${esc(currentUser.nome||'')}</b><div style="color:var(--text-muted)">${esc(rot)}</div></div><button class="um-x" onclick="userMenuFechar()">✕</button></div>
     <div class="um-it" onclick="userPerfil()">👤 Perfil</div>
     <div class="um-sec">Aparência</div><div class="um-temas">${[['claro','☀ Claro'],['escuro','☾ Escuro'],['contraste','◐ Contraste']].map(([k,l])=>`<button class="${tema===k?'on':''}" onclick="segoTemaDef('${k}')">${l}</button>`).join('')}</div>
+    <div class="um-sec">Cores</div><div class="um-temas">${[['aceitar','Aceitar'],['navy','Azul e Dourado']].map(([k,l])=>`<button class="${(document.documentElement.getAttribute('data-paleta')||'aceitar')===k?'on':''}" onclick="segoPaleta('${k}')">${l}</button>`).join('')}</div>
     <div class="um-it" style="border-top:1px solid var(--border-light)" onclick="doLogout()">↩ Sair</div>`;
   m.style.display=m.style.display==='block'?'none':'block'; };
+window.segoPaleta=function(k){ if(k==='navy') document.documentElement.setAttribute('data-paleta','navy'); else document.documentElement.removeAttribute('data-paleta');
+  try{ localStorage.setItem('sego-paleta',k); }catch(e){} const m=document.getElementById('user-menu'); if(m&&m.style.display==='block'){ m.style.display='none'; userMenuAbrir(); } };
 window.userMenuFechar=function(){ const m=document.getElementById('user-menu'); if(m) m.style.display='none'; };
 window.segoTemaDef=function(t){ const h=document.documentElement;
   h.removeAttribute('data-contraste'); if(t==='claro') h.removeAttribute('data-theme'); else h.setAttribute('data-theme','dark'); if(t==='contraste') h.setAttribute('data-contraste','');
@@ -11657,12 +11670,7 @@ function renderObras(app){
   if(obrasFilter!=='Todos os Estados') obras=obras.filter(o=>o.estado===obrasFilter);
   if(obrasSearch) obras=obras.filter(o=>[o.nome,o.sigla,o.codigo,o.localidade].join(' ').toLowerCase().includes(String(obrasSearch).toLowerCase().trim()));
 
-  const corEstado=e=>({
-    'Em Curso':'#0F6E56',
-    'Em Preparação':'#185FA5',
-    'Suspensa':'#A32D2D',
-    'Concluída':'#854F0B',
-  }[e]||'#1E3A5F');
+  const corEstado=e=>({'Em Curso':'var(--est-curso)','Em Preparação':'var(--est-prep)','Suspensa':'var(--est-susp)','Concluída':'var(--est-concl)'}[e]||'var(--est-curso)');
 
   const row=(label,val,valStyle='')=>`
     <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0">
@@ -12098,7 +12106,7 @@ function renderFichaObra(app){
   });
 
   // Cores por estado
-  const corEstado=e=>({'Em Curso':'#0F6E56','Em Preparação':'#185FA5','Suspensa':'#A32D2D','Concluída':'#854F0B'}[e]||'#1E3A5F');
+  const corEstado=e=>({'Em Curso':'var(--est-curso)','Em Preparação':'var(--est-prep)','Suspensa':'var(--est-susp)','Concluída':'var(--est-concl)'}[e]||'var(--est-curso)');
 
   // Helpers
   const row=(lbl,val,valColor='var(--text)')=>`
@@ -12250,7 +12258,7 @@ function renderFichaObra(app){
   app.innerHTML=`
   <button class="back-btn" onclick="cgVoltarDeCO('${o.id}')">← Voltar à Obra</button>
 
-  <div style="background:${corEstado(o.estado)};border-radius:var(--radius);padding:14px 18px;margin-bottom:14px">
+  <div class="cg-cab" style="background:${corEstado(o.estado)};border-radius:var(--radius);padding:14px 18px;margin-bottom:14px">
     <div style="font-size:11px;color:rgba(255,255,255,.6);margin-bottom:3px;letter-spacing:.4px">${o.codigo} · ${o.sigla} · ${o.estado||''}</div>
     <div style="font-size:20px;font-weight:700;color:#fff">${o.nome}</div>
     ${o.morada||o.localidade?`<div style="font-size:12px;color:rgba(255,255,255,.55);margin-top:4px">${[o.morada,o.localidade].filter(Boolean).join(' · ')}</div>`:''}
