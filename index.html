@@ -306,14 +306,14 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-pwa-instalar" title="Instalar o SEGO como app neste dispositivo" onclick="pwaInstalar()">📲 Instalar App</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-pwa-atualizar" title="Recarregar a app (dados e versão mais recentes)" onclick="location.reload()">↻ Atualizar</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-dash" title="Dash FISC — documentos e prazos (RSO, SOS, RVT, PE, PA, PB, PTQ, QE, AM)" onclick="dashAbrir('')">📊 Dash FISC</button>
-    <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-dashmenu" title="Dashboards" onclick="dashMenuAbrir(event)">📊 Dash</button>
+    <button type="button" id="btn-dashmenu" title="Dashboards" aria-label="Dashboards" onclick="dashMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-dashseg" title="Dash SEG — análise das Listas de Verificação dos RVT" onclick="segDashAbrir()">🦺 Dash SEG</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-modulos" title="Módulos visíveis por obra (Superadmin)" onclick="modPgAbrir()">🧩 Módulos</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-guia" title="Guia do SEGO" onclick="guiaAbrir()">📘 Guia</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
-    <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-def" title="Definições" onclick="defMenuAbrir(event)">⚙ Definições</button>
+    <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.10.0148</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.10.0155</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -686,6 +686,16 @@ window.segoTema=function(){
   #nav-obra-mid .on-at.gold,#nav-obra-mid .on-at.txt{width:auto;padding:0 12px}
   #nav-obra-mid .on-at.gold{background:var(--gold) !important;border-color:var(--gold) !important;color:#fff !important}
 </style>
+
+<style>
+  /* barra direita só com ícones; versão nas Definições */
+  #verBadge{display:none !important}
+  #btn-dashmenu:hover,#btn-def:hover{background:rgba(232,168,48,.18) !important}
+  .um-ver{border-top:1px solid var(--border-light);margin-top:4px;padding:8px 14px 4px;color:var(--text-muted)}
+  /* obra: sigla + nome num contorno; IA·DV·ID·CO a partir do início da zona da pesquisa */
+  #nav-obra{height:24px;box-sizing:border-box;border:1px solid rgba(255,255,255,.3);border-radius:4px;padding:0 9px;gap:6px !important}
+  #nav-obra-mid{flex:0 1 280px !important;max-width:none !important;margin:0 auto !important;justify-content:flex-start !important;gap:6px !important}
+</style>
 <!-- FLOATING CHATBOT -->
 <div id="chat-bubble" onclick="toggleChat()" style="position:fixed;bottom:20px;right:20px;width:52px;height:52px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.25);z-index:500;transition:transform .2s" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
   <svg width="24" height="24" fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
@@ -730,6 +740,7 @@ window.segoTema=function(){
   <div class="um-sec">Obras</div><div class="um-it" onclick="cgNovaObraModal()">🏗 + Nova Obra</div><div class="um-it" onclick="cgNovaFaseModal()">📑 + Nova Fase</div><div class="um-it" onclick="defMenuFechar();modPgAbrir()">🧩 Módulos por Obra</div>
   <div class="um-sec">Dados</div><div class="um-it" onclick="defMenuFechar();segoSync()">🔄 Sincronizar</div><div class="um-it" onclick="defAbrir('backup')">📤 Exportar Dados</div><div class="um-it" onclick="defAbrir('Importar Dados')">📥 Importar Dados</div>
   <div class="um-sec">Administração</div><div class="um-it" onclick="defAbrir('Utilizadores')">👥 Utilizadores</div><div class="um-it" onclick="defAbrir('entidades')">🏢 Entidades</div><div class="um-it" onclick="defAbrir('Especialidades')">🏷 Especialidades</div><div class="um-it" onclick="defAbrir('Documentos')">📄 Documentos</div><div class="um-it" onclick="defAbrir('Auditoria')">📜 Auditoria</div>
+  <div class="um-ver" id="def-versao"></div>
 </div>
 <div id="user-menu" class="sego-pop" style="display:none"></div>
 <div id="dash-menu" class="sego-pop" style="display:none">
@@ -11674,8 +11685,8 @@ window.cgEditarMaeGuardar=async function(id){ const m=DB.obras.find(x=>x.id===id
 /* ---------- Definições ---------- */
 window.dashMenuAbrir=function(ev){ ev&&ev.stopPropagation(); userMenuFechar(); defMenuFechar(); const m=document.getElementById('dash-menu'); const b=document.getElementById('btn-dashmenu');
   if(b){ const r=b.getBoundingClientRect(); m.style.left=Math.max(8,r.left)+'px'; m.style.right='auto'; } m.style.display=m.style.display==='block'?'none':'block'; };
-window.dashMenuFechar=function(){ const m=document.getElementById('dash-menu'); if(m) m.style.display='none'; };
-window.defMenuAbrir=function(ev){ ev&&ev.stopPropagation(); userMenuFechar(); dashMenuFechar(); const m=document.getElementById('def-menu'); const b=document.getElementById('btn-def'); if(b){ const r=b.getBoundingClientRect(); m.style.left='auto'; m.style.right=Math.max(8,window.innerWidth-r.right)+'px'; } m.style.display=m.style.display==='block'?'none':'block'; };
+window.dashMenuFechar=function(){ /* */  const m=document.getElementById('dash-menu'); if(m) m.style.display='none'; };
+window.defMenuAbrir=function(ev){ ev&&ev.stopPropagation(); userMenuFechar(); dashMenuFechar(); const m=document.getElementById('def-menu'); const b=document.getElementById('btn-def'); const vv=document.getElementById('def-versao'), vb=document.getElementById('verBadge'); if(vv&&vb) vv.textContent='Versão '+vb.textContent.trim()+(document.getElementById('ver-dev')?' · DEV':''); if(b){ const r=b.getBoundingClientRect(); m.style.left='auto'; m.style.right=Math.max(8,window.innerWidth-r.right)+'px'; } m.style.display=m.style.display==='block'?'none':'block'; };
 window.defMenuFechar=function(){ const m=document.getElementById('def-menu'); if(m) m.style.display='none'; };
 window.defAbrir=function(pg){ defMenuFechar(); if(pg==='backup'){ if(typeof backupExportar==='function') backupExportar(); else { const b=document.getElementById('btn-backup'); if(b) b.click(); } return; }
   defPg=pg; cgObraId=null; cgMaeId=null; fichObraId=null; render(); window.scrollTo(0,0); };
