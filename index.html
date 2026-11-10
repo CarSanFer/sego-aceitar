@@ -310,7 +310,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-def" title="Definições" onclick="defMenuAbrir(event)">⚙ Definições</button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.10.0116</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.10.0120</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -11476,6 +11476,9 @@ function renderCardGeral(app){
     cards.push(cgCartao('VAL','Valores',cgR('Valor Obra',cgIn('valorObra','eur'),cgEdit?'':gold)+cgR('Valor m²',(o.valorObra&&o.area)?cgNum(o.valorObra/o.area)+' €':'—',mut)+cgDiv+
       cgR('Adiantamento',cgIn('adiantamentoPct','pct'))+cgR('Valor',pctV(o.adiantamentoPct),mut)+cgR('Retenção',cgIn('retencao'))+cgDiv+
       cgR('Garantia',cgIn('garantiaPct','pct'))+cgR('Valor',pctV(o.garantiaPct),mut)+cgR('Retenção',cgIn('retencaoGarantia'))));
+    { const fimAt=cgFimAtual(o), np=(o.prorrogacoes||[]).length;
+      cards.push(cgCartao('DAT','Datas',cgR('Consignação',cgIn('dataConsignacao','date'))+cgR('Início Previsto',cgIn('inicioPrevisto','date'))+cgR('Início Real',cgIn('inicioReal','date'))+cgDiv+
+        cgR('Fim Previsto',cgIn('fimPrevisto','date'))+cgR('Fim Contratual',cgIn('fimContratual','date'))+cgR('Fim Atual',fmtDate(fimAt)+(np?` <span style="color:var(--danger)">(${np} prorrog.)</span>`:''),'color:var(--text-muted)')+cgR('Fim Real',cgIn('fimReal','date')),'PRR')); }
     cards.push(cgCartao('AMB','Âmbito',`<div class="cg-txt">${cgIn('ambito','area')}</div>`));
     cards.push(cgCartao('DES','Principais Desafios',`<div class="cg-txt">${cgIn('principaisDesafios','area')}</div>`));
   } else if(cgTab==='DP'){
