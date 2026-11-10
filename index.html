@@ -301,7 +301,7 @@ tr.tr-click:hover td{background:#F5F7FA}
       <option value="Todos os Estados">Todos</option><option>Em Curso</option><option>Suspensa</option><option>Concluída</option>
     </select>
   </div>
-  <span class="nav-obras-q" id="nav-obras-qbox" style="display:none"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input id="nav-obras-q" type="search" placeholder="Pesquisar obra, sigla ou código…" oninput="obrasSearch=this.value;render()"></span>
+  <span id="nav-obras-qbox" style="display:none"><span class="nav-obras-q" id="nav-obras-qin"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input id="nav-obras-q" type="search" placeholder="" title="Pesquisar obra, sigla ou código" aria-label="Pesquisar" oninput="obrasSearch=this.value;render()"></span><button type="button" class="nav-ord" data-k="codigo" onclick="obrasOrdenar('codigo')" title="Ordenar por código">Cód.</button><button type="button" class="nav-ord" data-k="sigla" onclick="obrasOrdenar('sigla')" title="Ordenar por sigla">Sigla</button><button type="button" class="nav-ord" data-k="nome" onclick="obrasOrdenar('nome')" title="Ordenar por nome da obra">Obra</button></span>
   <div class="nav-right">
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-pwa-instalar" title="Instalar o SEGO como app neste dispositivo" onclick="pwaInstalar()">📲 Instalar App</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-pwa-atualizar" title="Recarregar a app (dados e versão mais recentes)" onclick="location.reload()">↻ Atualizar</button>
@@ -313,7 +313,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.10.1343</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.10.1358</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -820,6 +820,11 @@ window.segoTema=function(){
   .cg-r:has(.cg-i){padding:0 !important}
   .cg-r .cg-i,.cg-r select.cg-i,.cg-r input.cg-i{height:20px !important;min-height:0 !important;padding:0 6px !important;line-height:18px !important;box-sizing:border-box !important;font:inherit}
   .cg-r .cg-cpl button{height:20px;line-height:18px;padding:0 6px}
+  #nav-obras-qbox{gap:6px;align-items:center;background:none !important;border:none !important;padding:0 !important}
+  #nav-obras-qin{flex:1 1 auto;min-width:0}
+  #nav-obras-qbox .nav-ord{flex:0 0 auto;height:24px;box-sizing:border-box;padding:0 7px;border-radius:4px;border:1px solid #E39956;background:transparent;color:rgba(255,255,255,.9);cursor:pointer;font-family:inherit;white-space:nowrap}
+  #nav-obras-qbox .nav-ord:hover{background:rgba(227,153,86,.2)}
+  #nav-obras-qbox .nav-ord.on{background:#E39956;color:#fff;font-weight:700}
 </style>
 <script>
 /* Pontilhado alinhado (intermédio): em cada bloco de linhas (separado por linha em branco), os valores curtos e
@@ -1081,6 +1086,7 @@ window.addEventListener('DOMContentLoaded',()=>{ if(pwaStandalone()){ const b=do
     if(no){ no.style.display=mk?'flex':'none';
       if(mk){ document.getElementById('nav-obras-n').textContent=mk.dataset.n; document.getElementById('nav-obras-n').title=mk.dataset.n+' obra(s)';
         const q=document.getElementById('nav-obras-q'); if(q&&document.activeElement!==q) q.value=obrasSearch||'';
+        try{ document.querySelectorAll('#nav-obras-qbox .nav-ord').forEach(b=>{ const on=b.dataset.k===obrasOrdem.k; b.classList.toggle('on',on); const base={codigo:'Cód.',sigla:'Sigla',nome:'Obra'}[b.dataset.k]; const t=on?base+(obrasOrdem.d>0?' ▲':' ▼'):base; if(b.textContent!==t) b.textContent=t; }); }catch(e){}
         const e=document.getElementById('nav-obras-est'); if(e){ e.value=obrasFilter||'Todos os Estados';
           requestAnimationFrame(()=>{ const c=document.querySelector('#app .cg-card'); if(!c) return; const r=c.getBoundingClientRect(), l=e.getBoundingClientRect().left; const w=Math.round(r.right-l); if(w>=90&&w<600) e.style.width=w+'px'; }); } } }
   };
@@ -1752,6 +1758,9 @@ document.addEventListener('keydown',function(e){
 // STATE
 // ================================================================
 let page='obras', obrasTab='Principal', obrasFilter='Em Curso', obrasSearch='';
+let obrasOrdem=(()=>{ try{ const v=(localStorage.getItem('sego-obras-ord')||'').split(':'); if(['codigo','sigla','nome'].includes(v[0])) return {k:v[0],d:v[1]==='-1'?-1:1}; }catch(e){} return {k:'codigo',d:1}; })();
+window.obrasOrdenar=function(k){ obrasOrdem = obrasOrdem.k===k ? {k,d:-obrasOrdem.d} : {k,d:1};
+  try{ localStorage.setItem('sego-obras-ord',obrasOrdem.k+':'+obrasOrdem.d); }catch(e){} render(); };
 let intervTab='donosObra', fichObraId=null, fichObraTab='Principal';
 
 // ================================================================
@@ -12091,7 +12100,7 @@ document.addEventListener('click',e=>{ if(!e.target.closest('#dash-menu,#btn-das
 function renderObras(app){
   const states=['Todos os Estados','Em Curso','Suspensa','Concluída'];
   const _vis=getObrasVisiveis(); const _ids=new Set(_vis.map(o=>o.id));
-  let obras=DB.obras.filter(o=>!o.obraMaeId&&(_ids.has(o.id)||(o.comFases&&DB.obras.some(f=>f.obraMaeId===o.id&&_ids.has(f.id))))).slice().sort((a,b)=>(a.codigo||'').localeCompare(b.codigo||''));
+  let obras=DB.obras.filter(o=>!o.obraMaeId&&(_ids.has(o.id)||(o.comFases&&DB.obras.some(f=>f.obraMaeId===o.id&&_ids.has(f.id))))).slice().sort((a,b)=>obrasOrdem.d*String(a[obrasOrdem.k]||'').localeCompare(String(b[obrasOrdem.k]||''),'pt',{numeric:true,sensitivity:'base'})||String(a.codigo||'').localeCompare(String(b.codigo||'')));
   if(obrasFilter!=='Todos os Estados') obras=obras.filter(o=>o.estado===obrasFilter);
   if(obrasSearch) obras=obras.filter(o=>[o.nome,o.sigla,o.codigo,o.localidade].join(' ').toLowerCase().includes(String(obrasSearch).toLowerCase().trim()));
 
