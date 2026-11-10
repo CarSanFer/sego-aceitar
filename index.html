@@ -313,7 +313,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.10.0233</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.10.0236</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -763,6 +763,14 @@ window.segoTema=function(){
 <style>
   /* separadores: em vez de linha, um espaço com a altura de uma linha de texto */
   .cg-gap{line-height:inherit;padding:3px 0;visibility:hidden}
+</style>
+
+<style>
+  /* Fichas: cada cartão = 1 card da página de obras (mesmas colunas e espaçamento) */
+  .cg-cxs.cg-2>.cg-cx{grid-column:auto !important;grid-row:auto !important}
+  .cg-cxs.cg-2>.cg-full{grid-column:1 / -1 !important}
+  @media(max-width:1230px){ .cg-cxs.cg-2{grid-template-columns:repeat(auto-fill,minmax(280px,1fr)) !important} }
+  .cg-at{grid-template-columns:repeat(3,24px) !important}
 </style>
 <!-- FLOATING CHATBOT -->
 <div id="chat-bubble" onclick="toggleChat()" style="position:fixed;bottom:20px;right:20px;width:52px;height:52px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.25);z-index:500;transition:transform .2s" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
@@ -11560,7 +11568,7 @@ function renderFasesObra(app){
 }
 
 /* ---------- card da lista de obras (igual ao atual + atalhos IA · DP · ID · CO) ---------- */
-const CG_ATALHOS=[['IA','IA · Identificação e Âmbito'],['DV','DV · Datas e Valores'],['ID','ID · Intervenientes e Documentos'],['CO','CO · Controlo Operacional']];
+const CG_ATALHOS=[['IA','IA · Identificação, Âmbito, Datas e Valores'],['ID','ID · Intervenientes e Documentos'],['CO','CO · Controlo Operacional']];
 const CG_AT_IC={ // ícones (cor = currentColor)
   IA:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="11" r="2.4"/><path d="M5.8 16.5c.8-1.8 5.6-1.8 6.4 0M15 10h3M15 14h3"/></svg>',
   DV:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/><path d="M14.5 13.3a2.6 2.6 0 1 0 0 4.4M10 15.5h3.5"/></svg>',
@@ -11631,7 +11639,7 @@ function cgR(l,v,st){ return `<div class="cg-r"><span class="cg-rl">${l}</span><
 const cgDiv='<div class="cg-gap">&nbsp;</div>';
 function renderCardGeral(app){
   const o0=DB.obras.find(x=>x.id===cgObraId); if(!o0){ cgObraId=null; render(); return; }
-  if(cgTab==='DP') cgTab='DV'; if(!['IA','DV','ID'].includes(cgTab)) cgTab='IA';
+  if(cgTab==='DP'||cgTab==='DV') cgTab='IA'; if(!['IA','ID'].includes(cgTab)) cgTab='IA';
   const o=cgCampos(o0), mae=cgMae(o0), gold='color:var(--gold)', mut='color:var(--text-muted)';
   const sinal=d=>d===null?'—':(d>0?'+':'')+d+' d';
   let cards=[];
@@ -11643,7 +11651,8 @@ function renderCardGeral(app){
     cards.push(cgCartao('EMP','Empresas',cgR('Dono de Obra',cgIn('entidadeDoId','ent'))+cgR('Empreiteiro',cgIn('entidadeEmpId','ent')),'EMP','','cg-emp'));
     cards.push(cgCartao('AMB','Âmbito',`<div class="cg-txt">${cgIn('ambito','area')}</div>`,'AMB','','cg-amb'));
     cards.push(cgCartao('DES','Principais Desafios',`<div class="cg-txt">${cgIn('principaisDesafios','area')}</div>`,'DES','','cg-des'));
-  } else if(cgTab==='DV'){
+  }
+  if(cgTab==='IA'){
     const prrs=o.prorrogacoes||[];
     const dur=cgDias(o.inicioPrevisto,o.fimContratual||o.fimPrevisto), desvI=cgDias(o.inicioPrevisto,o.inicioReal), fimAt=cgFimAtual(o), desvF=o.fimReal?cgDias(fimAt,o.fimReal):null;
     const durR=o.inicioReal&&(o.fimReal||fimAt)?cgDias(o.inicioReal,o.fimReal||fimAt):null;
@@ -11661,7 +11670,8 @@ function renderCardGeral(app){
         :cgR('Tipo',esc(p.tipo||'—'))+cgR('Data',fmtDate(p.data))+cgR('Novo Fim',fmtDate(p.novoFim))+cgR('Desvio',sinal(d),d>0?'color:var(--danger)':'');
       cards.push(cgCartao('PRR '+(i+1),'Prorrogação '+(i+1),corpo,'PRR',cgEdit?`<button class="btn-icon del" title="Remover" onclick="cgBuf.prorrogacoes.splice(${i},1);render()">✕</button>`:'')); });
     if(cgEdit) cards.push(`<div class="cg-cx cg-add" onclick="cgBuf.prorrogacoes.push({tipo:'Prorrogação',data:'',novoFim:''});render()">+ Prorrogação</div>`);
-  } else {
+  }
+  if(cgTab==='ID'){
     const doObra=u=>u.obras==='todas'||(Array.isArray(u.obras)&&u.obras.some(x=>String(x)===String(o0.id)));
     const ini=n=>String(n||'').split(' ').filter(Boolean).map((x,i,a)=>i===0||i===a.length-1?x[0]:'').join('').toUpperCase();
     const grupos=[['DO','Dono de Obra',u=>u.role==='dono_obra','#185FA5','#E6F1FB'],['FISC','Fiscalização',u=>u.role==='fiscalizacao'||u.role==='superadmin','var(--pal-1)','var(--pal-1-bg)'],['EMP','Empreiteiro',u=>u.role==='empreiteiro','#A32D2D','#FCEBEB'],['PROJ','Projetistas',u=>u.role==='projetista','#534AB7','#EEEDFE']];
