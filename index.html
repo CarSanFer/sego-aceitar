@@ -313,7 +313,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.10.0155</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.10.0201</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -696,6 +696,19 @@ window.segoTema=function(){
   #nav-obra{height:24px;box-sizing:border-box;border:1px solid rgba(255,255,255,.3);border-radius:4px;padding:0 9px;gap:6px !important}
   #nav-obra-mid{flex:0 1 280px !important;max-width:none !important;margin:0 auto !important;justify-content:flex-start !important;gap:6px !important}
 </style>
+
+<style>
+  /* v2: botões IA·DV·ID·CO junto ao Início; nome da obra no lugar da pesquisa */
+  #nav-obra{height:auto !important;border:none !important;padding:0 !important;margin-left:8px !important;margin-right:16px !important;gap:6px !important}
+  #nav-obra .on-at{flex:0 0 auto;width:24px;height:24px;padding:0;box-sizing:border-box;border-radius:4px;border:1px solid #E39956;background:transparent;color:rgba(255,255,255,.85);font-weight:700;font-size:8.5pt !important;cursor:pointer}
+  #nav-obra .on-at:hover{background:rgba(227,153,86,.2)}
+  #nav-obra .on-at.on{background:#E39956;color:#fff}
+  #nav-obra .on-at.txt,#nav-obra .on-at.gold{width:auto;padding:0 10px;white-space:nowrap}
+  #nav-obra .on-at.gold{background:var(--gold);border-color:var(--gold);color:#fff}
+  #nav-obra-mid{flex:0 1 280px !important;margin:0 auto !important;justify-content:flex-start !important;align-items:center;gap:6px !important;height:26px;box-sizing:border-box;border:1px solid rgba(255,255,255,.3);border-radius:4px;padding:0 9px;background:rgba(255,255,255,.06);min-width:0;color:#fff}
+  #nav-obra-mid .on-sig{font-weight:700;color:var(--gold-light);white-space:nowrap}
+  #nav-obra-mid .on-nome{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+</style>
 <!-- FLOATING CHATBOT -->
 <div id="chat-bubble" onclick="toggleChat()" style="position:fixed;bottom:20px;right:20px;width:52px;height:52px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.25);z-index:500;transition:transform .2s" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
   <svg width="24" height="24" fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
@@ -802,12 +815,19 @@ window.addEventListener('DOMContentLoaded',()=>{ if(pwaStandalone()){ const b=do
     const vaiInicio=/^Voltar a Obras$/i.test(lbl);           // na ficha da obra: Voltar = Início → só o botão Início
     nb.style.display=(bb&&!vaiInicio)?'flex':'none'; nb.title=lbl;
     if(nh){ nh.style.display=bb?'flex':'none'; nh.style.marginRight=(bb&&!vaiInicio)?'0':'auto'; }
-    const nob=document.getElementById('nav-obra'), tpl=document.querySelector('#app #obra-nav-tpl');
-    if(nob){ if(tpl){ if(nob.dataset.h!==tpl.innerHTML){ nob.innerHTML=tpl.innerHTML; nob.dataset.h=tpl.innerHTML; } nob.style.display='flex'; if(nh) nh.style.marginRight='0'; nb.style.marginRight='0'; }
-             else { nob.style.display='none'; nob.dataset.h=''; nb.style.marginRight=''; } }
-    const nmid=document.getElementById('nav-obra-mid'), tm=document.querySelector('#app #obra-mid-tpl');
-    if(nmid){ if(tm&&tm.innerHTML.trim()){ if(nmid.dataset.h!==tm.innerHTML){ nmid.innerHTML=tm.innerHTML; nmid.dataset.h=tm.innerHTML; } nmid.style.display='flex'; }
-              else { nmid.style.display='none'; nmid.dataset.h=''; } }
+    // dentro da obra: Início · [Voltar ou espaço] · IA DV ID CO … nome da obra no lugar da pesquisa
+    const nob=document.getElementById('nav-obra'), nmid=document.getElementById('nav-obra-mid');
+    const tpl=document.querySelector('#app #obra-nav-tpl'), tm=document.querySelector('#app #obra-mid-tpl');
+    const put=(el,h)=>{ if(el.dataset.h!==h){ el.innerHTML=h; el.dataset.h=h; } };
+    if(tpl){
+      if(nob){ const h=tm?tm.innerHTML:''; put(nob,h); nob.style.display=h.trim()?'flex':'none'; }
+      if(nmid){ put(nmid,tpl.innerHTML); nmid.style.display='flex'; }
+      if(nh) nh.style.marginRight='0';
+      nb.style.marginRight='0'; if(nb.style.display==='none'){ nb.style.display='flex'; nb.style.visibility='hidden'; } else nb.style.visibility='visible';
+    } else {
+      if(nob){ nob.style.display='none'; nob.dataset.h=''; } if(nmid){ nmid.style.display='none'; nmid.dataset.h=''; }
+      nb.style.marginRight=''; nb.style.visibility='visible';
+    }
     const no=document.getElementById('nav-obras'), mk=document.querySelector('#app #obras-lista-mark'), qb=document.getElementById('nav-obras-qbox');
     if(qb) qb.style.display=mk?'inline-flex':'none';
     if(no){ no.style.display=mk?'flex':'none';
