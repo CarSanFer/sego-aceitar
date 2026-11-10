@@ -310,7 +310,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-def" title="Definições" onclick="defMenuAbrir(event)">⚙ Definições</button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.10.0056</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.10.0110</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -555,6 +555,26 @@ window.segoTema=function(){
 </script>
 
 <style>
+  .cg-at{display:grid;grid-template-columns:repeat(2,26px);gap:3px;flex-shrink:0}
+  .cg-at button{height:20px;padding:0;border:1px solid rgba(255,255,255,.55);background:rgba(255,255,255,.12);color:#fff;border-radius:3px;cursor:pointer;font-weight:700}
+  .cg-at button:hover{background:rgba(255,255,255,.3)}
+  .cg-head .cg-at button{border-color:var(--border);background:var(--bg-card);color:var(--navy)}
+  .cg-head .cg-at button.on,.cg-head .cg-at button:hover{background:var(--navy);color:#fff;border-color:var(--navy)}
+  html[data-theme=dark] .cg-head .cg-at button{color:var(--text)}
+  .cg-cxs{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;align-items:start}
+  .cg-cx{background:var(--bg-card);border:0.5px solid var(--border-light);border-radius:var(--radius);overflow:hidden}
+  .cg-cx-h{display:flex;align-items:center;gap:10px;padding:11px 14px 10px;border-bottom:0.5px solid var(--border-light)}
+  .cg-cx-ic{width:34px;height:34px;border-radius:var(--radius);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .cg-cx-b{padding:10px 14px}
+  .cg-r{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:3px 0}
+  .cg-rl{color:var(--text-muted);font-weight:700;white-space:nowrap}.cg-rv{color:var(--text);text-align:right;min-width:0}
+  .cg-r .cg-rv:has(.cg-i){flex:0 1 62%;width:62%}
+  .cg-r .cg-i{width:100%}
+  .cg-div{height:0.5px;background:var(--border-light);margin:6px 0}
+  .cg-u{display:flex;align-items:center;gap:9px;padding:5px 0;border-bottom:0.5px solid var(--border-light)}
+  .cg-av{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0}
+  .cg-add{display:flex;align-items:center;justify-content:center;min-height:80px;cursor:pointer;color:var(--text-muted);border-style:dashed}
+  .cg-add:hover{color:var(--gold);border-color:var(--gold)}
   .cg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
   .cg-card{background:var(--bg-card);border:1px solid var(--border-light);border-radius:var(--radius);overflow:hidden;cursor:pointer;transition:border-color .15s}
   .cg-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:6px 0 10px}
@@ -11334,7 +11354,7 @@ function renderSegDash(app){
 // ================================================================
 // CARD GERAL DA OBRA (ex-SID) · FASES · ENTIDADES · DEFINIÇÕES · MENU DO UTILIZADOR
 // ================================================================
-let cgObraId=null, cgMaeId=null, cgTab='Geral', cgEdit=false, cgBuf=null, defPg=null, cgDeCO=false;
+let cgObraId=null, cgMaeId=null, cgTab='IA', cgEdit=false, cgBuf=null, defPg=null, cgDeCO=false;
 const CG_ESTADOS=['Em Preparação','Em Curso','Suspensa','Concluída'];
 const CG_TIPOS=['','Nova','Alteração'], CG_SUBTIPOS=['','Habitação','Comércio','Indústria'];
 const CG_PRR_TIPOS=['','Prorrogação','Aditamento','Adenda'];
@@ -11349,13 +11369,13 @@ function cgFimAtual(o){ const p=o.prorrogacoes||[]; for(let i=p.length-1;i>=0;i-
 function cgPodeEditar(){ return typeof peESuper==='function'&&peESuper(); }
 function cgVoltarCO(){ return `<button class="btn btn-gold btn-sm" onclick="cgAbrirCO('${cgObraId}')">Controlo Operacional →</button>`; }
 
-window.cgAbrir=function(id){ const o=DB.obras.find(x=>x.id===id); if(!o) return;
+window.cgAbrir=function(id,tab){ const o=DB.obras.find(x=>x.id===id); if(!o) return;
   if(o.comFases){ cgMaeId=id; cgObraId=null; } else { cgObraId=id; cgMaeId=null; }
-  cgTab='Geral'; cgEdit=false; cgBuf=null; fichObraId=null; defPg=null; render(); window.scrollTo(0,0); };
+  cgTab=tab||'IA'; cgEdit=false; cgBuf=null; fichObraId=null; defPg=null; render(); window.scrollTo(0,0); };
 window.cgAbrirCO=function(id){ cgDeCO=true; cgObraId=null; cgMaeId=null; cgEdit=false; fichObraId=id; page='obras'; render(); window.scrollTo(0,0); };
 window.cgVoltar=function(){ const o=DB.obras.find(x=>x.id===cgObraId); cgEdit=false; cgBuf=null;
   if(o&&o.obraMaeId){ cgMaeId=o.obraMaeId; cgObraId=null; } else { cgObraId=null; cgMaeId=null; } render(); };
-window.cgVoltarDeCO=function(id){ fichObraId=null; cgDeCO=false; cgObraId=id; cgTab='Geral'; render(); };
+window.cgVoltarDeCO=function(id){ fichObraId=null; cgDeCO=false; cgObraId=null; cgMaeId=null; const o=DB.obras.find(x=>x.id===id); if(o&&o.obraMaeId) cgMaeId=o.obraMaeId; render(); };
 
 /* ---------- página de fases de uma obra-mãe ---------- */
 function renderFasesObra(app){
@@ -11368,7 +11388,9 @@ function renderFasesObra(app){
   ${fs.length?`<div class="cg-grid">${fs.map(f=>cgCardHTML(f,true)).join('')}</div>`:'<div class="empty-state">Esta obra ainda não tem fases.</div>'}`;
 }
 
-/* ---------- card da lista de obras (igual ao atual) ---------- */
+/* ---------- card da lista de obras (igual ao atual + atalhos IA · DP · ID · CO) ---------- */
+const CG_ATALHOS=[['IA','Identificação e Âmbito'],['DP','Datas e Prazos'],['ID','Intervenientes e Documentos'],['CO','Controlo Operacional']];
+function cgAtalhos(o,atual){ return `<div class="cg-at">${CG_ATALHOS.map(([k,t])=>`<button class="${atual===k?'on':''}" title="${t}" onclick="event.stopPropagation();${k==='CO'?`cgAbrirCO('${o.id}')`:`cgAbrir('${o.id}','${k}')`}">${k}</button>`).join('')}</div>`; }
 function cgCardHTML(o,ehFase){
   const corEstado=e=>({'Em Curso':'#0F6E56','Em Preparação':'#185FA5','Suspensa':'#A32D2D','Concluída':'#854F0B'}[e]||'#1E3A5F');
   const prrs=o.prorrogacoes||[];
@@ -11379,15 +11401,18 @@ function cgCardHTML(o,ehFase){
     :`${row('Valor de Obra',o.valorObra?cgNum(o.valorObra)+' €':null,'color:var(--gold)')}<div style="height:0.5px;background:var(--border-light);margin:4px 0"></div>
       ${row('Início Previsto',fmtDate(o.inicioPrevisto))}${row('Início Real',fmtDate(o.inicioReal))}${row('Fim Previsto',fmtDate(cgFimAtual(o)))}
       ${row('Prorrogações',prrs.length?prrs.length+' prorrogaç'+(prrs.length===1?'ão':'ões'):'0',prrs.length?'color:var(--danger)':'color:var(--text-muted)')}`;
-  return `<div onclick="cgAbrir('${o.id}')" class="cg-card" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border-light)'">
-    <div style="background:${corEstado(o.estado)};padding:10px 14px"><div style="font-weight:700;color:rgba(255,255,255,.7);margin-bottom:3px">${esc(ehFase?(cgMae(o)||{}).codigo||o.codigo:o.codigo)} · ${esc(o.sigla||'')}${o.comFases?' · ⧉ Com fases':''}</div>
-      <div style="color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(o.nome||'')}</div></div>
+  const cod=ehFase?((cgMae(o)||{}).codigo||o.codigo):o.codigo;
+  return `<div onclick="${o.comFases?`cgAbrir('${o.id}')`:`cgAbrirCO('${o.id}')`}" class="cg-card" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border-light)'">
+    <div style="background:${corEstado(o.estado)};padding:10px 10px 10px 14px;display:flex;align-items:center;gap:8px">
+      <div style="min-width:0;flex:1"><div style="font-weight:700;color:rgba(255,255,255,.7);margin-bottom:3px">${esc(cod||'')} · ${esc(o.sigla||'')}${o.comFases?' · Com fases':''}</div>
+        <div style="color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(o.nome||'')}</div></div>
+      ${o.comFases?'':cgAtalhos(o,null)}</div>
     <div style="padding:10px 14px">${corpo}</div></div>`;
 }
 
-/* ---------- card geral (ficha) ---------- */
+/* ---------- card geral (ficha) — cartões ao estilo do Controlo Operacional ---------- */
 function cgCampos(o){ return cgEdit?cgBuf:o; }
-function cgIn(k,tipo,ops){ // campo editável ou valor
+function cgIn(k,tipo,ops){
   const o=cgCampos(DB.obras.find(x=>x.id===cgObraId)); const v=o[k];
   if(!cgEdit){
     if(tipo==='date') return fmtDate(v);
@@ -11401,68 +11426,78 @@ function cgIn(k,tipo,ops){ // campo editável ou valor
   const on=`oninput="cgBuf['${k}']=${tipo==='num'||tipo==='eur'||tipo==='pct'?"(this.value===''?null:Number(this.value.replace(',','.')))":'this.value'}"`;
   if(tipo==='sel') return `<select class="cg-i" onchange="cgBuf['${k}']=this.value">${ops.map(x=>`<option ${String(v||'')===x?'selected':''} value="${esc(x)}">${esc(x||'—')}</option>`).join('')}</select>`;
   if(tipo==='ent') return `<select class="cg-i" onchange="cgBuf['${k}']=this.value"><option value="">—</option>${(DB.entidades||[]).slice().sort((a,b)=>a.nome.localeCompare(b.nome)).map(e=>`<option value="${e.id}" ${v===e.id?'selected':''}>${esc(e.nome)}</option>`).join('')}</select>`;
-  if(tipo==='area') return `<textarea class="cg-i" rows="5" oninput="cgBuf['${k}']=this.value">${esc(v||'')}</textarea>`;
-  if(tipo==='date') return `<input class="cg-i" type="date" value="${v||''}" onchange="cgBuf['${k}']=this.value||null">`;
-  if(tipo==='num'||tipo==='eur'||tipo==='pct') return `<input class="cg-i" type="number" step="any" value="${v===null||v===undefined?'':v}" ${on}>`;
+  if(tipo==='area') return `<textarea class="cg-i" rows="6" oninput="cgBuf['${k}']=this.value">${esc(v||'')}</textarea>`;
+  if(tipo==='date') return `<input class="cg-i" type="date" value="${v||''}" onchange="cgBuf['${k}']=this.value||null;render()">`;
+  if(tipo==='num'||tipo==='eur'||tipo==='pct') return `<input class="cg-i" type="number" step="any" value="${v===null||v===undefined?'':v}" ${on} onchange="render()">`;
   return `<input class="cg-i" value="${esc(v||'')}" ${on}>`;
 }
-function cgKV(l,h,cls){ return `<div class="cg-l">${l}</div><div class="cg-v ${cls||''}">${h}</div>`; }
+const CG_IC={
+  IDE:['#185FA5','#E6F1FB','<rect x="9" y="10" width="30" height="28" rx="3" stroke="C" stroke-width="2.5"/><circle cx="19" cy="21" r="4" stroke="C" stroke-width="2.2"/><path d="M13 32c1.5-3.5 10.5-3.5 12 0M28 19h6M28 25h6" stroke="C" stroke-width="2.2" stroke-linecap="round"/>'],
+  EMP:['#185FA5','#E6F1FB','<rect x="8" y="20" width="32" height="22" rx="2" stroke="C" stroke-width="2.5"/><path d="M16 20v-6a8 8 0 0116 0v6" stroke="C" stroke-width="2.5" stroke-linecap="round"/>'],
+  VAL:['#0F6E56','#E1F5EE','<circle cx="24" cy="24" r="15" stroke="C" stroke-width="2.5"/><path d="M29 18c-1.5-1.5-3.3-2-5.5-2-4 0-6.5 3.5-6.5 8s2.5 8 6.5 8c2.2 0 4-.5 5.5-2M14 22h10M14 27h10" stroke="C" stroke-width="2.2" stroke-linecap="round"/>'],
+  AMB:['#534AB7','#EEEDFE','<path d="M10 12h28M10 20h28M10 28h20M10 36h14" stroke="C" stroke-width="2.5" stroke-linecap="round"/>'],
+  DES:['#A32D2D','#FCEBEB','<path d="M24 8l17 30H7z" stroke="C" stroke-width="2.5" stroke-linejoin="round"/><path d="M24 20v8M24 33v1" stroke="C" stroke-width="2.6" stroke-linecap="round"/>'],
+  CTR:['#0F6E56','#E1F5EE','<rect x="10" y="8" width="28" height="32" rx="3" stroke="C" stroke-width="2.5"/><path d="M16 18h16M16 24h10M16 30h13" stroke="C" stroke-width="2" stroke-linecap="round"/>'],
+  REAL:['#534AB7','#EEEDFE','<circle cx="12" cy="24" r="3" fill="C"/><circle cx="24" cy="24" r="3" fill="C"/><circle cx="36" cy="24" r="3" fill="C"/><path d="M15 24h6M27 24h6" stroke="C" stroke-width="2"/>'],
+  DEV:['#A32D2D','#FCEBEB','<path d="M10 34l10-14 8 8 10-16" stroke="C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>'],
+  PRR:['#854F0B','#FEF9EC','<circle cx="24" cy="24" r="14" stroke="C" stroke-width="2.5"/><path d="M24 16v8l5 5" stroke="C" stroke-width="2.5" stroke-linecap="round"/>'],
+  INT:['#854F0B','#FEF9EC','<circle cx="18" cy="18" r="6" stroke="C" stroke-width="2.5"/><circle cx="30" cy="18" r="6" stroke="C" stroke-width="2.5"/><path d="M6 38c0-6.6 5.4-12 12-12s12 5.4 12 12M30 26c6.6 0 12 5.4 12 12" stroke="C" stroke-width="2.5" stroke-linecap="round"/>'],
+  DOC:['#1E3A5F','#EEF1F6','<path d="M14 6h14l8 8v28H14z" stroke="C" stroke-width="2.5" stroke-linejoin="round"/><path d="M28 6v8h8M19 24h12M19 30h12" stroke="C" stroke-width="2.2" stroke-linecap="round"/>']};
+function cgCartao(sig,titulo,corpo,ic,extra){ const [c,bg,p]=CG_IC[ic||sig]||CG_IC.DOC;
+  return `<div class="cg-cx"><div class="cg-cx-h"><div class="cg-cx-ic" style="background:${bg}"><svg width="18" height="18" viewBox="0 0 48 48" fill="none">${p.replace(/"C"/g,'"'+c+'"')}</svg></div>
+    <div style="min-width:0;flex:1"><div style="font-weight:700;color:${c}">${sig}</div><div style="color:var(--text)">${titulo}</div></div>${extra||''}</div><div class="cg-cx-b">${corpo}</div></div>`; }
+function cgR(l,v,st){ return `<div class="cg-r"><span class="cg-rl">${l}</span><span class="cg-rv" style="${st||''}">${v===undefined||v===null||v===''?'—':v}</span></div>`; }
+const cgDiv='<div class="cg-div"></div>';
 function renderCardGeral(app){
   const o0=DB.obras.find(x=>x.id===cgObraId); if(!o0){ cgObraId=null; render(); return; }
-  const o=cgCampos(o0), mae=cgMae(o0);
-  const tabs=['Geral','Intervenientes','Documentos'];
-  let corpo='';
-  if(cgTab==='Geral'){
-    const prrs=(o.prorrogacoes||[]);
-    const dur=cgDias(o.inicioPrevisto,o.fimContratual||o.fimPrevisto);
-    const desvI=cgDias(o.inicioPrevisto,o.inicioReal), fimAt=cgFimAtual(o), desvF=o.fimReal?cgDias(fimAt,o.fimReal):null;
-    const sinal=d=>d===null?'—':(d>0?'+':'')+d+' d';
+  if(!['IA','DP','ID'].includes(cgTab)) cgTab='IA';
+  const o=cgCampos(o0), mae=cgMae(o0), gold='color:var(--gold)', mut='color:var(--text-muted)';
+  const sinal=d=>d===null?'—':(d>0?'+':'')+d+' d';
+  let cards=[];
+  if(cgTab==='IA'){
     const pctV=p=>(p&&o.valorObra)?cgNum(o.valorObra*p/100)+' €':'—';
-    const prrHTML=prrs.length||cgEdit?`<table class="cg-tbl"><thead><tr><th>#</th><th>Tipo</th><th>Data</th><th>Novo Fim</th><th>Desvio</th>${cgEdit?'<th></th>':''}</tr></thead><tbody>
-      ${prrs.map((p,i)=>{ const ant=i===0?(o.fimContratual||o.fimPrevisto):(prrs[i-1].novoFim||o.fimPrevisto); const d=cgDias(ant,p.novoFim);
-        return cgEdit?`<tr><td>${i+1}</td><td><select class="cg-i" onchange="cgBuf.prorrogacoes[${i}].tipo=this.value">${CG_PRR_TIPOS.map(t=>`<option ${p.tipo===t?'selected':''} value="${t}">${t||'—'}</option>`).join('')}</select></td>
-          <td><input class="cg-i" type="date" value="${p.data||''}" onchange="cgBuf.prorrogacoes[${i}].data=this.value"></td><td><input class="cg-i" type="date" value="${p.novoFim||''}" onchange="cgBuf.prorrogacoes[${i}].novoFim=this.value;render()"></td><td>${sinal(d)}</td>
-          <td><button class="btn-icon del" title="Remover" onclick="cgBuf.prorrogacoes.splice(${i},1);render()">✕</button></td></tr>`
-        :`<tr><td>${i+1}</td><td>${esc(p.tipo||'—')}</td><td>${fmtDate(p.data)}</td><td>${fmtDate(p.novoFim)}</td><td>${sinal(d)}</td></tr>`; }).join('')}
-      </tbody></table>${cgEdit?`<button class="btn btn-outline btn-sm" style="margin-top:6px" onclick="cgBuf.prorrogacoes.push({tipo:'',data:'',novoFim:''});render()">+ Prorrogação</button>`:''}`:'<div style="color:var(--text-muted)">Sem prorrogações.</div>';
-    corpo=`<div class="cg-blocos">
-      <div class="cg-bloco"><div class="cg-bt">Identificação</div><div class="cg-kv">
-        ${cgKV('Nome',cgIn('nome'))}${cgKV('Sigla',cgIn('sigla'))}${cgKV('Código',cgIn('codigo'))}${cgKV('Estado',cgIn('estado','sel',CG_ESTADOS))}
-        ${cgKV('Morada',cgIn('morada'))}${cgKV('Cód. Postal',cgIn('codigoPostal'))}${cgKV('Localidade',cgIn('localidade'))}${cgKV('Tipo',cgIn('tipoObra','sel',CG_TIPOS))}
-        ${cgKV('Subtipo',cgIn('subtipo','sel',CG_SUBTIPOS))}${cgKV('Pisos +',cgIn('pisosAcima','num'))}${cgKV('Pisos −',cgIn('pisosAbaixo','num'))}${cgKV('Área m²',cgIn('area','num'))}</div></div>
-      <div class="cg-bloco"><div class="cg-bt">Empresas</div><div class="cg-kv">
-        ${cgKV('Dono de Obra',cgIn('entidadeDoId','ent'))}${cgKV('Empreiteiro',cgIn('entidadeEmpId','ent'))}
-        ${cgKV('Valor Obra',cgIn('valorObra','eur'))}${cgKV('Valor m²',(o.valorObra&&o.area)?cgNum(o.valorObra/o.area)+' €':'—','calc')}
-        ${cgKV('Adiantamento',cgIn('adiantamentoPct','pct'))}${cgKV('Valor',pctV(o.adiantamentoPct),'calc')}${cgKV('Retenção',cgIn('retencao'))}
-        ${cgKV('Garantia',cgIn('garantiaPct','pct'))}${cgKV('Valor',pctV(o.garantiaPct),'calc')}${cgKV('Retenção Garantia',cgIn('retencaoGarantia'))}</div></div>
-      <div class="cg-bloco"><div class="cg-bt">Datas e Prazos</div><div class="cg-kv">
-        ${cgKV('Consignação',cgIn('dataConsignacao','date'))}${cgKV('In. Previsto',cgIn('inicioPrevisto','date'))}${cgKV('Fim Previsto',cgIn('fimPrevisto','date'))}
-        ${cgKV('Fim Contratual',cgIn('fimContratual','date'))}${cgKV('Prazo (dias)',cgIn('prazo','num'))}${cgKV('Duração',dur===null?'—':dur+' d','calc')}
-        ${cgKV('In. Real',cgIn('inicioReal','date'))}${cgKV('Desvio Início',sinal(desvI),'calc')}${cgKV('Fim Atual',fmtDate(fimAt),'calc')}
-        ${cgKV('Fim Real',cgIn('fimReal','date'))}${cgKV('Desvio Fim',sinal(desvF),'calc')}</div>
-        <div class="cg-bt" style="margin-top:10px">Prorrogações</div>${prrHTML}</div>
-      <div class="cg-bloco"><div class="cg-bt">Âmbito</div><div class="cg-txt">${cgIn('ambito','area')}</div>
-        <div class="cg-bt" style="margin-top:10px">Principais Desafios</div><div class="cg-txt">${cgIn('principaisDesafios','area')}</div></div>
-    </div>`;
-  } else if(cgTab==='Intervenientes'){
-    const doObra=u=>u.obras==='todas'||(Array.isArray(u.obras)&&u.obras.some(x=>String(x)===String(o0.id)));
-    const grupos=[['Dono de Obra',u=>u.role==='dono_obra'],['Fiscalização',u=>u.role==='fiscalizacao'||u.role==='superadmin'],['Empreiteiro',u=>u.role==='empreiteiro'],['Projetistas',u=>u.role==='projetista']];
-    corpo=`<div class="cg-blocos">${grupos.map(([t,f])=>{ const us=DB.utilizadores.filter(u=>f(u)&&doObra(u)&&u.ativo!==false);
-      return `<div class="cg-bloco"><div class="cg-bt">${t} · ${us.length}</div>${us.length?`<table class="cg-tbl"><thead><tr><th>Nome</th><th>Função</th><th>Email</th></tr></thead><tbody>${us.map(u=>`<tr><td>${esc(u.nome)}</td><td>${esc(u.funcao||'')}</td><td>${esc(u.email||'')}</td></tr>`).join('')}</tbody></table>`:'<div style="color:var(--text-muted)">Ninguém associado.</div>'}</div>`; }).join('')}</div>
-    <div style="color:var(--text-muted);margin-top:8px">A associação de utilizadores à obra/fase (em vez de cópia) chega na Fase 2.</div>`;
+    cards.push(cgCartao('IDE','Identificação',cgR('Nome',cgIn('nome'))+cgR('Sigla',cgIn('sigla'))+cgR('Código',cgIn('codigo'))+cgR('Estado',cgIn('estado','sel',CG_ESTADOS))+cgDiv+
+      cgR('Morada',cgIn('morada'))+cgR('Cód. Postal',cgIn('codigoPostal'))+cgR('Localidade',cgIn('localidade'))+cgDiv+
+      cgR('Tipo',cgIn('tipoObra','sel',CG_TIPOS))+cgR('Subtipo',cgIn('subtipo','sel',CG_SUBTIPOS))+cgR('Pisos +',cgIn('pisosAcima','num'))+cgR('Pisos −',cgIn('pisosAbaixo','num'))+cgR('Área m²',cgIn('area','num'))));
+    cards.push(cgCartao('EMP','Empresas',cgR('Dono de Obra',cgIn('entidadeDoId','ent'))+cgR('Empreiteiro',cgIn('entidadeEmpId','ent'))));
+    cards.push(cgCartao('VAL','Valores',cgR('Valor Obra',cgIn('valorObra','eur'),cgEdit?'':gold)+cgR('Valor m²',(o.valorObra&&o.area)?cgNum(o.valorObra/o.area)+' €':'—',mut)+cgDiv+
+      cgR('Adiantamento',cgIn('adiantamentoPct','pct'))+cgR('Valor',pctV(o.adiantamentoPct),mut)+cgR('Retenção',cgIn('retencao'))+cgDiv+
+      cgR('Garantia',cgIn('garantiaPct','pct'))+cgR('Valor',pctV(o.garantiaPct),mut)+cgR('Retenção',cgIn('retencaoGarantia'))));
+    cards.push(cgCartao('AMB','Âmbito',`<div class="cg-txt">${cgIn('ambito','area')}</div>`));
+    cards.push(cgCartao('DES','Principais Desafios',`<div class="cg-txt">${cgIn('principaisDesafios','area')}</div>`));
+  } else if(cgTab==='DP'){
+    const prrs=o.prorrogacoes||[];
+    const dur=cgDias(o.inicioPrevisto,o.fimContratual||o.fimPrevisto), desvI=cgDias(o.inicioPrevisto,o.inicioReal), fimAt=cgFimAtual(o), desvF=o.fimReal?cgDias(fimAt,o.fimReal):null;
+    const durR=o.inicioReal&&(o.fimReal||fimAt)?cgDias(o.inicioReal,o.fimReal||fimAt):null;
+    cards.push(cgCartao('CTR','Contrato',cgR('Valor',o.valorObra?cgNum(o.valorObra)+' €':'—',gold)+cgDiv+cgR('Consignação',cgIn('dataConsignacao','date'))+cgR('Início Previsto',cgIn('inicioPrevisto','date'))+
+      cgR('Fim Previsto',cgIn('fimPrevisto','date'))+cgR('Fim Contratual',cgIn('fimContratual','date'))+cgR('Prazo (dias)',cgIn('prazo','num'))+cgR('Duração',dur===null?'—':dur+' d',mut)));
+    cards.push(cgCartao('REAL','Real',cgR('Início Real',cgIn('inicioReal','date'))+cgR('Fim Atual',fmtDate(fimAt),mut)+cgR('Fim Real',cgIn('fimReal','date'))+cgR('Duração',durR===null?'—':durR+' d',mut)));
+    cards.push(cgCartao('DEV','Desvios',cgR('Início',sinal(desvI),desvI>0?'color:var(--danger)':'')+cgR('Prorrogações',prrs.length?sinal(cgDias(o.fimContratual||o.fimPrevisto,fimAt)):'—',prrs.length?'color:var(--danger)':'')+cgR('Fim',sinal(desvF),desvF>0?'color:var(--danger)':'')));
+    prrs.forEach((p,i)=>{ const ant=i===0?(o.fimContratual||o.fimPrevisto):(prrs[i-1].novoFim||o.fimPrevisto); const d=cgDias(ant,p.novoFim);
+      const corpo=cgEdit?cgR('Tipo',`<select class="cg-i" onchange="cgBuf.prorrogacoes[${i}].tipo=this.value">${CG_PRR_TIPOS.map(t=>`<option ${p.tipo===t?'selected':''} value="${t}">${t||'—'}</option>`).join('')}</select>`)+
+          cgR('Data',`<input class="cg-i" type="date" value="${p.data||''}" onchange="cgBuf.prorrogacoes[${i}].data=this.value">`)+cgR('Novo Fim',`<input class="cg-i" type="date" value="${p.novoFim||''}" onchange="cgBuf.prorrogacoes[${i}].novoFim=this.value;render()">`)+cgR('Desvio',sinal(d),mut)
+        :cgR('Tipo',esc(p.tipo||'—'))+cgR('Data',fmtDate(p.data))+cgR('Novo Fim',fmtDate(p.novoFim))+cgR('Desvio',sinal(d),d>0?'color:var(--danger)':'');
+      cards.push(cgCartao('PRR '+(i+1),'Prorrogação '+(i+1),corpo,'PRR',cgEdit?`<button class="btn-icon del" title="Remover" onclick="cgBuf.prorrogacoes.splice(${i},1);render()">✕</button>`:'')); });
+    if(cgEdit) cards.push(`<div class="cg-cx cg-add" onclick="cgBuf.prorrogacoes.push({tipo:'Prorrogação',data:'',novoFim:''});render()">+ Prorrogação</div>`);
   } else {
-    corpo=`<div class="cg-bloco"><div class="cg-bt">Documentos</div><div style="color:var(--text-muted)">Os Documentos da obra/fase chegam na Fase 2.</div></div>`;
+    const doObra=u=>u.obras==='todas'||(Array.isArray(u.obras)&&u.obras.some(x=>String(x)===String(o0.id)));
+    const ini=n=>String(n||'').split(' ').filter(Boolean).map((x,i,a)=>i===0||i===a.length-1?x[0]:'').join('').toUpperCase();
+    const grupos=[['DO','Dono de Obra',u=>u.role==='dono_obra','#185FA5','#E6F1FB'],['FISC','Fiscalização',u=>u.role==='fiscalizacao'||u.role==='superadmin','#0F6E56','#E1F5EE'],['EMP','Empreiteiro',u=>u.role==='empreiteiro','#A32D2D','#FCEBEB'],['PROJ','Projetistas',u=>u.role==='projetista','#534AB7','#EEEDFE']];
+    grupos.forEach(([sg,t,f,c,bg])=>{ const us=DB.utilizadores.filter(u=>f(u)&&doObra(u)&&u.ativo!==false).sort((a,b)=>a.nome.localeCompare(b.nome));
+      cards.push(cgCartao(sg,t+' · '+us.length,us.length?us.map(u=>`<div class="cg-u"><div class="cg-av" style="background:${bg};color:${c}">${ini(u.nome)}</div><div style="min-width:0"><div>${esc(u.nome)}</div><div style="color:var(--text-muted)">${esc(u.funcao||u.email||'')}</div></div></div>`).join(''):`<div style="${mut}">Ninguém associado.</div>`,'INT')); });
+    cards.push(cgCartao('DOC','Documentos',`<div style="${mut}">Os Documentos da obra/fase chegam na Fase 2.</div>`));
   }
+  const cab=mae?`${esc(mae.codigo||'')} · ${esc(mae.sigla||'')} · ${esc(o0.sigla||'')}`:`${esc(o0.codigo||'')} · ${esc(o0.sigla||'')}`;
+  const tit={IA:'Identificação e Âmbito',DP:'Datas e Prazos',ID:'Intervenientes e Documentos'}[cgTab];
   app.innerHTML=`<button class="back-btn" onclick="cgVoltar()">← ${mae?'Voltar a '+esc(mae.sigla||'Obra'):'Voltar a Obras'}</button>
-  <div class="cg-head"><span class="cg-pill">${esc((mae||o0).codigo||'')}</span><b>${mae?esc(mae.sigla)+' · ':''}${esc(o0.sigla||'')} — ${esc(o0.nome||'')}</b><span class="cg-est">${esc(o0.estado||'')}</span>
+  <div class="cg-head"><span class="cg-pill">${cab}</span><b>${esc(o0.nome||'')}</b><span class="cg-est">${esc(o0.estado||'')}</span><span style="color:var(--text-muted)">· ${tit}</span>
     <span style="flex:1"></span>
-    ${cgPodeEditar()?(cgEdit?`<button class="btn btn-gold btn-sm" onclick="cgGuardar()">Guardar</button><button class="btn btn-outline btn-sm" onclick="cgEdit=false;cgBuf=null;render()">Cancelar</button>`
+    ${cgPodeEditar()&&cgTab!=='ID'?(cgEdit?`<button class="btn btn-gold btn-sm" onclick="cgGuardar()">Guardar</button><button class="btn btn-outline btn-sm" onclick="cgEdit=false;cgBuf=null;render()">Cancelar</button>`
       :`<button class="btn btn-outline btn-sm" onclick="cgEditar()">Editar</button>`):''}
-    ${cgEdit?'':cgVoltarCO()}</div>
-  <div class="cg-tabs">${tabs.map(t=>`<button class="cg-tab ${cgTab===t?'on':''}" onclick="cgTab='${t}';render()">${t}</button>`).join('')}</div>
-  ${corpo}`;
+    ${cgEdit?'':cgAtalhos(o0,cgTab)}</div>
+  <div class="cg-cxs">${cards.join('')}</div>`;
 }
-window.cgEditar=function(){ const o=DB.obras.find(x=>x.id===cgObraId); cgBuf=JSON.parse(JSON.stringify(o)); cgBuf.prorrogacoes=cgBuf.prorrogacoes||[]; cgEdit=true; cgTab='Geral'; render(); };
+window.cgEditar=function(){ const o=DB.obras.find(x=>x.id===cgObraId); cgBuf=JSON.parse(JSON.stringify(o)); cgBuf.prorrogacoes=cgBuf.prorrogacoes||[]; cgEdit=true; render(); };
 window.cgGuardar=async function(){
   const b=cgBuf; if(!b) return;
   if(!String(b.nome||'').trim()||!String(b.sigla||'').trim()){ alert('Nome e Sigla são obrigatórios.'); return; }
@@ -11540,7 +11575,7 @@ window.cgNovaFaseCriar=async function(){
       const ps=DB.utilizadores.filter(u=>u.role==='projetista'&&Array.isArray(u.obras)&&u.obras.includes(src.id));
       for(const u of ps){ const nv=[...u.obras,f.id]; await sb.patch('utilizadores',u.id,{obras:nv}); u.obras=nv; } }
     try{ auditLog('obra',mae.codigo+' '+sig,'fase criada'); }catch(e){}
-    closeModal(); cgObraId=f.id; cgMaeId=null; cgTab='Geral'; render();
+    closeModal(); cgObraId=f.id; cgMaeId=null; cgTab='IA'; render();
   }catch(e){ alert('Erro ao criar a fase: '+e.message); }
 };
 window.cgEditarMaeModal=function(id){ const m=DB.obras.find(x=>x.id===id); if(!m) return;
@@ -11602,7 +11637,7 @@ window.userMenuAbrir=function(ev){ ev&&ev.stopPropagation(); defMenuFechar(); co
   m.innerHTML=`<div class="um-top"><div class="nav-avatar" style="width:38px !important;height:38px !important">${esc((currentUser.nome||'').split(' ').map(x=>x[0]).filter(Boolean).slice(0,1).concat((currentUser.nome||'').split(' ').slice(-1).map(x=>x[0])).join('').toUpperCase())}</div>
     <div><b>${esc(currentUser.nome||'')}</b><div style="color:var(--text-muted)">${esc(rot)}</div></div><button class="um-x" onclick="userMenuFechar()">✕</button></div>
     <div class="um-it" onclick="userPerfil()">👤 Perfil</div>
-    <div class="um-sec">Aparência</div><div class="um-temas">${[['claro','☀ Claro'],['escuro','☾ Escuro'],['contraste','Contraste']].map(([k,l])=>`<button class="${tema===k?'on':''}" onclick="segoTemaDef('${k}')">${l}</button>`).join('')}</div>
+    <div class="um-sec">Aparência</div><div class="um-temas">${[['claro','☀ Claro'],['escuro','☾ Escuro'],['contraste','◐ Contraste']].map(([k,l])=>`<button class="${tema===k?'on':''}" onclick="segoTemaDef('${k}')">${l}</button>`).join('')}</div>
     <div class="um-it" style="border-top:1px solid var(--border-light)" onclick="doLogout()">↩ Sair</div>`;
   m.style.display=m.style.display==='block'?'none':'block'; };
 window.userMenuFechar=function(){ const m=document.getElementById('user-menu'); if(m) m.style.display='none'; };
