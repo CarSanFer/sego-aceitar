@@ -313,7 +313,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.10.0315</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.10.0320</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -828,6 +828,97 @@ window.segoTema=function(){
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',arm); else arm();
 })();
 </script>
+<style>
+  /* Páginas dos módulos do Controlo Operacional: sem títulos; ações como ícones na barra */
+  #app.co-modpg .page-header{display:none !important}
+  .sego-mv,.sego-mv-row{display:none !important}
+  #nav-acoes{display:none;align-items:center;gap:6px;margin-right:10px}
+  #nav-acoes .on-at{flex:0 0 auto;width:24px;height:24px;padding:0;box-sizing:border-box;border-radius:4px;border:1px solid #E39956;background:transparent;color:#E39956;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-family:inherit}
+  #nav-acoes .on-at:hover{background:rgba(227,153,86,.2)}
+  #nav-acoes .on-at.txt{width:auto;padding:0 8px;white-space:nowrap;color:rgba(255,255,255,.9)}
+  #nav-acoes .on-at.del{border-color:#f87171;color:#fca5a5}
+  #nav-acoes .on-at[disabled]{opacity:.4;cursor:default}
+  #nav-acoes .on-at svg{width:14px;height:14px}
+</style>
+<script>
+(function(){
+  const sv=d=>`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+  const IC={
+    plus:sv('<path d="M12 5v14M5 12h14"/>'),
+    renum:sv('<path d="M10 6h11M10 12h11M10 18h11"/><path d="M4 5h1v5M4 10h2"/><path d="M6.5 19H4c0-1.3 2.5-2 2.5-3.2 0-.8-.8-1.3-1.6-1.3-.6 0-1.1.3-1.4.8"/>'),
+    hist:sv('<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/>'),
+    imp:sv('<path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 21h14"/>'),
+    exp:sv('<path d="M12 15V3M7 8l5-5 5 5"/><path d="M5 21h14"/>'),
+    del:sv('<path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/>'),
+    bell:sv('<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/>'),
+    limpar:sv('<path d="M18 6 6 18M6 6l12 12"/>'),
+    save:sv('<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/>'),
+    send:sv('<path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7z"/>'),
+    edit:sv('<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>'),
+    print:sv('<path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/>'),
+    copy:sv('<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>'),
+    ok:sv('<path d="M20 6 9 17l-5-5"/>')
+  };
+  const ICONE=t=>{ t=t.toLowerCase();
+    if(/renumer/.test(t)) return ['renum'];
+    if(/hist[oó]rico/.test(t)) return ['hist'];
+    if(/importar|⇩/.test(t)) return ['imp'];
+    if(/exportar|excel|descarregar/.test(t)) return ['exp'];
+    if(/eliminar|apagar|🗑/.test(t)) return ['del','del'];
+    if(/alertar|notificar/.test(t)) return ['bell'];
+    if(/limpar/.test(t)) return ['limpar'];
+    if(/guardar|gravar/.test(t)) return ['save'];
+    if(/enviar|emitir|submeter/.test(t)) return ['send'];
+    if(/publicar|aprovar|validar|fechar auto/.test(t)) return ['ok'];
+    if(/editar/.test(t)) return ['edit'];
+    if(/imprimir|pdf/.test(t)) return ['print'];
+    if(/duplicar|copiar/.test(t)) return ['copy'];
+    if(/^\+/.test(t.trim())) return ['plus'];
+    return null; };
+  const ACAO=/^\s*\+|renumer|importar|⇩|eliminar|alertar|exportar|limpar sele/i;
+  const flag=n=>{ try{ return !!window.eval(n); }catch(e){ return false; } };
+  window.segoModCtx=function(){
+    if(['dashAtivo','segDashAtivo','modPgAtivo','guiaAtivo','defPg'].some(flag)) return null;
+    const app=document.getElementById('app'); if(!app||!app.querySelector('.page-header')) return null;
+    let id=null; for(const n of ['peObraId','paObraId','pbObraId','ptqObraId','qeObraId','tcmObraId','amObraId','metObraId','relObraId']){ try{ const v=window.eval(n); if(v){ id=v; break; } }catch(e){} }
+    const o=id&&(DB.obras||[]).find(x=>String(x.id)===String(id)); if(!o) return null;
+    const mae=(typeof cgMae==='function')?cgMae(o):null;
+    const sg=mae?`${esc(mae.sigla||'')} · ${esc(o.sigla||'')}`:esc(o.sigla||'');
+    // ações: botões do cabeçalho + barra de ferramentas antes da primeira tabela/lista
+    app.querySelectorAll('.sego-mv').forEach(b=>{ b.classList.remove('sego-mv'); b.removeAttribute('data-mv'); });
+    app.querySelectorAll('.sego-mv-row').forEach(r=>r.classList.remove('sego-mv-row'));
+    const fim=app.querySelector('table,.table-card,.pe-vazio,.co-cxs');
+    const lst=[]; let mais=null, nI=0;
+    app.querySelectorAll('button').forEach(b=>{
+      if(b.classList.contains('back-btn')||b.closest('table,.modal,.modal-bg,template')) return;
+      if(getComputedStyle(b).display==='none'||b.hidden) return;
+      const noCab=!!b.closest('.page-header');
+      const antes=!fim||(b.compareDocumentPosition(fim)&Node.DOCUMENT_POSITION_FOLLOWING);
+      const t=(b.textContent||'').replace(/\s+/g,' ').trim();
+      if(!noCab&&!(antes&&ACAO.test(t)&&!b.closest('.pe-zone,.pe-zb,.pe-modal,.cg-cx,.card,[class*="ficha"],label'))) return;
+      const i=nI++; b.setAttribute('data-mv',i); b.classList.add('sego-mv');
+      const it={i,t:t||b.title||'Ação',dis:b.disabled};
+      if(!mais&&/^\+/.test(t)) mais=it; else lst.push(it);
+      if(!noCab){ let r=b.parentElement; for(let k=0;k<2&&r&&r!==app;k++,r=r.parentElement){ if(!r.innerText.trim()&&!r.querySelector('input,select,textarea')) r.classList.add('sego-mv-row'); } }
+    });
+    const btn=(it,cls)=>{ const ic=ICONE(it.t); const tt=esc(it.t.replace(/^[+✕⇩✓]\s*/,''));
+      return ic?`<button type="button" class="on-at ${ic[1]||''} ${cls||''}" title="${tt}" ${it.dis?'disabled':''} onclick="segoMvClick(${it.i})">${IC[ic[0]]}</button>`
+               :`<button type="button" class="on-at txt ${cls||''}" title="${tt}" ${it.dis?'disabled':''} onclick="segoMvClick(${it.i})">${tt}</button>`; };
+    app.classList.add('co-modpg');
+    return { esq: mais?`<button type="button" class="on-at" title="${esc(mais.t.replace(/^\+\s*/,''))}" ${mais.dis?'disabled':''} onclick="segoMvClick(${mais.i})">${IC.plus}</button>`:'',
+             meio:`<span class="on-sig">${sg}</span><span class="on-nome" title="${esc(o.nome||'')}">${esc(o.nome||'')}</span>`,
+             dir: lst.map(it=>btn(it)).join('') };
+  };
+  window.segoMvClick=function(i){ const b=document.querySelector('#app [data-mv="'+i+'"]'); if(b) b.click(); };
+  window.segoModAcoes=function(mod){
+    const app=document.getElementById('app'); if(!mod&&app) app.classList.remove('co-modpg');
+    let g=document.getElementById('nav-acoes');
+    if(!g){ const nr=document.querySelector('.navbar .nav-right'); if(!nr) return; g=document.createElement('div'); g.id='nav-acoes'; nr.insertBefore(g,nr.firstChild); }
+    const dv=document.getElementById('ver-dev'); if(dv&&g.nextSibling!==dv&&dv.parentNode===g.parentNode) g.parentNode.insertBefore(g,dv);
+    const h=mod?mod.dir:''; if(g.dataset.h!==h){ g.innerHTML=h; g.dataset.h=h; } g.style.display=h?'flex':'none';
+  };
+})();
+</script>
 <!-- FLOATING CHATBOT -->
 <div id="chat-bubble" onclick="toggleChat()" style="position:fixed;bottom:20px;right:20px;width:52px;height:52px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.25);z-index:500;transition:transform .2s" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
   <svg width="24" height="24" fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
@@ -938,7 +1029,14 @@ window.addEventListener('DOMContentLoaded',()=>{ if(pwaStandalone()){ const b=do
     const nob=document.getElementById('nav-obra'), nmid=document.getElementById('nav-obra-mid');
     const tpl=document.querySelector('#app #obra-nav-tpl'), tm=document.querySelector('#app #obra-mid-tpl');
     const put=(el,h)=>{ if(el.dataset.h!==h){ el.innerHTML=h; el.dataset.h=h; } };
-    if(tpl){
+    const mod=(!tpl&&bb&&window.segoModCtx)?segoModCtx():null;
+    if(window.segoModAcoes) segoModAcoes(mod);
+    if(mod){
+      if(nob){ put(nob,mod.esq); nob.style.display=mod.esq?'flex':'none'; }
+      if(nmid){ put(nmid,mod.meio); nmid.style.display='flex'; }
+      if(nh) nh.style.marginRight='0';
+      nb.style.marginRight='0'; nb.style.visibility='visible';
+    } else if(tpl){
       if(nob){ const h=tm?tm.innerHTML:''; put(nob,h); nob.style.display=h.trim()?'flex':'none'; }
       if(nmid){ put(nmid,tpl.innerHTML); nmid.style.display='flex'; }
       if(nh) nh.style.marginRight='0';
