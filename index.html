@@ -294,6 +294,7 @@ tr.tr-click:hover td{background:#F5F7FA}
   <button id="nav-home" type="button" title="Início — Lista de Obras" aria-label="Início" onclick="navInicio()" style="display:none;margin-left:18px;width:26px;height:26px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;color:#fff;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg></button>
   <button id="nav-back" type="button" title="Voltar" aria-label="Voltar" onclick="navVoltar()" style="display:none;margin-right:auto;margin-left:8px;width:26px;height:26px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;color:#fff;cursor:pointer;align-items:center;justify-content:center;font-size:16px;line-height:1;padding:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 010 11H11"/></svg></button>
   <div id="nav-obra" style="display:none"></div>
+  <div id="nav-obra-mid" style="display:none"></div>
   <div id="nav-obras" style="display:none;align-items:center;gap:4px;margin-left:18px;margin-right:16px">
     <span id="nav-obras-n" title="N.º de obras"></span>
     <select id="nav-obras-est" title="Estado da obra" onchange="obrasFilter=this.value;render()">
@@ -311,7 +312,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-def" title="Definições" onclick="defMenuAbrir(event)">⚙ Definições</button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.10.0128</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.10.0133</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -653,6 +654,18 @@ window.segoTema=function(){
   .cg-cab[style*="est-prep"] .cg-at button{background:#69A1C2 !important;border-color:#fff !important}
   .cg-at button.on, #nav-obra .cg-at button.on{background:#69A1C2 !important;border-color:#69A1C2 !important;color:#fff !important}
 </style>
+
+<style>
+  /* Dentro da obra: IA · DP · ID · CO no espaço da pesquisa, distribuídos por igual */
+  #nav-obra{margin-right:16px !important}
+  #nav-obra-mid{flex:0 1 420px;margin:0 auto;gap:6px;min-width:0}
+  #nav-obra-mid[style*="flex"] ~ .nav-right{margin-left:0 !important}
+  #nav-obra-mid .on-at{flex:1 1 0;min-width:0;height:24px;box-sizing:border-box;border-radius:4px;border:1px solid #E39956;background:#E39956;color:#fff;font-weight:700;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #nav-obra-mid .on-at:hover{background:#D3843F;border-color:#D3843F}
+  #nav-obra-mid .on-at.on{background:#69A1C2;border-color:#69A1C2}
+  #nav-obra-mid .on-at.gold{background:var(--gold);border-color:var(--gold)}
+  .cg-cxs[ondblclick]{cursor:default}
+</style>
 <!-- FLOATING CHATBOT -->
 <div id="chat-bubble" onclick="toggleChat()" style="position:fixed;bottom:20px;right:20px;width:52px;height:52px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.25);z-index:500;transition:transform .2s" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
   <svg width="24" height="24" fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
@@ -758,6 +771,9 @@ window.addEventListener('DOMContentLoaded',()=>{ if(pwaStandalone()){ const b=do
     const nob=document.getElementById('nav-obra'), tpl=document.querySelector('#app #obra-nav-tpl');
     if(nob){ if(tpl){ if(nob.dataset.h!==tpl.innerHTML){ nob.innerHTML=tpl.innerHTML; nob.dataset.h=tpl.innerHTML; } nob.style.display='flex'; if(nh) nh.style.marginRight='0'; nb.style.marginRight='0'; }
              else { nob.style.display='none'; nob.dataset.h=''; nb.style.marginRight=''; } }
+    const nmid=document.getElementById('nav-obra-mid'), tm=document.querySelector('#app #obra-mid-tpl');
+    if(nmid){ if(tm&&tm.innerHTML.trim()){ if(nmid.dataset.h!==tm.innerHTML){ nmid.innerHTML=tm.innerHTML; nmid.dataset.h=tm.innerHTML; } nmid.style.display='flex'; }
+              else { nmid.style.display='none'; nmid.dataset.h=''; } }
     const no=document.getElementById('nav-obras'), mk=document.querySelector('#app #obras-lista-mark'), qb=document.getElementById('nav-obras-qbox');
     if(qb) qb.style.display=mk?'inline-flex':'none';
     if(no){ no.style.display=mk?'flex':'none';
@@ -11430,7 +11446,7 @@ function renderFasesObra(app){
   const vis=new Set(getObrasVisiveis().map(o=>o.id));
   const fs=cgFases(m.id).filter(f=>vis.has(f.id)||vis.has(m.id));
   app.innerHTML=`<button class="back-btn" onclick="cgMaeId=null;render()">← Voltar a Obras</button>
-  ${cgNavTpl(m,null,`<span class="on-info">${fs.length} fase${fs.length===1?'':'s'}</span>`+(cgPodeEditar()?`<button class="on-bt" onclick="cgNovaFaseModal('${m.id}')">+ Nova Fase</button><button class="on-bt" onclick="cgEditarMaeModal('${m.id}')">✎ Editar Obra</button>`:''))}
+  ${cgNavTpl(m,null,`<span class="on-info">${fs.length} fase${fs.length===1?'':'s'}</span>`+(cgPodeEditar()?`<button class="on-at" onclick="cgNovaFaseModal('${m.id}')">+ Nova Fase</button><button class="on-at" onclick="cgEditarMaeModal('${m.id}')">Editar Obra</button>`:''))}
   ${fs.length?`<div class="cg-grid">${fs.map(f=>cgCardHTML(f,true)).join('')}</div>`:'<div class="empty-state">Esta obra ainda não tem fases.</div>'}`;
 }
 
@@ -11494,7 +11510,8 @@ function cgCartao(sig,titulo,corpo,ic,extra,cls){ const [c,bg,p]=CG_IC[ic||sig]|
     <div style="min-width:0;flex:1"><div style="font-weight:700;color:${c}">${sig}</div><div style="color:var(--text)">${titulo}</div></div>${extra||''}</div><div class="cg-cx-b">${corpo}</div></div>`; }
 function cgNavTpl(o,atual,botoes){ const mae=cgMae(o);
   const sg=mae?`${esc(mae.sigla||'')} · ${esc(o.sigla||'')}`:esc(o.sigla||'');
-  return `<template id="obra-nav-tpl"><span class="on-sig">${sg}</span><span class="on-nome" title="${esc(o.nome||'')}">${esc(o.nome||'')}</span>${atual&&!o.comFases?cgAtalhos(o,atual):''}${botoes||''}</template>`; }
+  const meio=(botoes||'')||(atual&&!o.comFases?CG_ATALHOS.map(([k,t])=>`<button class="on-at ${atual===k?'on':''}" title="${t}" onclick="${k==='CO'?`cgAbrirCO('${o.id}')`:`cgAbrir('${o.id}','${k}')`}">${k}</button>`).join(''):'');
+  return `<template id="obra-nav-tpl"><span class="on-sig">${sg}</span><span class="on-nome" title="${esc(o.nome||'')}">${esc(o.nome||'')}</span></template><template id="obra-mid-tpl">${meio}</template>`; }
 function cgR(l,v,st){ return `<div class="cg-r"><span class="cg-rl">${l}</span><span class="cg-rv" style="${st||''}">${v===undefined||v===null||v===''?'—':v}</span></div>`; }
 const cgDiv='<div class="cg-div"></div>';
 function renderCardGeral(app){
@@ -11539,11 +11556,12 @@ function renderCardGeral(app){
       cards.push(cgCartao(sg,t+' · '+us.length,us.length?us.map(u=>`<div class="cg-u"><div class="cg-av" style="background:${bg};color:${c}">${ini(u.nome)}</div><div style="min-width:0"><div>${esc(u.nome)}</div><div style="color:var(--text-muted)">${esc(u.funcao||u.email||'')}</div></div></div>`).join(''):`<div style="${mut}">Ninguém associado.</div>`,'INT')); });
     cards.push(cgCartao('DOC','Documentos',`<div style="${mut}">Os Documentos da obra/fase chegam na Fase 2.</div>`,'DOC','','cg-full'));
   }
-  const bts=cgPodeEditar()&&cgTab!=='ID'?(cgEdit?`<button class="on-bt gold" onclick="cgGuardar()">Guardar</button><button class="on-bt" onclick="cgEdit=false;cgBuf=null;render()">Cancelar</button>`
-      :`<button class="on-bt" onclick="cgEditar()">✎ Editar</button>`):'';
-  app.innerHTML=`<button class="back-btn" onclick="cgVoltar()">← ${mae?'Voltar a '+esc(mae.sigla||'Obra'):'Voltar a Obras'}</button>${cgNavTpl(o0,cgEdit?'':cgTab,bts)}
-  <div class="cg-cxs">${cards.join('')}</div>`;
+  const podeEd=cgPodeEditar()&&cgTab!=='ID';
+  const bts=cgEdit?`<button class="on-at gold" onclick="cgGuardar()">✓ Guardar</button><button class="on-at" onclick="cgEdit=false;cgBuf=null;render()">✕ Cancelar</button>`:'';
+  app.innerHTML=`<button class="back-btn" onclick="cgVoltar()">← ${mae?'Voltar a '+esc(mae.sigla||'Obra'):'Voltar a Obras'}</button>${cgNavTpl(o0,cgTab,bts)}
+  <div class="cg-cxs" ${podeEd&&!cgEdit?`ondblclick="cgEditar()" title="Duplo clique para editar"`:''}>${cards.join('')}</div>`;
 }
+document.addEventListener('keydown',e=>{ if(!cgEdit||!cgObraId) return; if(e.key==='Escape'){ cgEdit=false; cgBuf=null; render(); } else if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){ e.preventDefault(); cgGuardar(); } });
 window.cgEditar=function(){ const o=DB.obras.find(x=>x.id===cgObraId); cgBuf=JSON.parse(JSON.stringify(o)); cgBuf.prorrogacoes=cgBuf.prorrogacoes||[]; cgEdit=true; render(); };
 window.cgGuardar=async function(){
   const b=cgBuf; if(!b) return;
