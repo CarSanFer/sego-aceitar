@@ -306,13 +306,14 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-pwa-instalar" title="Instalar o SEGO como app neste dispositivo" onclick="pwaInstalar()">📲 Instalar App</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-pwa-atualizar" title="Recarregar a app (dados e versão mais recentes)" onclick="location.reload()">↻ Atualizar</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-dash" title="Dash FISC — documentos e prazos (RSO, SOS, RVT, PE, PA, PB, PTQ, QE, AM)" onclick="dashAbrir('')">📊 Dash FISC</button>
+    <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-dashmenu" title="Dashboards" onclick="dashMenuAbrir(event)">📊 Dash</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-dashseg" title="Dash SEG — análise das Listas de Verificação dos RVT" onclick="segDashAbrir()">🦺 Dash SEG</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-modulos" title="Módulos visíveis por obra (Superadmin)" onclick="modPgAbrir()">🧩 Módulos</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-guia" title="Guia do SEGO" onclick="guiaAbrir()">📘 Guia</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-def" title="Definições" onclick="defMenuAbrir(event)">⚙ Definições</button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.10.0144</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.10.0148</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -726,11 +727,14 @@ window.segoTema=function(){
 
 <!-- MODAL -->
 <div id="def-menu" class="sego-pop" style="display:none">
-  <div class="um-sec">Obras</div><div class="um-it" onclick="cgNovaObraModal()">🏗 + Nova Obra</div><div class="um-it" onclick="cgNovaFaseModal()">📑 + Nova Fase</div>
-  <div class="um-sec">Dados</div><div class="um-it" onclick="defAbrir('backup')">📤 Exportar Dados</div><div class="um-it" onclick="defAbrir('Importar Dados')">📥 Importar Dados</div>
+  <div class="um-sec">Obras</div><div class="um-it" onclick="cgNovaObraModal()">🏗 + Nova Obra</div><div class="um-it" onclick="cgNovaFaseModal()">📑 + Nova Fase</div><div class="um-it" onclick="defMenuFechar();modPgAbrir()">🧩 Módulos por Obra</div>
+  <div class="um-sec">Dados</div><div class="um-it" onclick="defMenuFechar();segoSync()">🔄 Sincronizar</div><div class="um-it" onclick="defAbrir('backup')">📤 Exportar Dados</div><div class="um-it" onclick="defAbrir('Importar Dados')">📥 Importar Dados</div>
   <div class="um-sec">Administração</div><div class="um-it" onclick="defAbrir('Utilizadores')">👥 Utilizadores</div><div class="um-it" onclick="defAbrir('entidades')">🏢 Entidades</div><div class="um-it" onclick="defAbrir('Especialidades')">🏷 Especialidades</div><div class="um-it" onclick="defAbrir('Documentos')">📄 Documentos</div><div class="um-it" onclick="defAbrir('Auditoria')">📜 Auditoria</div>
 </div>
 <div id="user-menu" class="sego-pop" style="display:none"></div>
+<div id="dash-menu" class="sego-pop" style="display:none">
+  <div class="um-sec">Dashboards</div><div class="um-it" onclick="dashMenuFechar();dashAbrir('')">📊 Dash FISC <span style="color:var(--text-muted)">· documentos e prazos</span></div><div class="um-it" onclick="dashMenuFechar();segDashAbrir()">🦺 Dash SEG <span style="color:var(--text-muted)">· listas de verificação</span></div>
+</div>
 <div class="modal-bg" id="modal" style="display:none" onclick="if(event.target===this)closeModal()">
   <div class="modal" id="modal-box">
     <div class="modal-header">
@@ -1507,10 +1511,8 @@ function render(){
   (function(){ const su=(currentUser&&typeof peESuper==='function'&&peESuper());
     const bb=document.getElementById('btn-backup'); if(bb) bb.style.display='none';
     const bdf=document.getElementById('btn-def'); if(bdf) bdf.style.display=su?'flex':'none';
-    const bd=document.getElementById('btn-dash'); if(bd) bd.style.display=su?'flex':'none';
-    const bds=document.getElementById('btn-dashseg'); if(bds) bds.style.display=su?'flex':'none';
-    const bm=document.getElementById('btn-modulos'); if(bm) bm.style.display=su?'flex':'none';
-    const bg=document.getElementById('btn-guia'); if(bg) bg.style.display=(currentUser&&(su||(SEGO_CFG.guia&&SEGO_CFG.guia.publico)))?'flex':'none'; })();
+    ['btn-dash','btn-dashseg','btn-modulos','btn-guia','btn-sync'].forEach(id=>{ const b=document.getElementById(id); if(b) b.style.display='none'; }); // agora em menus
+    const bdm=document.getElementById('btn-dashmenu'); if(bdm) bdm.style.display=su?'flex':'none'; })();
   const app=$('app');
   if(defPg){ renderDefinicoes(app); return; }
   if(modPgAtivo){ renderModulosObra(app); return; }
@@ -11670,7 +11672,10 @@ window.cgEditarMaeGuardar=async function(id){ const m=DB.obras.find(x=>x.id===id
   try{ await sb.patch('obras',id,p); Object.assign(m,p); for(const f of cgFases(id)){ if(f.codigo!==p.codigo){ await sb.patch('obras',f.id,{codigo:p.codigo}); f.codigo=p.codigo; } } closeModal(); render(); }catch(e){ alert('Erro: '+e.message); } };
 
 /* ---------- Definições ---------- */
-window.defMenuAbrir=function(ev){ ev&&ev.stopPropagation(); userMenuFechar(); const m=document.getElementById('def-menu'); m.style.display=m.style.display==='block'?'none':'block'; };
+window.dashMenuAbrir=function(ev){ ev&&ev.stopPropagation(); userMenuFechar(); defMenuFechar(); const m=document.getElementById('dash-menu'); const b=document.getElementById('btn-dashmenu');
+  if(b){ const r=b.getBoundingClientRect(); m.style.left=Math.max(8,r.left)+'px'; m.style.right='auto'; } m.style.display=m.style.display==='block'?'none':'block'; };
+window.dashMenuFechar=function(){ const m=document.getElementById('dash-menu'); if(m) m.style.display='none'; };
+window.defMenuAbrir=function(ev){ ev&&ev.stopPropagation(); userMenuFechar(); dashMenuFechar(); const m=document.getElementById('def-menu'); const b=document.getElementById('btn-def'); if(b){ const r=b.getBoundingClientRect(); m.style.left='auto'; m.style.right=Math.max(8,window.innerWidth-r.right)+'px'; } m.style.display=m.style.display==='block'?'none':'block'; };
 window.defMenuFechar=function(){ const m=document.getElementById('def-menu'); if(m) m.style.display='none'; };
 window.defAbrir=function(pg){ defMenuFechar(); if(pg==='backup'){ if(typeof backupExportar==='function') backupExportar(); else { const b=document.getElementById('btn-backup'); if(b) b.click(); } return; }
   defPg=pg; cgObraId=null; cgMaeId=null; fichObraId=null; render(); window.scrollTo(0,0); };
@@ -11718,7 +11723,7 @@ window.userMenuAbrir=function(ev){ ev&&ev.stopPropagation(); defMenuFechar(); co
   const tema=document.documentElement.getAttribute('data-contraste')!==null?'contraste':(document.documentElement.getAttribute('data-theme')==='dark'?'escuro':'claro');
   m.innerHTML=`<div class="um-top"><div class="nav-avatar" style="width:38px !important;height:38px !important">${esc((currentUser.nome||'').split(' ').map(x=>x[0]).filter(Boolean).slice(0,1).concat((currentUser.nome||'').split(' ').slice(-1).map(x=>x[0])).join('').toUpperCase())}</div>
     <div><b>${esc(currentUser.nome||'')}</b><div style="color:var(--text-muted)">${esc(rot)}</div></div><button class="um-x" onclick="userMenuFechar()">✕</button></div>
-    <div class="um-it" onclick="userPerfil()">👤 Perfil</div>
+    <div class="um-it" onclick="userPerfil()">👤 Perfil</div>${(peESuper()||(SEGO_CFG.guia&&SEGO_CFG.guia.publico))?`<div class="um-it" onclick="userMenuFechar();guiaAbrir()">📘 Guia</div>`:''}
     <div class="um-sec">Aparência</div><div class="um-temas">${[['claro','☀ Claro'],['escuro','☾ Escuro'],['contraste','◐ Contraste']].map(([k,l])=>`<button class="${tema===k?'on':''}" onclick="segoTemaDef('${k}')">${l}</button>`).join('')}</div>
     <div class="um-sec">Cores</div><div class="um-temas">${[['aceitar','Aceitar'],['navy','Azul e Dourado']].map(([k,l])=>`<button class="${(document.documentElement.getAttribute('data-paleta')||'aceitar')===k?'on':''}" onclick="segoPaleta('${k}')">${l}</button>`).join('')}</div>
     <div class="um-it" style="border-top:1px solid var(--border-light)" onclick="doLogout()">↩ Sair</div>`;
@@ -11733,7 +11738,7 @@ window.segoTemaDef=function(t){ const h=document.documentElement;
 window.userPerfil=function(){ userMenuFechar(); const u=currentUser||{}; const full=(DB.utilizadores||[]).find(x=>x.id===u.id)||u;
   const os=Array.isArray(full.obras)?full.obras.map(id=>{ const o=DB.obras.find(x=>x.id===id); return o?o.codigo+' '+o.sigla:null; }).filter(Boolean):[];
   showModal('Perfil',`<div class="cg-kv">${cgKV('Nome',esc(full.nome||''))}${cgKV('Email',esc(full.email||''))}${cgKV('Função',esc(full.funcao||'—'))}${cgKV('Perfil',esc(full.role||''))}${cgKV('Contacto',esc(full.contacto||'—'))}${cgKV('Obras',full.obras==='todas'||full.role==='superadmin'?'Todas':esc(os.join(', ')||'—'))}</div>`,[{label:'Fechar',cls:'btn-outline',fn:'closeModal()'}]); };
-document.addEventListener('click',e=>{ if(!e.target.closest('#def-menu,#btn-def')) defMenuFechar(); if(!e.target.closest('#user-menu,#nav-avatar')) userMenuFechar(); });
+document.addEventListener('click',e=>{ if(!e.target.closest('#dash-menu,#btn-dashmenu')) dashMenuFechar(); if(!e.target.closest('#def-menu,#btn-def')) defMenuFechar(); if(!e.target.closest('#user-menu,#nav-avatar')) userMenuFechar(); });
 
 function renderObras(app){
   const states=['Todos os Estados','Em Curso','Concluída','Suspensa','Em Preparação'];
