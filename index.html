@@ -313,7 +313,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.10.1201</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.10.1238</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -813,19 +813,30 @@ window.segoTema=function(){
   .cg-cxs>.cg-cx>.cg-cx-h .cg-cx-ic svg{opacity:1 !important}
 </style>
 <script>
-/* Pontilhado alinhado: em cada card, todos os pontilhados param no início do valor mais comprido */
+/* Pontilhado alinhado (intermédio): em cada bloco de linhas (separado por linha em branco), os valores curtos e
+   parecidos alinham pelo maior deles; um valor bem mais comprido que os outros fica de fora (o pontilhado dele pára mais cedo) */
 (function(){
   let pend=false;
   function alinhar(){ pend=false;
     const app=document.getElementById('app'); if(!app) return;
-    const grupos=new Map();
-    app.querySelectorAll('.cg-r').forEach(r=>{ const g=r.closest('.cg-cx-b,.cg-card')||r.parentElement; if(!grupos.has(g)) grupos.set(g,[]); grupos.get(g).push(r); });
-    grupos.forEach((rows,g)=>{
-      g.style.removeProperty('--cg-vw');
-      let mx=0;
-      rows.forEach(r=>{ const v=r.querySelector('.cg-rv'); if(!v||v.querySelector('input,select,textarea')) return; mx=Math.max(mx,Math.ceil(v.getBoundingClientRect().width)+1); });
+    const cards=new Set(); app.querySelectorAll('.cg-r').forEach(r=>cards.add(r.closest('.cg-cx-b,.cg-card')||r.parentElement));
+    cards.forEach(g=>{
       const lim=Math.floor(g.clientWidth*0.65);
-      if(mx>0) g.style.setProperty('--cg-vw',Math.min(mx,lim)+'px');
+      const blocos=[[]];
+      g.querySelectorAll('.cg-r,.cg-gap').forEach(el=>{ if(el.classList.contains('cg-gap')){ if(blocos[blocos.length-1].length) blocos.push([]); } else blocos[blocos.length-1].push(el); });
+      blocos.forEach(rows=>{
+        const ms=[];
+        rows.forEach(r=>{ r.style.removeProperty('--cg-vw'); });
+        rows.forEach(r=>{ const v=r.querySelector('.cg-rv'); if(!v||v.querySelector('input,select,textarea')) return;
+          const tx=(v.textContent||'').replace(/\u00a0/g,' ').trim(); if(!tx) return;
+          ms.push({r,w:Math.ceil(v.getBoundingClientRect().width)+1,ph:tx==='—'}); });
+        if(!ms.length) return;
+        const ws=ms.filter(m=>!m.ph).map(m=>m.w).sort((a,b)=>a-b);
+        let alvo=ws.length?ws[0]:Math.max(...ms.map(m=>m.w));
+        for(let k=1;k<ws.length;k++){ if(ws[k]<=ws[k-1]*1.5+10) alvo=ws[k]; else break; }
+        alvo=Math.min(alvo,lim);
+        ms.forEach(m=>{ m.r.style.setProperty('--cg-vw',(m.w<=alvo?alvo:Math.min(m.w,lim))+'px'); });
+      });
     });
   }
   const pedir=()=>{ if(!pend){ pend=true; requestAnimationFrame(alinhar); } };
