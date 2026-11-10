@@ -11724,7 +11724,7 @@ window.userMenuAbrir=function(ev){ ev&&ev.stopPropagation(); defMenuFechar(); co
   m.innerHTML=`<div class="um-top"><div class="nav-avatar" style="width:38px !important;height:38px !important">${esc((currentUser.nome||'').split(' ').map(x=>x[0]).filter(Boolean).slice(0,1).concat((currentUser.nome||'').split(' ').slice(-1).map(x=>x[0])).join('').toUpperCase())}</div>
     <div><b>${esc(currentUser.nome||'')}</b><div style="color:var(--text-muted)">${esc(rot)}</div></div><button class="um-x" onclick="userMenuFechar()">✕</button></div>
     <div class="um-it" onclick="userPerfil()">👤 Perfil</div>${(peESuper()||(SEGO_CFG.guia&&SEGO_CFG.guia.publico))?`<div class="um-it" onclick="userMenuFechar();guiaAbrir()">📘 Guia</div>`:''}
-    <div class="um-sec">Aparência</div><div class="um-temas">${[['claro','☀ Claro'],['escuro','☾ Escuro'],['contraste','◐ Contraste']].map(([k,l])=>`<button class="${tema===k?'on':''}" onclick="segoTemaDef('${k}')">${l}</button>`).join('')}</div>
+    <div class="um-sec">Aparência</div><div class="um-temas">${[['claro','☀ Claro'],['escuro','☾ Escuro'],['contraste','Contraste']].map(([k,l])=>`<button class="${tema===k?'on':''}" onclick="segoTemaDef('${k}')">${l}</button>`).join('')}</div>
     <div class="um-sec">Cores</div><div class="um-temas">${[['aceitar','Aceitar'],['navy','Azul e Dourado']].map(([k,l])=>`<button class="${(document.documentElement.getAttribute('data-paleta')||'aceitar')===k?'on':''}" onclick="segoPaleta('${k}')">${l}</button>`).join('')}</div>
     <div class="um-it" style="border-top:1px solid var(--border-light)" onclick="doLogout()">↩ Sair</div>`;
   m.style.display=m.style.display==='block'?'none':'block'; };
