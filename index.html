@@ -298,7 +298,7 @@ tr.tr-click:hover td{background:#F5F7FA}
   <div id="nav-obras" style="display:none;align-items:center;gap:4px;margin-left:18px;margin-right:16px">
     <span id="nav-obras-n" title="N.º de obras"></span>
     <select id="nav-obras-est" title="Estado da obra" onchange="obrasFilter=this.value;render()">
-      <option>Todos os Estados</option><option>Em Curso</option><option>Concluída</option><option>Suspensa</option><option>Em Preparação</option>
+      <option value="Todos os Estados">Todos</option><option>Em Curso</option><option>Suspensa</option><option>Concluída</option>
     </select>
   </div>
   <span class="nav-obras-q" id="nav-obras-qbox" style="display:none"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input id="nav-obras-q" type="search" placeholder="Pesquisar obra, sigla ou código…" oninput="obrasSearch=this.value;render()"></span>
@@ -313,7 +313,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.10.0202</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.10.0203</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -843,8 +843,10 @@ window.addEventListener('DOMContentLoaded',()=>{ if(pwaStandalone()){ const b=do
     if(no){ no.style.display=mk?'flex':'none';
       if(mk){ document.getElementById('nav-obras-n').textContent=mk.dataset.n; document.getElementById('nav-obras-n').title=mk.dataset.n+' obra(s)';
         const q=document.getElementById('nav-obras-q'); if(q&&document.activeElement!==q) q.value=obrasSearch||'';
-        const e=document.getElementById('nav-obras-est'); if(e) e.value=obrasFilter||'Todos os Estados'; } }
+        const e=document.getElementById('nav-obras-est'); if(e){ e.value=obrasFilter||'Todos os Estados';
+          requestAnimationFrame(()=>{ const c=document.querySelector('#app .cg-card'); if(!c) return; const r=c.getBoundingClientRect(), l=e.getBoundingClientRect().left; const w=Math.round(r.right-l); if(w>=90&&w<600) e.style.width=w+'px'; }); } } }
   };
+  window.addEventListener('resize',()=>{ clearTimeout(window.__rszT); window.__rszT=setTimeout(()=>{ try{ sync(); }catch(e){} },120); });
   window.navInicio=function(){
     ['peObraId','peFichaId','paObraId','paFichaId','pbObraId','pbFichaId','ptqObraId','ptqFichaId','qeObraId','qeFichaId','tcmObraId','tcmFichaId','amObraId','amFichaId',
      'relRelId','relObraId','fichObraId','segObraId','fiscObraId','metObraId','cgObraId','cgMaeId','defPg'].forEach(v=>{ try{ window.eval(v+'=null'); }catch(e){} });
@@ -1130,7 +1132,7 @@ const DB = {
 // Map Supabase column names to local DB field names
 function mapObra(r) {
   return {
-    id: r.id, codigo: r.codigo, sigla: r.sigla, nome: r.nome, estado: r.estado||'Em Preparação',
+    id: r.id, codigo: r.codigo, sigla: r.sigla, nome: r.nome, estado: r.estado||'Em Curso',
     morada: r.morada, codigoPostal: r.codigo_postal, localidade: r.localidade,
     tipoObra: r.tipo_obra, subtipo: r.subtipo, area: r.area,
     pisosAcima: r.pisos_acima, pisosAbaixo: r.pisos_abaixo,
@@ -11480,7 +11482,7 @@ function renderSegDash(app){
 // CARD GERAL DA OBRA (ex-SID) · FASES · ENTIDADES · DEFINIÇÕES · MENU DO UTILIZADOR
 // ================================================================
 let cgObraId=null, cgMaeId=null, cgTab='IA', cgEdit=false, cgBuf=null, defPg=null, cgDeCO=false;
-const CG_ESTADOS=['Em Preparação','Em Curso','Suspensa','Concluída'];
+const CG_ESTADOS=['Em Curso','Suspensa','Concluída'];
 const CG_TIPOS=['','Nova','Alteração'], CG_SUBTIPOS=['','Habitação','Comércio','Indústria'];
 const CG_PRR_TIPOS=['','Prorrogação','Aditamento','Adenda'];
 const cgNovoId=()=>'_'+Math.random().toString(36).slice(2,9);
@@ -11691,7 +11693,7 @@ window.cgNovaFaseCriar=async function(){
   const mae=DB.obras.find(x=>x.id===maeId); if(!mae) return;
   if(!nom||!sig){ alert('Nome e Sigla são obrigatórios.'); return; }
   if(cgFases(maeId).some(f=>String(f.sigla||'').toLowerCase()===sig.toLowerCase())){ alert('A sigla "'+sig+'" já existe nesta obra.'); return; }
-  const f={id:cgNovoId(),codigo:mae.codigo,sigla:sig,nome:nom,estado:mae.estado||'Em Preparação',prorrogacoes:[],docs:[],comFases:false,obraMaeId:maeId};
+  const f={id:cgNovoId(),codigo:mae.codigo,sigla:sig,nome:nom,estado:mae.estado||'Em Curso',prorrogacoes:[],docs:[],comFases:false,obraMaeId:maeId};
   const src=orig?DB.obras.find(x=>x.id===orig):null; const grs=[...document.querySelectorAll('.nf-g:checked')].map(c=>c.value);
   if(src) grs.forEach(k=>CG_GRUPOS[k].campos.forEach(c=>{ f[c]=JSON.parse(JSON.stringify(src[c]===undefined?null:src[c])); }));
   try{
@@ -11782,7 +11784,7 @@ window.userPerfil=function(){ userMenuFechar(); const u=currentUser||{}; const f
 document.addEventListener('click',e=>{ if(!e.target.closest('#dash-menu,#btn-dashmenu')) dashMenuFechar(); if(!e.target.closest('#def-menu,#btn-def')) defMenuFechar(); if(!e.target.closest('#user-menu,#nav-avatar')) userMenuFechar(); });
 
 function renderObras(app){
-  const states=['Todos os Estados','Em Curso','Concluída','Suspensa','Em Preparação'];
+  const states=['Todos os Estados','Em Curso','Suspensa','Concluída'];
   const _vis=getObrasVisiveis(); const _ids=new Set(_vis.map(o=>o.id));
   let obras=DB.obras.filter(o=>!o.obraMaeId&&(_ids.has(o.id)||(o.comFases&&DB.obras.some(f=>f.obraMaeId===o.id&&_ids.has(f.id))))).slice().sort((a,b)=>(a.codigo||'').localeCompare(b.codigo||''));
   if(obrasFilter!=='Todos os Estados') obras=obras.filter(o=>o.estado===obrasFilter);
@@ -12413,13 +12415,13 @@ function obraModalContent(tab,o={}){
   const fmtMil=v=>v!=null&&v!==''?Number(v).toLocaleString('pt-PT'):'';
 
   if(tab==='Principal'){
-    const estados=['Em Preparação','Em Curso','Concluída','Suspensa'];
+    const estados=['Em Curso','Suspensa','Concluída'];
     const tipos=['','Nova','Alteração'], subs=['','Habitação','Comércio','Indústria'];
     return `
     <div class="form-row f3">
       <div><label class="form-label">Código *</label><input class="form-input" id="f-cod" placeholder="ex: OB001" value="${o.codigo||''}"></div>
       <div><label class="form-label">Sigla</label><input class="form-input" id="f-sig" placeholder="ex: ABC" value="${o.sigla||''}"></div>
-      <div><label class="form-label">Estado</label><select class="form-select" id="f-est">${estados.map(s=>`<option ${(o.estado||'Em Preparação')===s?'selected':''}>${s}</option>`).join('')}</select></div>
+      <div><label class="form-label">Estado</label><select class="form-select" id="f-est">${estados.map(s=>`<option ${(o.estado||'Em Curso')===s?'selected':''}>${s}</option>`).join('')}</select></div>
     </div>
     <div class="form-row">
       <div><label class="form-label">Nome *</label><input class="form-input" id="f-nom" placeholder="Nome da obra" value="${o.nome||''}"></div>
@@ -12667,7 +12669,7 @@ function collectObraForm(){
 function modalNovaObra(){
   editingObraId=null;
   modalObraTab='Principal';
-  obraBuffer={estado:'Em Preparação',docs:[],prorrogacoes:[],
+  obraBuffer={estado:'Em Curso',docs:[],prorrogacoes:[],
     intervenientes_do:[],intervenientes_fisc:[],intervenientes_emp:[],intervenientes_proj:[]};
   showModal('Nova Obra',obraModalTabs()+obraModalContent('Principal',obraBuffer),[
     {label:'Cancelar',cls:'btn-outline',fn:'closeModal()'},
