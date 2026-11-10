@@ -313,7 +313,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.10.1620</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.10.1659</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -808,7 +808,6 @@ window.segoTema=function(){
   /* Cartões interiores (IA/ID/CO): mesmo pressuposto do cartão da lista — cabeçalho na cor do estado + faixa, corpo do cartão */
   .cg-cxs>.cg-cx{background:var(--bg-card);border:1px solid var(--border-light)}
   .cg-cxs>.cg-cx>.cg-cx-h{background:var(--est-curso);border-bottom:3px solid var(--cg-faixa)}
-  .cg-cxs>.cg-cx>.cg-cx-h>div:not(.cg-cx-ic),.cg-cxs>.cg-cx>.cg-cx-h>div:not(.cg-cx-ic) *{color:#fff !important}
   .cg-cxs>.cg-cx>.cg-cx-h .co-cnt,.cg-cxs>.cg-cx>.cg-cx-h>div:last-child:not(:nth-child(2)){color:rgba(255,255,255,.85) !important}
   html:not([data-paleta=navy]) .cg-cxs>.cg-cx>.cg-cx-h{text-shadow:0 1px 1px rgba(0,0,0,.18)}
   .cg-cxs>.cg-cx>.cg-cx-h{padding:10px 10px 10px 14px !important;gap:8px !important;align-items:center !important;min-height:54px;box-sizing:border-box}
@@ -11877,7 +11876,7 @@ function cgOrdemIA(cards){ const sig=c=>{ const m=c.match(/font-weight:700[^"]*"
   ord.forEach(k=>{ if(k==='_'){ h+='<div class="cg-esp"></div>'; return; } const c=cards.find(x=>sig(x)===k); if(c){ h+=c; usados.add(c); } });
   cards.forEach(c=>{ if(!usados.has(c)) h+=c; }); return h; }
 function cgCartao(sig,titulo,corpo,ic,extra,cls){ const [c,bg,p]=CG_IC[ic||sig]||CG_IC.DOC;
-  return `<div class="cg-cx ${cls||''}"><div class="cg-cx-h"><div style="min-width:0;flex:1"><div style="font-weight:700">${sig}</div><div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${titulo}">${titulo}</div></div>${extra||''}<div class="cg-cx-ic" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 48 48" fill="none">${p.replace(/"C"/g,'"currentColor"')}</svg></div></div><div class="cg-cx-b">${corpo}</div></div>`; }
+  return `<div class="cg-cx ${cls||''}"><div class="cg-cx-h cg-cab"><div style="min-width:0;flex:1"><div style="font-weight:700;color:rgba(255,255,255,.7);margin-bottom:3px">${sig}</div><div style="color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${titulo}">${titulo}</div></div>${extra||''}<div class="cg-cx-ic" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 48 48" fill="none">${p.replace(/"C"/g,'"currentColor"')}</svg></div></div><div class="cg-cx-b">${corpo}</div></div>`; }
 function cgNavTpl(o,atual,botoes){ const mae=cgMae(o);
   const sg=mae?`${esc(mae.sigla||'')} · ${esc(o.sigla||'')}`:esc(o.sigla||'');
   const meio=(botoes||'')||(atual&&!o.comFases?CG_ATALHOS.map(([k,t])=>`<button class="on-at ${atual===k?'on':''}" title="${t}" onclick="${k==='CO'?`cgAbrirCO('${o.id}')`:`cgAbrir('${o.id}','${k}')`}">${CG_AT_IC[k]}</button>`).join(''):'');
@@ -12500,7 +12499,7 @@ function renderCOPanel(o){
     const cor=m.grp==='seg'?'#A32D2D':'#185FA5', cbg=m.grp==='seg'?'#FCEBEB':'#E6F1FB';
     const tit=m.label||CO_TIT[m.key]||m.sigla;
     return `<div class="cg-cx co-cx ${m.grp}" onclick="${onclick}"${_oc?' style="opacity:.55;border-style:dashed" title="Oculto para os utilizadores desta obra (só o Superadmin vê)"':''}>
-      <div class="cg-cx-h"><div style="min-width:0;flex:1"><div style="font-weight:700">${m.sigla}${_oc?' <span style="font-weight:700;color:#FFD0CC">OCULTO</span>':''}</div><div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${tit}">${tit}</div></div>
+      <div class="cg-cx-h cg-cab"><div style="min-width:0;flex:1"><div style="font-weight:700;color:rgba(255,255,255,.7);margin-bottom:3px">${m.sigla}${_oc?' <span style="font-weight:700;color:#FFD0CC">OCULTO</span>':''}</div><div style="color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${tit}">${tit}</div></div>
         <span class="co-cnt" id="co-cnt-${m.key}" hidden>${cntHtml}</span><div class="cg-cx-ic" aria-hidden="true">${(CO_ICONS[m.key]||'').replace('<svg ','<svg width="14" height="14" ')}</div></div>
       <div class="cg-cx-b" id="co-rec-${m.key}">${coPad(recHtml)}</div>
     </div>`;
