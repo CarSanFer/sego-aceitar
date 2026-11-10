@@ -301,7 +301,7 @@ tr.tr-click:hover td{background:#F5F7FA}
       <option value="Todos os Estados">Todos</option><option>Em Curso</option><option>Suspensa</option><option>Concluída</option>
     </select>
   </div>
-  <span id="nav-obras-qbox" style="display:none"><span class="nav-obras-q" id="nav-obras-qin"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input id="nav-obras-q" type="search" placeholder="" title="Pesquisar obra, sigla ou código" aria-label="Pesquisar" oninput="obrasSearch=this.value;render()"></span><button type="button" class="nav-ord" data-k="codigo" onclick="obrasOrdenar('codigo')" title="Ordenar por código">Cód.</button><button type="button" class="nav-ord" data-k="sigla" onclick="obrasOrdenar('sigla')" title="Ordenar por sigla">Sigla</button><button type="button" class="nav-ord" data-k="nome" onclick="obrasOrdenar('nome')" title="Ordenar por nome da obra">Obra</button></span>
+  <span id="nav-obras-qbox" style="display:none"><span class="nav-obras-q" id="nav-obras-qin"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input id="nav-obras-q" type="search" placeholder="" title="Pesquisar obra, sigla ou código" aria-label="Pesquisar" oninput="obrasSearch=this.value;render()"></span><button type="button" class="nav-ord" data-k="codigo" onclick="obrasOrdenar('codigo')" title="Ordenar por código"></button><button type="button" class="nav-ord" data-k="sigla" onclick="obrasOrdenar('sigla')" title="Ordenar por sigla"></button><button type="button" class="nav-ord" data-k="nome" onclick="obrasOrdenar('nome')" title="Ordenar por nome da obra"></button></span>
   <div class="nav-right">
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-pwa-instalar" title="Instalar o SEGO como app neste dispositivo" onclick="pwaInstalar()">📲 Instalar App</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-pwa-atualizar" title="Recarregar a app (dados e versão mais recentes)" onclick="location.reload()">↻ Atualizar</button>
@@ -313,7 +313,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.10.1515</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.10.1544</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -822,9 +822,9 @@ window.segoTema=function(){
   .cg-r .cg-cpl button{height:20px;line-height:18px;padding:0 6px}
   #nav-obras-qbox{gap:6px;align-items:center;background:none !important;border:none !important;padding:0 !important}
   #nav-obras-qin{flex:1 1 auto;min-width:0}
-  #nav-obras-qbox .nav-ord{flex:0 0 auto;height:24px;box-sizing:border-box;padding:0 7px;border-radius:4px;border:1px solid #E39956;background:transparent;color:rgba(255,255,255,.9);cursor:pointer;font-family:inherit;white-space:nowrap}
+  #nav-obras-qbox .nav-ord{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;width:24px;height:24px;box-sizing:border-box;padding:0;color:var(--nav-bd) !important;border-radius:4px;border:1px solid #E39956;background:transparent;color:rgba(255,255,255,.9);cursor:pointer;font-family:inherit;white-space:nowrap}
   #nav-obras-qbox .nav-ord:hover{background:rgba(227,153,86,.2)}
-  #nav-obras-qbox .nav-ord.on{background:#E39956;color:#fff;font-weight:700}
+  #nav-obras-qbox .nav-ord.on{background:#E39956;color:#fff !important;font-weight:700}
   /* Barra superior: um só contorno (laranja do logo) e todos os quadrados com 24px de altura */
   :root{--nav-bd:var(--cg-faixa,#E39956)}
   .navbar{border-bottom-color:var(--nav-bd) !important}
@@ -1098,7 +1098,13 @@ window.addEventListener('DOMContentLoaded',()=>{ if(pwaStandalone()){ const b=do
     if(no){ no.style.display=mk?'flex':'none';
       if(mk){ document.getElementById('nav-obras-n').textContent=mk.dataset.n; document.getElementById('nav-obras-n').title=mk.dataset.n+' obra(s)';
         const q=document.getElementById('nav-obras-q'); if(q&&document.activeElement!==q) q.value=obrasSearch||'';
-        try{ document.querySelectorAll('#nav-obras-qbox .nav-ord').forEach(b=>{ const on=b.dataset.k===obrasOrdem.k; b.classList.toggle('on',on); const base={codigo:'Cód.',sigla:'Sigla',nome:'Obra'}[b.dataset.k]; const t=on?base+(obrasOrdem.d>0?' ▲':' ▼'):base; if(b.textContent!==t) b.textContent=t; }); }catch(e){}
+        try{ const ICO={codigo:'<path d="M9 4 7 20M17 4l-2 16M4 9h16M3 15h16"/>',sigla:'<path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/>',nome:'<path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-5h6v5M9 10h.01M15 10h.01M9 13h.01M15 13h.01"/>'};
+          const NOM={codigo:'código',sigla:'sigla',nome:'nome da obra'};
+          document.querySelectorAll('#nav-obras-qbox .nav-ord').forEach(b=>{ const k=b.dataset.k, on=k===obrasOrdem.k; b.classList.toggle('on',on);
+            const seta=on?(obrasOrdem.d>0?'<path d="M20 15l3.5 5h-7z" fill="currentColor" stroke="none"/>':'<path d="M20 22l3.5-5h-7z" fill="currentColor" stroke="none"/>'):'';
+            const h=`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${on?'<g transform="scale(.72)">'+ICO[k]+'</g>':ICO[k]}${seta}</svg>`;
+            if(b.dataset.h!==h){ b.innerHTML=h; b.dataset.h=h; }
+            b.title='Ordenar por '+NOM[k]+(on?(obrasOrdem.d>0?' (A→Z) — clique para inverter':' (Z→A) — clique para inverter'):''); }); }catch(e){}
         const e=document.getElementById('nav-obras-est'); if(e){ e.value=obrasFilter||'Todos os Estados';
           requestAnimationFrame(()=>{ const c=document.querySelector('#app .cg-card'); if(!c) return; const r=c.getBoundingClientRect(), l=e.getBoundingClientRect().left; const w=Math.round(r.right-l); if(w>=90&&w<600) e.style.width=w+'px'; }); } } }
   };
