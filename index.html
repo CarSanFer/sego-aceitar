@@ -313,7 +313,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.10.1551</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.10.1620</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -811,12 +811,14 @@ window.segoTema=function(){
   .cg-cxs>.cg-cx>.cg-cx-h>div:not(.cg-cx-ic),.cg-cxs>.cg-cx>.cg-cx-h>div:not(.cg-cx-ic) *{color:#fff !important}
   .cg-cxs>.cg-cx>.cg-cx-h .co-cnt,.cg-cxs>.cg-cx>.cg-cx-h>div:last-child:not(:nth-child(2)){color:rgba(255,255,255,.85) !important}
   html:not([data-paleta=navy]) .cg-cxs>.cg-cx>.cg-cx-h{text-shadow:0 1px 1px rgba(0,0,0,.18)}
-  .cg-cxs>.cg-cx>.cg-cx-h .cg-cx-ic{background:#fff !important;opacity:1 !important;filter:none !important}
+  .cg-cxs>.cg-cx>.cg-cx-h{padding:10px 10px 10px 14px !important;gap:8px !important;align-items:center !important;min-height:54px;box-sizing:border-box}
+  .cg-cxs>.cg-cx>.cg-cx-h .cg-cx-ic{width:24px !important;height:24px !important;box-sizing:border-box;border-radius:4px !important;border:none !important;background:rgba(255,255,255,.22) !important;color:#fff !important;opacity:1 !important;filter:none !important;cursor:default;pointer-events:none}
+  .cg-cxs>.cg-cx>.cg-cx-h .cg-cx-ic svg{width:14px !important;height:14px !important;color:#fff !important}
   .cg-cxs>.cg-cx>.cg-cx-h .cg-cx-ic svg{opacity:1 !important}
   .cg-esp{visibility:hidden}
   @media(max-width:1230px){ .cg-esp{display:none} }
-  /* Todas as linhas label/valor com a mesma altura (20px), também em edição */
-  .cg-r,.cg-gap{height:20px;box-sizing:border-box}
+  /* Todas as linhas label/valor com a mesma altura (22px), também em edição */
+  .cg-r,.cg-gap{height:22px;box-sizing:border-box}
   .cg-r:has(.cg-i){padding:0 !important}
   .cg-r .cg-i,.cg-r select.cg-i,.cg-r input.cg-i{height:20px !important;min-height:0 !important;padding:0 6px !important;line-height:18px !important;box-sizing:border-box !important;font:inherit}
   .cg-r .cg-cpl button{height:20px;line-height:18px;padding:0 6px}
@@ -11869,14 +11871,13 @@ const CG_IC={
   INT:['#854F0B','#FEF9EC','<circle cx="18" cy="18" r="6" stroke="C" stroke-width="2.5"/><circle cx="30" cy="18" r="6" stroke="C" stroke-width="2.5"/><path d="M6 38c0-6.6 5.4-12 12-12s12 5.4 12 12M30 26c6.6 0 12 5.4 12 12" stroke="C" stroke-width="2.5" stroke-linecap="round"/>'],
   CAR:['#185FA5','#E6F1FB','<path d="M6 40V18l18-10 18 10v22" stroke="C" stroke-width="2.5" stroke-linejoin="round"/><path d="M6 40h36M18 40V28h12v12M14 22h4M30 22h4" stroke="C" stroke-width="2.3" stroke-linecap="round"/>'],
   DOC:['var(--pal-1)','var(--pal-1-bg)','<path d="M14 6h14l8 8v28H14z" stroke="C" stroke-width="2.5" stroke-linejoin="round"/><path d="M28 6v8h8M19 24h12M19 30h12" stroke="C" stroke-width="2.2" stroke-linecap="round"/>']};
-/* IA: VAL · PZO · PRO · (2 espaços) · IDE · CAR */
-function cgOrdemIA(cards){ const sig=c=>{ const m=c.match(/font-weight:700;color:[^"]*">([A-Z]{2,4})</); return m?m[1]:''; };
-  const ord=['VAL','PZO','PRO','_','_','IDE','CAR'], usados=new Set(); let h='';
+/* IA: IDE · CAR · PZO · PRO · VAL */
+function cgOrdemIA(cards){ const sig=c=>{ const m=c.match(/font-weight:700[^"]*">([A-Z]{2,4})</); return m?m[1]:''; };
+  const ord=['IDE','CAR','PZO','PRO','VAL'], usados=new Set(); let h='';
   ord.forEach(k=>{ if(k==='_'){ h+='<div class="cg-esp"></div>'; return; } const c=cards.find(x=>sig(x)===k); if(c){ h+=c; usados.add(c); } });
   cards.forEach(c=>{ if(!usados.has(c)) h+=c; }); return h; }
 function cgCartao(sig,titulo,corpo,ic,extra,cls){ const [c,bg,p]=CG_IC[ic||sig]||CG_IC.DOC;
-  return `<div class="cg-cx ${cls||''}"><div class="cg-cx-h"><div class="cg-cx-ic" style="background:${bg}"><svg width="18" height="18" viewBox="0 0 48 48" fill="none" style="color:${c}">${p.replace(/"C"/g,'"currentColor"')}</svg></div>
-    <div style="min-width:0;flex:1"><div style="font-weight:700;color:${c}">${sig}</div><div style="color:var(--text)">${titulo}</div></div>${extra||''}</div><div class="cg-cx-b">${corpo}</div></div>`; }
+  return `<div class="cg-cx ${cls||''}"><div class="cg-cx-h"><div style="min-width:0;flex:1"><div style="font-weight:700">${sig}</div><div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${titulo}">${titulo}</div></div>${extra||''}<div class="cg-cx-ic" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 48 48" fill="none">${p.replace(/"C"/g,'"currentColor"')}</svg></div></div><div class="cg-cx-b">${corpo}</div></div>`; }
 function cgNavTpl(o,atual,botoes){ const mae=cgMae(o);
   const sg=mae?`${esc(mae.sigla||'')} · ${esc(o.sigla||'')}`:esc(o.sigla||'');
   const meio=(botoes||'')||(atual&&!o.comFases?CG_ATALHOS.map(([k,t])=>`<button class="on-at ${atual===k?'on':''}" title="${t}" onclick="${k==='CO'?`cgAbrirCO('${o.id}')`:`cgAbrir('${o.id}','${k}')`}">${CG_AT_IC[k]}</button>`).join(''):'');
@@ -11918,7 +11919,7 @@ function renderCardGeral(app){
           :cgR('Tipo',esc(p.tipo||'—'))+cgR('Data',fmtDate(p.data))+cgR(lf,fmtDate(p.novoFim))+cgR('Duração',d===null?'—':d+' d',mut); });
       if(!prrs.length) corpo=`<div class="cg-r co-semreg"><span class="cg-rl">Sem registos</span><span class="cg-rv"></span></div>`;
       const ext=cgEdit?`<button style="align-self:flex-start;background:transparent;border:1px solid var(--gold);color:var(--gold);border-radius:var(--radius);padding:1px 8px;cursor:pointer;font-family:inherit" onclick="event.stopPropagation();cgBuf.prorrogacoes.push({tipo:'Prorrogação',data:'',novoFim:''});render()">+ Novo</button>`
-        :`<div style="color:var(--text-muted);white-space:nowrap;align-self:flex-start">${prrs.length} registo${prrs.length===1?'':'s'}</div>`;
+        :'';
       cards.push(cgCartao('PRO','Prorrogações, Adendas e Aditamentos',corpo,'PRR',ext,'cg-pro')); }
   }
   if(cgTab==='ID'){
@@ -12499,9 +12500,8 @@ function renderCOPanel(o){
     const cor=m.grp==='seg'?'#A32D2D':'#185FA5', cbg=m.grp==='seg'?'#FCEBEB':'#E6F1FB';
     const tit=m.label||CO_TIT[m.key]||m.sigla;
     return `<div class="cg-cx co-cx ${m.grp}" onclick="${onclick}"${_oc?' style="opacity:.55;border-style:dashed" title="Oculto para os utilizadores desta obra (só o Superadmin vê)"':''}>
-      <div class="cg-cx-h"><div class="cg-cx-ic" style="color:${cor};background:${cbg}">${(CO_ICONS[m.key]||'').replace('<svg ','<svg width="18" height="18" ')}</div>
-        <div style="min-width:0;flex:1"><div style="font-weight:700;color:${cor}">${m.sigla}${_oc?' <span style="font-weight:700;color:#B42318">OCULTO</span>':''}</div><div style="color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${tit}">${tit}</div></div>
-        <div class="co-cnt" id="co-cnt-${m.key}">${cntHtml}</div></div>
+      <div class="cg-cx-h"><div style="min-width:0;flex:1"><div style="font-weight:700">${m.sigla}${_oc?' <span style="font-weight:700;color:#FFD0CC">OCULTO</span>':''}</div><div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${tit}">${tit}</div></div>
+        <span class="co-cnt" id="co-cnt-${m.key}" hidden>${cntHtml}</span><div class="cg-cx-ic" aria-hidden="true">${(CO_ICONS[m.key]||'').replace('<svg ','<svg width="14" height="14" ')}</div></div>
       <div class="cg-cx-b" id="co-rec-${m.key}">${coPad(recHtml)}</div>
     </div>`;
   }).join('');
