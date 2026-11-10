@@ -313,7 +313,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.10.0252</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.10.0255</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -777,6 +777,14 @@ window.segoTema=function(){
   .cg-ver{color:#E39956;cursor:pointer;text-decoration:underline}
   .cg-ver:hover{color:var(--gold-light)}
   .co-so>div{grid-column:auto !important;height:auto !important}
+</style>
+
+<style>
+  .cg-cxs.cg-2>.cg-docw{grid-column:2 / -1 !important}
+  @media(max-width:700px){ .cg-cxs.cg-2>.cg-docw{grid-column:auto !important} }
+  .cg-pess{cursor:help;border-bottom:1px dotted var(--text-muted)}
+  .cg-doc td,.cg-doc th{white-space:nowrap}
+  .cg-doc tr.cg-doc-g td{text-align:left;font-weight:700;color:var(--text-muted);background:rgba(127,140,160,.08)}
 </style>
 <!-- FLOATING CHATBOT -->
 <div id="chat-bubble" onclick="toggleChat()" style="position:fixed;bottom:20px;right:20px;width:52px;height:52px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.25);z-index:500;transition:transform .2s" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
@@ -11633,7 +11641,7 @@ const CG_IC={
   PRR:['#854F0B','#FEF9EC','<circle cx="24" cy="24" r="14" stroke="C" stroke-width="2.5"/><path d="M24 16v8l5 5" stroke="C" stroke-width="2.5" stroke-linecap="round"/>'],
   INT:['#854F0B','#FEF9EC','<circle cx="18" cy="18" r="6" stroke="C" stroke-width="2.5"/><circle cx="30" cy="18" r="6" stroke="C" stroke-width="2.5"/><path d="M6 38c0-6.6 5.4-12 12-12s12 5.4 12 12M30 26c6.6 0 12 5.4 12 12" stroke="C" stroke-width="2.5" stroke-linecap="round"/>'],
   CAR:['#185FA5','#E6F1FB','<path d="M6 40V18l18-10 18 10v22" stroke="C" stroke-width="2.5" stroke-linejoin="round"/><path d="M6 40h36M18 40V28h12v12M14 22h4M30 22h4" stroke="C" stroke-width="2.3" stroke-linecap="round"/>'],
-  DOC:['#1E3A5F','#EEF1F6','<path d="M14 6h14l8 8v28H14z" stroke="C" stroke-width="2.5" stroke-linejoin="round"/><path d="M28 6v8h8M19 24h12M19 30h12" stroke="C" stroke-width="2.2" stroke-linecap="round"/>']};
+  DOC:['var(--pal-1)','var(--pal-1-bg)','<path d="M14 6h14l8 8v28H14z" stroke="C" stroke-width="2.5" stroke-linejoin="round"/><path d="M28 6v8h8M19 24h12M19 30h12" stroke="C" stroke-width="2.2" stroke-linecap="round"/>']};
 function cgCartao(sig,titulo,corpo,ic,extra,cls){ const [c,bg,p]=CG_IC[ic||sig]||CG_IC.DOC;
   return `<div class="cg-cx ${cls||''}"><div class="cg-cx-h"><div class="cg-cx-ic" style="background:${bg}"><svg width="18" height="18" viewBox="0 0 48 48" fill="none" style="color:${c}">${p.replace(/"C"/g,'"currentColor"')}</svg></div>
     <div style="min-width:0;flex:1"><div style="font-weight:700;color:${c}">${sig}</div><div style="color:var(--text)">${titulo}</div></div>${extra||''}</div><div class="cg-cx-b">${corpo}</div></div>`; }
@@ -11678,11 +11686,29 @@ function renderCardGeral(app){
   }
   if(cgTab==='ID'){
     const doObra=u=>u.obras==='todas'||(Array.isArray(u.obras)&&u.obras.some(x=>String(x)===String(o0.id)));
-    const ini=n=>String(n||'').split(' ').filter(Boolean).map((x,i,a)=>i===0||i===a.length-1?x[0]:'').join('').toUpperCase();
-    const grupos=[['DO','Dono de Obra',u=>u.role==='dono_obra','#185FA5','#E6F1FB'],['FISC','Fiscalização',u=>u.role==='fiscalizacao'||u.role==='superadmin','var(--pal-1)','var(--pal-1-bg)'],['EMP','Empreiteiro',u=>u.role==='empreiteiro','#A32D2D','#FCEBEB'],['PROJ','Projetistas',u=>u.role==='projetista','#534AB7','#EEEDFE']];
-    grupos.forEach(([sg,t,f,c,bg])=>{ const us=DB.utilizadores.filter(u=>f(u)&&doObra(u)&&u.ativo!==false).sort((a,b)=>a.nome.localeCompare(b.nome));
-      cards.push(cgCartao(sg,t+' · '+us.length,us.length?us.map(u=>`<div class="cg-u"><div class="cg-av" style="background:${bg};color:${c}">${ini(u.nome)}</div><div style="min-width:0"><div>${esc(u.nome)}</div><div style="color:var(--text-muted)">${esc(u.funcao||u.email||'')}</div></div></div>`).join(''):`<div style="${mut}">Ninguém associado.</div>`,'INT')); });
-    cards.push(cgCartao('DOC','Documentos',`<div style="${mut}">Os Documentos da obra/fase chegam na Fase 2.</div>`,'DOC','','cg-full'));
+    const grupos=[['Dono de Obra',u=>u.role==='dono_obra'],['Fiscalização',u=>u.role==='fiscalizacao'||u.role==='superadmin'],['Empreiteiro',u=>u.role==='empreiteiro'],['Projetista',u=>u.role==='projetista']];
+    let linhas='', tot=0;
+    grupos.forEach(([t,f],gi)=>{ const us=DB.utilizadores.filter(u=>f(u)&&doObra(u)&&u.ativo!==false).sort((a,b)=>a.nome.localeCompare(b.nome)); tot+=us.length;
+      if(gi>0) linhas+=cgDiv;
+      if(!us.length) linhas+=cgR(t,'—',mut);
+      us.forEach((u,k)=>{ const tip=[u.funcao&&('Função: '+u.funcao),u.contacto&&('Contacto: '+u.contacto),u.email&&('Email: '+u.email)].filter(Boolean).join('\n')||'Sem mais dados';
+        linhas+=cgR(k===0?t:'',`<span class="cg-pess" title="${esc(tip)}">${esc(u.nome)}</span>`); }); });
+    cards.push(cgCartao('INT','Intervenientes · '+tot,linhas,'INT'));
+    // Documentos (tal como no SID: por fase do documento — Concurso, Contrato, Obra)
+    const docs=(o0.docs||[]), tipos=Object.fromEntries((DB.tiposDoc||[]).map(t=>[t.id,t])), hoje=new Date().toISOString().slice(0,10);
+    const nomeDoc=d=>esc(((tipos[d.tipo]||{}).nome)||d.tipo||d.titulo||d.nome||'Documento')+(d.subtipo?' — '+esc(d.subtipo):'');
+    const fases=[['concurso','Concurso'],['contrato','Contrato'],['obra','Obra']];
+    let tab=`<table class="cg-tbl cg-doc"><thead><tr><th style="text-align:left">Documento</th><th>Versão</th><th>Data</th><th>Validade</th><th>OK</th><th>Ficheiro</th><th style="text-align:left">Notas</th></tr></thead><tbody>`, nd=0;
+    fases.forEach(([k,rot])=>{ const lst=docs.filter(d=>String(d.fase||'').trim().toLowerCase()===k);
+      const def=(DB.tiposDoc||[]).filter(t=>(t.is_default||t.isDefault)&&String(t.fase||'').trim().toLowerCase()===k&&!lst.some(d=>d.tipo===t.id));
+      tab+=`<tr class="cg-doc-g"><td colspan="7">${rot} · ${lst.length}</td></tr>`;
+      lst.forEach(d=>{ nd++; const exp=d.validade&&d.validade<hoje;
+        tab+=`<tr><td style="text-align:left">${nomeDoc(d)}</td><td>${esc(d.versao||'—')}</td><td>${fmtDate(d.criadoEm||d.data)}</td><td style="${exp?'color:var(--danger)':''}">${d.validade?fmtDate(d.validade):'—'}</td>
+          <td>${d.validade?(exp?'<b style="color:var(--danger)">NOK</b>':'<b style="color:var(--success)">OK</b>'):'—'}</td>
+          <td>${d.fileUrl?`<a href="${esc(d.fileUrl)}" target="_blank" title="${esc(d.fileName||'Abrir')}" style="color:#E39956">abrir</a>`:'—'}</td><td style="text-align:left;color:var(--text-muted)">${esc(d.notas||'')}</td></tr>`; });
+      def.forEach(t=>{ tab+=`<tr style="opacity:.5"><td style="text-align:left;font-style:italic">${esc(t.nome)}</td><td colspan="6" style="text-align:left;color:var(--text-muted)">em falta</td></tr>`; }); });
+    tab+='</tbody></table>';
+    cards.push(cgCartao('DOC','Documentos · '+nd,tab,'DOC','','cg-docw'));
   }
   const podeEd=cgPodeEditar()&&cgTab!=='ID';
   const bts=cgEdit?`<button class="on-at gold" onclick="cgGuardar()">✓ Guardar</button><button class="on-at txt" onclick="cgEdit=false;cgBuf=null;render()">✕ Cancelar</button>`:'';
