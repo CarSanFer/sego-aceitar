@@ -13,7 +13,7 @@
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="icon" type="image/png" href="/favicon-48.png">
 <title>SEGO — Sistema Externo de Gestão de Obra | aceitar</title>
-<script>try{ if(localStorage.getItem('sego-tema')==='escuro') document.documentElement.setAttribute('data-theme','dark'); }catch(e){}</script>
+<script>try{ const t=localStorage.getItem('sego-tema'); if(t==='escuro'||t==='contraste') document.documentElement.setAttribute('data-theme','dark'); if(t==='contraste') document.documentElement.setAttribute('data-contraste',''); }catch(e){}</script>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Calibri:wght@400;700&display=swap');
@@ -308,10 +308,10 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-modulos" title="Módulos visíveis por obra (Superadmin)" onclick="modPgAbrir()">🧩 Módulos</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-guia" title="Guia do SEGO" onclick="guiaAbrir()">📘 Guia</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
+    <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-def" title="Definições" onclick="defMenuAbrir(event)">⚙ Definições</button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.09.2212</span>
-    <button type="button" id="btn-tema" title="Tema escuro / claro" aria-label="Tema" onclick="segoTema()"><svg class="ic-lua" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/></svg><svg class="ic-sol" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button>
-    <div class="nav-avatar" id="nav-avatar" onclick="doLogout()" style="cursor:pointer" title="Sair">AD</div>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.10.0056</span>
+    <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
 
@@ -460,10 +460,10 @@ window.segoTema=function(){
    O AM tem a sua própria seleção múltipla. ===== */
 (function(){
   const SMS={mod:null, ids:new Set()};
-  const ROT={pe:'PE',pa:'PA',pb:'PB',ptq:'PTQ',qe:'QE',tcm:'TCm',rel:'Relatórios','del:obra':'Obras','del:utilizador':'Utilizadores','del:cliente':'Clientes','del:empreiteiro':'Empreiteiros','del:subempreiteiro':'Subempreiteiros','del:especialidade':'Especialidades','del:tipoDoc':'Tipos de Documento'};
+  const ROT={ent:'Entidades',pe:'PE',pa:'PA',pb:'PB',ptq:'PTQ',qe:'QE',tcm:'TCm',rel:'Relatórios','del:obra':'Obras','del:utilizador':'Utilizadores','del:cliente':'Clientes','del:empreiteiro':'Empreiteiros','del:subempreiteiro':'Subempreiteiros','del:especialidade':'Especialidades','del:tipoDoc':'Tipos de Documento'};
   function idDe(el){
     const oc=el.getAttribute('onclick')||'';
-    let m=oc.match(/\b(pe|pa|pb|ptq|qe|tcm)Eliminar\('([^']+)'/); if(m) return {mod:m[1],id:m[2],rot:m[2]};
+    let m=oc.match(/\b(pe|pa|pb|ptq|qe|tcm|ent)Eliminar\('([^']+)'/); if(m) return {mod:m[1],id:m[2],rot:m[2]};
     m=oc.match(/confirmDel\('([a-zA-Z]+)','([^']+)','([^']*)'\)/); if(m) return {mod:m[1]==='relatorio'?'rel':'del:'+m[1],id:m[2],rot:m[3]};
     return null;
   }
@@ -553,6 +553,42 @@ window.segoTema=function(){
   iniciar();
 })();
 </script>
+
+<style>
+  .cg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+  .cg-card{background:var(--bg-card);border:1px solid var(--border-light);border-radius:var(--radius);overflow:hidden;cursor:pointer;transition:border-color .15s}
+  .cg-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:6px 0 10px}
+  .cg-pill{background:var(--navy);color:#fff;border-radius:4px;padding:1px 7px;font-weight:700}
+  .cg-est{background:var(--info-bg);color:var(--info);border-radius:10px;padding:1px 8px}
+  .cg-tabs{display:flex;gap:4px;border-bottom:1px solid var(--border-light);margin-bottom:10px}
+  .cg-tab{background:none;border:none;border-bottom:2px solid transparent;padding:6px 12px;cursor:pointer;color:var(--text-muted);font-weight:700}
+  .cg-tab.on{color:var(--navy);border-bottom-color:var(--gold)}
+  html[data-theme=dark] .cg-tab.on{color:var(--gold-light)}
+  .cg-blocos{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}@media(max-width:900px){.cg-blocos{grid-template-columns:1fr}}
+  .cg-bloco{background:var(--bg-card);border:1px solid var(--border-light);border-radius:var(--radius);padding:10px 12px;min-width:0}
+  .cg-bt{font-weight:700;color:var(--navy);margin-bottom:6px}
+  html[data-theme=dark] .cg-bt{color:var(--gold-light)}
+  .cg-kv{display:grid;grid-template-columns:max-content minmax(0,1fr) max-content minmax(0,1fr);gap:4px 10px;align-items:center}
+  @media(max-width:700px){.cg-kv{grid-template-columns:max-content minmax(0,1fr)}}
+  .cg-l{color:var(--text-muted);font-weight:700;white-space:nowrap}.cg-v{color:var(--text);min-width:0}.cg-v.calc{color:var(--text-muted)}
+  .cg-txt{white-space:normal}
+  .cg-i{width:100%;box-sizing:border-box;border:1px solid var(--border-light);border-radius:4px;padding:2px 6px;background:var(--bg-card);color:var(--text)}
+  .cg-tbl{width:100%;border-collapse:collapse}.cg-tbl th{background:var(--navy);color:#fff;font-weight:700;padding:3px 6px;text-align:center}.cg-tbl td{padding:3px 6px;border-bottom:1px solid var(--border-light);text-align:center}
+  .sego-pop{position:fixed;top:48px;right:12px;z-index:9000;background:var(--bg-card);color:var(--text);border:1px solid var(--border-light);border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,.25);min-width:230px;padding:6px 0}
+  #def-menu{right:150px}
+  .um-sec{padding:8px 14px 4px;font-weight:700;color:var(--text-muted);border-top:1px solid var(--border-light);margin-top:4px}
+  .um-sec:first-child{border-top:none;margin-top:0}
+  .um-it{padding:6px 14px;cursor:pointer}.um-it:hover{background:rgba(201,146,42,.14)}
+  .um-top{display:flex;gap:10px;align-items:center;padding:8px 14px 10px;border-bottom:1px solid var(--border-light)}
+  .um-x{margin-left:auto;background:none;border:1px solid var(--border-light);border-radius:4px;cursor:pointer;color:var(--text);width:24px;height:24px}
+  .um-temas{display:flex;gap:6px;padding:4px 14px 10px}.um-temas button{flex:1;white-space:nowrap;border:1px solid var(--border-light);background:var(--bg-card);color:var(--text);border-radius:4px;padding:3px 6px;cursor:pointer}
+  .um-temas button.on{background:var(--gold);color:#fff;border-color:var(--gold)}
+  /* Contraste: escuro reforçado */
+  html[data-theme=dark][data-contraste]{--bg:#000;--bg-card:#000;--text:#fff;--text-muted:#e6e6e6;--border-light:#9a9a9a;--border:#fff;--navy:#0b3a75;--info:#9cc7ff}
+  html[data-theme=dark][data-contraste] .navbar{background:#000;border-bottom:2px solid var(--gold)}
+  #ver-dev{display:none;margin-right:4px;border:1px solid #f87171;color:#fca5a5;border-radius:4px;padding:0 6px;height:24px;align-items:center;box-sizing:border-box}
+</style>
+<script>try{ if(!/^sego\.aceitar\.pt$/.test(location.hostname)) document.addEventListener('DOMContentLoaded',()=>{ const v=document.getElementById('verBadge'); if(v){ const d=document.createElement('span'); d.id='ver-dev'; d.textContent='DEV'; d.style.display='inline-flex'; d.title='Versão de desenvolvimento (dados do SEGO)'; v.parentNode.insertBefore(d,v); } }); }catch(e){}</script>
 <!-- FLOATING CHATBOT -->
 <div id="chat-bubble" onclick="toggleChat()" style="position:fixed;bottom:20px;right:20px;width:52px;height:52px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.25);z-index:500;transition:transform .2s" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
   <svg width="24" height="24" fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
@@ -593,6 +629,12 @@ window.segoTema=function(){
 </div><!-- end app-shell -->
 
 <!-- MODAL -->
+<div id="def-menu" class="sego-pop" style="display:none">
+  <div class="um-sec">Obras</div><div class="um-it" onclick="cgNovaObraModal()">🏗 + Nova Obra</div><div class="um-it" onclick="cgNovaFaseModal()">📑 + Nova Fase</div>
+  <div class="um-sec">Dados</div><div class="um-it" onclick="defAbrir('backup')">📤 Exportar Dados</div><div class="um-it" onclick="defAbrir('Importar Dados')">📥 Importar Dados</div>
+  <div class="um-sec">Administração</div><div class="um-it" onclick="defAbrir('Utilizadores')">👥 Utilizadores</div><div class="um-it" onclick="defAbrir('entidades')">🏢 Entidades</div><div class="um-it" onclick="defAbrir('Especialidades')">🏷 Especialidades</div><div class="um-it" onclick="defAbrir('Documentos')">📄 Documentos</div><div class="um-it" onclick="defAbrir('Auditoria')">📜 Auditoria</div>
+</div>
+<div id="user-menu" class="sego-pop" style="display:none"></div>
 <div class="modal-bg" id="modal" style="display:none" onclick="if(event.target===this)closeModal()">
   <div class="modal" id="modal-box">
     <div class="modal-header">
@@ -658,7 +700,7 @@ window.addEventListener('DOMContentLoaded',()=>{ if(pwaStandalone()){ const b=do
   };
   window.navInicio=function(){
     ['peObraId','peFichaId','paObraId','paFichaId','pbObraId','pbFichaId','ptqObraId','ptqFichaId','qeObraId','qeFichaId','tcmObraId','tcmFichaId','amObraId','amFichaId',
-     'relRelId','relObraId','fichObraId','segObraId','fiscObraId','metObraId'].forEach(v=>{ try{ window.eval(v+'=null'); }catch(e){} });
+     'relRelId','relObraId','fichObraId','segObraId','fiscObraId','metObraId','cgObraId','cgMaeId','defPg'].forEach(v=>{ try{ window.eval(v+'=null'); }catch(e){} });
     try{ dashAtivo=false; modPgAtivo=false; guiaAtivo=false; segDashAtivo=false; }catch(e){}
     try{ if(typeof resetCapaContext==='function') resetCapaContext(); }catch(e){}
     page='obras'; render(); window.scrollTo(0,0);
@@ -809,9 +851,11 @@ function doImport(){
 // ================================================================
 // SUPABASE CONFIG — replace placeholders with your values locally
 // ================================================================
+// Dados que vinham do SID (obras, utilizadores, …) passam a viver no Supabase SEGO
+const SUPA_SID_ORIGEM = { url: 'https://tqizqusplpkajzdphqje.supabase.co', key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRxaXpxdXNwbHBrYWp6ZHBocWplIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MzkzNjIsImV4cCI6MjA4OTQxNTM2Mn0.CJj2aIkeQt321cvxxnH2zr-k2r_bsInkxCVLAkuUi7I' }; // só para a migração final
 const SUPA = {
-  url: 'https://tqizqusplpkajzdphqje.supabase.co',
-  key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRxaXpxdXNwbHBrYWp6ZHBocWplIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MzkzNjIsImV4cCI6MjA4OTQxNTM2Mn0.CJj2aIkeQt321cvxxnH2zr-k2r_bsInkxCVLAkuUi7I',
+  url: 'https://rdrowqgdklqwhfrmstgd.supabase.co',
+  key: 'sb_publishable_gPJEAbmUXKJ4a9Wg1sshYg_9qLHzHSa',
 };
 
 // Supabase SEGO — exclusivo para relatórios (dados próprios do SEGO)
@@ -821,7 +865,7 @@ const SUPA_SEGO = {
 };
 
 // SEGO: SID partilhado em modo LEITURA (obras/utilizadores/etc.). Põe false p/ permitir escrita no SID.
-const SID_READONLY = true;
+const SID_READONLY = false; // obras/utilizadores agora são do SEGO
 // Supabase client (using REST API directly — no npm needed)
 const sb = {
   async get(table, filters='') {
@@ -953,6 +997,9 @@ function mapObra(r) {
     intervenientes_emp: r.intervenientes_emp||[], intervenientes_proj: r.intervenientes_proj||[],
     cliente: r.cliente,
     empresaDO: r.empresa_dono_obra||'', empresaEmp: r.empresa_empreiteiro||'',
+    dataConsignacao: r.data_consignacao||'', fimContratual: r.fim_contratual||'', fimReal: r.fim_real||'',
+    adiantamentoPct: r.adiantamento_pct, garantiaPct: r.garantia_pct, retencao: r.retencao||'', retencaoGarantia: r.retencao_garantia||'',
+    comFases: !!r.com_fases, obraMaeId: r.obra_mae_id||null, entidadeDoId: r.entidade_do_id||'', entidadeEmpId: r.entidade_emp_id||'',
   };
 }
 function mapUtil(r) {
@@ -969,15 +1016,16 @@ function unmapObra(o) {
     tipo_obra: o.tipoObra, subtipo: o.subtipo, area: o.area,
     pisos_acima: o.pisosAcima, pisos_abaixo: o.pisosAbaixo,
     ambito: o.ambito, principais_desafios: o.principaisDesafios,
-    valor: o.valor, valor_obra: o.valorObra, afetacao: o.afetacao,
-    dia_faturacao: o.diaFaturacao, nif_faturacao: o.nifFaturacao,
-    morada_faturacao: o.moradaFaturacao, cp_faturacao: o.cpFaturacao, local_faturacao: o.localFaturacao,
+    valor: o.valor??null, valor_obra: o.valorObra??null,
     inicio_previsto: o.inicioPrevisto||null, inicio_real: o.inicioReal||null,
     fim_previsto: o.fimPrevisto||null, prazo: o.prazo||null,
     prorrogacoes: o.prorrogacoes||[], docs: o.docs||[],
     intervenientes_do: o.intervenientes_do||[], intervenientes_fisc: o.intervenientes_fisc||[],
     intervenientes_emp: o.intervenientes_emp||[], intervenientes_proj: o.intervenientes_proj||[],
-    cliente: o.cliente||null,
+    empresa_dono_obra: o.empresaDO||'', empresa_empreiteiro: o.empresaEmp||'',
+    data_consignacao: o.dataConsignacao||null, fim_contratual: o.fimContratual||null, fim_real: o.fimReal||null,
+    adiantamento_pct: o.adiantamentoPct??null, garantia_pct: o.garantiaPct??null, retencao: o.retencao||'', retencao_garantia: o.retencaoGarantia||'',
+    com_fases: !!o.comFases, obra_mae_id: o.obraMaeId||null, entidade_do_id: o.entidadeDoId||null, entidade_emp_id: o.entidadeEmpId||null,
   };
 }
 function unmapUtil(u) {
@@ -997,15 +1045,18 @@ async function loadDB() {
   showLoadingOverlay('A carregar dados...');
   try {
     const safe = async (table, client=sb) => { try { const d=await client.get(table); console.log('Loaded '+table+':', d.length,'rows'); return d; } catch(e) { console.error('FAILED to load '+table+':', e.message); return []; }};
-    const [obras, utils, subs, esps, tdocs, rels] = await Promise.all([
+    const [obras, utils, subs, esps, tdocs, rels, ents] = await Promise.all([
       safe('obras'),
       safe('utilizadores'),
       safe('subempreiteiros'),
       safe('especialidades'),
       safe('tipos_doc'),
       safe('relatorios', sbRel),
+      safe('entidades'),
     ]);
+    DB.entidades = ents||[];
     DB.obras = obras.map(mapObra);
+    DB.obras.forEach(o=>{ const d=DB.entidades.find(e=>e.id===o.entidadeDoId), m=DB.entidades.find(e=>e.id===o.entidadeEmpId); if(d) o.empresaDO=d.nome; if(m) o.empresaEmp=m.nome; });
     DB.utilizadores = utils.map(mapUtil);
     DB.subempreiteiros = subs;
     DB.especialidades = esps;
@@ -1341,7 +1392,7 @@ function obrasDoEmp(eid){return DB.obras.filter(o=>(o.intervenientes_emp||[]).in
 function go(p,extra=null){
   page=p;
   metObraId=null; modPgAtivo=false; guiaAtivo=false;
-  if(p==='obras'){ fichObraId=extra; relObraId=null; relRelId=null; }
+  if(p==='obras'){ fichObraId=extra; relObraId=null; relRelId=null; cgObraId=null; cgMaeId=null; defPg=null; }
   else if(p==='relatorios'){ /* relObraId e relRelId já definidos */ }
   obrasSearch='';
   render();
@@ -1352,12 +1403,14 @@ function go(p,extra=null){
 // ================================================================
 function render(){
   (function(){ const su=(currentUser&&typeof peESuper==='function'&&peESuper());
-    const bb=document.getElementById('btn-backup'); if(bb) bb.style.display=su?'flex':'none';
+    const bb=document.getElementById('btn-backup'); if(bb) bb.style.display='none';
+    const bdf=document.getElementById('btn-def'); if(bdf) bdf.style.display=su?'flex':'none';
     const bd=document.getElementById('btn-dash'); if(bd) bd.style.display=su?'flex':'none';
     const bds=document.getElementById('btn-dashseg'); if(bds) bds.style.display=su?'flex':'none';
     const bm=document.getElementById('btn-modulos'); if(bm) bm.style.display=su?'flex':'none';
     const bg=document.getElementById('btn-guia'); if(bg) bg.style.display=(currentUser&&(su||(SEGO_CFG.guia&&SEGO_CFG.guia.publico)))?'flex':'none'; })();
   const app=$('app');
+  if(defPg){ renderDefinicoes(app); return; }
   if(modPgAtivo){ renderModulosObra(app); return; }
   if(guiaAtivo){ renderGuia(app); return; }
   if(segDashAtivo){ renderSegDash(app); return; }
@@ -1381,6 +1434,8 @@ function render(){
   if(amObraId){ renderListaAM(app); return; }
   if(relRelId){ const _r=DB.relatorios.find(x=>x.id===relRelId); if(_r&&_r.conteudo&&_r.conteudo.tipo==='seguranca'){ renderFichaRVT(app,_r); return; } if(_r&&_r.conteudo&&_r.conteudo.tipo==='fiscalizacao'){ if(_r.conteudo.subtipo==='SOS'){ renderFichaSOS(app,_r); return; } renderFichaRS(app,_r); return; } renderFichaRelatorio(app); return; }
   if(relObraId){ renderCapaObra(app); return; }
+  if(cgMaeId){ renderFasesObra(app); return; }
+  if(cgObraId){ renderCardGeral(app); return; }
   if(fichObraId){ 
     try{ renderFichaObra(app); }
     catch(e){ console.error('renderFichaObra error:',e); app.innerHTML='<div style="padding:20px;color:red">Erro: '+e.message+'</div>'; }
@@ -11276,9 +11331,294 @@ function renderSegDash(app){
   </div>`;
 }
 
+// ================================================================
+// CARD GERAL DA OBRA (ex-SID) · FASES · ENTIDADES · DEFINIÇÕES · MENU DO UTILIZADOR
+// ================================================================
+let cgObraId=null, cgMaeId=null, cgTab='Geral', cgEdit=false, cgBuf=null, defPg=null, cgDeCO=false;
+const CG_ESTADOS=['Em Preparação','Em Curso','Suspensa','Concluída'];
+const CG_TIPOS=['','Nova','Alteração'], CG_SUBTIPOS=['','Habitação','Comércio','Indústria'];
+const CG_PRR_TIPOS=['','Prorrogação','Aditamento','Adenda'];
+const cgNovoId=()=>'_'+Math.random().toString(36).slice(2,9);
+function cgNum(v,dec){ if(v===null||v===undefined||v==='') return '—'; const n=Number(v); if(isNaN(n)) return esc(v);
+  const [i,d]=n.toFixed(dec==null?2:dec).split('.'); return i.replace(/\B(?=(\d{3})+(?!\d))/g,' ')+(d?','+d:''); }
+function cgDias(a,b){ if(!a||!b) return null; return Math.round((new Date(b)-new Date(a))/86400000); }
+function cgFases(maeId){ return DB.obras.filter(o=>o.obraMaeId===maeId).sort((a,b)=>(a.sigla||'').localeCompare(b.sigla||'',undefined,{numeric:true})); }
+function cgMae(o){ return o&&o.obraMaeId?DB.obras.find(x=>x.id===o.obraMaeId):null; }
+function cgEntNome(id){ const e=(DB.entidades||[]).find(x=>x.id===id); return e?e.nome:''; }
+function cgFimAtual(o){ const p=o.prorrogacoes||[]; for(let i=p.length-1;i>=0;i--){ if(p[i].novoFim) return p[i].novoFim; } return o.fimContratual||o.fimPrevisto; }
+function cgPodeEditar(){ return typeof peESuper==='function'&&peESuper(); }
+function cgVoltarCO(){ return `<button class="btn btn-gold btn-sm" onclick="cgAbrirCO('${cgObraId}')">Controlo Operacional →</button>`; }
+
+window.cgAbrir=function(id){ const o=DB.obras.find(x=>x.id===id); if(!o) return;
+  if(o.comFases){ cgMaeId=id; cgObraId=null; } else { cgObraId=id; cgMaeId=null; }
+  cgTab='Geral'; cgEdit=false; cgBuf=null; fichObraId=null; defPg=null; render(); window.scrollTo(0,0); };
+window.cgAbrirCO=function(id){ cgDeCO=true; cgObraId=null; cgMaeId=null; cgEdit=false; fichObraId=id; page='obras'; render(); window.scrollTo(0,0); };
+window.cgVoltar=function(){ const o=DB.obras.find(x=>x.id===cgObraId); cgEdit=false; cgBuf=null;
+  if(o&&o.obraMaeId){ cgMaeId=o.obraMaeId; cgObraId=null; } else { cgObraId=null; cgMaeId=null; } render(); };
+window.cgVoltarDeCO=function(id){ fichObraId=null; cgDeCO=false; cgObraId=id; cgTab='Geral'; render(); };
+
+/* ---------- página de fases de uma obra-mãe ---------- */
+function renderFasesObra(app){
+  const m=DB.obras.find(x=>x.id===cgMaeId); if(!m){ cgMaeId=null; render(); return; }
+  const vis=new Set(getObrasVisiveis().map(o=>o.id));
+  const fs=cgFases(m.id).filter(f=>vis.has(f.id)||vis.has(m.id));
+  app.innerHTML=`<button class="back-btn" onclick="cgMaeId=null;render()">← Voltar a Obras</button>
+  <div class="cg-head"><span class="cg-pill">${esc(m.codigo||'')}</span><b>${esc(m.sigla||'')} — ${esc(m.nome||'')}</b><span class="cg-est">${esc(m.estado||'')}</span><span style="color:var(--text-muted)">· Obra com fases (${fs.length})</span>
+    <span style="flex:1"></span>${cgPodeEditar()?`<button class="btn btn-outline btn-sm" onclick="cgNovaFaseModal('${m.id}')">+ Nova Fase</button><button class="btn btn-outline btn-sm" onclick="cgEditarMaeModal('${m.id}')">Editar Obra</button>`:''}</div>
+  ${fs.length?`<div class="cg-grid">${fs.map(f=>cgCardHTML(f,true)).join('')}</div>`:'<div class="empty-state">Esta obra ainda não tem fases.</div>'}`;
+}
+
+/* ---------- card da lista de obras (igual ao atual) ---------- */
+function cgCardHTML(o,ehFase){
+  const corEstado=e=>({'Em Curso':'#0F6E56','Em Preparação':'#185FA5','Suspensa':'#A32D2D','Concluída':'#854F0B'}[e]||'#1E3A5F');
+  const prrs=o.prorrogacoes||[];
+  const row=(l,v,st)=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0"><span style="font-weight:700;color:var(--text-muted)">${l}</span><span style="color:var(--text);${st||''}">${v||'—'}</span></div>`;
+  const nf=o.comFases?cgFases(o.id).length:0;
+  const corpo=o.comFases?`${row('Fases',nf+' fase'+(nf===1?'':'s'),'font-weight:700')}<div style="height:0.5px;background:var(--border-light);margin:4px 0"></div>
+      ${cgFases(o.id).map(f=>row(esc(f.sigla||''),esc(f.nome||''))).join('')}`
+    :`${row('Valor de Obra',o.valorObra?cgNum(o.valorObra)+' €':null,'color:var(--gold)')}<div style="height:0.5px;background:var(--border-light);margin:4px 0"></div>
+      ${row('Início Previsto',fmtDate(o.inicioPrevisto))}${row('Início Real',fmtDate(o.inicioReal))}${row('Fim Previsto',fmtDate(cgFimAtual(o)))}
+      ${row('Prorrogações',prrs.length?prrs.length+' prorrogaç'+(prrs.length===1?'ão':'ões'):'0',prrs.length?'color:var(--danger)':'color:var(--text-muted)')}`;
+  return `<div onclick="cgAbrir('${o.id}')" class="cg-card" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border-light)'">
+    <div style="background:${corEstado(o.estado)};padding:10px 14px"><div style="font-weight:700;color:rgba(255,255,255,.7);margin-bottom:3px">${esc(ehFase?(cgMae(o)||{}).codigo||o.codigo:o.codigo)} · ${esc(o.sigla||'')}${o.comFases?' · ⧉ Com fases':''}</div>
+      <div style="color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(o.nome||'')}</div></div>
+    <div style="padding:10px 14px">${corpo}</div></div>`;
+}
+
+/* ---------- card geral (ficha) ---------- */
+function cgCampos(o){ return cgEdit?cgBuf:o; }
+function cgIn(k,tipo,ops){ // campo editável ou valor
+  const o=cgCampos(DB.obras.find(x=>x.id===cgObraId)); const v=o[k];
+  if(!cgEdit){
+    if(tipo==='date') return fmtDate(v);
+    if(tipo==='num') return v===null||v===undefined||v===''?'—':cgNum(v,0);
+    if(tipo==='eur') return v?cgNum(v)+' €':'—';
+    if(tipo==='pct') return v===null||v===undefined||v===''?'—':cgNum(v,2).replace(/,00$/,'')+' %';
+    if(tipo==='ent') return esc(cgEntNome(v)||'—');
+    if(tipo==='area') return v?esc(String(v)).replace(/\n/g,'<br>'):'—';
+    return esc(v||'—');
+  }
+  const on=`oninput="cgBuf['${k}']=${tipo==='num'||tipo==='eur'||tipo==='pct'?"(this.value===''?null:Number(this.value.replace(',','.')))":'this.value'}"`;
+  if(tipo==='sel') return `<select class="cg-i" onchange="cgBuf['${k}']=this.value">${ops.map(x=>`<option ${String(v||'')===x?'selected':''} value="${esc(x)}">${esc(x||'—')}</option>`).join('')}</select>`;
+  if(tipo==='ent') return `<select class="cg-i" onchange="cgBuf['${k}']=this.value"><option value="">—</option>${(DB.entidades||[]).slice().sort((a,b)=>a.nome.localeCompare(b.nome)).map(e=>`<option value="${e.id}" ${v===e.id?'selected':''}>${esc(e.nome)}</option>`).join('')}</select>`;
+  if(tipo==='area') return `<textarea class="cg-i" rows="5" oninput="cgBuf['${k}']=this.value">${esc(v||'')}</textarea>`;
+  if(tipo==='date') return `<input class="cg-i" type="date" value="${v||''}" onchange="cgBuf['${k}']=this.value||null">`;
+  if(tipo==='num'||tipo==='eur'||tipo==='pct') return `<input class="cg-i" type="number" step="any" value="${v===null||v===undefined?'':v}" ${on}>`;
+  return `<input class="cg-i" value="${esc(v||'')}" ${on}>`;
+}
+function cgKV(l,h,cls){ return `<div class="cg-l">${l}</div><div class="cg-v ${cls||''}">${h}</div>`; }
+function renderCardGeral(app){
+  const o0=DB.obras.find(x=>x.id===cgObraId); if(!o0){ cgObraId=null; render(); return; }
+  const o=cgCampos(o0), mae=cgMae(o0);
+  const tabs=['Geral','Intervenientes','Documentos'];
+  let corpo='';
+  if(cgTab==='Geral'){
+    const prrs=(o.prorrogacoes||[]);
+    const dur=cgDias(o.inicioPrevisto,o.fimContratual||o.fimPrevisto);
+    const desvI=cgDias(o.inicioPrevisto,o.inicioReal), fimAt=cgFimAtual(o), desvF=o.fimReal?cgDias(fimAt,o.fimReal):null;
+    const sinal=d=>d===null?'—':(d>0?'+':'')+d+' d';
+    const pctV=p=>(p&&o.valorObra)?cgNum(o.valorObra*p/100)+' €':'—';
+    const prrHTML=prrs.length||cgEdit?`<table class="cg-tbl"><thead><tr><th>#</th><th>Tipo</th><th>Data</th><th>Novo Fim</th><th>Desvio</th>${cgEdit?'<th></th>':''}</tr></thead><tbody>
+      ${prrs.map((p,i)=>{ const ant=i===0?(o.fimContratual||o.fimPrevisto):(prrs[i-1].novoFim||o.fimPrevisto); const d=cgDias(ant,p.novoFim);
+        return cgEdit?`<tr><td>${i+1}</td><td><select class="cg-i" onchange="cgBuf.prorrogacoes[${i}].tipo=this.value">${CG_PRR_TIPOS.map(t=>`<option ${p.tipo===t?'selected':''} value="${t}">${t||'—'}</option>`).join('')}</select></td>
+          <td><input class="cg-i" type="date" value="${p.data||''}" onchange="cgBuf.prorrogacoes[${i}].data=this.value"></td><td><input class="cg-i" type="date" value="${p.novoFim||''}" onchange="cgBuf.prorrogacoes[${i}].novoFim=this.value;render()"></td><td>${sinal(d)}</td>
+          <td><button class="btn-icon del" title="Remover" onclick="cgBuf.prorrogacoes.splice(${i},1);render()">✕</button></td></tr>`
+        :`<tr><td>${i+1}</td><td>${esc(p.tipo||'—')}</td><td>${fmtDate(p.data)}</td><td>${fmtDate(p.novoFim)}</td><td>${sinal(d)}</td></tr>`; }).join('')}
+      </tbody></table>${cgEdit?`<button class="btn btn-outline btn-sm" style="margin-top:6px" onclick="cgBuf.prorrogacoes.push({tipo:'',data:'',novoFim:''});render()">+ Prorrogação</button>`:''}`:'<div style="color:var(--text-muted)">Sem prorrogações.</div>';
+    corpo=`<div class="cg-blocos">
+      <div class="cg-bloco"><div class="cg-bt">Identificação</div><div class="cg-kv">
+        ${cgKV('Nome',cgIn('nome'))}${cgKV('Sigla',cgIn('sigla'))}${cgKV('Código',cgIn('codigo'))}${cgKV('Estado',cgIn('estado','sel',CG_ESTADOS))}
+        ${cgKV('Morada',cgIn('morada'))}${cgKV('Cód. Postal',cgIn('codigoPostal'))}${cgKV('Localidade',cgIn('localidade'))}${cgKV('Tipo',cgIn('tipoObra','sel',CG_TIPOS))}
+        ${cgKV('Subtipo',cgIn('subtipo','sel',CG_SUBTIPOS))}${cgKV('Pisos +',cgIn('pisosAcima','num'))}${cgKV('Pisos −',cgIn('pisosAbaixo','num'))}${cgKV('Área m²',cgIn('area','num'))}</div></div>
+      <div class="cg-bloco"><div class="cg-bt">Empresas</div><div class="cg-kv">
+        ${cgKV('Dono de Obra',cgIn('entidadeDoId','ent'))}${cgKV('Empreiteiro',cgIn('entidadeEmpId','ent'))}
+        ${cgKV('Valor Obra',cgIn('valorObra','eur'))}${cgKV('Valor m²',(o.valorObra&&o.area)?cgNum(o.valorObra/o.area)+' €':'—','calc')}
+        ${cgKV('Adiantamento',cgIn('adiantamentoPct','pct'))}${cgKV('Valor',pctV(o.adiantamentoPct),'calc')}${cgKV('Retenção',cgIn('retencao'))}
+        ${cgKV('Garantia',cgIn('garantiaPct','pct'))}${cgKV('Valor',pctV(o.garantiaPct),'calc')}${cgKV('Retenção Garantia',cgIn('retencaoGarantia'))}</div></div>
+      <div class="cg-bloco"><div class="cg-bt">Datas e Prazos</div><div class="cg-kv">
+        ${cgKV('Consignação',cgIn('dataConsignacao','date'))}${cgKV('In. Previsto',cgIn('inicioPrevisto','date'))}${cgKV('Fim Previsto',cgIn('fimPrevisto','date'))}
+        ${cgKV('Fim Contratual',cgIn('fimContratual','date'))}${cgKV('Prazo (dias)',cgIn('prazo','num'))}${cgKV('Duração',dur===null?'—':dur+' d','calc')}
+        ${cgKV('In. Real',cgIn('inicioReal','date'))}${cgKV('Desvio Início',sinal(desvI),'calc')}${cgKV('Fim Atual',fmtDate(fimAt),'calc')}
+        ${cgKV('Fim Real',cgIn('fimReal','date'))}${cgKV('Desvio Fim',sinal(desvF),'calc')}</div>
+        <div class="cg-bt" style="margin-top:10px">Prorrogações</div>${prrHTML}</div>
+      <div class="cg-bloco"><div class="cg-bt">Âmbito</div><div class="cg-txt">${cgIn('ambito','area')}</div>
+        <div class="cg-bt" style="margin-top:10px">Principais Desafios</div><div class="cg-txt">${cgIn('principaisDesafios','area')}</div></div>
+    </div>`;
+  } else if(cgTab==='Intervenientes'){
+    const doObra=u=>u.obras==='todas'||(Array.isArray(u.obras)&&u.obras.some(x=>String(x)===String(o0.id)));
+    const grupos=[['Dono de Obra',u=>u.role==='dono_obra'],['Fiscalização',u=>u.role==='fiscalizacao'||u.role==='superadmin'],['Empreiteiro',u=>u.role==='empreiteiro'],['Projetistas',u=>u.role==='projetista']];
+    corpo=`<div class="cg-blocos">${grupos.map(([t,f])=>{ const us=DB.utilizadores.filter(u=>f(u)&&doObra(u)&&u.ativo!==false);
+      return `<div class="cg-bloco"><div class="cg-bt">${t} · ${us.length}</div>${us.length?`<table class="cg-tbl"><thead><tr><th>Nome</th><th>Função</th><th>Email</th></tr></thead><tbody>${us.map(u=>`<tr><td>${esc(u.nome)}</td><td>${esc(u.funcao||'')}</td><td>${esc(u.email||'')}</td></tr>`).join('')}</tbody></table>`:'<div style="color:var(--text-muted)">Ninguém associado.</div>'}</div>`; }).join('')}</div>
+    <div style="color:var(--text-muted);margin-top:8px">A associação de utilizadores à obra/fase (em vez de cópia) chega na Fase 2.</div>`;
+  } else {
+    corpo=`<div class="cg-bloco"><div class="cg-bt">Documentos</div><div style="color:var(--text-muted)">Os Documentos da obra/fase chegam na Fase 2.</div></div>`;
+  }
+  app.innerHTML=`<button class="back-btn" onclick="cgVoltar()">← ${mae?'Voltar a '+esc(mae.sigla||'Obra'):'Voltar a Obras'}</button>
+  <div class="cg-head"><span class="cg-pill">${esc((mae||o0).codigo||'')}</span><b>${mae?esc(mae.sigla)+' · ':''}${esc(o0.sigla||'')} — ${esc(o0.nome||'')}</b><span class="cg-est">${esc(o0.estado||'')}</span>
+    <span style="flex:1"></span>
+    ${cgPodeEditar()?(cgEdit?`<button class="btn btn-gold btn-sm" onclick="cgGuardar()">Guardar</button><button class="btn btn-outline btn-sm" onclick="cgEdit=false;cgBuf=null;render()">Cancelar</button>`
+      :`<button class="btn btn-outline btn-sm" onclick="cgEditar()">Editar</button>`):''}
+    ${cgEdit?'':cgVoltarCO()}</div>
+  <div class="cg-tabs">${tabs.map(t=>`<button class="cg-tab ${cgTab===t?'on':''}" onclick="cgTab='${t}';render()">${t}</button>`).join('')}</div>
+  ${corpo}`;
+}
+window.cgEditar=function(){ const o=DB.obras.find(x=>x.id===cgObraId); cgBuf=JSON.parse(JSON.stringify(o)); cgBuf.prorrogacoes=cgBuf.prorrogacoes||[]; cgEdit=true; cgTab='Geral'; render(); };
+window.cgGuardar=async function(){
+  const b=cgBuf; if(!b) return;
+  if(!String(b.nome||'').trim()||!String(b.sigla||'').trim()){ alert('Nome e Sigla são obrigatórios.'); return; }
+  const mae=cgMae(b);
+  if(mae&&cgFases(mae.id).some(f=>f.id!==b.id&&String(f.sigla||'').toLowerCase()===String(b.sigla).trim().toLowerCase())){ alert('Já existe uma fase com a sigla "'+b.sigla+'" nesta obra.'); return; }
+  b.empresaDO=cgEntNome(b.entidadeDoId); b.empresaEmp=cgEntNome(b.entidadeEmpId);
+  try{ await sb.patch('obras',b.id,Object.assign(unmapObra(b),{updated_at:new Date().toISOString()}));
+    const i=DB.obras.findIndex(x=>x.id===b.id); DB.obras[i]=b; cgEdit=false; cgBuf=null;
+    try{ auditLog('obra',b.codigo+' '+b.sigla,'editada'); }catch(e){}
+    render(); }catch(e){ alert('Erro ao guardar: '+e.message); }
+};
+
+/* ---------- Nova Obra / Nova Fase ---------- */
+const CG_GRUPOS={ident:{rot:'Identificação',def:true,campos:['morada','codigoPostal','localidade','tipoObra','subtipo','area','pisosAcima','pisosAbaixo']},
+  emp:{rot:'Empresas',def:true,campos:['entidadeDoId','entidadeEmpId','empresaDO','empresaEmp','valorObra','adiantamentoPct','retencao','garantiaPct','retencaoGarantia']},
+  proj:{rot:'Utilizadores (Projetista)',def:true,campos:[]},
+  datas:{rot:'Datas e Prazos',def:false,campos:['dataConsignacao','inicioPrevisto','inicioReal','fimPrevisto','fimContratual','fimReal','prazo','prorrogacoes']},
+  ambito:{rot:'Âmbito e Desafios',def:false,campos:['ambito','principaisDesafios']},
+  docs:{rot:'Documentos',def:false,campos:['docs']}};
+window.cgNovaObraModal=function(){
+  if(!cgPodeEditar()) return; defMenuFechar();
+  showModal('Nova Obra',`<div class="form-row f3"><div><label class="form-label">Código *</label><input class="form-input" id="no-cod" placeholder="ex.: 7A01"></div>
+    <div><label class="form-label">Sigla *</label><input class="form-input" id="no-sig" placeholder="ex.: ABC"></div>
+    <div><label class="form-label">Estado</label><select class="form-select" id="no-est">${CG_ESTADOS.map(e=>`<option>${e}</option>`).join('')}</select></div></div>
+    <div class="form-row"><div><label class="form-label">Nome *</label><input class="form-input" id="no-nom" placeholder="Nome da obra"></div></div>
+    <label style="display:flex;gap:8px;align-items:center;margin:8px 0"><input type="checkbox" id="no-fases" onchange="document.getElementById('no-f1').style.display=this.checked?'':'none'"> <b>Obra com Fases</b></label>
+    <div id="no-f1" style="display:none"><div class="form-row f3"><div style="grid-column:span 2"><label class="form-label">Nome da 1.ª Fase *</label><input class="form-input" id="no-fnom" placeholder="ex.: Fase 1 — Estruturas"></div>
+      <div><label class="form-label">Sigla *</label><input class="form-input" id="no-fsig" placeholder="ex.: F1"></div></div>
+      <div style="color:var(--text-muted)">A obra-mãe guarda só nome, sigla, código e estado; o conteúdo fica em cada fase.</div></div>`,
+    [{label:'Cancelar',cls:'btn-outline',fn:'closeModal()'},{label:'Criar Obra',cls:'btn-gold',fn:'cgNovaObraCriar()'}]);
+};
+window.cgNovaObraCriar=async function(){
+  const g=id=>(document.getElementById(id)||{}).value||'';
+  const cod=g('no-cod').trim(), sig=g('no-sig').trim(), nom=g('no-nom').trim(), est=g('no-est'), comF=document.getElementById('no-fases').checked;
+  if(!cod||!sig||!nom){ alert('Código, Sigla e Nome são obrigatórios.'); return; }
+  if(DB.obras.some(o=>!o.obraMaeId&&String(o.codigo||'').toLowerCase()===cod.toLowerCase())){ alert('Já existe uma obra com o código '+cod+'.'); return; }
+  let f1=null; if(comF){ const fn=g('no-fnom').trim(), fs=g('no-fsig').trim(); if(!fn||!fs){ alert('Indique o nome e a sigla da 1.ª fase.'); return; } f1={nome:fn,sigla:fs}; }
+  const o={id:cgNovoId(),codigo:cod,sigla:sig,nome:nom,estado:est,prorrogacoes:[],docs:[],comFases:comF,obraMaeId:null};
+  try{
+    await sb.post('obras',unmapObra(o)); DB.obras.push(mapObra(Object.assign(unmapObra(o))));
+    let alvo=o.id;
+    if(f1){ const f={id:cgNovoId(),codigo:cod,sigla:f1.sigla,nome:f1.nome,estado:est,prorrogacoes:[],docs:[],comFases:false,obraMaeId:o.id};
+      await sb.post('obras',unmapObra(f)); DB.obras.push(mapObra(unmapObra(f))); alvo=f.id; }
+    try{ auditLog('obra',cod+' '+sig,'criada'); }catch(e){}
+    closeModal(); cgAbrir(comF?o.id:alvo); if(!comF) cgEditar();
+  }catch(e){ alert('Erro ao criar: '+e.message); }
+};
+window.cgNovaFaseModal=function(maeId){
+  if(!cgPodeEditar()) return; defMenuFechar();
+  const maes=DB.obras.filter(o=>o.comFases).sort((a,b)=>(a.codigo||'').localeCompare(b.codigo||''));
+  if(!maes.length){ alert('Não há obras com fases. Crie uma em Definições → + Nova Obra, marcando "Obra com Fases".'); return; }
+  const sel=maeId||maes[0].id;
+  showModal('Nova Fase',`<div class="form-row"><div><label class="form-label">Obra *</label><select class="form-select" id="nf-mae" onchange="cgNovaFaseOrigens()">${maes.map(m=>`<option value="${m.id}" ${m.id===sel?'selected':''}>${esc(m.codigo+' · '+m.sigla+' — '+m.nome)}</option>`).join('')}</select></div></div>
+    <div class="form-row f3"><div style="grid-column:span 2"><label class="form-label">Nome *</label><input class="form-input" id="nf-nom" placeholder="ex.: Fase 2 — Acabamentos"></div><div><label class="form-label">Sigla *</label><input class="form-input" id="nf-sig" placeholder="ex.: F2"></div></div>
+    <div class="form-row"><div><label class="form-label">Copiar Campos de</label><select class="form-select" id="nf-orig" onchange="document.getElementById('nf-grp').style.display=this.value?'':'none'"></select></div></div>
+    <div id="nf-grp" style="display:none">${Object.entries(CG_GRUPOS).map(([k,g])=>`<label style="display:flex;gap:8px;align-items:center;padding:2px 0"><input type="checkbox" class="nf-g" value="${k}" ${g.def?'checked':''}> ${g.rot}</label>`).join('')}</div>`,
+    [{label:'Cancelar',cls:'btn-outline',fn:'closeModal()'},{label:'Criar Fase',cls:'btn-gold',fn:'cgNovaFaseCriar()'}]);
+  cgNovaFaseOrigens();
+};
+window.cgNovaFaseOrigens=function(){ const m=document.getElementById('nf-mae').value; const s=document.getElementById('nf-orig');
+  const fs=cgFases(m); s.innerHTML=`<option value="">Começar do zero</option>`+fs.map(f=>`<option value="${f.id}">${esc(f.sigla+' — '+f.nome)}</option>`).join('');
+  if(fs.length){ s.value=fs[fs.length-1].id; } document.getElementById('nf-grp').style.display=s.value?'':'none'; };
+window.cgNovaFaseCriar=async function(){
+  const g=id=>(document.getElementById(id)||{}).value||'';
+  const maeId=g('nf-mae'), nom=g('nf-nom').trim(), sig=g('nf-sig').trim(), orig=g('nf-orig');
+  const mae=DB.obras.find(x=>x.id===maeId); if(!mae) return;
+  if(!nom||!sig){ alert('Nome e Sigla são obrigatórios.'); return; }
+  if(cgFases(maeId).some(f=>String(f.sigla||'').toLowerCase()===sig.toLowerCase())){ alert('A sigla "'+sig+'" já existe nesta obra.'); return; }
+  const f={id:cgNovoId(),codigo:mae.codigo,sigla:sig,nome:nom,estado:mae.estado||'Em Preparação',prorrogacoes:[],docs:[],comFases:false,obraMaeId:maeId};
+  const src=orig?DB.obras.find(x=>x.id===orig):null; const grs=[...document.querySelectorAll('.nf-g:checked')].map(c=>c.value);
+  if(src) grs.forEach(k=>CG_GRUPOS[k].campos.forEach(c=>{ f[c]=JSON.parse(JSON.stringify(src[c]===undefined?null:src[c])); }));
+  try{
+    await sb.post('obras',unmapObra(f)); DB.obras.push(mapObra(unmapObra(f)));
+    if(src&&grs.includes('proj')){ // Projetistas associados à fase de origem passam a estar também na nova fase
+      const ps=DB.utilizadores.filter(u=>u.role==='projetista'&&Array.isArray(u.obras)&&u.obras.includes(src.id));
+      for(const u of ps){ const nv=[...u.obras,f.id]; await sb.patch('utilizadores',u.id,{obras:nv}); u.obras=nv; } }
+    try{ auditLog('obra',mae.codigo+' '+sig,'fase criada'); }catch(e){}
+    closeModal(); cgObraId=f.id; cgMaeId=null; cgTab='Geral'; render();
+  }catch(e){ alert('Erro ao criar a fase: '+e.message); }
+};
+window.cgEditarMaeModal=function(id){ const m=DB.obras.find(x=>x.id===id); if(!m) return;
+  showModal('Editar Obra',`<div class="form-row f3"><div><label class="form-label">Código *</label><input class="form-input" id="em-cod" value="${esc(m.codigo||'')}"></div><div><label class="form-label">Sigla *</label><input class="form-input" id="em-sig" value="${esc(m.sigla||'')}"></div>
+    <div><label class="form-label">Estado</label><select class="form-select" id="em-est">${CG_ESTADOS.map(e=>`<option ${m.estado===e?'selected':''}>${e}</option>`).join('')}</select></div></div>
+    <div class="form-row"><div><label class="form-label">Nome *</label><input class="form-input" id="em-nom" value="${esc(m.nome||'')}"></div></div>`,
+    [{label:'Cancelar',cls:'btn-outline',fn:'closeModal()'},{label:'Guardar',cls:'btn-gold',fn:`cgEditarMaeGuardar('${id}')`}]); };
+window.cgEditarMaeGuardar=async function(id){ const m=DB.obras.find(x=>x.id===id); const g=k=>document.getElementById(k).value.trim();
+  const p={codigo:g('em-cod'),sigla:g('em-sig'),nome:g('em-nom'),estado:document.getElementById('em-est').value}; if(!p.codigo||!p.sigla||!p.nome){ alert('Código, Sigla e Nome são obrigatórios.'); return; }
+  try{ await sb.patch('obras',id,p); Object.assign(m,p); for(const f of cgFases(id)){ if(f.codigo!==p.codigo){ await sb.patch('obras',f.id,{codigo:p.codigo}); f.codigo=p.codigo; } } closeModal(); render(); }catch(e){ alert('Erro: '+e.message); } };
+
+/* ---------- Definições ---------- */
+window.defMenuAbrir=function(ev){ ev&&ev.stopPropagation(); userMenuFechar(); const m=document.getElementById('def-menu'); m.style.display=m.style.display==='block'?'none':'block'; };
+window.defMenuFechar=function(){ const m=document.getElementById('def-menu'); if(m) m.style.display='none'; };
+window.defAbrir=function(pg){ defMenuFechar(); if(pg==='backup'){ if(typeof backupExportar==='function') backupExportar(); else { const b=document.getElementById('btn-backup'); if(b) b.click(); } return; }
+  defPg=pg; cgObraId=null; cgMaeId=null; fichObraId=null; render(); window.scrollTo(0,0); };
+function renderDefinicoes(app){
+  if(!cgPodeEditar()){ defPg=null; render(); return; }
+  if(defPg==='entidades') return renderEntidades(app);
+  app.innerHTML=`<button class="back-btn" onclick="defPg=null;render()">← Voltar</button><div class="cg-bloco"><div class="cg-bt">${esc(defPg)}</div><div style="color:var(--text-muted)">Esta área chega na Fase 3 (Administração). Até lá continua no SID.</div></div>`;
+}
+/* ---------- Entidades ---------- */
+function entUso(id){ return DB.obras.filter(o=>o.entidadeDoId===id||o.entidadeEmpId===id); }
+function renderEntidades(app){
+  const ents=(DB.entidades||[]).slice().sort((a,b)=>a.nome.localeCompare(b.nome));
+  app.innerHTML=`<button class="back-btn" onclick="defPg=null;render()">← Voltar</button>
+  <div class="cg-head"><b>Entidades</b><span style="color:var(--text-muted)">· Empresas que entram nas obras (Dono de Obra, Empreiteiro) · ${ents.length}</span></div>
+  <div class="cg-bloco" style="margin-bottom:10px"><div style="display:flex;gap:8px;align-items:end;flex-wrap:wrap">
+    <div><label class="form-label">Nome *</label><input class="form-input" id="ent-n" style="width:320px"></div><div><label class="form-label">NIF</label><input class="form-input" id="ent-f" style="width:140px"></div>
+    <button class="btn btn-gold btn-sm" onclick="entAdicionar()">+ Adicionar</button></div></div>
+  <div class="table-card"><table class="data-table"><thead><tr><th style="text-align:left">Nome</th><th>NIF</th><th>Obras</th><th>×</th></tr></thead><tbody>
+  ${ents.map(e=>{ const us=entUso(e.id); return `<tr><td><input class="cg-i" value="${esc(e.nome)}" onchange="entGuardar('${e.id}','nome',this)"></td><td style="width:150px"><input class="cg-i" value="${esc(e.nif||'')}" placeholder="—" onchange="entGuardar('${e.id}','nif',this)"></td>
+    <td style="text-align:center" title="${esc(us.map(o=>o.codigo+' '+o.sigla).join(', '))}">${us.length}</td>
+    <td style="text-align:center;width:40px"><span class="pe-x" style="cursor:pointer;color:var(--danger)" onclick="entEliminar('${e.id}')" title="${us.length?'Em uso — não pode ser eliminada':'Eliminar'}">×</span></td></tr>`; }).join('')}
+  </tbody></table></div>`;
+}
+function entValida(nome,nif,ignorar){ const n=String(nome||'').trim(), f=String(nif||'').trim();
+  if(!n) return 'O Nome é obrigatório.';
+  if((DB.entidades||[]).some(e=>e.id!==ignorar&&e.nome.trim().toLowerCase()===n.toLowerCase())) return 'Já existe uma entidade com esse Nome.';
+  if(f&&(DB.entidades||[]).some(e=>e.id!==ignorar&&String(e.nif||'').trim()===f)) return 'Já existe uma entidade com esse NIF.';
+  return null; }
+window.entAdicionar=async function(){ const n=document.getElementById('ent-n').value.trim(), f=document.getElementById('ent-f').value.trim();
+  const er=entValida(n,f,null); if(er){ alert(er); return; }
+  try{ const r=await sb.post('entidades',{nome:n,nif:f||null}); DB.entidades.push(r[0]); render(); }catch(e){ alert('Erro: '+e.message); } };
+window.entGuardar=async function(id,campo,el){ const e=DB.entidades.find(x=>x.id===id); const v=el.value.trim();
+  const er=entValida(campo==='nome'?v:e.nome,campo==='nif'?v:e.nif,id); if(er){ alert(er); el.value=e[campo]||''; return; }
+  try{ await sb.patch('entidades',id,{[campo]:v||null}); e[campo]=v||null;
+    if(campo==='nome'){ for(const o of entUso(id)){ const p={}; if(o.entidadeDoId===id){ p.empresa_dono_obra=v; o.empresaDO=v; } if(o.entidadeEmpId===id){ p.empresa_empreiteiro=v; o.empresaEmp=v; } await sb.patch('obras',o.id,p); } }
+  }catch(x){ alert('Erro: '+x.message); el.value=e[campo]||''; } };
+window.entEliminar=async function(id){ const e=DB.entidades.find(x=>x.id===id); if(!e) return; const us=entUso(id);
+  if(us.length) throw (alert('"'+e.nome+'" está a ser usada em: '+us.map(o=>o.codigo+' '+o.sigla).join(', ')+'.\nNão pode ser eliminada.'), new Error('em uso'));
+  if(!confirm('Eliminar a entidade "'+e.nome+'"?')) return;
+  await sb.delete('entidades',id); DB.entidades=DB.entidades.filter(x=>x.id!==id); render(); };
+
+/* ---------- Menu do Utilizador ---------- */
+window.userMenuAbrir=function(ev){ ev&&ev.stopPropagation(); defMenuFechar(); const m=document.getElementById('user-menu'); if(!m||!currentUser) return;
+  const rot={superadmin:'Superadmin',fiscalizacao:'Fiscalização',dono_obra:'Dono de Obra',empreiteiro:'Empreiteiro',projetista:'Projetista'}[currentUser.role]||currentUser.role;
+  const tema=document.documentElement.getAttribute('data-contraste')!==null?'contraste':(document.documentElement.getAttribute('data-theme')==='dark'?'escuro':'claro');
+  m.innerHTML=`<div class="um-top"><div class="nav-avatar" style="width:38px !important;height:38px !important">${esc((currentUser.nome||'').split(' ').map(x=>x[0]).filter(Boolean).slice(0,1).concat((currentUser.nome||'').split(' ').slice(-1).map(x=>x[0])).join('').toUpperCase())}</div>
+    <div><b>${esc(currentUser.nome||'')}</b><div style="color:var(--text-muted)">${esc(rot)}</div></div><button class="um-x" onclick="userMenuFechar()">✕</button></div>
+    <div class="um-it" onclick="userPerfil()">👤 Perfil</div>
+    <div class="um-sec">Aparência</div><div class="um-temas">${[['claro','☀ Claro'],['escuro','☾ Escuro'],['contraste','Contraste']].map(([k,l])=>`<button class="${tema===k?'on':''}" onclick="segoTemaDef('${k}')">${l}</button>`).join('')}</div>
+    <div class="um-it" style="border-top:1px solid var(--border-light)" onclick="doLogout()">↩ Sair</div>`;
+  m.style.display=m.style.display==='block'?'none':'block'; };
+window.userMenuFechar=function(){ const m=document.getElementById('user-menu'); if(m) m.style.display='none'; };
+window.segoTemaDef=function(t){ const h=document.documentElement;
+  h.removeAttribute('data-contraste'); if(t==='claro') h.removeAttribute('data-theme'); else h.setAttribute('data-theme','dark'); if(t==='contraste') h.setAttribute('data-contraste','');
+  try{ localStorage.setItem('sego-tema',t); }catch(e){} const mt=document.querySelector('meta[name="theme-color"]'); if(mt) mt.content=t==='claro'?'#1E3A5F':'#0B1320';
+  const m=document.getElementById('user-menu'); if(m&&m.style.display==='block'){ m.style.display='none'; userMenuAbrir(); } };
+window.userPerfil=function(){ userMenuFechar(); const u=currentUser||{}; const full=(DB.utilizadores||[]).find(x=>x.id===u.id)||u;
+  const os=Array.isArray(full.obras)?full.obras.map(id=>{ const o=DB.obras.find(x=>x.id===id); return o?o.codigo+' '+o.sigla:null; }).filter(Boolean):[];
+  showModal('Perfil',`<div class="cg-kv">${cgKV('Nome',esc(full.nome||''))}${cgKV('Email',esc(full.email||''))}${cgKV('Função',esc(full.funcao||'—'))}${cgKV('Perfil',esc(full.role||''))}${cgKV('Contacto',esc(full.contacto||'—'))}${cgKV('Obras',full.obras==='todas'||full.role==='superadmin'?'Todas':esc(os.join(', ')||'—'))}</div>`,[{label:'Fechar',cls:'btn-outline',fn:'closeModal()'}]); };
+document.addEventListener('click',e=>{ if(!e.target.closest('#def-menu,#btn-def')) defMenuFechar(); if(!e.target.closest('#user-menu,#nav-avatar')) userMenuFechar(); });
+
 function renderObras(app){
   const states=['Todos os Estados','Em Curso','Concluída','Suspensa','Em Preparação'];
-  let obras=getObrasVisiveis().slice().sort((a,b)=>(a.codigo||'').localeCompare(b.codigo||''));
+  const _vis=getObrasVisiveis(); const _ids=new Set(_vis.map(o=>o.id));
+  let obras=DB.obras.filter(o=>!o.obraMaeId&&(_ids.has(o.id)||(o.comFases&&DB.obras.some(f=>f.obraMaeId===o.id&&_ids.has(f.id))))).slice().sort((a,b)=>(a.codigo||'').localeCompare(b.codigo||''));
   if(obrasFilter!=='Todos os Estados') obras=obras.filter(o=>o.estado===obrasFilter);
   if(obrasSearch) obras=obras.filter(o=>[o.nome,o.sigla,o.codigo,o.localidade].join(' ').toLowerCase().includes(String(obrasSearch).toLowerCase().trim()));
 
@@ -11295,34 +11635,7 @@ function renderObras(app){
       <span style="font-size:12px;font-weight:400;color:var(--text);${valStyle}">${val||'—'}</span>
     </div>`;
 
-  const cards=obras.map(o=>{
-    const prrs=o.prorrogacoes||[];
-    const fimAtual=prrs.length&&prrs[prrs.length-1].novoFim?prrs[prrs.length-1].novoFim:o.fimPrevisto;
-    const rels=DB.relatorios.filter(r=>r.obra_id===o.id&&relVisivelParaUser(r)).sort((a,b)=>b.numero-a.numero||b.versao-a.versao);
-    const ultRel=rels[0];
-    return `
-    <div onclick="go('obras','${o.id}')" style="background:var(--bg-card);border:1px solid var(--border-light);border-radius:var(--radius);overflow:hidden;cursor:pointer;transition:border-color .15s"
-      onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border-light)'">
-      <div style="background:${corEstado(o.estado)};padding:10px 14px">
-        <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,.65);text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px">${o.codigo} · ${o.sigla}</div>
-        <div style="font-size:13px;font-weight:400;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${o.nome}</div>
-      </div>
-      <div style="padding:10px 14px">
-        ${row('Valor de Obra', o.valorObra?Number(o.valorObra).toLocaleString('pt-PT',{minimumFractionDigits:2})+' €':null, 'color:var(--gold)')}
-        <div style="height:0.5px;background:var(--border-light);margin:4px 0"></div>
-        ${row('Início Previsto', fmtDate(o.inicioPrevisto))}
-        ${row('Início Real', fmtDate(o.inicioReal))}
-        ${row('Fim Previsto', fmtDate(fimAtual))}
-        ${prrs.length?`<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0">
-          <span style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px">Prorrogações</span>
-          <span style="font-size:12px;font-weight:400;color:var(--danger)">${prrs.length} prorrogaç${prrs.length===1?'ão':'ões'}</span>
-        </div>`:`<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0">
-          <span style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px">Prorrogações</span>
-          <span style="font-size:12px;font-weight:400;color:var(--text-muted)">0</span>
-        </div>`}
-      </div>
-    </div>`;
-  }).join('');
+  const cards=obras.map(o=>cgCardHTML(o,false)).join('');
 
   app.innerHTML=`
   <div id="obras-lista-mark" data-n="${obras.length}" style="display:none"></div>
@@ -11900,7 +12213,7 @@ function renderFichaObra(app){
   }),cardDesvios,cardReal];
 
   app.innerHTML=`
-  <button class="back-btn" onclick="fichObraId=null;render()">← Voltar a Obras</button>
+  <button class="back-btn" onclick="cgVoltarDeCO('${o.id}')">← Voltar à Obra</button>
 
   <div style="background:${corEstado(o.estado)};border-radius:var(--radius);padding:14px 18px;margin-bottom:14px">
     <div style="font-size:11px;color:rgba(255,255,255,.6);margin-bottom:3px;letter-spacing:.4px">${o.codigo} · ${o.sigla} · ${o.estado||''}</div>
