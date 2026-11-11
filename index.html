@@ -313,7 +313,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.11.0059</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.11.0102</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -904,6 +904,10 @@ window.segoTema=function(){
   .cg-fpe [class*="fpe-c"] .cg-cx-b>.cg-r>.cg-rv{width:auto !important;max-width:none !important;text-align:left !important;flex:none !important}
   .cg-fpe [class*="fpe-c"] .cg-cx-b>.cg-r>.cg-rv .cg-i{width:100% !important;text-align:left !important;text-align-last:left !important}
   .cg-fpe [class*="fpe-c"] .cg-anx{padding-left:var(--val-l,140px)}
+  /* Pontilhado a começar no mesmo sítio em cada cartão (--lab-w = label mais comprida do cartão) */
+  .cg-r .cg-rl,.cg-rtxt>.cg-rl{display:grid !important;grid-template-columns:var(--lab-w,max-content) minmax(12px,1fr);align-items:baseline;column-gap:0}
+  .cg-r .cg-rl::after,.cg-rtxt>.cg-rl::after{grid-column:2;width:auto !important;min-width:12px}
+  .co-semreg .cg-rl{display:block !important}
 </style>
 <script>
 /* Pontilhado alinhado (intermédio): em cada bloco de linhas (separado por linha em branco), os valores curtos e
@@ -913,6 +917,16 @@ window.segoTema=function(){
   function alinhar(){ pend=false;
     const app=document.getElementById('app'); if(!app) return;
     const cards=new Set(); app.querySelectorAll('.cg-r').forEach(r=>cards.add(r.closest('.cg-cx-b,.cg-card')||r.parentElement));
+    // o pontilhado começa no mesmo sítio em cada cartão: logo a seguir à label mais comprida desse cartão
+    const rng=document.createRange();
+    const largL=l=>{ rng.selectNodeContents(l); return rng.getBoundingClientRect().width; };
+    const grupoLab=new Map();
+    app.querySelectorAll('.cg-r .cg-rl,.cg-rtxt>.cg-rl').forEach(l=>{ if(l.closest('.co-semreg')) return;
+      const box=l.closest('.cg-fpe [class*="fpe-c"]') ? l.closest('.cg-fpe') : (l.closest('.cg-cx-b,.cg-card')||l.parentElement);
+      const w=largL(l); grupoLab.set(box,Math.max(grupoLab.get(box)||0,w)); });
+    grupoLab.forEach((w,box)=>{ const v=Math.ceil(w)+'px';
+      if(box.classList&&box.classList.contains('cg-fpe')) box.querySelectorAll('[class*="fpe-c"] .cg-cx-b').forEach(b=>b.style.setProperty('--lab-w',v));
+      else box.style.setProperty('--lab-w',v); });
     cards.forEach(g=>{
       const lim=Math.floor(g.clientWidth*0.65);
       const blocos=[[]];
