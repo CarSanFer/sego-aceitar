@@ -314,7 +314,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.11.1708</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.11.1731</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -869,6 +869,11 @@ window.segoTema=function(){
   .cg-nota{color:var(--text-muted);font-style:italic;line-height:18px}
   .cg-hist .cg-dr .cg-dv{grid-template-columns:minmax(0,1fr) minmax(0,5fr) !important}
   .cg-hist .cg-dr .cg-dv>span{text-align:left !important}
+  .cg-hist .cg-dv>.cg-hau{display:flex !important;align-items:baseline;overflow:visible !important}
+  .cg-hist .cg-dv>.cg-hau>span{flex:0 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .cg-hist .cg-dv>.cg-hau::after{content:'';flex:1 1 auto;min-width:12px;margin:0 2px 0 6px;border-bottom:1px dotted var(--text-muted);opacity:.22}
+  html[data-caixas] .cg-hist .cg-dr:not(.cg-dh) .cg-dv>.cg-hau{border:none !important;padding:0 !important;height:auto !important}
+  html[data-caixas] .cg-hist .cg-dv>.cg-hau>span:not(:empty){border:1px solid var(--border-light);border-radius:4px;padding:0 6px;height:20px;line-height:18px;box-sizing:border-box}
   .cg-ficha .co-semreg .cg-rl::after{display:none}.cg-ficha .co-semreg .cg-rl{color:var(--text-muted);font-weight:400}
   /* Ficha PE: coluna 1 = Fluxo (3 linhas); col. 2 = dados (Id/Esclarecimento/Fiscalização); col. 3-4 = conteúdo */
   @media(min-width:1231px){
@@ -4802,7 +4807,7 @@ function renderFichaPE(app){
   const cObs=`<div class="cg-rtxt"><span class="cg-rl">${L('Observações')}</span>${AE?at('observacoes'):txt('f-fisc-obs',d.observacoes,eFiscR)}</div>`;
   // HIS — histórico (toda a largura)
   const hs=(d.historico||[]);
-  const cHis=hs.length?hs.map((h,i)=>`<div class="cg-r cg-dr cg-hr"><span class="cg-rl">${esc(h.data||'')}</span><div class="cg-dv"><span title="${esc(h.autor||'')}">${esc(h.autor||'')}</span><span title="${esc(h.acao||'')}">${esc(h.acao||'')}</span></div></div>`).join('')
+  const cHis=hs.length?hs.map((h,i)=>`<div class="cg-r cg-dr cg-hr"><span class="cg-rl">${esc(h.data||'')}</span><div class="cg-dv"><span class="cg-hau" title="${esc(h.autor||'')}"><span>${esc(h.autor||'')}</span></span><span title="${esc(h.acao||'')}">${esc(h.acao||'')}</span></div></div>`).join('')
     :`<div class="cg-r co-semreg"><span class="cg-rl">Sem registos</span><span class="cg-rv"></span></div>`;
 
   app.innerHTML=PE_CSS+`
