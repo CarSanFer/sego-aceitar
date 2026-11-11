@@ -314,7 +314,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.11.1954</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.11.1956</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -886,6 +886,8 @@ window.segoTema=function(){
     .cg-fptq>.cg-cx.fpq-g2{grid-column:2 / -1 !important;grid-row:3 !important}
     .cg-fptq>.cg-cx.fpq-g3{grid-column:2 / -1 !important;grid-row:4 !important}
     .cg-fptq>.cg-cx.cg-docw{grid-row:5 !important}
+    .cg-fptq>.cg-cx.fpq-his3{grid-row:4 !important}
+    .cg-ftcm>.cg-cx.cg-docw{grid-row:4 !important}
   }
   .cg-rlab .cg-rv{display:none !important}
   .cg-rlab .cg-rl::after{display:none}
@@ -944,6 +946,11 @@ window.segoTema=function(){
   .cg-fptq .fpq-g{min-width:0}
   .cg-fptq .fpq-g .cg-cx-b{padding-top:8px}
   .cg-fptq table.pq-grade{font-size:12px}
+  .cg-ftcm .tcm-bts{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+  .cg-ftcm .tcm-tab{overflow-x:auto}
+  .cg-ftcm .tcm-tab table{width:100%;border-collapse:collapse}
+  .cg-ftcm .tcm-tab th{background:rgba(127,140,160,.10);font-weight:700;padding:4px 6px;border-bottom:1px solid var(--border-light)}
+  .cg-ftcm .tcm-tab td{padding:3px 6px;border-bottom:1px solid var(--border-light)}
   .cg-ranx{height:auto !important;min-height:22px}
   .cg-ranx .cg-rv{white-space:normal !important;overflow:visible !important;display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center}
   .cg-ax a{color:var(--info) !important;text-decoration:none}
@@ -8557,17 +8564,14 @@ function renderFichaTCm(app){
         <td style="text-align:center">${P.estrutura&&manual?inpTxt(l.uid,'un',l.un,'40px','center'):esc(l.un||'')}</td>
         <td style="text-align:right">${edV&&manual?inpTxt(l.uid,'pu',l.pu==null?'':String(l.pu).replace('.',','),'76px','right'):amFmt(l.pu)}</td>
         <td style="text-align:right;${Number(l.qt)<0?'color:#B91C1C':''}" id="tcmt-${l.uid}">${v}</td>
-        <td style="text-align:center">${bloco==='mais'&&manual&&edV?`<select onchange="tcmLinhaSet('${l.uid}','preco',this)" style="height:22px;font-family:Carlito,Calibri,sans-serif;font-size:10pt;${!l.preco?'border:1px solid #B91C1C':''}"><option value="" ${!l.preco?'selected':''}>PC/PN?</option><option value="PC" ${l.preco==='PC'?'selected':''}>PC</option><option value="PN" ${l.preco==='PN'?'selected':''}>PN</option></select>`:`<b>${esc(l.preco||'—')}</b>`}</td>
+        <td style="text-align:center">${bloco==='mais'&&manual&&edV?`<select onchange="tcmLinhaSet('${l.uid}','preco',this)" style="height:22px;font-family:Carlito,Calibri,sans-serif;font-size:10pt;${!l.preco?'border:1px solid #B91C1C':''}"><option value="" ${!l.preco?'selected':''}>PC/PN?</option><option value="PC" ${l.preco==='PC'?'selected':''}>PC</option><option value="PN" ${l.preco==='PN'?'selected':''}>PN</option></select>`:`${esc(l.preco||'')}`}</td>
         <td>${P.estrutura?`<span onclick="tcmLinhaDel('${l.uid}')" style="cursor:pointer;color:#B91C1C" title="Remover">✕</span>`:''}</td></tr>`;
     }).join('');
     const btns=P.estrutura?(bloco==='mais'
       ?`<button class="am-btn" onclick="tcmLinhaNova('mais','linha')">+ Linha Nova</button><button class="am-btn" onclick="tcmLinhaNova('mais','capitulo')">+ Título</button><button class="am-btn" onclick="tcmAbrirLPU('mais')">+ Artigos da LPU (PC)</button>`
       :`<button class="am-btn" onclick="tcmAbrirLPU('menos')">+ Selecionar Artigos da LPU</button>`):'';
-    return `<div class="pe-zone ${bloco==='mais'?'pe-emp':'pe-fisc'}"><div class="pe-zh"><span class="pe-zdot"></span><span class="pe-zt">${bloco==='mais'?'Trabalhos Complementares (T +)':'Trabalhos a Menos (T −)'}</span>
-      <span id="tcm-bloco-${bloco}" style="margin-left:auto;font-weight:700;${bloco==='menos'?'color:#B91C1C':''}">${amFmt(bloco==='mais'?t.mais:t.menos)} €</span></div>
-      <div class="pe-zb">${btns?`<div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap">${btns}</div>`:''}
-        ${rows?`<div class="table-card" style="overflow-x:auto"><table><thead><tr><th style="width:84px">Art.º</th><th>Descrição</th><th style="width:84px">Quant</th><th style="width:50px">Un</th><th style="width:90px">Pr Unit</th><th style="width:100px">Total</th><th style="width:76px">Preço</th><th style="width:26px"></th></tr></thead><tbody>${rows}</tbody></table></div>`:'<div class="pe-muted">Sem linhas.</div>'}
-      </div></div>`;
+    return `${btns?`<div class="tcm-bts">${btns}</div>`:''}
+        ${rows?`<div class="tcm-tab"><table><thead><tr><th style="width:84px">Art.º</th><th>Descrição</th><th style="width:84px">Quant</th><th style="width:50px">Un</th><th style="width:90px">Pr Unit</th><th style="width:100px">Total</th><th style="width:76px">Preço</th><th style="width:26px"></th></tr></thead><tbody>${rows}</tbody></table></div>`:''}`;
   };
   const acoes=[];
   if(d.estado==='rascunho'&&P.eEmp){ acoes.push(`<button class="pe-btn" onclick="tcmGuardar()">Guardar Rascunho</button>`); acoes.push(`<button class="pe-btn green" onclick="tcmEnviar()">Enviar à Fiscalização →</button>`); }
@@ -8577,46 +8581,69 @@ function renderFichaTCm(app){
   if(d.estado==='concordancia'&&P.eEmp){ acoes.push(`<button class="pe-btn green" onclick="tcmFechar()">Concordar e Fechar ✓</button>`); acoes.push(`<button class="pe-btn gold" onclick="tcmNaoConcordar()">Não Concordar →</button>`); }
   if(d.estado!=='rascunho') acoes.push(`<button class="pe-btn info" onclick="tcmPDF('${d.id}')">📄 PDF</button>`);
   if(peESuper()) acoes.push(`<button class="pe-btn red" onclick="tcmEliminar('${d.id}')">Eliminar</button>`);
-  const cabEd=d.estado==='rascunho'&&P.eEmp;
+  const SA=peESuper(), AE=tcmAdmEd&&SA;
+  const cabEd=d.estado==='rascunho'&&P.eEmp&&!AE;
+  if(AE){ acoes.length=0; acoes.push(`<button class="pe-btn gold" onclick="tcmAdmGuardar()">Guardar</button>`); acoes.push(`<button class="pe-btn" onclick="tcmAdmCancelar()">Cancelar</button>`); }
   const notas={rascunho:'Acrescente as linhas T+ (linhas novas — indique PC ou PN — ou artigos da LPU, sempre PC) e/ou T− (artigos da LPU, quantidade a menos editável). Guarde antes de sair.',
     enviado:'Verificação: pode corrigir quantidades, preços e PC/PN. Ao concluir, é criada a revisão seguinte, que segue para o Dono de Obra.',
     verificado:'Aprovação: pode corrigir quantidades, preços e PC/PN. Se alterar algo, a aprovação cria a revisão seguinte.'};
+  /* ===== Layout em cartões (padrão da ficha PE) ===== */
+  const R=(l,v)=>cgR(l,v), dt=v=>v?peDataPT(v):'';
+  const OBR='obr', AUT='aut';
+  const L=(t,m)=>m?`<span class="cg-lm">${t}<i class="cg-mk ${m}" title="${m==='obr'?'Obrigatório':'Preenchido automaticamente'}"></i></span>`:`<span>${t}</span>`;
+  const inp=(id,val,tipo,extra)=>`<input class="cg-i" id="${id}" type="${tipo||'text'}" value="${esc(val==null?'':val)}" ${extra||''}>`;
+  const R2=(l1,v1,l2,v2)=>`<div class="cg-r cg-rdup"><span class="cg-rl">${l1}</span><span class="cg-rv">${v1}</span><span class="cg-rl cg-rl2">${l2}</span><span class="cg-rv">${v2}</span></div>`;
+  const ai=(k,tipo)=>inp('tca-'+k,tipo==='date'?String(d[k]||'').slice(0,10):d[k],tipo);
+  const ORD=['rascunho','enviado','verificado','aprovado','concordancia','fechado'];
+  const dataPasso={rascunho:d.data_criacao,enviado:d.data_envio,verificado:d.data_verificacao,aprovado:d.data_aprovacao,fechado:d.data_fecho};
+  let cFlx=ORD.map(k=>R(L(tcmEST(k).rot,AUT),dt(dataPasso[k]))).join('');
+  if(d.estado==='revisto') cFlx+=R(L('Revisto',AUT),d.next_id?`<a class="cg-ver" onclick="tcmAbrirFicha('${d.next_id}')">${esc(d.next_id)}</a>`:'');
+  const nt=(P.valores&&notas[d.estado]&&!AE)?notas[d.estado]:'';
+  if(nt) cFlx+=cgDiv+`<div class="cg-nota" title="${esc(nt)}">${esc(nt)}</div>`;
+  let cIde=R(L('Id',AUT),esc(d.id))+R(L('Data',AUT),AE?ai('data_criacao','date'):cabEd?inp('tcm-data',String(d.data_criacao||'').slice(0,10),'date'):dt(d.data_criacao))+R(L('Autor',AUT),AE?ai('autor_emp'):esc(d.autor_emp||''))+cgDiv+
+    R(L('Fiscalização',AUT),AE?ai('autor_fisc'):esc(d.autor_fisc||''))+R(L('Dono de Obra',AUT),AE?ai('autor_do'):esc(d.autor_do||''));
+  if(d.prev_id||d.next_id) cIde+=cgDiv+(d.prev_id?R('Revisão de',`<a class="cg-ver" onclick="tcmAbrirFicha('${d.prev_id}')">${esc(d.prev_id)}</a>`):'')+(d.next_id?R('Revisto por',`<a class="cg-ver" onclick="tcmAbrirFicha('${d.next_id}')">${esc(d.next_id)}</a>`):'');
+  const motivo=AE?inp('tca-motivo',d.motivo,'text','list="tcm-motivos2"'):cabEd?inp('tcm-motivo',d.motivo,'text','list="tcm-motivos2"'):esc(d.motivo||'');
+  const cRes=R2(L('Descrição',OBR),AE?ai('descricao'):cabEd?inp('tcm-desc',d.descricao):esc(d.descricao||''),L('Motivo'),motivo+`<datalist id="tcm-motivos2">${TCM_MOTIVOS.map(m=>`<option value="${esc(m)}">`).join('')}</datalist>`)+
+    R2(L('T +'),`<span id="tcm-tmais">${amFmt(t.mais)} €</span>`,L('T −'),`<span id="tcm-tmenos">${amFmt(t.menos)} €</span>`)+
+    R(L('Total'),`<span id="tcm-tot">${amFmt(t.total)} €</span>`)+
+    `<div class="cg-rtxt"><span class="cg-rl">${L('Observações')}</span>${AE?`<textarea class="cg-ta" id="tca-observacoes">${esc(d.observacoes||'')}</textarea>`:cabEd?`<textarea class="cg-ta" id="tcm-obs">${esc(d.observacoes||'')}</textarea>`:`<div class="cg-txt">${esc(d.observacoes||'')}</div>`}</div>`+
+    `<div class="cg-nota">Os trabalhos não especificados neste TCm não estão incluídos. Ao valor indicado acresce IVA à taxa legal em vigor.</div>`;
+  const hs=(d.historico||[]);
+  const cHis=hs.length?hs.map(h=>`<div class="cg-r cg-dr cg-hr"><span class="cg-rl">${esc(h.data||'')}</span><div class="cg-dv"><span class="cg-hau" title="${esc(h.autor||'')}"><span>${esc(h.autor||'')}</span></span><span title="${esc(h.acao||'')}">${esc(h.acao||'')}</span></div></div>`).join('')
+    :`<div class="cg-r co-semreg"><span class="cg-rl">Sem registos</span><span class="cg-rv"></span></div>`;
   app.innerHTML=PE_CSS+AM_CSS+`
-  <div class="pe-wrap am-wrap" style="max-width:1400px">
+  <div class="pe-wrap am-wrap">
     <button class="back-btn" onclick="tcmVoltarLista()">← Voltar aos TCm</button>
-    <div class="page-header" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
-      <div><div class="page-title"><span class="code-pill" style="font-size:13px">${o.codigo}</span>${o.sigla} — TCm ${esc(d.id)}</div>
-        <div class="page-count">${esc(o.nome)} · <span class="pe-estpill" style="background:${tcmEST(d.estado).cor}">${tcmEST(d.estado).rot}</span>${d.prev_id?` <span class="pe-revlink">↳ rev. de ${esc(d.prev_id)}</span>`:''}${d.next_id?` <span class="pe-revlink">↳ revisto por ${esc(d.next_id)}</span>`:''}</div></div>
-      <div class="pe-fluxo" style="flex:1;justify-content:center;margin:0">${fluxo}</div>
-      <div class="pe-actbar" style="display:flex;gap:8px;flex-wrap:wrap">${acoes.join('')}</div>
-    </div>
-    ${(P.valores&&notas[d.estado])?`<div class="pe-nota">${notas[d.estado]}</div>`:''}
-    <div class="pe-zone pe-ident"><div class="pe-zh"><span class="pe-zdot"></span><span class="pe-zt">Identificação</span></div>
-      <div class="pe-zb"><div class="pe-grid2">
-        ${cabEd?`<div class="pe-fld"><label>Descrição Resumida</label><input id="tcm-desc" value="${esc(d.descricao||'')}"></div>`:peCampo('Descrição Resumida','x',d.descricao,'text',false)}
-        ${peCampo('Id','x',d.id,null,false)}
-      </div><div class="pe-grid2 pe-mt">
-        ${cabEd?`<div class="pe-fld"><label>Motivo</label><input id="tcm-motivo" list="tcm-motivos2" value="${esc(d.motivo||'')}"><datalist id="tcm-motivos2">${TCM_MOTIVOS.map(m=>`<option value="${esc(m)}">`).join('')}</datalist></div>`:peCampo('Motivo','x',d.motivo,'text',false)}
-        ${peCampo('Data','tcm-data',d.data_criacao,'date',cabEd)}
-      </div>
-      <div class="pe-mt"><label class="pe-rotanx">Anexos</label>${(d.anexos||[]).length?'<div class="pe-anexos">'+d.anexos.map((a,i)=>`<span class="pe-anx">📎 <a href="${a.dados}" download="${esc(a.nome)}">${esc(a.nome)}</a> <span class="pe-tam">${Math.round((a.tam||0)/1024)} KB</span>${cabEd||peESuper()?`<button class="pe-anx-x" title="Remover" onclick="tcmRemoverAnexo(${i})">×</button>`:''}</span>`).join('')+'</div>':'<div class="pe-muted">Sem anexos</div>'}
-        ${cabEd||peESuper()?`<button class="pe-btn pe-mt" onclick="tcmAdicionarAnexo()">+ Anexar Ficheiro</button>`:''}</div>
-      </div></div>
-    <div style="display:flex;gap:10px;margin:0 0 12px;flex-wrap:wrap">
-      <span class="am-total">Total: <span id="tcm-tot">${amFmt(t.total)} €</span></span>
-      <span class="am-total" style="background:#EEF4FF;border-color:#BFD3F5">T +: <span id="tcm-tmais">${amFmt(t.mais)} €</span></span>
-      <span class="am-total" style="background:#FDECEE;border-color:#F5B5B5;color:#B91C1C">T −: <span id="tcm-tmenos">${amFmt(t.menos)} €</span></span>
-    </div>
-    ${tabela('mais')}
-    ${tabela('menos')}
-    <div class="pe-zone pe-ident"><div class="pe-zh"><span class="pe-zdot"></span><span class="pe-zt">Observações</span></div>
-      <div class="pe-zb">${cabEd?`<textarea id="tcm-obs" style="width:100%;min-height:60px">${esc(d.observacoes||'')}</textarea>`:`<div class="pe-ro">${esc(d.observacoes||'—')}</div>`}
-      <div class="pe-muted" style="margin-top:6px">Os trabalhos não especificados neste TCm não estão incluídos. Ao valor indicado acresce IVA à taxa legal em vigor.</div></div></div>
-    <div class="pe-hist"><b>Histórico</b>
-      ${(d.historico||[]).map(h=>`<div>· ${esc(h.data)} — [${esc(h.autor)}] ${esc(h.acao)}</div>`).join('')||'<div>—</div>'}
+    <div class="page-header"><div class="pe-actbar">${acoes.join('')}</div></div>
+    <div class="cg-cxs cg-2 cg-ficha cg-fpe cg-fpa cg-fptq cg-ftcm${AE?' cg-admed':''}" ${SA&&!AE?'ondblclick="tcmAdmEditar(event)" title="Duplo clique para editar (Superadmin)"':''}>
+      ${cgCartao('FLX','Fluxo',cFlx,'PRR','','cg-int fpe-flx')}
+      ${cgCartao('IDE','Identificação',cIde,'IDE','','cg-int fpe-m1')}
+      ${cgMaisAnexos(cgCartao('RES','Resumo',cRes,'VAL','','cg-int fpe-c1'),d.anexos,(cabEd||SA),'tcm','x')}
+      ${cgCartao('T+','Trabalhos Complementares',tabela('mais'),'PEDE','','cg-int fpq-g fpq-g1')}
+      ${cgCartao('T−','Trabalhos a Menos',tabela('menos'),'RESP','','cg-int fpq-g fpq-g2')}
+      ${cgCartao('HIS','Histórico',cHis,'PRR','','cg-docw cg-hist fpq-his3')}
     </div>
   </div>`;
 }
+/* Edição inline pelo Superadmin (duplo clique): cabeçalho do TCm */
+let tcmAdmEd=false;
+const TCM_ADM_CAMPOS=[['data_criacao','Data','date'],['autor_emp','Autor (Empreiteiro)'],['autor_fisc','Fiscalização'],['autor_do','Dono de Obra'],['descricao','Descrição'],['motivo','Motivo'],['observacoes','Observações','ta']];
+window.tcmAdmEditar=function(ev){ if(!peESuper()) return; if(ev&&ev.target&&ev.target.closest&&ev.target.closest('.fpq-g')) return; tcmAdmEd=true; render(); };
+window.tcmAdmCancelar=function(){ tcmAdmEd=false; render(); };
+window.tcmAdmGuardar=async function(){ const d=tcmPorId(tcmFichaId); if(!d) return; const mud=[];
+  const curto=v=>{ v=String(v==null?'':v).replace(/\s+/g,' ').trim(); return v.length>60?v.slice(0,57)+'…':v; };
+  TCM_ADM_CAMPOS.forEach(([k,rot,t])=>{ const el=document.getElementById('tca-'+k); if(!el) return; let n=el.value; if(t!=='ta') n=n.trim();
+    const a=t==='date'?String(d[k]||'').slice(0,10):String(d[k]==null?'':d[k]); if(a===n) return;
+    mud.push(rot+': "'+curto(t==='date'&&a?peDataPT(a):a)+'" → "'+curto(t==='date'&&n?peDataPT(n):n)+'"'); d[k]=(t==='date'&&!n)?null:n; });
+  tcmAdmEd=false;
+  if(mud.length){ tcmRegistar(d,'Editado pelo Superadmin — '+mud.join('; ')); try{ await tcmPersistir(d); }catch(e){ alert('Erro ao gravar: '+(e.message||e)); } }
+  render(); };
+document.addEventListener('keydown',e=>{ if(!tcmAdmEd||!tcmFichaId) return; if(e.key==='Escape'){ e.preventDefault(); tcmAdmCancelar(); } else if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){ e.preventDefault(); tcmAdmGuardar(); } });
+GPE_ANX.tcm={ doc:()=>tcmPorId(tcmFichaId), tit:{x:'TCm'},
+  lista:d=>{ if(!d.anexos) d.anexos=[]; return d.anexos; },
+  pode:d=>(d.estado==='rascunho'&&tcmPapeis(d).eEmp)||peESuper(), antes:d=>{ tcmLerCab(d); if(tcmPapeis(d).estrutura) d.linhas=JSON.parse(JSON.stringify(tcmEd)); },
+  gravar:d=>tcmPersistir(d), abrir:()=>render() };
 /* ####################  FIM MÓDULO TCm  #################### */
 
 /* ####################  MÓDULO AM  #################### */
