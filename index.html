@@ -313,7 +313,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.11.0151</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.11.0154</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -4191,7 +4191,7 @@ function peMap(r){
     pedidoTexto:r.pedido_texto||'',anexosEmp:r.anexos_emp||[],
     autorFiscEnvio:r.autor_fisc_envio||'',dataEnvioProj:r.data_envio_proj,comentFiscEnvio:r.comentario_fisc_envio||'',
     projDestId:r.proj_dest_id||'',projDestNome:r.proj_dest_nome||'',projDestEmail:r.proj_dest_email||'',projEspecialidade:r.proj_especialidade||'',
-    autorProj:r.autor_projetista||'',projData:r.proj_data,esclarecimento:r.esclarecimento||'',anexosProj:r.anexos_proj||[],
+    autorProj:r.autor_projetista||'',projData:r.proj_data,esclarecimento:r.esclarecimento||'',anexosProj:r.anexos_proj||[],anexosFisc:r.anexos_fisc||[],
     autorFiscResp:r.autor_fisc_resp||'',observacoes:r.observacoes||'',
     prevId:r.prev_id,nextId:r.next_id,historico:r.historico||[]};
 }
@@ -4203,13 +4203,13 @@ function peUnmap(d){
     pedido_texto:d.pedidoTexto,anexos_emp:d.anexosEmp,
     autor_fisc_envio:d.autorFiscEnvio,data_envio_proj:d.dataEnvioProj||null,comentario_fisc_envio:d.comentFiscEnvio||null,
     proj_dest_id:d.projDestId||null,proj_dest_nome:d.projDestNome||null,proj_dest_email:d.projDestEmail||null,proj_especialidade:d.projEspecialidade||null,
-    autor_projetista:d.autorProj,proj_data:d.projData||null,esclarecimento:d.esclarecimento,anexos_proj:d.anexosProj,
+    autor_projetista:d.autorProj,proj_data:d.projData||null,esclarecimento:d.esclarecimento,anexos_proj:d.anexosProj,anexos_fisc:d.anexosFisc||[],
     autor_fisc_resp:d.autorFiscResp,observacoes:d.observacoes,
     prev_id:d.prevId,next_id:d.nextId,historico:d.historico,updated_at:new Date().toISOString()};
 }
 function peUnmapSeguro(d){
   const row=peUnmap(d);
-  if(d._leve){ delete row.anexos_emp; delete row.anexos_proj; }
+  if(d._leve){ delete row.anexos_emp; delete row.anexos_proj; delete row.anexos_fisc; }
   return row;
 }
 
@@ -4439,15 +4439,15 @@ window.peEliminar=async function(id){
 };
 
 /* Anexos (base64 embutido no JSONB, cap 3 MB — como no GPE) */
-function peListaAnexos(d,chave){ return chave==='proj'?d.anexosProj:d.anexosEmp; }
+function peListaAnexos(d,chave){ if(chave==='fisc'){ d.anexosFisc=d.anexosFisc||[]; return d.anexosFisc; } return chave==='proj'?d.anexosProj:d.anexosEmp; }
 /* Popup de anexos: lista à esquerda, pré-visualização à direita (imagem / PDF), anexar e remover */
 window.peVerAnexos=function(chave,i){ const d=peFichaAtualDoc(); if(!d) return; const lista=peListaAnexos(d,chave)||[];
-  const pode=chave==='proj'?(pePodeProj(d)||peESuper()):(pePodeEmp(d)||peESuper()); window.__peAnx={chave};
+  const pode=chave==='proj'?(pePodeProj(d)||peESuper()):chave==='fisc'?(pePodeFiscResp(d)||peESuper()):(pePodeEmp(d)||peESuper()); window.__peAnx={chave};
   i=Math.max(0,Math.min(i||0,lista.length-1)); const a=lista[i];
   const lst=lista.map((x,k)=>`<div class="anx-it ${k===i?'on':''}" onclick="peVerAnexos('${chave}',${k})"><span class="anx-n" title="${esc(x.nome)}">${esc(x.nome)}</span><span class="anx-t">${(x.tam/1024).toFixed(0)} KB</span>${pode?`<button class="cg-ax-x" title="Remover" onclick="event.stopPropagation();peRemoverAnexo('${chave}',${k})">×</button>`:''}</div>`).join('');
   const bts=[]; if(pode) bts.push({label:'+ Anexar',cls:'btn-outline',fn:`peAdicionarAnexo('${chave}',true)`}); if(a) bts.push({label:'Descarregar',cls:'btn-outline',fn:`segoDescarregar(peListaAnexos(peFichaAtualDoc(),'${chave}')[${i}])`});
   bts.push({label:'Fechar',cls:'btn-gold',fn:'window.__peAnx=null;closeModal()'});
-  showModal('Anexos — '+(chave==='proj'?'Resposta do Projetista':'Pedido do Empreiteiro')+' · '+d.id,`<div class="anx-wrap"><div class="anx-lista">${lst||'<div class="anx-vazio">Sem anexos.</div>'}</div><div class="anx-prev" id="anx-prev"><div class="anx-vazio">${a?'A preparar a pré-visualização…':'Sem anexos.'}</div></div></div>`,bts,'modal-anx');
+  showModal('Anexos — '+(chave==='proj'?'Resposta do Projetista':chave==='fisc'?'Observações da Fiscalização':'Pedido do Empreiteiro')+' · '+d.id,`<div class="anx-wrap"><div class="anx-lista">${lst||'<div class="anx-vazio">Sem anexos.</div>'}</div><div class="anx-prev" id="anx-prev"><div class="anx-vazio">${a?'A preparar a pré-visualização…':'Sem anexos.'}</div></div></div>`,bts,'modal-anx');
   if(a) segoPrevAnexo(a,document.getElementById('anx-prev')); };
 window.segoDescarregar=function(a){ if(!a) return; const l=document.createElement('a'); l.href=a.dados; l.download=a.nome||'anexo'; document.body.appendChild(l); l.click(); l.remove(); };
 /* Pré-visualizadores: imagem, PDF, Excel/CSV (SheetJS), Word .docx (mammoth), texto, vídeo e áudio */
@@ -4482,6 +4482,7 @@ window.peAdicionarAnexo=function(chave,popup){
     const alvo=peListaAnexos(d,chave);
     if(chave==='emp') peLerFormEmp(d);
     if(chave==='proj') peLerFormProj(d);
+    if(chave==='fisc') peLerFormFisc(d);
     const fs=Array.from(input.files||[]); let pend=fs.length; if(!pend) return;
     const fim=async()=>{ await pePersistir(d); await peAbrirFicha(d.id); if(popup||window.__peAnx) peVerAnexos(chave,peListaAnexos(d,chave).length-1); };
     fs.forEach(f=>{
@@ -4653,8 +4654,8 @@ window.peAbrirFicha=async function(id){
   if(d&&d._leve){
     try{
       showLoadingOverlay('A carregar anexos…');
-      const rows=await sbRel.get('pedidos_esclarecimento',`id=eq.${encodeURIComponent(d.id)}&obra_id=eq.${encodeURIComponent(d.obraId)}&select=anexos_emp,anexos_proj`);
-      if(rows.length){ d.anexosEmp=rows[0].anexos_emp||[]; d.anexosProj=rows[0].anexos_proj||[]; d._leve=false; }
+      const rows=await sbRel.get('pedidos_esclarecimento',`id=eq.${encodeURIComponent(d.id)}&obra_id=eq.${encodeURIComponent(d.obraId)}&select=anexos_emp,anexos_proj,anexos_fisc`);
+      if(rows.length){ d.anexosEmp=rows[0].anexos_emp||[]; d.anexosProj=rows[0].anexos_proj||[]; d.anexosFisc=rows[0].anexos_fisc||[]; d._leve=false; }
     }catch(e){ console.error(e); alert('Não foi possível carregar os anexos deste PE (a base está lenta). A ficha abre sem eles — tente reabrir daqui a pouco.'); }
     finally{ hideLoadingOverlay(); }
   }
@@ -4752,7 +4753,7 @@ function renderFichaPE(app){
       ${cgCartao('ESC','Esclarecimento',cEsc,'ESCL','','cg-int fpe-m2')}
       ${maisAnexos(cgCartao('RES','Resposta do Projetista',cRes,'RESP','','cg-int fpe-c2'),d.anexosProj,(eProj||peESuper()),'proj')}
       ${cgCartao('FIS','Fiscalização',cFis,'FISC','','cg-int fpe-m3')}
-      ${cgCartao('OBS','Observações da Fiscalização',cObs,'PEDE','','cg-int fpe-c3')}
+      ${maisAnexos(cgCartao('OBS','Observações da Fiscalização',cObs,'PEDE','','cg-int fpe-c3'),d.anexosFisc,(eFiscR||peESuper()),'fisc')}
       ${cgCartao('HIS','Histórico',cHis,'PRR','','cg-docw cg-hist')}
     </div>
   </div>`;
