@@ -313,7 +313,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.11.0015</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.11.0044</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -624,7 +624,7 @@ window.segoTema=function(){
   html[data-theme=dark] {--pal-1:#7FB3D5} html[data-theme=dark][data-paleta=navy]{--pal-1:#E8C26A}
   .cg-cab{border-bottom:3px solid var(--cg-faixa)}
 </style>
-<script>try{ if(localStorage.getItem('sego-paleta')==='navy') document.documentElement.setAttribute('data-paleta','navy'); }catch(e){}</script>
+<script>try{ if(localStorage.getItem('sego-paleta')==='navy') document.documentElement.setAttribute('data-paleta','navy'); if(localStorage.getItem('sego-caixas')==='1') document.documentElement.setAttribute('data-caixas',''); }catch(e){}</script>
 
 <style>
   /* Obra na barra de cima (sigla + nome + IA DP ID CO + ações) */
@@ -643,7 +643,7 @@ window.segoTema=function(){
   .cg-cxs>.cg-cx{display:flex;flex-direction:column;height:100%;box-sizing:border-box}
   .cg-cxs>.cg-cx>.cg-cx-b{flex:1}
   .cg-s2{grid-row:span 2}.cg-full{grid-column:1/-1}.cg-c1{grid-column:1}
-  .cg-r1c2{grid-column:2;grid-row:1}.cg-r2c2{grid-column:2;grid-row:2}
+  .cg-r1c2{grid-column:2;grid-row:1 !important}.cg-r2c2{grid-column:2;grid-row:2 !important}
   @media(max-width:1200px){ .cg-cxs{grid-template-columns:repeat(2,minmax(0,1fr)) !important} }
   @media(max-width:700px){ .cg-cxs{grid-template-columns:1fr !important} .cg-s2,.cg-r1c2,.cg-r2c2,.cg-c1{grid-row:auto;grid-column:auto} }
 </style>
@@ -671,7 +671,7 @@ window.segoTema=function(){
 <style>
   .cg-cxs.cg-3{grid-template-columns:repeat(3,minmax(0,1fr)) !important}
   .cg-c3{grid-column:3}.cg-c2r{grid-column:2;grid-row:1 / span 2}
-  .cg-r1c3{grid-column:3;grid-row:1}.cg-r2c3{grid-column:3;grid-row:2}
+  .cg-r1c3{grid-column:3;grid-row:1 !important}.cg-r2c3{grid-column:3;grid-row:2 !important}
   @media(max-width:1200px){ .cg-cxs.cg-3{grid-template-columns:repeat(2,minmax(0,1fr)) !important} .cg-c3,.cg-c2r,.cg-r1c3,.cg-r2c3{grid-column:auto;grid-row:auto} .cg-c2r{grid-row:span 2} }
   @media(max-width:700px){ .cg-c3,.cg-c2r,.cg-r1c3,.cg-r2c3{grid-row:auto !important;grid-column:auto !important} }
   /* IA · DV · ID · CO: contorno laranja (logótipo), fundo como os outros botões; ativo com contorno azul (logótipo) */
@@ -752,10 +752,10 @@ window.segoTema=function(){
   .cg-cxs.cg-2>.cg-cx{grid-column:span 2}
   .cg-cxs.cg-2>.cg-full{grid-column:1 / -1}
   .cg-v-IA .cg-ide{grid-column:1 / span 2 !important;grid-row:1 / span 2}
-  .cg-v-IA .cg-car{grid-column:3 / span 2 !important;grid-row:1}
-  .cg-v-IA .cg-emp{grid-column:3 / span 2 !important;grid-row:2}
-  .cg-v-IA .cg-amb{grid-column:1 / span 2 !important;grid-row:3}
-  .cg-v-IA .cg-des{grid-column:3 / span 2 !important;grid-row:3}
+  .cg-v-IA .cg-car{grid-column:3 / span 2 !important;grid-row:1 !important}
+  .cg-v-IA .cg-emp{grid-column:3 / span 2 !important;grid-row:2 !important}
+  .cg-v-IA .cg-amb{grid-column:1 / span 2 !important;grid-row:3 !important}
+  .cg-v-IA .cg-des{grid-column:3 / span 2 !important;grid-row:3 !important}
   @media(max-width:1230px){ .cg-cxs.cg-2{grid-template-columns:repeat(2,minmax(0,1fr)) !important} .cg-cxs.cg-2>.cg-cx{grid-column:auto} .cg-v-IA .cg-ide,.cg-v-IA .cg-amb{grid-column:1 !important} .cg-v-IA .cg-car,.cg-v-IA .cg-emp,.cg-v-IA .cg-des{grid-column:2 !important} }
   @media(max-width:800px){ .cg-cxs.cg-2{grid-template-columns:1fr !important} .cg-cxs.cg-2>.cg-cx{grid-column:auto !important;grid-row:auto !important} }
 </style>
@@ -869,6 +869,23 @@ window.segoTema=function(){
   .cg-hist .cg-dr .cg-dv{grid-template-columns:minmax(0,1fr) minmax(0,5fr) !important}
   .cg-hist .cg-dr .cg-dv>span{text-align:left !important}
   .cg-ficha .co-semreg .cg-rl::after{display:none}.cg-ficha .co-semreg .cg-rl{color:var(--text-muted);font-weight:400}
+  /* Ficha PE: coluna 1 = Fluxo (3 linhas); col. 2 = dados (Id/Esclarecimento/Fiscalização); col. 3-4 = conteúdo */
+  @media(min-width:1231px){
+    .cg-fpe>.cg-cx.fpe-flx{grid-column:1 !important;grid-row:1 / span 3 !important}
+    .cg-fpe>.cg-cx.fpe-m1{grid-column:2 !important;grid-row:1 !important}.cg-fpe>.cg-cx.fpe-c1{grid-column:3 / span 2 !important;grid-row:1 !important}
+    .cg-fpe>.cg-cx.fpe-m2{grid-column:2 !important;grid-row:2 !important}.cg-fpe>.cg-cx.fpe-c2{grid-column:3 / span 2 !important;grid-row:2 !important}
+    .cg-fpe>.cg-cx.fpe-m3{grid-column:2 !important;grid-row:3 !important}.cg-fpe>.cg-cx.fpe-c3{grid-column:3 / span 2 !important;grid-row:3 !important}
+    .cg-fpe>.cg-cx.cg-docw{grid-row:4 !important}
+  }
+  .cg-fpe .fpe-c1 .cg-cx-b>.cg-r,.cg-fpe .fpe-c2 .cg-cx-b>.cg-r,.cg-fpe .fpe-c3 .cg-cx-b>.cg-r{max-width:var(--col-w,100%)}
+  .cg-rlab .cg-rv{display:none !important}
+  .cg-rlab .cg-rl::after{display:none}
+  .cg-fpe .cg-txt{min-height:66px}
+  /* Campos de edição sem caixa (padrão); com caixa quando o utilizador escolhe "Caixas nos Campos" */
+  html:not([data-caixas]) .cg-r .cg-i{border:none !important;background:transparent !important;box-shadow:none !important;text-align:right;text-align-last:right;padding:0 !important;color:var(--text)}
+  html:not([data-caixas]) .cg-r .cg-i:hover,html:not([data-caixas]) .cg-r .cg-i:focus{outline:1px dotted var(--nav-bd);outline-offset:1px}
+  html:not([data-caixas]) .cg-ta{border:none !important;background:rgba(127,140,160,.08) !important;padding:0 4px !important}
+  html:not([data-caixas]) .cg-ta:focus{outline:1px dotted var(--nav-bd)}
 </style>
 <script>
 /* Pontilhado alinhado (intermédio): em cada bloco de linhas (separado por linha em branco), os valores curtos e
@@ -899,7 +916,7 @@ window.segoTema=function(){
           else if(v.dataset.cgt){ v.removeAttribute('title'); delete v.dataset.cgt; } });
       });
     });
-    app.querySelectorAll('.cg-ficha').forEach(g=>{ const c=g.querySelector('.cg-cx:not(.cg-s2):not(.cg-s3):not(.cg-docw) .cg-cx-b'); if(!c) return; const cs=getComputedStyle(c);
+    app.querySelectorAll('.cg-ficha').forEach(g=>{ const c=g.querySelector('.cg-cx:not(.cg-s2):not(.cg-s3):not(.cg-docw):not([class*="fpe-c"]) .cg-cx-b'); if(!c) return; const cs=getComputedStyle(c);
       g.style.setProperty('--col-w',Math.round(c.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight))+'px'); });
     app.querySelectorAll('.cg-docw').forEach(dw=>{ const first=dw.parentElement&&dw.parentElement.querySelector('.cg-cx:not(.cg-docw)'); const body=dw.querySelector('.cg-cx-b'); if(!first||!body) return;
       let L=Infinity; first.querySelectorAll('.cg-rv').forEach(v=>{ if((v.textContent||'').trim()) L=Math.min(L,v.getBoundingClientRect().left); });
@@ -4563,37 +4580,33 @@ function renderFichaPE(app){
 
   /* ===== Layout em cartões (padrão IA/ID) ===== */
   const R=(l,v,st)=>cgR(l,v,st), dt=v=>v?peDataPT(v):'—', mut='color:var(--text-muted)';
-  const inp=(id,val,tipo)=>`<input class="cg-i" id="${id}" type="${tipo||'text'}" value="${esc(val||'')}">`;
+  const inp=(id,val,tipo)=>`<input class="cg-i" id="${id}" type="${tipo||'text'}" value="${esc(val||'')}" placeholder="—">`;
   const txt=(id,val,ed,ph)=>ed?`<textarea class="cg-ta" id="${id}" placeholder="${ph||''}">${esc(val||'')}</textarea>`
                                :`<div class="cg-txt">${val?esc(val):'<span style="color:var(--text-muted)">—</span>'}</div>`;
   const anexos=(lista,pode,chave)=>R('Anexos',(lista&&lista.length)?lista.length+' ficheiro'+(lista.length===1?'':'s'):'—',mut)+
     ((lista&&lista.length)||pode?`<div class="cg-anx">${(lista&&lista.length)?peHtmlAnexos(lista,pode,chave):''}${pode?`<button class="cg-anx-add" onclick="peAdicionarAnexo('${chave}')">+ Anexar Ficheiro</button>`:''}</div>`:'');
   const est=peEST(d.estado);
   // IDE
-  let cIde=R('Id',`<b>${esc(d.id)}</b>`)+R('Estado',`<b style="color:${est.cor}">${est.rot}</b>`)+R('Data',eEmp?inp('f-dataCriacao',d.dataCriacao,'date'):dt(d.dataCriacao))+R('Autor',esc(d.autorEmp||'—'));
+  let cIde=R('Id',`<b>${esc(d.id)}</b>`)+R('Data',eEmp?inp('f-dataCriacao',d.dataCriacao,'date'):dt(d.dataCriacao))+R('Autor',esc(d.autorEmp||'—'));
   if(d.prevId||d.nextId) cIde+=cgDiv+(d.prevId?R('Revisão de',`<a class="cg-ver" onclick="peAbrirFicha('${d.prevId}')">${esc(d.prevId)}</a>`):'')+(d.nextId?R('Revisto por',`<a class="cg-ver" onclick="peAbrirFicha('${d.nextId}')">${esc(d.nextId)}</a>`):'');
   // FLX — fluxo com as datas de cada passo
   const dataPasso={rascunho:d.dataCriacao,aberto:d.dataEnvio,pendente:d.dataEnvioProj,esclarecido:d.dataEsclarecido,respondido:d.dataResposta,fechado:d.dataFecho};
   const ref=(d.estado==='reaberto')?'respondido':d.estado, idx=M.ordem.indexOf(ref);
   let cFlx=M.ordem.map((k,pos)=>{ const atual=k===d.estado, feito=pos<idx;
-    const l=atual?`<span style="color:${M.estados[k].cor}">● ${M.estados[k].rot}</span>`:`<span style="${feito?'':'opacity:.55'}">${M.estados[k].rot}</span>`;
+    const l=atual?`<span style="color:${M.estados[k].cor}">${M.estados[k].rot}</span>`:`<span style="${feito?'':'opacity:.55'}">${M.estados[k].rot}</span>`;
     return R(l,dataPasso[k]?dt(dataPasso[k]):(atual?'—':''),atual?'font-weight:700':(feito?'':mut)); }).join('');
-  if(d.estado==='reaberto') cFlx+=R(`<span style="color:${M.estados.reaberto.cor}">● Reaberto</span>`,'aguarda revisão','font-weight:700');
+  if(d.estado==='reaberto') cFlx+=R(`<span style="color:${M.estados.reaberto.cor}">Reaberto</span>`,'aguarda revisão','font-weight:700');
   if(notas.length) cFlx+=cgDiv+`<div class="cg-nota" title="${esc(notas.join(' '))}">${esc(notas.join(' '))}</div>`;
   // PED — pedido do empreiteiro (3 colunas)
   const cPed=R('Assunto',eEmp?inp('f-assunto',d.assunto):(esc(d.assunto)||'—'))+R('Id(s) Artº(s)',eEmp?inp('f-artigos',d.artigos):(esc(d.artigos)||'—'))+R('Desenho N.º',eEmp?inp('f-desenho',d.desenho):(esc(d.desenho)||'—'))+cgDiv+
-    txt('f-pedidoTexto',d.pedidoTexto,eEmp,'Pedido de esclarecimento…')+cgDiv+anexos(d.anexosEmp,(eEmp||peESuper()),'emp');
-  // ENV — envio ao projetista
-  const cEnv=d.dataEnvioProj
-    ?R('Data',dt(d.dataEnvioProj))+R('Autor',esc(d.autorFiscEnvio||'—'))+R('Projetista',esc(d.projDestNome||'—'))+R('Especialidade',esc(d.projEspecialidade||'—'))+
-      (d.comentFiscEnvio?cgDiv+R('Comentário',`<a class="cg-ver" onclick="peVerTexto('comentFiscEnvio','Comentário do envio')">Ver</a>`):'')
-    :`<div class="cg-r co-semreg"><span class="cg-rl">Ainda não enviado</span><span class="cg-rv"></span></div>`;
-  // ESC — esclarecimento do projetista (2 colunas)
-  const cEsc=R('Data',eProj?inp('f-proj-data',d.projData||peHoje(),'date'):dt(d.projData))+R('Autor',esc((eProj?(currentUser?currentUser.nome:''):d.autorProj)||'—'))+cgDiv+
-    txt('f-proj-texto',d.esclarecimento,eProj,'Esclarecimento…')+cgDiv+anexos(d.anexosProj,(eProj||peESuper()),'proj');
-  // RES — resposta da fiscalização (2 colunas)
-  const cRes=R('Data',eFiscR?inp('f-fisc-data',d.dataResposta||peHoje(),'date'):dt(d.dataResposta))+R('Autor',esc((eFiscR?(currentUser?currentUser.nome:''):d.autorFiscResp)||'—'))+cgDiv+
-    txt('f-fisc-obs',d.observacoes,eFiscR,'Observações…');
+    R('Pedido de Esclarecimento','').replace('class="cg-r"','class="cg-r cg-rlab"')+txt('f-pedidoTexto',d.pedidoTexto,eEmp,'')+cgDiv+anexos(d.anexosEmp,(eEmp||peESuper()),'emp');
+  // ESC — dados do esclarecimento (projetista) · RES — texto do esclarecimento (2 colunas)
+  const cEsc=R('Data',eProj?inp('f-proj-data',d.projData||peHoje(),'date'):dt(d.projData))+R('Autor',esc((eProj?(currentUser?currentUser.nome:''):d.autorProj)||d.projDestNome||'—'))+
+    R('Especialidade',esc(d.projEspecialidade||'—'))+(d.comentFiscEnvio?cgDiv+R('Nota do envio',`<a class="cg-ver" onclick="peVerTexto('comentFiscEnvio','Nota do envio ao Projetista')">Ver</a>`):'');
+  const cRes=R('Esclarecimento','').replace('class="cg-r"','class="cg-r cg-rlab"')+txt('f-proj-texto',d.esclarecimento,eProj,'')+cgDiv+anexos(d.anexosProj,(eProj||peESuper()),'proj');
+  // FIS — dados da resposta (fiscalização) · OBS — observações (2 colunas)
+  const cFis=R('Data',eFiscR?inp('f-fisc-data',d.dataResposta||peHoje(),'date'):dt(d.dataResposta))+R('Autor',esc((eFiscR?(currentUser?currentUser.nome:''):d.autorFiscResp)||'—'));
+  const cObs=R('Observações','').replace('class="cg-r"','class="cg-r cg-rlab"')+txt('f-fisc-obs',d.observacoes,eFiscR,'');
   // HIS — histórico (toda a largura)
   const hs=(d.historico||[]);
   const cHis=hs.length?hs.map((h,i)=>`<div class="cg-r cg-dr cg-hr"><span class="cg-rl">${esc(h.data||'')}</span><div class="cg-dv"><span title="${esc(h.autor||'')}">${esc(h.autor||'')}</span><span title="${esc(h.acao||'')}">${esc(h.acao||'')}</span></div></div>`).join('')
@@ -4603,13 +4616,14 @@ function renderFichaPE(app){
   <div class="pe-wrap">
     <button class="back-btn" onclick="peVoltarLista()">← Voltar</button>
     <div class="page-header"><div class="pe-actbar">${acoes.join('')}</div></div>
-    <div class="cg-cxs cg-2 cg-ficha">
-      ${cgCartao('IDE','Identificação',cIde,'IDE','','cg-int')}
-      ${cgCartao('FLX','Fluxo',cFlx,'PRR','','cg-int')}
-      ${cgCartao('PED','Pedido do Empreiteiro',cPed,'PEDE','','cg-int')}
-      ${cgCartao('ENV','Envio ao Projetista',cEnv,'ENVI','','cg-int')}
-      ${cgCartao('ESC','Esclarecimento do Projetista',cEsc,'ESCL','','cg-int')}
-      ${cgCartao('RES','Resposta ao Empreiteiro',cRes,'RESP','','cg-int')}
+    <div class="cg-cxs cg-2 cg-ficha cg-fpe">
+      ${cgCartao('FLX','Fluxo',cFlx,'PRR','','cg-int fpe-flx')}
+      ${cgCartao('IDE','Identificação',cIde,'IDE','','cg-int fpe-m1')}
+      ${cgCartao('PED','Pedido do Empreiteiro',cPed,'PEDE','','cg-int fpe-c1')}
+      ${cgCartao('ESC','Esclarecimento',cEsc,'ESCL','','cg-int fpe-m2')}
+      ${cgCartao('RES','Resposta do Projetista',cRes,'RESP','','cg-int fpe-c2')}
+      ${cgCartao('FIS','Fiscalização',cFis,'FISC','','cg-int fpe-m3')}
+      ${cgCartao('OBS','Observações ao Empreiteiro',cObs,'PEDE','','cg-int fpe-c3')}
       ${cgCartao('HIS','Histórico',cHis,'PRR','','cg-docw cg-hist')}
     </div>
   </div>`;
@@ -12142,10 +12156,13 @@ window.userMenuAbrir=function(ev){ ev&&ev.stopPropagation(); defMenuFechar(); co
     <div class="um-it" onclick="userPerfil()">👤 Perfil</div>${(peESuper()||(SEGO_CFG.guia&&SEGO_CFG.guia.publico))?`<div class="um-it" onclick="userMenuFechar();guiaAbrir()">📘 Guia</div>`:''}
     <div class="um-sec">Aparência</div><div class="um-temas">${[['claro','☀ Claro'],['escuro','☾ Escuro'],['contraste','Contraste']].map(([k,l])=>`<button class="${tema===k?'on':''}" onclick="segoTemaDef('${k}')">${l}</button>`).join('')}</div>
     <div class="um-sec">Cores</div><div class="um-temas">${[['aceitar','Aceitar'],['navy','Azul e Dourado']].map(([k,l])=>`<button class="${(document.documentElement.getAttribute('data-paleta')||'aceitar')===k?'on':''}" onclick="segoPaleta('${k}')">${l}</button>`).join('')}</div>
+    <div class="um-sec">Campos em Edição</div><div class="um-temas">${[['0','Sem Caixa'],['1','Com Caixa']].map(([k,l])=>`<button class="${(document.documentElement.hasAttribute('data-caixas')?'1':'0')===k?'on':''}" onclick="segoCaixas('${k}')">${l}</button>`).join('')}</div>
     <div class="um-it" style="border-top:1px solid var(--border-light)" onclick="doLogout()">↩ Sair</div>`;
   m.style.display=m.style.display==='block'?'none':'block'; };
 window.segoPaleta=function(k){ if(k==='navy') document.documentElement.setAttribute('data-paleta','navy'); else document.documentElement.removeAttribute('data-paleta');
   try{ localStorage.setItem('sego-paleta',k); }catch(e){} const m=document.getElementById('user-menu'); if(m&&m.style.display==='block'){ m.style.display='none'; userMenuAbrir(); } };
+window.segoCaixas=function(k){ if(k==='1') document.documentElement.setAttribute('data-caixas',''); else document.documentElement.removeAttribute('data-caixas');
+  try{ localStorage.setItem('sego-caixas',k); }catch(e){} const m=document.getElementById('user-menu'); if(m&&m.style.display==='block'){ m.style.display='none'; userMenuAbrir(); } };
 window.userMenuFechar=function(){ const m=document.getElementById('user-menu'); if(m) m.style.display='none'; };
 window.segoTemaDef=function(t){ const h=document.documentElement;
   h.removeAttribute('data-contraste'); if(t==='claro') h.removeAttribute('data-theme'); else h.setAttribute('data-theme','dark'); if(t==='contraste') h.setAttribute('data-contraste','');
