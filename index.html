@@ -314,7 +314,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.11.1810</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.11.1811</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -4854,7 +4854,7 @@ window.gpeVerAnexos=function(m,chave,i){ const c=GPE_ANX[m]; const d=c&&c.doc();
   showModal('Anexos — '+(c.tit[chave]||'')+' · '+d.id,`<div class="anx-wrap"><div class="anx-lista">${lst||'<div class="anx-vazio">Sem anexos.</div>'}</div><div class="anx-prev" id="anx-prev"><div class="anx-vazio">${a?'A preparar a pré-visualização…':'Sem anexos.'}</div></div></div>`,bts,'modal-anx');
   if(a) segoPrevAnexo(a,document.getElementById('anx-prev')); };
 window.gpeAddAnexo=function(m,chave,popup){ const c=GPE_ANX[m]; const d=c&&c.doc(); if(!d) return;
-  const input=document.createElement('input'); input.type='file'; input.multiple=true;
+  const input=document.createElement('input'); input.type='file'; input.multiple=true; if(c.accept) input.accept=c.accept;
   input.onchange=()=>{ if(c.antes) c.antes(d,chave); const alvo=c.lista(d,chave,true);
     const fs=Array.from(input.files||[]); let pend=fs.length; if(!pend) return;
     const fim=async()=>{ await c.gravar(d); await c.abrir(d); if(popup||window.__gpeAnx) gpeVerAnexos(m,chave,c.lista(d,chave).length-1); };
@@ -7590,81 +7590,82 @@ function renderFichaQE(app){
     notas.push('Aceite a correção (fecha) ou peça revisão indicando o motivo (gera nova revisão para o Empreiteiro).');
   }
   if(d.estado!=='rascunho'){ acoes.push(`<button class="pe-btn info" onclick="qeImprimir('${d.id}')" title="Descarregar a QE em PDF (ex.: para reencaminhar a um subempreiteiro)">📄 PDF</button>`); }
-  if(peESuper()){ acoes.push(`<button class="pe-btn" onclick="gpeAdmEditar('qe','${d.id}')">Editar (Admin)</button>`); acoes.push(`<button class="pe-btn red" onclick="qeEliminar('${d.id}')">Eliminar</button>`); }
+  const SA=peESuper();
+  if(SA){ acoes.push(`<button class="pe-btn red" onclick="qeEliminar('${d.id}')">Eliminar</button>`); }
+  const AE=qeAdmEd&&SA;
+  if(AE){ acoes.length=0; notas.length=0; acoes.push(`<button class="pe-btn gold" onclick="qeAdmGuardar()">Guardar</button>`); acoes.push(`<button class="pe-btn" onclick="qeAdmCancelar()">Cancelar</button>`); }
 
-  const espSel = eFisc
-    ? `<div class="pe-fld"><label>Especialidade</label><select id="qe-especialidade">${'<option value="">— escolher —</option>'+(DB.especialidades||[]).map(e=>`<option value="${esc(e.codigo)}" ${e.codigo===d.especialidade?'selected':''}>${esc(e.nome)}</option>`).join('')}</select></div>`
-    : peCampo('Especialidade','x',peNomeEsp(d.especialidade),'text',false);
-
-  /* Identificação */
-  const secId=`<div class="pe-zone pe-ident"><div class="pe-zh"><span class="pe-zdot"></span><span class="pe-zt">Identificação</span></div>
-    <div class="pe-zb">
-      <div class="pe-grid3">
-        ${peCampo('Id','x',d.id,null,false)}
-        ${peCampo('Data','x',d.dataCriacao,'date',false)}
-        ${peCampo('Autor','x',d.autorFisc,'text',false)}
-      </div>
-      <div class="pe-grid3 pe-mt">
-        ${espSel}
-        ${peCampo('Resposta','qe-resposta',d.respostaPretendida,'date',eFisc)}
-        <div></div>
-      </div>
-    </div></div>`;
-
-  /* Fiscalização — Identificação da falta */
-  const secFiscId=`<div class="pe-zone pe-fisc"><div class="pe-zh"><span class="pe-zdot"></span><span class="pe-zt">Fiscalização — Identificação</span></div>
-    <div class="pe-zb">
-      <div>${peCampo('Descrição da Falta de Qualidade de Execução','qe-descricao',d.descricao,'textarea',eFisc)}</div>
-      <div class="pe-mt"><label class="pe-rotanx">Fotos</label>${qeHtmlAnexos(d.anexosFisc,eFisc,'fisc')}
-        ${eFisc?`<button class="pe-btn pe-mt" onclick="qeAdicionarAnexo('fisc')">+ Anexar Foto</button>`:''}</div>
-    </div></div>`;
-
-  /* Empreiteiro — Resposta */
-  const secEmp=(d.dataEnvio)
-    ? `<div class="pe-zone pe-emp"><div class="pe-zh"><span class="pe-zdot"></span><span class="pe-zt">Empreiteiro — Resposta</span></div>
-        <div class="pe-zb">
-          <div class="pe-grid3">
-            ${peCampo('Data','x',d.dataResposta||(eEmp?peHoje():''),'date',false)}
-            ${peCampo('Autor','x',d.autorEmp||(eEmp?(currentUser?currentUser.nome:''):''),'text',false)}
-            <div></div>
-          </div>
-          <div class="pe-mt">${peCampo('Origem','qe-origem',d.origem,'textarea',eEmp)}</div>
-          <div class="pe-mt">${peCampo('Correção Efetuada','qe-correcao',d.correcao,'textarea',eEmp)}</div>
-          <div class="pe-mt"><label class="pe-rotanx">Fotos</label>${qeHtmlAnexos(d.anexosEmp,eEmp,'emp')}
-            ${eEmp?`<button class="pe-btn pe-mt" onclick="qeAdicionarAnexo('emp')">+ Anexar Foto</button>`:''}</div>
-        </div></div>` : '';
-
-  /* Fiscalização — Parecer */
-  const secPar=(d.estado==='respondido'||d.parecer||d.estado==='fechado'||d.estado==='reaberto')&&d.dataResposta
-    ? `<div class="pe-zone pe-fisc"><div class="pe-zh"><span class="pe-zdot"></span><span class="pe-zt">Fiscalização — Parecer</span></div>
-        <div class="pe-zb">
-          <div class="pe-grid3">
-            ${peCampo('Data','x',d.dataParecer||(eParecer?peHoje():''),'date',false)}
-            ${peCampo('Autor','x',d.autorParecer||(eParecer?(currentUser?currentUser.nome:''):''),'text',false)}
-            <div class="pe-fld"><label>Parecer</label><div class="pe-ro">${qeParPill(d.parecer)}</div></div>
-          </div>
-          <div class="pe-mt">${peCampo(d.parecer==='nao_aceite'?'Motivo da não aceitação':'Observações','x',d.obsFisc,'textarea',false)}</div>
-        </div></div>` : '';
+  /* ===== Layout em cartões (padrão da ficha PE) ===== */
+  const R=(l,v)=>cgR(l,v), dt=v=>v?peDataPT(v):'';
+  const OBR='obr', AUT='aut';
+  const L=(t,m)=>m?`<span class="cg-lm">${t}<i class="cg-mk ${m}" title="${m==='obr'?'Obrigatório':'Preenchido automaticamente'}"></i></span>`:`<span>${t}</span>`;
+  const inp=(id,val,tipo)=>`<input class="cg-i" id="${id}" type="${tipo||'text'}" value="${esc(val==null?'':val)}">`;
+  const ta=(id,val)=>`<textarea class="cg-ta" id="${id}">${esc(val||'')}</textarea>`;
+  const txt=(id,val,ed)=>ed?ta(id,val):`<div class="cg-txt">${val?esc(val):''}</div>`;
+  const ai=(c,tipo)=>inp('qea-'+c,tipo==='date'?String(d[c]||'').slice(0,10):d[c],tipo);
+  const espOpts=v=>'<option value=""></option>'+(DB.especialidades||[]).map(e=>`<option value="${esc(e.codigo)}" ${e.codigo===v?'selected':''}>${esc(e.nome)}</option>`).join('');
+  const rtxt=(rot,m,html)=>`<div class="cg-rtxt"><span class="cg-rl">${L(rot,m)}</span>${html}</div>`;
+  // FLX
+  const dataPasso={rascunho:d.dataCriacao,pendente:d.dataEnvio,respondido:d.dataResposta,fechado:d.dataFecho};
+  let cFlx=M.ordem.map(k=>R(L(M.estados[k].rot,AUT),dt(dataPasso[k]))).join('');
+  if(d.estado==='reaberto') cFlx+=R(L('Reaberto',AUT),'aguarda revisão');
+  if(notas.length) cFlx+=cgDiv+`<div class="cg-nota" title="${esc(notas.join(' '))}">${esc(notas.join(' '))}</div>`;
+  // IDE
+  let cIde=R(L('Id',AUT),esc(d.id))+R(L('Data',AUT),AE?ai('dataCriacao','date'):dt(d.dataCriacao))+R(L('Autor',AUT),AE?ai('autorFisc'):esc(d.autorFisc||(eFisc&&currentUser?currentUser.nome:'')))+cgDiv+
+    R(L('Especialidade',OBR),AE?`<select class="cg-i" id="qea-especialidade">${espOpts(d.especialidade)}</select>`:eFisc?`<select class="cg-i" id="qe-especialidade">${espOpts(d.especialidade)}</select>`:esc(peNomeEsp(d.especialidade)||''))+
+    R('Resposta',AE?ai('respostaPretendida','date'):eFisc?inp('qe-resposta',String(d.respostaPretendida||'').slice(0,10),'date'):dt(d.respostaPretendida));
+  if(d.prevId||d.nextId) cIde+=cgDiv+(d.prevId?R('Revisão de',`<a class="cg-ver" onclick="qeAbrirFicha('${d.prevId}')">${esc(d.prevId)}</a>`):'')+(d.nextId?R('Revisto por',`<a class="cg-ver" onclick="qeAbrirFicha('${d.nextId}')">${esc(d.nextId)}</a>`):'');
+  // FAL — falta identificada pela Fiscalização
+  const cFal=rtxt('Descrição',OBR,AE?ta('qea-descricao',d.descricao):txt('qe-descricao',d.descricao,eFisc));
+  // EMP · RES — resposta do Empreiteiro
+  const cEmp=R(L('Data',AUT),AE?ai('dataResposta','date'):dt(d.dataResposta||(eEmp?peHoje():'')))+R(L('Autor',AUT),AE?ai('autorEmp'):esc(d.autorEmp||(eEmp&&currentUser?currentUser.nome:'')));
+  const cRes=rtxt('Origem','',AE?ta('qea-origem',d.origem):txt('qe-origem',d.origem,eEmp))+rtxt('Correção Efetuada',OBR,AE?ta('qea-correcao',d.correcao):txt('qe-correcao',d.correcao,eEmp));
+  // FIS · PAR — parecer da Fiscalização
+  const cFis=R(L('Data',AUT),AE?ai('dataParecer','date'):dt(d.dataParecer))+R(L('Autor',AUT),AE?ai('autorParecer'):esc(d.autorParecer||''));
+  const parOpts=`<option value=""></option>`+Object.keys(QE_PAR).map(k=>`<option value="${k}" ${d.parecer===k?'selected':''}>${QE_PAR[k].rot}</option>`).join('');
+  const cPar=R(L('Parecer'),AE?`<select class="cg-i" id="qea-parecer">${parOpts}</select>`:(QE_PAR[d.parecer]?QE_PAR[d.parecer].rot:''))+
+    rtxt(d.parecer==='nao_aceite'?'Motivo':'Observações','',AE?ta('qea-obsFisc',d.obsFisc):txt('x',d.obsFisc,false));
+  const hs=(d.historico||[]);
+  const cHis=hs.length?hs.map(h=>`<div class="cg-r cg-dr cg-hr"><span class="cg-rl">${esc(h.data||'')}</span><div class="cg-dv"><span class="cg-hau" title="${esc(h.autor||'')}"><span>${esc(h.autor||'')}</span></span><span title="${esc(h.acao||'')}">${esc(h.acao||'')}</span></div></div>`).join('')
+    :`<div class="cg-r co-semreg"><span class="cg-rl">Sem registos</span><span class="cg-rv"></span></div>`;
 
   app.innerHTML=PE_CSS+`
   <div class="pe-wrap">
     <button class="back-btn" onclick="qeVoltarLista()">← Voltar</button>
-    <div class="page-header" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
-      <div>
-        <div class="page-title"><span class="code-pill" style="font-size:13px">${(qeObra()||{}).codigo||''}</span>${(qeObra()||{}).sigla||''} — QE ${d.id}</div>
-        <div class="page-count">${esc((qeObra()||{}).nome||d.obraNome)} · <span class="pe-estpill" style="background:${qeEST(d.estado).cor}">${qeEST(d.estado).rot}</span></div>
-      </div>
-      <div class="pe-fluxo" style="flex:1;justify-content:center;margin:0">${fluxo}</div>
-      <div class="pe-actbar" style="display:flex;gap:8px;flex-wrap:wrap">${acoes.join('')}</div>
-    </div>
-    ${notas.length?`<div class="pe-nota">${notas.map(esc).join(' ')}</div>`:''}
-    ${lig.length?`<div class="pe-lig">${lig.join(' · ')}</div>`:''}
-    ${secId}${secFiscId}${secEmp}${secPar}
-    <div class="pe-hist"><b>Histórico</b>
-      ${(d.historico||[]).map(h=>`<div>· ${esc(h.data)} — [${esc(h.autor)}] ${esc(h.acao)}</div>`).join('')||'<div>—</div>'}
+    <div class="page-header"><div class="pe-actbar">${acoes.join('')}</div></div>
+    <div class="cg-cxs cg-2 cg-ficha cg-fpe cg-fpa cg-fqe${AE?' cg-admed':''}" ${SA&&!AE?'ondblclick="qeAdmEditar()" title="Duplo clique para editar (Superadmin)"':''}>
+      ${cgCartao('FLX','Fluxo',cFlx,'PRR','','cg-int fpe-flx')}
+      ${cgCartao('IDE','Identificação',cIde,'IDE','','cg-int fpe-m1')}
+      ${cgMaisAnexos(cgCartao('FAL','Falta de Qualidade de Execução',cFal,'PEDE','','cg-int fpe-c1'),d.anexosFisc,(eFisc||SA),'qe','fisc')}
+      ${cgCartao('EMP','Empreiteiro',cEmp,'EMPR','','cg-int fpe-m2')}
+      ${cgMaisAnexos(cgCartao('RES','Resposta do Empreiteiro',cRes,'RESP','','cg-int fpe-c2'),d.anexosEmp,(eEmp||SA),'qe','emp')}
+      ${cgCartao('FIS','Fiscalização',cFis,'FISC','','cg-int fpe-m3')}
+      ${cgCartao('PAR','Parecer da Fiscalização',cPar,'PEDE','','cg-int fpe-c3')}
+      ${cgCartao('HIS','Histórico',cHis,'PRR','','cg-docw cg-hist')}
     </div>
   </div>`;
 }
+/* Edição inline pelo Superadmin (duplo clique) */
+let qeAdmEd=false;
+const QE_ADM_CAMPOS=[['dataCriacao','Data (Identificação)','date'],['autorFisc','Autor (Fiscalização)'],['especialidade','Especialidade','select'],['respostaPretendida','Resposta','date'],['descricao','Descrição','ta'],
+  ['dataResposta','Data (Empreiteiro)','date'],['autorEmp','Autor (Empreiteiro)'],['origem','Origem','ta'],['correcao','Correção Efetuada','ta'],
+  ['dataParecer','Data (Parecer)','date'],['autorParecer','Autor (Parecer)'],['parecer','Parecer','select'],['obsFisc','Observações (Parecer)','ta']];
+window.qeAdmEditar=function(){ if(!peESuper()) return; qeAdmEd=true; render(); setTimeout(()=>{ const e=document.getElementById('qea-descricao'); if(e) e.focus(); },50); };
+window.qeAdmCancelar=function(){ qeAdmEd=false; render(); };
+window.qeAdmGuardar=async function(){ const d=qeFichaAtualDoc(); if(!d) return; const mud=[];
+  const curto=v=>{ v=String(v==null?'':v).replace(/\s+/g,' ').trim(); return v.length>60?v.slice(0,57)+'…':v; };
+  const fmt=(k,t,v)=>!v?'':t==='date'?peDataPT(v):k==='especialidade'?peNomeEsp(v):k==='parecer'?(QE_PAR[v]?QE_PAR[v].rot:v):v;
+  QE_ADM_CAMPOS.forEach(([k,rot,t])=>{ const el=document.getElementById('qea-'+k); if(!el) return; let nv=el.value; if(t!=='ta') nv=nv.trim();
+    const a=(t==='date'?String(d[k]||'').slice(0,10):String(d[k]==null?'':d[k])), n=String(nv||'');
+    if(a===n) return; mud.push(rot+': "'+curto(fmt(k,t,a))+'" → "'+curto(fmt(k,t,n))+'"'); d[k]=(t==='date'||t==='select')&&!n?null:nv; });
+  qeAdmEd=false;
+  if(mud.length){ qeRegistar(d,'Editado pelo Superadmin — '+mud.join('; ')); await qePersistir(d); }
+  render(); };
+document.addEventListener('keydown',e=>{ if(!qeAdmEd||!qeFichaId) return; if(e.key==='Escape'){ e.preventDefault(); qeAdmCancelar(); } else if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){ e.preventDefault(); qeAdmGuardar(); } });
+GPE_ANX.qe={ doc:()=>qeFichaAtualDoc(), tit:{fisc:'Falta de Qualidade de Execução (fotos)',emp:'Resposta do Empreiteiro (fotos)'}, accept:'image/*',
+  lista:(d,ch)=>{ const k=ch==='emp'?'anexosEmp':'anexosFisc'; if(!d[k]) d[k]=[]; return d[k]; },
+  pode:(d,ch)=>(ch==='emp'?qePodeEmp(d):qePodeFisc(d))||peESuper(), antes:(d,ch)=>{ if(ch==='fisc') qeLerFormFisc(d); else qeLerFormEmp(d); },
+  gravar:d=>qePersistir(d), abrir:d=>qeAbrirFicha(d.id) };
 
 /* ---- Modal parecer ---- */
 function qeFecharModal(){ const v=document.getElementById('pe-veu'); if(v) v.remove(); }
