@@ -313,7 +313,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.11.0154</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.11.0156</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -954,6 +954,7 @@ window.segoTema=function(){
   .anx-aba.on{background:var(--nav-bd);color:#fff}
   .anx-doc{width:100%;max-height:65vh;overflow:auto;align-self:stretch;background:#fff;color:#111;padding:16px 24px;box-sizing:border-box;text-align:justify}
   .anx-txt{width:100%;max-height:65vh;overflow:auto;align-self:stretch;margin:0;padding:8px;white-space:pre-wrap;font-family:inherit}
+  .cg-admed .cg-cx{outline:1px dashed var(--nav-bd);outline-offset:-1px}
 </style>
 <script>
 /* Pontilhado alinhado (intermédio): em cada bloco de linhas (separado por linha em branco), os valores curtos e
@@ -1063,7 +1064,7 @@ window.segoTema=function(){
     if(/exportar|excel|descarregar/.test(t)) return ['exp'];
     if(/eliminar|apagar|🗑/.test(t)) return ['del','del'];
     if(/alertar|notificar/.test(t)) return ['bell'];
-    if(/limpar/.test(t)) return ['limpar'];
+    if(/limpar|cancelar/.test(t)) return ['limpar'];
     if(/guardar|gravar/.test(t)) return ['save'];
     if(/enviar|emitir|submeter/.test(t)) return ['send'];
     if(/publicar|aprovar|validar|fechar auto|^fechar$/.test(t.trim())) return ['ok'];
@@ -4661,7 +4662,7 @@ window.peAbrirFicha=async function(id){
   }
   render();
 };
-window.peVoltarLista=function(){ peFichaId=null; render(); };
+window.peVoltarLista=function(){ peAdmEd=false; peFichaId=null; render(); };
 window.peVoltarCapa=function(){ const o=peObra(); peFichaId=null; peObraId=null; fichObraId=o?o.id:null; render(); };
 
 function renderFichaPE(app){
@@ -4705,13 +4706,17 @@ function renderFichaPE(app){
     acoes.push(`<button class="pe-btn" onclick="peRever()">Revisão</button>`);
   }
   if(d.estado==='fechado'||d.estado==='reaberto'){ acoes.push(`<button class="pe-btn info" onclick="pePDF('${d.id}')" title="Descarregar o documento completo em PDF">📄 PDF</button>`); }
-  if(peESuper()){ acoes.push(`<button class="pe-btn" onclick="gpeAdmEditar('pe','${d.id}')">Editar (Admin)</button>`); acoes.push(`<button class="pe-btn red" onclick="peEliminar('${d.id}')">Eliminar</button>`); }
+  if(peESuper()){ acoes.push(`<button class="pe-btn red" onclick="peEliminar('${d.id}')">Eliminar</button>`); }
+  const AE=peAdmEd&&peESuper();
+  if(AE){ acoes.length=0; notas.length=0; acoes.push(`<button class="pe-btn gold" onclick="peAdmGuardar()">Guardar</button>`); acoes.push(`<button class="pe-btn" onclick="peAdmCancelar()">Cancelar</button>`); }
 
   /* ===== Layout em cartões (padrão IA/ID) ===== */
   const R=(l,v,st)=>cgR(l,v,st), dt=v=>v?peDataPT(v):'', mut='';
   const OBR='obr', AUT='aut';
   const L=(t,m)=>m?`<span class="cg-lm">${t}<i class="cg-mk ${m}" title="${m==='obr'?'Obrigatório':'Preenchido automaticamente'}"></i></span>`:`<span>${t}</span>`;
   const inp=(id,val,tipo)=>`<input class="cg-i" id="${id}" type="${tipo||'text'}" value="${esc(val||'')}">`;
+  const ai=(campo,tipo,val)=>`<input class="cg-i" id="pea-${campo}" type="${tipo||'text'}" value="${esc(val!==undefined?val:(tipo==='date'?String(d[campo]||'').slice(0,10):(d[campo]||'')))}">`;
+  const at=campo=>`<textarea class="cg-ta" id="pea-${campo}">${esc(d[campo]||'')}</textarea>`;
   const txt=(id,val,ed)=>ed?`<textarea class="cg-ta" id="${id}">${esc(val||'')}</textarea>`:`<div class="cg-txt">${val?esc(val):''}</div>`;
   const maisAnexos=(card,lista,pode,chave)=>{ const n=(lista||[]).length; if(!pode&&!n) return card;
     const tit=n?'Anexos:\n'+(lista||[]).map(a=>'· '+a.nome).join('\n')+(pode?'\n\nClique para ver ou anexar mais':''):'Anexar ficheiro';
@@ -4719,7 +4724,7 @@ function renderFichaPE(app){
     const bt=`<button type="button" class="cg-cx-ic co-mais ${n?'tem':''}" title="${esc(tit)}" onclick="event.stopPropagation();${n?`peVerAnexos('${chave}',0)`:`peAdicionarAnexo('${chave}',true)`}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">${ic}</svg></button>`;
     return card.replace(/<div class="cg-cx-ic" aria-hidden="true">[\s\S]*?<\/svg><\/div>/,bt); };
   // IDE — linhas 1-3; Especialidade na linha 6 (em frente ao Fechado do FLX)
-  let cIde=R(L('Id',AUT),esc(d.id))+R(L('Data',AUT),dt(d.dataEnvio))+R(L('Autor',AUT),esc(d.autorEmp||''))+cgDiv+cgDiv+R('Especialidade',esc(d.projEspecialidade||''));
+  let cIde=R(L('Id',AUT),esc(d.id))+R(L('Data',AUT),AE?ai('dataEnvio','date'):dt(d.dataEnvio))+R(L('Autor',AUT),AE?ai('autorEmp'):esc(d.autorEmp||''))+cgDiv+cgDiv+R('Especialidade',AE?ai('projEspecialidade'):esc(d.projEspecialidade||''));
   if(d.prevId||d.nextId) cIde+=cgDiv+(d.prevId?R('Revisão de',`<a class="cg-ver" onclick="peAbrirFicha('${d.prevId}')">${esc(d.prevId)}</a>`):'')+(d.nextId?R('Revisto por',`<a class="cg-ver" onclick="peAbrirFicha('${d.nextId}')">${esc(d.nextId)}</a>`):'');
   // FLX — datas automáticas de cada passo
   const dataPasso={rascunho:d.dataCriacao,aberto:d.dataEnvio,pendente:d.dataEnvioProj,esclarecido:d.dataEsclarecido,respondido:d.dataResposta,fechado:d.dataFecho};
@@ -4728,15 +4733,15 @@ function renderFichaPE(app){
   if(notas.length) cFlx+=cgDiv+`<div class="cg-nota" title="${esc(notas.join(' '))}">${esc(notas.join(' '))}</div>`;
   // PED — linha 1: Assunto + Ids/Desenhos; linhas 2-6: Esclarecimento; linha 7: Anexos
   const artDes=[d.artigos,d.desenho].filter(Boolean).join(' / ');
-  const cPed=`<div class="cg-r cg-rdup"><span class="cg-rl">${L('Assunto',OBR)}</span><span class="cg-rv">${eEmp?inp('f-assunto',d.assunto):esc(d.assunto||'')}</span><span class="cg-rl cg-rl2">${L('Ids / Desenhos')}</span><span class="cg-rv">${eEmp?inp('f-artigos',d.artigos):esc(artDes)}</span></div>`+
-    `<div class="cg-rtxt"><span class="cg-rl">${L('Esclarecimento',OBR)}</span>${txt('f-pedidoTexto',d.pedidoTexto,eEmp)}</div>`;
+  const cPed=`<div class="cg-r cg-rdup"><span class="cg-rl">${L('Assunto',OBR)}</span><span class="cg-rv">${AE?ai('assunto'):eEmp?inp('f-assunto',d.assunto):esc(d.assunto||'')}</span><span class="cg-rl cg-rl2">${L('Ids / Desenhos')}</span><span class="cg-rv">${AE?ai('artigos','text',artDes):eEmp?inp('f-artigos',d.artigos):esc(artDes)}</span></div>`+
+    `<div class="cg-rtxt"><span class="cg-rl">${L('Esclarecimento',OBR)}</span>${AE?at('pedidoTexto'):txt('f-pedidoTexto',d.pedidoTexto,eEmp)}</div>`;
   // ESC — dados do projetista · RES — resposta (2 colunas)
-  const cEsc=R(L('Data',AUT),dt(d.dataEsclarecido||d.projData))+R(L('Autor',AUT),esc((eProj?(currentUser?currentUser.nome:''):d.autorProj)||d.projDestNome||''))+
-    (d.comentFiscEnvio?cgDiv+R('Nota do envio',`<a class="cg-ver" onclick="peVerTexto('comentFiscEnvio','Nota do envio ao Projetista')">Ver</a>`):'');
-  const cRes=`<div class="cg-rtxt"><span class="cg-rl">${L('Resposta',OBR)}</span>${txt('f-proj-texto',d.esclarecimento,eProj)}</div>`;
+  const cEsc=R(L('Data',AUT),AE?ai('projData','date',String(d.projData||d.dataEsclarecido||'').slice(0,10)):dt(d.projData||d.dataEsclarecido))+R(L('Autor',AUT),AE?ai('autorProj'):esc((eProj?(currentUser?currentUser.nome:''):d.autorProj)||d.projDestNome||''))+
+    (AE?cgDiv+R('Nota do envio',ai('comentFiscEnvio')):d.comentFiscEnvio?cgDiv+R('Nota do envio',`<a class="cg-ver" onclick="peVerTexto('comentFiscEnvio','Nota do envio ao Projetista')">Ver</a>`):'');
+  const cRes=`<div class="cg-rtxt"><span class="cg-rl">${L('Resposta',OBR)}</span>${AE?at('esclarecimento'):txt('f-proj-texto',d.esclarecimento,eProj)}</div>`;
   // FIS — dados da fiscalização · OBS — observações (2 colunas)
-  const cFis=R(L('Data',AUT),dt(d.dataResposta))+R(L('Autor',AUT),esc((eFiscR?(currentUser?currentUser.nome:''):d.autorFiscResp)||''));
-  const cObs=`<div class="cg-rtxt"><span class="cg-rl">${L('Observações')}</span>${txt('f-fisc-obs',d.observacoes,eFiscR)}</div>`;
+  const cFis=R(L('Data',AUT),AE?ai('dataResposta','date'):dt(d.dataResposta))+R(L('Autor',AUT),AE?ai('autorFiscResp'):esc((eFiscR?(currentUser?currentUser.nome:''):d.autorFiscResp)||''));
+  const cObs=`<div class="cg-rtxt"><span class="cg-rl">${L('Observações')}</span>${AE?at('observacoes'):txt('f-fisc-obs',d.observacoes,eFiscR)}</div>`;
   // HIS — histórico (toda a largura)
   const hs=(d.historico||[]);
   const cHis=hs.length?hs.map((h,i)=>`<div class="cg-r cg-dr cg-hr"><span class="cg-rl">${esc(h.data||'')}</span><div class="cg-dv"><span title="${esc(h.autor||'')}">${esc(h.autor||'')}</span><span title="${esc(h.acao||'')}">${esc(h.acao||'')}</span></div></div>`).join('')
@@ -4746,7 +4751,7 @@ function renderFichaPE(app){
   <div class="pe-wrap">
     <button class="back-btn" onclick="peVoltarLista()">← Voltar</button>
     <div class="page-header"><div class="pe-actbar">${acoes.join('')}</div></div>
-    <div class="cg-cxs cg-2 cg-ficha cg-fpe">
+    <div class="cg-cxs cg-2 cg-ficha cg-fpe${AE?' cg-admed':''}" ${peESuper()&&!AE?'ondblclick="peAdmEditar()" title="Duplo clique para editar (Superadmin)"':''}>
       ${cgCartao('FLX','Fluxo',cFlx,'PRR','','cg-int fpe-flx')}
       ${cgCartao('IDE','Identificação',cIde,'IDE','','cg-int fpe-m1')}
       ${maisAnexos(cgCartao('PED','Pedido do Empreiteiro',cPed,'PEDE','','cg-int fpe-c1'),d.anexosEmp,(eEmp||peESuper()),'emp')}
@@ -4758,6 +4763,23 @@ function renderFichaPE(app){
     </div>
   </div>`;
 }
+/* Edição inline pelo Superadmin (duplo clique): todos os campos exceto o Fluxo; as alterações ficam no Histórico */
+let peAdmEd=false;
+const PE_ADM_CAMPOS=[['dataEnvio','Data (Identificação)'],['autorEmp','Autor (Empreiteiro)'],['projEspecialidade','Especialidade'],['assunto','Assunto'],['artigos','Ids / Desenhos'],['pedidoTexto','Esclarecimento'],
+  ['projData','Data (Esclarecimento)'],['autorProj','Autor (Projetista)'],['comentFiscEnvio','Nota do envio'],['esclarecimento','Resposta do Projetista'],['dataResposta','Data (Fiscalização)'],['autorFiscResp','Autor (Fiscalização)'],['observacoes','Observações']];
+window.peAdmEditar=function(){ if(!peESuper()) return; peAdmEd=true; render(); setTimeout(()=>{ const e=document.getElementById('pea-assunto'); if(e) e.focus(); },50); };
+window.peAdmCancelar=function(){ peAdmEd=false; render(); };
+window.peAdmGuardar=async function(){ const d=peFichaAtualDoc(); if(!d) return; const mud=[];
+  const curto=v=>{ v=String(v==null?'':v).replace(/\s+/g,' ').trim(); return v.length>60?v.slice(0,57)+'…':v; };
+  PE_ADM_CAMPOS.forEach(([k,rot])=>{ const el=document.getElementById('pea-'+k); if(!el) return; let nv=el.value; if(el.tagName!=='TEXTAREA') nv=nv.trim(); if(el.type==='date') nv=nv||null;
+    let ant=d[k]; if(k==='artigos') ant=[d.artigos,d.desenho].filter(Boolean).join(' / ');
+    if(k==='projData') ant=d.projData||d.dataEsclarecido||null;
+    const a=(el.type==='date'?String(ant||'').slice(0,10):String(ant||'')), n=String(nv||'');
+    if(a!==n){ mud.push(rot+': "'+curto(a)+'" → "'+curto(n)+'"'); d[k]=nv; if(k==='artigos') d.desenho=''; } });
+  peAdmEd=false;
+  if(mud.length){ peRegistar(d,'Editado pelo Superadmin — '+mud.join('; ')); try{ await pePersistir(d); }catch(e){ alert('Erro ao guardar: '+e.message); } }
+  render(); };
+document.addEventListener('keydown',e=>{ if(!peAdmEd||!peFichaId) return; if(e.key==='Escape'){ e.preventDefault(); peAdmCancelar(); } else if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){ e.preventDefault(); peAdmGuardar(); } });
 window.peVerTexto=function(k,tit){ const d=peFichaAtualDoc(); if(!d) return; const v=d[k]||'';
   showModal(tit,`<div style="white-space:pre-wrap;line-height:1.5;text-align:justify;hyphens:auto" lang="pt">${v?esc(v):'<span style="color:var(--text-muted)">Sem texto.</span>'}</div>`,[{label:'Fechar',cls:'btn-outline',fn:'closeModal()'}]); };
 
