@@ -314,7 +314,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.11.1959</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.11.2000</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -892,6 +892,11 @@ window.segoTema=function(){
     .cg-frel>.cg-cx.cg-docw{grid-row:3 !important}
     .cg-frel>.cg-cx.frel-big{grid-column:3 / -1 !important;grid-row:1 / span 2 !important}
     .cg-frel>.cg-cx.frel-his2{grid-row:3 !important}
+    .cg-frso>.cg-cx.rs-atividades{grid-column:2 / -1 !important;grid-row:2 !important}
+    .cg-frso>.cg-cx.rs-subempreiteiros{grid-column:2 / -1 !important;grid-row:3 !important}
+    .cg-frso>.cg-cx.rs-documentacao{grid-column:2 / -1 !important;grid-row:4 !important}
+    .cg-frso>.cg-cx.rs-fotos{grid-column:2 / -1 !important;grid-row:5 !important}
+    .cg-frso>.cg-cx.rs-his{grid-row:6 !important}
   }
   .cg-rlab .cg-rv{display:none !important}
   .cg-rlab .cg-rl::after{display:none}
@@ -970,6 +975,10 @@ window.segoTema=function(){
   .cg-frel .sos-anx{display:inline-flex;align-items:center;gap:4px;max-width:260px}
   .cg-frel .sos-anx a{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)}
   .cg-frel .sos-add{cursor:pointer}
+  .cg-frso .rs-cab{cursor:pointer}
+  .cg-frso .rs-tg{color:var(--nav-bd);font-size:12px !important}
+  .cg-frso .rs-sec.rs-fech>.cg-cx-b{display:none}
+  .cg-frso .rs-sec>.cg-cx-b{overflow-x:auto}
   .cg-ranx{height:auto !important;min-height:22px}
   .cg-ranx .cg-rv{white-space:normal !important;overflow:visible !important;display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center}
   .cg-ax a{color:var(--info) !important;text-decoration:none}
@@ -10730,39 +10739,26 @@ function renderFichaRS(app,r){
   const colsAtRight=`grid-template-columns:repeat(6,1fr)${ro?'':' 50px'}`;
   const colsDocLeft=`grid-template-columns:1fr 1fr 4fr`;
   const colsDocRight=`grid-template-columns:1fr 1fr 4fr${ro?'':' 50px'}`;
-  app.innerHTML=`
+  const AUT='aut';
+  const Lm=t=>`<span class="cg-lm">${t}<i class="cg-mk aut" title="Preenchido automaticamente"></i></span>`;
+  const inpI=(val,tipo,ev)=>ro?(tipo==='date'?(val?peDataPT(val):''):esc(val||'')):`<input class="cg-i" type="${tipo||'text'}" value="${esc(val||'')}" ${ev}>`;
+  const cIde=cgR(Lm('N.º'),esc(relNumero(r)))+cgR(Lm('Data'),inpI(d.data,'date',`oninput="rsCommit(null,null,'data',this.value)"`))+cgR(Lm('Autor'),inpI(d.autor,'text',`oninput="rsCommit(null,null,'autor',this.value)"`))+cgDiv+
+    cgR('Início da Semana',inpI(d.semanaIni,'date',`onchange="rsSetSemanaIni(this.value)"`))+cgR(Lm('Período'),esc(rsoPeriodo(d.semanaIni)||d.semana||''))+
+    (d.ptqRef?cgR('PTQ',`<a class="cg-ver" onclick="rsoAbrirPTQref('${r.obra_id}','${esc(d.ptqRef.id)}')">${esc(d.ptqRef.id)}</a>`):'');
+  const cAna=`<div class="cg-rtxt"><span class="cg-rl"><span>Análise</span></span>${ro?`<div class="cg-txt">${esc(d.analise||'')}</div>`:`<textarea class="cg-ta" ${ro?'readonly':''} oninput="rsCommit(null,null,'analise',this.value)">${esc(d.analise)}</textarea>`}</div>`+
+    `<div class="cg-rtxt"><span class="cg-rl"><span>Outras Informações</span></span>${ro?`<div class="cg-txt">${esc(d.outras_info||'')}</div>`:`<textarea class="cg-ta" ${ro?'readonly':''} oninput="rsCommit(null,null,'outras_info',this.value)">${esc(d.outras_info)}</textarea>`}</div>`;
+  app.innerHTML=PE_CSS+`
   ${styleTag}
+  <div class="pe-wrap">
   <button class="back-btn" onclick="rsCleanupBlankRows();relRelId=null;render()">← Voltar</button>
-  <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
-    <div>
-      <div class="page-title"><span class="code-pill" style="font-size:13px">${o.codigo||''}</span>${o.sigla||''} — RSO ${relNumero(r)}</div>
-      <div class="page-count">${o.nome||''} · ${relBadge(r.estado)}</div>
-    </div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap">${fiscActionBtn(r)}</div>
-  </div>
-  <div style="background:linear-gradient(180deg,#1E3A5F 0%,#2C4E7A 100%);color:#fff;padding:14px 0;text-align:center;margin-top:10px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;border-bottom:3px solid #C9922A;border-radius:6px 6px 0 0">RSO — Relatório Semanal de Obra</div>
-  <div style="background:transparent;padding:14px;border:0.5px solid var(--border-light);border-top:none;border-radius:0 0 6px 6px">
-
-    <!-- IDENTIFICAÇÃO -->
-    <div class="table-card" style="padding:14px;margin-bottom:12px">
-      <div style="${sectTitle};margin-bottom:10px">IDENTIFICAÇÃO</div>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
-        <div><div style="${lbl}">RSO Nº</div><input value="${relNumero(r)}" readonly style="${inpRO}"></div>
-        <div><div style="${lbl}">Data</div><input type="date" value="${d.data||''}" ${ro?'readonly':''} oninput="rsCommit(null,null,'data',this.value)" style="${ro?inpRO:inpS}"></div>
-        <div><div style="${lbl}">Autor</div><input value="${esc(d.autor)}" ${ro?'readonly':''} oninput="rsCommit(null,null,'autor',this.value)" style="${ro?inpRO:inpS}"></div>
-        <div><div style="${lbl}">Obra</div><input value="${esc((o.sigla||'')+' — '+(o.nome||''))}" readonly style="${inpRO}"></div>
-        <div><div style="${lbl}">Início da semana</div><input type="date" value="${d.semanaIni||''}" ${ro?'readonly':''} onchange="rsSetSemanaIni(this.value)" style="${ro?inpRO:inpS}"></div>
-        <div><div style="${lbl}">Período</div><input value="${esc(rsoPeriodo(d.semanaIni)||d.semana||'')}" readonly style="${inpRO}"></div>
-      </div>
-    </div>
-    ${d.ptqRef?`<div style="font-size:12px;color:var(--info);margin:0 0 10px">Importado do <a onclick="rsoAbrirPTQref('${r.obra_id}','${esc(d.ptqRef.id)}')" style="color:var(--info);text-decoration:underline;cursor:pointer">PTQ ${esc(d.ptqRef.id)}</a>${d.ptqRef.semana?' (S'+d.ptqRef.semana+')':''}${d.ptqRef.periodo?' · '+esc(d.ptqRef.periodo):''}</div>`:''}
-
-    <!-- ATIVIDADES -->
-    <div class="table-card" style="padding:14px;margin-bottom:12px">
+  <div class="page-header"><div class="pe-actbar">${fiscActionBtn(r)}</div></div>
+  <div class="cg-cxs cg-2 cg-ficha cg-fpe cg-fpa cg-fptq cg-frel cg-frso">
+    ${relCartaoFlx(r)}
+    ${cgCartao('IDE','Identificação',cIde,'IDE','','cg-int fpe-m1')}
+    ${cgCartao('ANA','Análise e Recomendações',cAna,'PEDE','','cg-int fpe-c1')}
+      <div class="cg-cx cg-int fpq-g rs-sec rs-atividades ${atvCollapsed?'rs-fech':''}"><div class="cg-cx-h cg-cab rs-cab" onclick="rsToggleSection('atividades')" title="Mostrar / esconder"><div style="min-width:0;flex:1"><div style="font-weight:700;color:rgba(255,255,255,.7);margin-bottom:3px">ATV</div><div style="color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Atividades</div></div><div class="cg-cx-ic rs-tg">${atvCollapsed?'▸':'▾'}</div></div><div class="cg-cx-b">
       <div onclick="rsToggleSection('atividades')" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:${atvCollapsed?'0':'10px'};cursor:pointer">
         <div style="display:flex;align-items:center;flex:1">
-          <span style="font-size:12px;margin-right:10px;color:var(--text-muted);user-select:none;width:12px;display:inline-block">${atvCollapsed?'▶':'▼'}</span>
-          <span style="${sectTitle}">ATIVIDADES</span>
           <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px;color:var(--text-muted);margin-left:24px">P = Previsto · R = Realizado · Clica no dia para marcar Feriado</span>
         </div>
         ${(!ro && !atvCollapsed)?`<span style="display:inline-flex;gap:6px"><button class="btn btn-outline btn-sm" style="font-size:11px;padding:3px 10px" onclick="event.stopPropagation();document.getElementById('rs-import-xlsx-input').click()" title="Importar atividades e subempreiteiros de um ficheiro Excel">⇪ Importar XLSX</button><button class="btn btn-outline btn-sm" style="font-size:11px;padding:3px 10px" onclick="event.stopPropagation();rsAddRow('atividades')">+ linha</button></span><input type="file" id="rs-import-xlsx-input" accept=".xlsx,.xls" style="display:none" onchange="rsImportXLSX(this.files[0]);this.value=''">`:''}
@@ -10818,14 +10814,10 @@ function renderFichaRS(app,r){
         <div style="background:var(--bg-card);border-left:3px solid #C9922A;padding:8px 10px;border-radius:3px;border:0.5px solid var(--border-light)"><div style="font-size:9px;color:var(--text-muted);letter-spacing:.5px;font-weight:600">EXTRA (nP∩R)</div><div style="display:flex;align-items:baseline;gap:6px;margin-top:2px"><div id="rs-ka-npr" style="font-size:22px;font-weight:700;color:#C9922A;line-height:1">${kA.nPAndR}</div><div style="font-size:11px;color:var(--text-muted)"><span id="rs-ka-npr-pct">${kA.pctNPAndR}%</span> de R</div></div></div>
       </div>
       `}
-    </div>
-
-    <!-- SUBEMPREITEIROS -->
-    <div class="table-card" style="padding:14px;margin-bottom:12px">
+    </div></div>
+      <div class="cg-cx cg-int fpq-g rs-sec rs-subempreiteiros ${subCollapsed?'rs-fech':''}"><div class="cg-cx-h cg-cab rs-cab" onclick="rsToggleSection('subempreiteiros')" title="Mostrar / esconder"><div style="min-width:0;flex:1"><div style="font-weight:700;color:rgba(255,255,255,.7);margin-bottom:3px">SUB</div><div style="color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Subempreiteiros e Trabalhadores</div></div><div class="cg-cx-ic rs-tg">${subCollapsed?'▸':'▾'}</div></div><div class="cg-cx-b">
       <div onclick="rsToggleSection('subempreiteiros')" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:${subCollapsed?'0':'10px'};cursor:pointer">
         <div style="display:flex;align-items:center;flex:1">
-          <span style="font-size:12px;margin-right:10px;color:var(--text-muted);user-select:none;width:12px;display:inline-block">${subCollapsed?'▶':'▼'}</span>
-          <span style="${sectTitle}">SUBEMPREITEIROS E TRABALHADORES</span>
           <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px;color:var(--text-muted);margin-left:24px">P = Previstos · E = Efetivos · Clica no dia para marcar Feriado</span>
         </div>
         ${(!ro && !subCollapsed)?`<button class="btn btn-outline btn-sm" style="font-size:11px;padding:3px 10px" onclick="event.stopPropagation();rsAddRow('subempreiteiros')">+ linha</button>`:''}
@@ -10897,24 +10889,11 @@ function renderFichaRS(app,r){
         <div style="background:var(--bg-card);border-left:3px solid #C9922A;padding:8px 10px;border-radius:3px;border:0.5px solid var(--border-light)"><div style="font-size:9px;color:var(--text-muted);letter-spacing:.5px;font-weight:600">EXCEDENTE (E > P)</div><div style="display:flex;align-items:baseline;gap:6px;margin-top:2px"><div id="rs-ks-excedente" style="font-size:22px;font-weight:700;color:#C9922A;line-height:1">${kS.excedente}</div><div style="font-size:11px;color:var(--text-muted)"><span id="rs-ks-excedente-pct">${kS.pctExcedente}%</span> de P</div></div></div>
       </div>
       `}
-    </div>
-
-    <!-- ANÁLISE -->
-    <div class="table-card" style="padding:14px;margin-bottom:12px">
-      <div onclick="rsToggleSection('analise')" style="display:flex;align-items:center;margin-bottom:${anaCollapsed?'0':'10px'};cursor:pointer">
-        <span style="font-size:12px;margin-right:10px;color:var(--text-muted);user-select:none;width:12px;display:inline-block">${anaCollapsed?'▶':'▼'}</span>
-        <span style="${sectTitle}">ANÁLISE E RECOMENDAÇÕES</span>
-      </div>
-      ${anaCollapsed?'':`<textarea ${ro?'readonly':''} placeholder="Descrição da produção, desvios face ao planeado, observações..." oninput="rsCommit(null,null,'analise',this.value)" style="width:100%;min-height:90px;padding:8px 10px;border:0.5px solid var(--border-light);border-radius:3px;font-size:12px;font-family:inherit;background:${ro?'#f9fafb':'#fff'};resize:vertical;box-sizing:border-box">${esc(d.analise)}</textarea>`}
-    </div>
-
-    <!-- DOCUMENTAÇÃO -->
-    <div class="table-card" style="padding:14px;margin-bottom:12px">
+    </div></div>
+      <div class="cg-cx cg-int fpq-g rs-sec rs-documentacao ${docCollapsed?'rs-fech':''}"><div class="cg-cx-h cg-cab rs-cab" onclick="rsToggleSection('documentacao')" title="Mostrar / esconder"><div style="min-width:0;flex:1"><div style="font-weight:700;color:rgba(255,255,255,.7);margin-bottom:3px">DOC</div><div style="color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Documentação</div></div><div class="cg-cx-ic rs-tg">${docCollapsed?'▸':'▾'}</div></div><div class="cg-cx-b">
       <div onclick="rsToggleSection('documentacao')" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:${docCollapsed?'0':'10px'};cursor:pointer">
         <div style="display:flex;align-items:center;flex:1">
-          <span style="font-size:12px;margin-right:10px;color:var(--text-muted);user-select:none;width:12px;display:inline-block">${docCollapsed?'▶':'▼'}</span>
-          <span style="${sectTitle}">DOCUMENTAÇÃO</span>
-        </div>
+          </div>
         ${(!ro && !docCollapsed)?`<button class="btn btn-outline btn-sm" style="font-size:11px;padding:3px 10px" onclick="event.stopPropagation();rsAddRow('documentacao')">+ linha</button>`:''}
       </div>
       ${docCollapsed?'':`
@@ -10948,24 +10927,11 @@ function renderFichaRS(app,r){
       <datalist id="rs-doc-tipos"><option value="PTQ"><option value="PB"><option value="PA"><option value="PE"><option value="QE"><option value="AM"><option value="TCm"></datalist>
       <datalist id="rs-doc-estados"><option value="Aprovado"><option value="Pendente"><option value="Em análise"><option value="Rejeitado"><option value="Enviado"></datalist>
       `}
-    </div>
-
-    <!-- OUTRAS -->
-    <div class="table-card" style="padding:14px;margin-bottom:12px">
-      <div onclick="rsToggleSection('outras')" style="display:flex;align-items:center;margin-bottom:${outCollapsed?'0':'10px'};cursor:pointer">
-        <span style="font-size:12px;margin-right:10px;color:var(--text-muted);user-select:none;width:12px;display:inline-block">${outCollapsed?'▶':'▼'}</span>
-        <span style="${sectTitle}">OUTRAS INFORMAÇÕES RELEVANTES</span>
-      </div>
-      ${outCollapsed?'':`<textarea ${ro?'readonly':''} placeholder="Notas, links, observações livres..." oninput="rsCommit(null,null,'outras_info',this.value)" style="width:100%;min-height:60px;padding:8px 10px;border:0.5px solid var(--border-light);border-radius:3px;font-size:12px;font-family:inherit;background:${ro?'#f9fafb':'#fff'};resize:vertical;box-sizing:border-box">${esc(d.outras_info)}</textarea>`}
-    </div>
-
-    <!-- FOTOS -->
-    <div class="table-card" style="padding:14px">
+    </div></div>
+      <div class="cg-cx cg-int fpq-g rs-sec rs-fotos ${fotCollapsed?'rs-fech':''}"><div class="cg-cx-h cg-cab rs-cab" onclick="rsToggleSection('fotos')" title="Mostrar / esconder"><div style="min-width:0;flex:1"><div style="font-weight:700;color:rgba(255,255,255,.7);margin-bottom:3px">FOT</div><div style="color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Fotos · ${d.fotos.length}</div></div><div class="cg-cx-ic rs-tg">${fotCollapsed?'▸':'▾'}</div></div><div class="cg-cx-b">
       <div onclick="rsToggleSection('fotos')" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:${fotCollapsed?'0':'10px'};cursor:pointer">
         <div style="display:flex;align-items:center;flex:1">
-          <span style="font-size:12px;margin-right:10px;color:var(--text-muted);user-select:none;width:12px;display:inline-block">${fotCollapsed?'▶':'▼'}</span>
-          <span style="${sectTitle}">FOTOS · ${d.fotos.length}</span>
-        </div>
+          </div>
         ${(!ro && !fotCollapsed)?`<button class="btn btn-outline btn-sm" style="font-size:11px;padding:3px 10px" onclick="event.stopPropagation();rsAddPhoto()">+ anexar</button>`:''}
       </div>
       ${fotCollapsed?'':(d.fotos.length?`<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px">
@@ -10974,9 +10940,9 @@ function renderFichaRS(app,r){
           ${ro?(p.legenda?`<div style="font-size:10px;color:var(--text-muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(p.legenda)}">${esc(p.legenda)}</div>`:''):`<input value="${esc(p.legenda||'')}" placeholder="Título (opcional)" onchange="rsSetFotoLegenda(${i},this.value)" style="width:100%;box-sizing:border-box;margin-top:3px;font-size:10px;padding:2px 4px;border:1px solid var(--border-light);border-radius:3px">`}
         </div>`).join('')}
       </div>`:empty('Sem fotos'))}
-    </div>
-    ${relHistHTML(r)}
-  </div>`;
+    </div></div>
+    ${relCartaoHis(r,'rs-his')}
+  </div></div>`;
 }
 function rvtActionBtn(r){
   if(!rvtPode()) return '';
