@@ -313,7 +313,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.11.0112</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.11.0119</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -913,6 +913,20 @@ window.segoTema=function(){
   html[data-caixas] .cg-r .cg-rv:not(:empty):not(:has(input,select,textarea)){border:1px solid var(--border-light);border-radius:4px;padding:0 6px !important;height:20px;line-height:18px;box-sizing:border-box;background:var(--bg-card)}
   html[data-caixas] .cg-txt{border:1px solid var(--border-light);border-radius:4px;padding:0 6px;box-sizing:border-box}
   html[data-caixas] .cg-dr:not(.cg-dh) .cg-dv>span:not(:empty){border:1px solid var(--border-light);border-radius:4px;padding:0 6px;height:20px;line-height:18px;box-sizing:border-box}
+  /* PE: linha dupla (Assunto + Ids/Desenhos), texto de 5 linhas, anexos na própria linha, marcas obrigatório/automático */
+  .cg-fpe [class*="fpe-c"] .cg-cx-b>.cg-r.cg-rdup{grid-template-columns:var(--val-l,140px) minmax(0,1fr) max-content minmax(0,26%) !important}
+  .cg-rl.cg-rl2{grid-template-columns:max-content 24px !important;margin-left:14px}
+  .cg-fpe .cg-txt,.cg-fpe .cg-ta{height:110px !important;min-height:110px !important;overflow:auto}
+  .cg-fpe .cg-ta{resize:none}
+  .cg-ranx{height:auto !important;min-height:22px}
+  .cg-ranx .cg-rv{white-space:normal !important;overflow:visible !important;display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center}
+  .cg-ax{display:inline-flex;align-items:center;gap:3px;font-size:11px !important;line-height:16px}
+  .cg-ax *{font-size:11px !important}
+  .cg-ax a{color:var(--info) !important;text-decoration:none}
+  .cg-ax-x{border:none;background:none;color:var(--danger) !important;cursor:pointer;padding:0 2px;font-weight:700}
+  .cg-ax-mais{border:1px solid var(--nav-bd);background:transparent;color:var(--nav-bd) !important;border-radius:4px;width:16px;height:16px;line-height:13px;padding:0;margin-left:4px;cursor:pointer;font-weight:700;font-family:inherit;vertical-align:baseline}
+  .cg-req{color:var(--danger) !important;font-weight:700;margin-left:2px}
+  .cg-aut{color:var(--text-muted) !important;font-weight:400;margin-left:3px;font-size:10px !important;opacity:.7}
 </style>
 <script>
 /* Pontilhado alinhado (intermédio): em cada bloco de linhas (separado por linha em branco), os valores curtos e
@@ -926,7 +940,7 @@ window.segoTema=function(){
     const rng=document.createRange();
     const largL=l=>{ rng.selectNodeContents(l); return rng.getBoundingClientRect().width; };
     const grupoLab=new Map();
-    app.querySelectorAll('.cg-r .cg-rl,.cg-rtxt>.cg-rl').forEach(l=>{ if(l.closest('.co-semreg')) return;
+    app.querySelectorAll('.cg-r .cg-rl:not(.cg-rl2),.cg-rtxt>.cg-rl').forEach(l=>{ if(l.closest('.co-semreg')) return;
       const box=l.closest('.cg-fpe [class*="fpe-c"]') ? l.closest('.cg-fpe') : (l.closest('.cg-cx-b,.cg-card')||l.parentElement);
       const w=largL(l); grupoLab.set(box,Math.max(grupoLab.get(box)||0,w)); });
     grupoLab.forEach((w,box)=>{ const v=Math.ceil(w)+'px';
@@ -954,7 +968,7 @@ window.segoTema=function(){
       });
     });
     app.querySelectorAll('.cg-fpe').forEach(g=>{ let mx=0; const m=document.createElement('span'); m.style.cssText='position:absolute;visibility:hidden;white-space:nowrap;font-weight:700'; g.appendChild(m);
-      g.querySelectorAll('[class*="fpe-c"] .cg-rl').forEach(l=>{ m.textContent=(l.textContent||'').trim(); mx=Math.max(mx,m.getBoundingClientRect().width); }); m.remove();
+      g.querySelectorAll('[class*="fpe-c"] .cg-rl:not(.cg-rl2)').forEach(l=>{ m.innerHTML=l.innerHTML; m.querySelectorAll('button').forEach(b=>b.remove()); mx=Math.max(mx,m.getBoundingClientRect().width+((l.querySelector('button'))?22:0)); }); m.remove();
       g.style.setProperty('--val-l',Math.ceil(mx+22)+'px'); });
     app.querySelectorAll('.cg-ficha').forEach(g=>{ const c=g.querySelector('.cg-cx:not(.cg-s2):not(.cg-s3):not(.cg-docw):not([class*="fpe-c"]) .cg-cx-b'); if(!c) return; const cs=getComputedStyle(c);
       g.style.setProperty('--col-w',Math.round(c.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight))+'px'); });
@@ -4619,34 +4633,32 @@ function renderFichaPE(app){
   if(peESuper()){ acoes.push(`<button class="pe-btn" onclick="gpeAdmEditar('pe','${d.id}')">Editar (Admin)</button>`); acoes.push(`<button class="pe-btn red" onclick="peEliminar('${d.id}')">Eliminar</button>`); }
 
   /* ===== Layout em cartões (padrão IA/ID) ===== */
-  const R=(l,v,st)=>cgR(l,v,st), dt=v=>v?peDataPT(v):'—', mut='color:var(--text-muted)';
-  const inp=(id,val,tipo)=>`<input class="cg-i" id="${id}" type="${tipo||'text'}" value="${esc(val||'')}" placeholder="—">`;
-  const txt=(id,val,ed,ph)=>ed?`<textarea class="cg-ta" id="${id}" placeholder="${ph||''}">${esc(val||'')}</textarea>`
-                               :`<div class="cg-txt">${val?esc(val):'<span style="color:var(--text-muted)">—</span>'}</div>`;
-  const anexos=(lista,pode,chave)=>R('Anexos',(lista&&lista.length)?lista.length+' ficheiro'+(lista.length===1?'':'s'):'—',mut)+
-    ((lista&&lista.length)||pode?`<div class="cg-anx">${(lista&&lista.length)?peHtmlAnexos(lista,pode,chave):''}${pode?`<button class="cg-anx-add" onclick="peAdicionarAnexo('${chave}')">+ Anexar Ficheiro</button>`:''}</div>`:'');
-  const est=peEST(d.estado);
-  // IDE
-  let cIde=R('Id',esc(d.id))+R('Data',eEmp?inp('f-dataCriacao',d.dataCriacao,'date'):dt(d.dataCriacao))+R('Autor',esc(d.autorEmp||'—'));
-  cIde+=cgDiv+R('Especialidade',esc(d.projEspecialidade||'—'));
+  const R=(l,v,st)=>cgR(l,v,st), dt=v=>v?peDataPT(v):'', mut='';
+  const OBR='<span class="cg-req" title="Obrigatório">*</span>', AUT='<span class="cg-aut" title="Preenchido automaticamente">⚙</span>';
+  const L=(t,m)=>`<span>${t}${m||''}</span>`;
+  const inp=(id,val,tipo)=>`<input class="cg-i" id="${id}" type="${tipo||'text'}" value="${esc(val||'')}">`;
+  const txt=(id,val,ed)=>ed?`<textarea class="cg-ta" id="${id}">${esc(val||'')}</textarea>`:`<div class="cg-txt">${val?esc(val):''}</div>`;
+  const anexos=(lista,pode,chave)=>{ const ch=(lista||[]).map((a,i)=>`<span class="cg-ax" title="${esc(a.nome)} · ${(a.tam/1024).toFixed(0)} KB"><a href="${a.dados}" download="${esc(a.nome)}">${esc(a.nome)}</a>${pode?`<button class="cg-ax-x" title="Remover" onclick="peRemoverAnexo('${chave}',${i})">×</button>`:''}</span>`).join('');
+    return `<div class="cg-r cg-ranx"><span class="cg-rl">${L('Anexos'+(pode?` <button class="cg-ax-mais" title="Anexar ficheiro" onclick="peAdicionarAnexo('${chave}')">+</button>`:''))}</span><span class="cg-rv">${ch}</span></div>`; };
+  // IDE — linhas 1-3; Especialidade na linha 6 (em frente ao Fechado do FLX)
+  let cIde=R(L('Id',AUT),esc(d.id))+R('Data',eEmp?inp('f-dataCriacao',d.dataCriacao,'date'):dt(d.dataCriacao))+R(L('Autor',AUT),esc(d.autorEmp||''))+cgDiv+cgDiv+R(L('Especialidade',AUT),esc(d.projEspecialidade||''));
   if(d.prevId||d.nextId) cIde+=cgDiv+(d.prevId?R('Revisão de',`<a class="cg-ver" onclick="peAbrirFicha('${d.prevId}')">${esc(d.prevId)}</a>`):'')+(d.nextId?R('Revisto por',`<a class="cg-ver" onclick="peAbrirFicha('${d.nextId}')">${esc(d.nextId)}</a>`):'');
-  // FLX — fluxo com as datas de cada passo
+  // FLX — datas automáticas de cada passo
   const dataPasso={rascunho:d.dataCriacao,aberto:d.dataEnvio,pendente:d.dataEnvioProj,esclarecido:d.dataEsclarecido,respondido:d.dataResposta,fechado:d.dataFecho};
-  const ref=(d.estado==='reaberto')?'respondido':d.estado, idx=M.ordem.indexOf(ref);
-  let cFlx=M.ordem.map((k,pos)=>{ const atual=k===d.estado, feito=pos<idx;
-    return R(M.estados[k].rot,dataPasso[k]?dt(dataPasso[k]):'—'); }).join('');
-  if(d.estado==='reaberto') cFlx+=R('Reaberto','aguarda revisão');
+  let cFlx=M.ordem.map(k=>R(L(M.estados[k].rot,AUT),dt(dataPasso[k]))).join('');
+  if(d.estado==='reaberto') cFlx+=R(L('Reaberto',AUT),'aguarda revisão');
   if(notas.length) cFlx+=cgDiv+`<div class="cg-nota" title="${esc(notas.join(' '))}">${esc(notas.join(' '))}</div>`;
-  // PED — pedido do empreiteiro (3 colunas)
-  const cPed=R('Assunto',eEmp?inp('f-assunto',d.assunto):(esc(d.assunto)||'—'))+R('Id(s) Artº(s)',eEmp?inp('f-artigos',d.artigos):(esc(d.artigos)||'—'))+R('Desenho N.º',eEmp?inp('f-desenho',d.desenho):(esc(d.desenho)||'—'))+cgDiv+
-    `<div class="cg-rtxt"><span class="cg-rl">Esclarecimento</span>${txt('f-pedidoTexto',d.pedidoTexto,eEmp,'')}</div>`+cgDiv+anexos(d.anexosEmp,(eEmp||peESuper()),'emp');
-  // ESC — dados do esclarecimento (projetista) · RES — texto do esclarecimento (2 colunas)
-  const cEsc=R('Data',eProj?inp('f-proj-data',d.projData||peHoje(),'date'):dt(d.projData))+R('Autor',esc((eProj?(currentUser?currentUser.nome:''):d.autorProj)||d.projDestNome||'—'))+
+  // PED — linha 1: Assunto + Ids/Desenhos; linhas 2-6: Esclarecimento; linha 7: Anexos
+  const artDes=[d.artigos,d.desenho].filter(Boolean).join(' / ');
+  const cPed=`<div class="cg-r cg-rdup"><span class="cg-rl">${L('Assunto',eEmp?OBR:'')}</span><span class="cg-rv">${eEmp?inp('f-assunto',d.assunto):esc(d.assunto||'')}</span><span class="cg-rl cg-rl2">${L('Ids / Desenhos')}</span><span class="cg-rv">${eEmp?inp('f-artigos',d.artigos):esc(artDes)}</span></div>`+
+    `<div class="cg-rtxt"><span class="cg-rl">${L('Esclarecimento',eEmp?OBR:'')}</span>${txt('f-pedidoTexto',d.pedidoTexto,eEmp)}</div>`+anexos(d.anexosEmp,(eEmp||peESuper()),'emp');
+  // ESC — dados do projetista · RES — resposta (2 colunas)
+  const cEsc=R('Data',eProj?inp('f-proj-data',d.projData||peHoje(),'date'):dt(d.projData))+R(L('Autor',AUT),esc((eProj?(currentUser?currentUser.nome:''):d.autorProj)||d.projDestNome||''))+
     (d.comentFiscEnvio?cgDiv+R('Nota do envio',`<a class="cg-ver" onclick="peVerTexto('comentFiscEnvio','Nota do envio ao Projetista')">Ver</a>`):'');
-  const cRes=`<div class="cg-rtxt"><span class="cg-rl">Resposta</span>${txt('f-proj-texto',d.esclarecimento,eProj,'')}</div>`+cgDiv+anexos(d.anexosProj,(eProj||peESuper()),'proj');
-  // FIS — dados da resposta (fiscalização) · OBS — observações (2 colunas)
-  const cFis=R('Data',eFiscR?inp('f-fisc-data',d.dataResposta||peHoje(),'date'):dt(d.dataResposta))+R('Autor',esc((eFiscR?(currentUser?currentUser.nome:''):d.autorFiscResp)||'—'));
-  const cObs=`<div class="cg-rtxt"><span class="cg-rl">Observações</span>${txt('f-fisc-obs',d.observacoes,eFiscR,'')}</div>`;
+  const cRes=`<div class="cg-rtxt"><span class="cg-rl">${L('Resposta',eProj?OBR:'')}</span>${txt('f-proj-texto',d.esclarecimento,eProj)}</div>`+anexos(d.anexosProj,(eProj||peESuper()),'proj');
+  // FIS — dados da fiscalização · OBS — observações (2 colunas)
+  const cFis=R('Data',eFiscR?inp('f-fisc-data',d.dataResposta||peHoje(),'date'):dt(d.dataResposta))+R(L('Autor',AUT),esc((eFiscR?(currentUser?currentUser.nome:''):d.autorFiscResp)||''));
+  const cObs=`<div class="cg-rtxt"><span class="cg-rl">${L('Observações')}</span>${txt('f-fisc-obs',d.observacoes,eFiscR)}</div>`;
   // HIS — histórico (toda a largura)
   const hs=(d.historico||[]);
   const cHis=hs.length?hs.map((h,i)=>`<div class="cg-r cg-dr cg-hr"><span class="cg-rl">${esc(h.data||'')}</span><div class="cg-dv"><span title="${esc(h.autor||'')}">${esc(h.autor||'')}</span><span title="${esc(h.acao||'')}">${esc(h.acao||'')}</span></div></div>`).join('')
@@ -11899,7 +11911,7 @@ function cgAtalhos(o,atual){ return `<div class="cg-at">${CG_ATALHOS.map(([k,t])
 function cgCardHTML(o,ehFase){
   const corEstado=e=>({'Em Curso':'var(--est-curso)','Em Preparação':'var(--est-prep)','Suspensa':'var(--est-susp)','Concluída':'var(--est-concl)'}[e]||'var(--est-curso)');
   const prrs=o.prorrogacoes||[];
-  const row=(l,v,st)=>`<div class="cg-r"><span class="cg-rl">${l}</span><span class="cg-rv" style="${st||''}">${v||'—'}</span></div>`;
+  const row=(l,v,st)=>`<div class="cg-r"><span class="cg-rl">${l}</span><span class="cg-rv" style="${st||''}">${(v&&v!=='—')?v:''}</span></div>`;
   const nf=o.comFases?cgFases(o.id).length:0;
   const corpo=o.comFases?`${row('Fases',nf+' fase'+(nf===1?'':'s'),'font-weight:700')}
       ${cgFases(o.id).map(f=>row(esc(f.sigla||''),esc(f.nome||''))).join('')}`
@@ -11969,7 +11981,7 @@ function cgNavTpl(o,atual,botoes){ const mae=cgMae(o);
   const sg=mae?`${esc(mae.sigla||'')} · ${esc(o.sigla||'')}`:esc(o.sigla||'');
   const meio=(botoes||'')||(atual&&!o.comFases?CG_ATALHOS.map(([k,t])=>`<button class="on-at ${atual===k?'on':''}" title="${t}" onclick="${k==='CO'?`cgAbrirCO('${o.id}')`:`cgAbrir('${o.id}','${k}')`}">${CG_AT_IC[k]}</button>`).join(''):'');
   return `<template id="obra-nav-tpl"><span class="on-sig">${sg}</span><span class="on-nome" title="${esc(o.nome||'')}">${esc(o.nome||'')}</span></template><template id="obra-mid-tpl">${meio}</template>`; }
-function cgR(l,v,st){ return `<div class="cg-r"><span class="cg-rl">${l}</span><span class="cg-rv" style="${st||''}">${v===undefined||v===null||v===''?'—':v}</span></div>`; }
+function cgR(l,v,st){ const vazio=v===undefined||v===null||v===''||v==='—'||v==='— €'; return `<div class="cg-r"><span class="cg-rl">${l}</span><span class="cg-rv" style="${st||''}">${vazio?'':v}</span></div>`; }
 const cgDiv='<div class="cg-gap">&nbsp;</div>';
 function renderCardGeral(app){
   const o0=DB.obras.find(x=>x.id===cgObraId); if(!o0){ cgObraId=null; render(); return; }
