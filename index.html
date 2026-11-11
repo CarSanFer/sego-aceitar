@@ -314,7 +314,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.11.1957</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.11.1959</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -889,6 +889,9 @@ window.segoTema=function(){
     .cg-fptq>.cg-cx.fpq-his3{grid-row:4 !important}
     .cg-ftcm>.cg-cx.cg-docw{grid-row:4 !important}
     .cg-fam>.cg-cx.cg-docw{grid-row:3 !important}
+    .cg-frel>.cg-cx.cg-docw{grid-row:3 !important}
+    .cg-frel>.cg-cx.frel-big{grid-column:3 / -1 !important;grid-row:1 / span 2 !important}
+    .cg-frel>.cg-cx.frel-his2{grid-row:3 !important}
   }
   .cg-rlab .cg-rv{display:none !important}
   .cg-rlab .cg-rl::after{display:none}
@@ -956,6 +959,17 @@ window.segoTema=function(){
   .cg-fam table.am-tab{min-width:1180px}
   .cg-fam table.am-tab th{background:rgba(127,140,160,.10);font-weight:700;padding:4px 6px;border-bottom:1px solid var(--border-light)}
   .cg-fam table.am-tab td{padding:3px 6px;border-bottom:1px solid var(--border-light)}
+  .cg-frel .sos-tema{border-bottom:1px solid var(--border-light)}
+  .cg-frel .sos-tema:last-child{border-bottom:none}
+  .cg-frel .sos-tcab{cursor:pointer;display:grid !important;grid-template-columns:var(--val-l,140px) minmax(0,1fr) 110px 90px 22px !important;align-items:baseline}
+  .cg-frel .sos-tcab .cg-rl::after{display:none}
+  .cg-frel .sos-tcab .cg-rv{text-align:left !important;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .cg-frel .sos-test,.cg-frel .sos-tanx{white-space:nowrap}
+  .cg-frel .sos-tbody{padding:2px 0 10px}
+  .cg-frel .sos-anxs{display:flex;flex-wrap:wrap;gap:4px 14px;justify-content:flex-end}
+  .cg-frel .sos-anx{display:inline-flex;align-items:center;gap:4px;max-width:260px}
+  .cg-frel .sos-anx a{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)}
+  .cg-frel .sos-add{cursor:pointer}
   .cg-ranx{height:auto !important;min-height:22px}
   .cg-ranx .cg-rv{white-space:normal !important;overflow:visible !important;display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center}
   .cg-ax a{color:var(--info) !important;text-decoration:none}
@@ -3245,19 +3259,19 @@ function renderFichaRVT(app,r){
     meta:{ obra:((o.codigo?o.codigo+' — ':'')+(o.nome||'')).trim(), rvt:relNumero(r), cso:rvtCsoNome(r,o) }
   };
   const html=rvtDecode(RVT_TEMPLATE_B64).replace('/*__SEGO_CONFIG__*/', function(){ return 'window.__SEGO__='+JSON.stringify(cfg)+';'; });
-  app.innerHTML=`
+  const AUT='aut';
+  const L=t=>`<span class="cg-lm">${t}<i class="cg-mk ${AUT}" title="Preenchido automaticamente"></i></span>`;
+  const cIde=cgR(L('N.º'),esc(relNumero(r)))+cgR(L('Período'),esc(fmtMesAno(r.mes,r.ano)))+cgR(L('Autor'),esc(rvtCsoNome(r,o)||''))+cgDiv+cgR('Tipo',esc(sub))+cgR('Estado',`<span id="rvtEstado">${esc({rascunho:'Rascunho',revisao:'Em Revisão',aprovado:'Aprovado',disponibilizado:'Disponibilizado'}[r.estado]||r.estado||'')}</span>`);
+  app.innerHTML=PE_CSS+`
+  <div class="pe-wrap">
   <button class="back-btn" onclick="relRelId=null;render()">← Voltar a Controlo Operacional</button>
-  <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap">
-    <div>
-      <div class="page-title"><span class="code-pill" style="font-size:13px">${o.codigo||''}</span>${o.sigla||''} — ${sub}</div>
-      <div class="page-count">${o.nome||''} · ${fmtMesAno(r.mes,r.ano)} · <span id="rvtEstado">${relBadge(r.estado)}</span></div>
-    </div>
-    <div style="display:flex;align-items:center;gap:10px">
-      ${rvtActionBtn(r)}
-    </div>
-  </div>
-  <iframe id="rvtFrame" title="RVT" style="width:100%;height:600px;border:1px solid var(--border-light);border-radius:var(--radius);background:#fff"></iframe>
-  ${relHistHTML(r)}`;
+  <div class="page-header"><div class="pe-actbar">${rvtActionBtn(r)}</div></div>
+  <div class="cg-cxs cg-2 cg-ficha cg-fpe cg-fpa cg-fptq cg-frel">
+    ${relCartaoFlx(r)}
+    ${cgCartao('IDE','Identificação',cIde,'IDE','','cg-int fpe-m1')}
+    ${cgCartao(esc(sub),'Relatório de Visita Técnica',`<iframe id="rvtFrame" title="RVT" style="width:100%;height:600px;border:none;background:#fff"></iframe>`,'FISC','','cg-int fpe-c1 frel-big')}
+    ${relCartaoHis(r,'frel-his2')}
+  </div></div>`;
   const fr=document.getElementById('rvtFrame'); if(fr){ rvtAutoAltura(fr); fr.srcdoc=html; }
 }
 const SEG_TIPOS=[{key:'RVT',sigla:'RVT',label:'Relatório de Visita Técnica',icon:`<svg viewBox=\"0 0 48 48\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M24 6l14 5v9c0 9-6 15-14 17-8-2-14-8-14-17v-9l14-5z\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linejoin=\"round\"/><path d=\"M18 24l4 4 8-9\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>`}];
@@ -3378,6 +3392,27 @@ function sosActionBtn(r){
   return b;
 }
 
+/* ===== Relatórios (SOS · RVT · RSO): cartões no padrão da ficha PE ===== */
+function relDtPT(iso){ const d=new Date(iso); if(!iso||isNaN(d)) return ''; const p=n=>String(n).padStart(2,'0'); return p(d.getDate())+'/'+p(d.getMonth()+1)+'/'+d.getFullYear(); }
+function relCartaoFlx(r){
+  const c=r.conteudo||{}, h=Array.isArray(c.historico)?c.historico:[];
+  const pub=h.slice().reverse().find(x=>/public|dispon|enviad/i.test(x.acao||''));
+  const dPub=pub?pub.data:(c.envio&&c.envio.data)||'';
+  const L=t=>`<span class="cg-lm">${t}<i class="cg-mk aut" title="Preenchido automaticamente"></i></span>`;
+  let cFlx=cgR(L('Rascunho'),relDtPT(r.criado_em))+cgR(L('Disponibilizado'),r.estado==='disponibilizado'?relDtPT(dPub):'');
+  if((r.versao||0)>0) cFlx+=cgDiv+cgR('Versão',String(r.versao));
+  return cgCartao('FLX','Fluxo',cFlx,'PRR','','cg-int fpe-flx');
+}
+function relCartaoHis(r,cls){
+  const dt=iso=>{ const d=new Date(iso); if(isNaN(d)) return esc(String(iso||'')); const p=n=>String(n).padStart(2,'0'); return p(d.getDate())+'/'+p(d.getMonth()+1)+'/'+d.getFullYear()+', '+p(d.getHours())+':'+p(d.getMinutes()); };
+  const c=r.conteudo||{}; const h=Array.isArray(c.historico)?c.historico:[];
+  const L=[]; if(r.criado_em) L.push({data:dt(r.criado_em),autor:r.criado_por_nome||'',acao:'Criado (Rascunho).'});
+  h.forEach(x=>L.push({data:dt(x.data),autor:x.autor||'',acao:x.acao||''}));
+  if(!h.length&&c.envio&&c.envio.data) L.push({data:dt(c.envio.data),autor:c.envio.nome||'',acao:(c.envio.tipo==='reenvio'?'Reenviado':'Publicado e enviado')+' (destinatários não registados).'});
+  const cHis=L.length?L.map(x=>`<div class="cg-r cg-dr cg-hr"><span class="cg-rl">${esc(x.data)}</span><div class="cg-dv"><span class="cg-hau" title="${esc(x.autor)}"><span>${esc(x.autor)}</span></span><span title="${esc(x.acao)}">${esc(x.acao)}</span></div></div>`).join('')
+    :`<div class="cg-r co-semreg"><span class="cg-rl">Sem registos</span><span class="cg-rv"></span></div>`;
+  return cgCartao('HIS','Histórico',cHis,'PRR','','cg-docw cg-hist '+(cls||''));
+}
 function renderFichaSOS(app,r){
   const o=DB.obras.find(x=>x.id===r.obra_id)||{};
   r.conteudo=r.conteudo||{tipo:'fiscalizacao',subtipo:'SOS',dados:{}};
@@ -3388,109 +3423,42 @@ function renderFichaSOS(app,r){
   if(!d.data) d.data=new Date().toISOString().slice(0,10);
   const ro=r.estado==='disponibilizado';
   if(!window._sosCollapsed) window._sosCollapsed={};
-  // Default: cada tema começa colapsado (excepto quando explicitamente expandido)
   d.temas.forEach(t=>{ if(window._sosCollapsed[t.id]===undefined) window._sosCollapsed[t.id]=true; });
-  const inpS='width:100%;padding:5px 7px;border:0.5px solid var(--border-light);border-radius:3px;font-size:12px;font-family:inherit;background:#fff;box-sizing:border-box';
-  const inpRO='width:100%;padding:5px 7px;border:0.5px solid var(--border-light);border-radius:3px;font-size:12px;font-family:inherit;background:#f0f2f5;color:#666;cursor:not-allowed;box-sizing:border-box';
-  const lbl='font-size:10px;color:var(--text-muted);font-weight:700;margin-bottom:3px';
-  const sectTitle='font-size:10px;font-weight:700;color:var(--text-muted);letter-spacing:.8px';
-  const estadoBadge=(est)=>{
-    const map={pendente:{bg:'#FEF3C7',col:'#854F0B',txt:'Pendente'},resolvido:{bg:'#D1FAE5',col:'#065F46',txt:'Resolvido'},fechado:{bg:'#E5E7EB',col:'#374151',txt:'Fechado'}};
-    const m=map[est||'pendente']||map.pendente;
-    return `<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;background:${m.bg};color:${m.col};letter-spacing:.3px">${m.txt}</span>`;
-  };
-  const temaCard=(t,i)=>{
+  const AUT='aut';
+  const L=(t,m)=>m?`<span class="cg-lm">${t}<i class="cg-mk ${m}" title="${m==='obr'?'Obrigatório':'Preenchido automaticamente'}"></i></span>`:`<span>${t}</span>`;
+  const inp=(campo,val,tipo,extra)=>ro?(tipo==='date'?(val?peDataPT(val):''):esc(val||'')):`<input class="cg-i" type="${tipo||'text'}" value="${esc(val||'')}" oninput="sosCommit('${campo}',this.value)" ${extra||''}>`;
+  const EST={pendente:'Pendente',resolvido:'Resolvido',fechado:'Fechado'};
+  const temaBloco=(t,i)=>{
     const idTema=String(t.id||(i+1)).padStart(3,'0');
-    const collapsed=window._sosCollapsed[t.id]===true;
-    const estadoActual=t.estado||'pendente';
+    const col=window._sosCollapsed[t.id]===true;
+    const est=t.estado||'pendente';
     const anexos=Array.isArray(t.anexos)?t.anexos:[];
-    const anexosHtml=anexos.length?anexos.map((a,j)=>{
-      const removeBtn=ro?'':`<button onclick="event.stopPropagation();sosRemoveAnexo(${i},${j})" style="background:none;border:none;cursor:pointer;color:#B91C1C;font-size:14px;line-height:1;padding:0 4px;margin-left:6px" title="Remover anexo">×</button>`;
-      return `<div style="display:flex;align-items:center;padding:5px 8px;background:#fff;border:0.5px solid var(--border-light);border-radius:3px;margin-bottom:4px;font-size:12px">
-        <a href="${esc(a.url||'#')}" target="_blank" rel="noopener" style="color:#1B4F9B;text-decoration:none;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(a.name||'')}">📎 ${esc(a.name||'(sem nome)')}</a>
-        <span style="font-size:10px;color:var(--text-muted);margin-left:8px;flex-shrink:0">${a.size?Math.round(a.size/1024)+' KB':''}</span>
-        ${removeBtn}
-      </div>`;
-    }).join(''):'<div style="font-size:11px;color:var(--text-muted);font-style:italic;padding:4px 0">Sem anexos.</div>';
-    const estadoBtns=ro?estadoBadge(estadoActual):['pendente','resolvido','fechado'].map(est=>{
-      const map={pendente:{bg:'#FEF3C7',col:'#854F0B',border:'#FCD34D',txt:'Pendente'},resolvido:{bg:'#D1FAE5',col:'#065F46',border:'#6EE7B7',txt:'Resolvido'},fechado:{bg:'#E5E7EB',col:'#374151',border:'#9CA3AF',txt:'Fechado'}};
-      const m=map[est];
-      const sel=estadoActual===est;
-      return `<button onclick="sosCommitTema(${i},'estado','${est}')" style="font-size:11px;font-weight:600;padding:4px 12px;border-radius:14px;border:1px solid ${sel?m.border:'var(--border-light)'};background:${sel?m.bg:'#fff'};color:${sel?m.col:'#888'};cursor:pointer;letter-spacing:.3px">${m.txt}</button>`;
-    }).join(' ');
-    return `<div style="background:var(--bg-card);border:0.5px solid var(--border-light);border-radius:4px;margin-bottom:8px;overflow:hidden">
-      <div onclick="sosToggleTema(${t.id})" style="display:flex;align-items:center;padding:10px 14px;background:#fafbfc;border-bottom:${collapsed?'0':'0.5px'} solid var(--border-light);cursor:pointer">
-        <span style="font-size:12px;margin-right:10px;color:var(--text-muted);user-select:none;width:12px;display:inline-block">${collapsed?'▶':'▼'}</span>
-        <span style="font-family:monospace;font-size:12px;font-weight:700;color:#B91C1C;margin-right:12px">#${idTema}</span>
-        <span style="flex:1;font-size:13px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(t.titulo||'(sem título)')}</span>
-        <span style="margin-right:10px">${estadoBadge(estadoActual)}</span>
-        ${anexos.length?`<span style="font-size:10px;color:var(--text-muted);margin-right:10px">📎 ${anexos.length}</span>`:''}
-        ${ro?'':`<button onclick="event.stopPropagation();sosRemoveTema(${i})" style="background:none;border:none;cursor:pointer;color:#B91C1C;font-size:16px;line-height:1;padding:0" title="Remover tema">×</button>`}
-      </div>
-      ${collapsed?'':`<div style="padding:14px">
-        <div style="margin-bottom:12px">
-          <div style="${lbl}">Título do tema</div>
-          <input value="${esc(t.titulo||'')}" ${ro?'readonly':''} oninput="sosCommitTema(${i},'titulo',this.value)" placeholder="Descreve a situação operacional" style="${ro?inpRO:inpS}">
-        </div>
-        <div style="margin-bottom:12px">
-          <div style="${lbl}">Estado</div>
-          <div style="display:flex;gap:6px;align-items:center">${estadoBtns}</div>
-        </div>
-        <div style="margin-bottom:12px">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
-            <div style="${lbl};margin-bottom:0">Anexos</div>
-            ${ro?'':`<label style="font-size:11px;color:#1B4F9B;cursor:pointer;font-weight:600">+ Adicionar ficheiro<input type="file" multiple style="display:none" onchange="sosUploadAnexos(${i},this.files);this.value=''"></label>`}
-          </div>
-          <div>${anexosHtml}</div>
-        </div>
-        <div style="margin-bottom:12px">
-          <div style="${lbl}">Observações</div>
-          <textarea ${ro?'readonly':''} oninput="sosCommitTema(${i},'observacoes',this.value)" placeholder="Notas, contexto, ponto de situação..." rows="3" style="${ro?inpRO:inpS};resize:vertical;min-height:60px">${esc(t.observacoes||'')}</textarea>
-        </div>
-      </div>`}
-    </div>`;
+    const cab=`<div class="cg-r sos-tcab" onclick="sosToggleTema(${t.id})"><span class="cg-rl"><span>${col?'▸':'▾'} #${idTema}</span></span><span class="cg-rv sos-ttit">${esc(t.titulo||'')}</span><span class="sos-test">${EST[est]||est}</span><span class="sos-tanx">${anexos.length?anexos.length+' anexo'+(anexos.length>1?'s':''):''}</span>${ro?'':`<button class="cg-ax-x" title="Remover tema" onclick="event.stopPropagation();sosRemoveTema(${i})">×</button>`}</div>`;
+    if(col) return `<div class="sos-tema">${cab}</div>`;
+    const anx=anexos.map((a,j)=>`<span class="sos-anx"><a href="${esc(a.url||'#')}" target="_blank" rel="noopener" title="${esc(a.name||'')}">${esc(a.name||'ficheiro')}</a>${ro?'':`<button class="cg-ax-x" title="Remover" onclick="event.stopPropagation();sosRemoveAnexo(${i},${j})">×</button>`}</span>`).join('');
+    return `<div class="sos-tema on">${cab}<div class="sos-tbody">
+      ${cgR('Título',ro?esc(t.titulo||''):`<input class="cg-i" value="${esc(t.titulo||'')}" oninput="sosCommitTema(${i},'titulo',this.value)">`)}
+      ${cgR('Estado',ro?(EST[est]||est):`<select class="cg-i" onchange="sosCommitTema(${i},'estado',this.value)">${Object.keys(EST).map(k=>`<option value="${k}" ${k===est?'selected':''}>${EST[k]}</option>`).join('')}</select>`)}
+      <div class="cg-r cg-ranx"><span class="cg-rl"><span>Anexos</span></span><span class="cg-rv sos-anxs">${anx}${ro?'':`<label class="cg-ver sos-add">+ Anexar<input type="file" multiple style="display:none" onchange="sosUploadAnexos(${i},this.files)"></label>`}</span></div>
+      <div class="cg-rtxt"><span class="cg-rl"><span>Observações</span></span>${ro?`<div class="cg-txt">${esc(t.observacoes||'')}</div>`:`<textarea class="cg-ta" oninput="sosCommitTema(${i},'observacoes',this.value)">${esc(t.observacoes||'')}</textarea>`}</div>
+    </div></div>`;
   };
-  const temasHtml=d.temas.length?d.temas.map(temaCard).join(''):'<div style="padding:18px;text-align:center;color:var(--text-muted);font-size:12px;font-style:italic">Sem temas registados. Clica em "+ Adicionar tema" para começar.</div>';
-  app.innerHTML=`
-  <button class="back-btn" onclick="relRelId=null;render()">← Voltar</button>
-  <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
-    <div>
-      <div class="page-title"><span class="code-pill" style="font-size:13px">${o.codigo||''}</span>${o.sigla||''} — SOS ${relNumero(r)}</div>
-      <div class="page-count">${o.nome||''} · ${relBadge(r.estado)}</div>
+  const cIde=cgR(L('N.º',AUT),esc(relNumero(r)))+cgR(L('Data',AUT),inp('data',d.data,'date'))+cgR(L('Autor',AUT),inp('autor',d.autor))+cgDiv+
+    cgR('Início da Semana',inp('semanaIni',d.semanaIni,'date'))+cgR('Período',inp('semana',d.semana));
+  const cObs=`<div class="cg-rtxt"><span class="cg-rl"><span>Observações</span></span>${ro?`<div class="cg-txt">${esc(d.observacoesGerais||'')}</div>`:`<textarea class="cg-ta" oninput="sosCommit('observacoesGerais',this.value)">${esc(d.observacoesGerais||'')}</textarea>`}</div>`;
+  const cTem=d.temas.length?d.temas.map(temaBloco).join(''):`<div class="cg-r co-semreg"><span class="cg-rl">Sem temas registados</span><span class="cg-rv"></span></div>`;
+  const maisTema=card=>ro?card:card.replace(/<div class="cg-cx-ic" aria-hidden="true">[\s\S]*?<\/svg><\/div>/,`<button type="button" class="cg-cx-ic co-mais" title="Adicionar tema" onclick="event.stopPropagation();sosAddTema()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>`);
+  app.innerHTML=PE_CSS+`
+  <div class="pe-wrap">
+    <button class="back-btn" onclick="relRelId=null;render()">← Voltar</button>
+    <div class="page-header"><div class="pe-actbar">${sosActionBtn(r)}</div></div>
+    <div class="cg-cxs cg-2 cg-ficha cg-fpe cg-fpa cg-fptq cg-frel">
+      ${relCartaoFlx(r)}
+      ${cgCartao('IDE','Identificação',cIde,'IDE','','cg-int fpe-m1')}
+      ${cgCartao('OBS','Observações Gerais',cObs,'PEDE','','cg-int fpe-c1')}
+      ${maisTema(cgCartao('TEM','Temas / Situações Operacionais',cTem,'ESCL','','cg-int fpq-g fpq-g1'))}
+      ${relCartaoHis(r)}
     </div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap">${sosActionBtn(r)}</div>
-  </div>
-  <div style="background:linear-gradient(180deg,#1E3A5F 0%,#2C4E7A 100%);color:#fff;padding:14px 0;text-align:center;margin-top:10px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;border-bottom:3px solid #C9922A;border-radius:6px 6px 0 0">SOS — Situações Operacionais Semanais</div>
-  <div style="background:transparent;padding:14px;border:0.5px solid var(--border-light);border-top:none;border-radius:0 0 6px 6px">
-
-    <!-- IDENTIFICAÇÃO -->
-    <div class="table-card" style="padding:14px;margin-bottom:12px">
-      <div style="${sectTitle};margin-bottom:10px">IDENTIFICAÇÃO</div>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
-        <div><div style="${lbl}">SOS Nº</div><input value="${relNumero(r)}" readonly style="${inpRO}"></div>
-        <div><div style="${lbl}">Data</div><input type="date" value="${d.data||''}" ${ro?'readonly':''} oninput="sosCommit('data',this.value)" style="${ro?inpRO:inpS}"></div>
-        <div><div style="${lbl}">Autor</div><input value="${esc(d.autor||'')}" ${ro?'readonly':''} oninput="sosCommit('autor',this.value)" style="${ro?inpRO:inpS}"></div>
-        <div><div style="${lbl}">Obra</div><input value="${esc((o.sigla||'')+' — '+(o.nome||''))}" readonly style="${inpRO}"></div>
-        <div><div style="${lbl}">Início da semana</div><input type="date" value="${d.semanaIni||''}" ${ro?'readonly':''} oninput="sosCommit('semanaIni',this.value)" style="${ro?inpRO:inpS}"></div>
-        <div><div style="${lbl}">Período (descrição)</div><input value="${esc(d.semana||'')}" placeholder="S22 · 25 a 30/05/2026" ${ro?'readonly':''} oninput="sosCommit('semana',this.value)" style="${ro?inpRO:inpS}"></div>
-      </div>
-    </div>
-
-    <!-- TEMAS / SITUAÇÕES OPERACIONAIS -->
-    <div class="table-card" style="padding:14px;margin-bottom:12px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-        <div style="${sectTitle}">TEMAS / SITUAÇÕES OPERACIONAIS · ${d.temas.length}</div>
-        ${ro?'':`<button onclick="sosAddTema()" class="btn btn-outline btn-sm" style="font-size:11px;padding:3px 10px">+ Adicionar tema</button>`}
-      </div>
-      ${temasHtml}
-    </div>
-
-    <!-- OBSERVAÇÕES GERAIS -->
-    <div class="table-card" style="padding:14px">
-      <div style="${sectTitle};margin-bottom:8px">OBSERVAÇÕES GERAIS</div>
-      <textarea ${ro?'readonly':''} oninput="sosCommit('observacoesGerais',this.value)" placeholder="Notas gerais sobre o relatório SOS..." rows="3" style="${ro?inpRO:inpS};resize:vertical;min-height:60px">${esc(d.observacoesGerais||'')}</textarea>
-    </div>
-    ${relHistHTML(r)}
   </div>`;
 }
 
