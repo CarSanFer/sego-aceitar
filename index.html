@@ -314,7 +314,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.11.2000</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.11.2002</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -892,6 +892,7 @@ window.segoTema=function(){
     .cg-frel>.cg-cx.cg-docw{grid-row:3 !important}
     .cg-frel>.cg-cx.frel-big{grid-column:3 / -1 !important;grid-row:1 / span 2 !important}
     .cg-frel>.cg-cx.frel-his2{grid-row:3 !important}
+    .cg-frm>.cg-cx.rm-his{grid-row:auto !important;grid-column:1 / -1 !important}
     .cg-frso>.cg-cx.rs-atividades{grid-column:2 / -1 !important;grid-row:2 !important}
     .cg-frso>.cg-cx.rs-subempreiteiros{grid-column:2 / -1 !important;grid-row:3 !important}
     .cg-frso>.cg-cx.rs-documentacao{grid-column:2 / -1 !important;grid-row:4 !important}
@@ -979,6 +980,8 @@ window.segoTema=function(){
   .cg-frso .rs-tg{color:var(--nav-bd);font-size:12px !important}
   .cg-frso .rs-sec.rs-fech>.cg-cx-b{display:none}
   .cg-frso .rs-sec>.cg-cx-b{overflow-x:auto}
+  .cg-frm .rm-mod{cursor:pointer}
+  .cg-frm .rm-mod:hover{box-shadow:0 0 0 1px var(--nav-bd)}
   .cg-ranx{height:auto !important;min-height:22px}
   .cg-ranx .cg-rv{white-space:normal !important;overflow:visible !important;display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center}
   .cg-ax a{color:var(--info) !important;text-decoration:none}
@@ -2458,43 +2461,25 @@ function renderFichaRelatorio(app){
 
   const todosValidados=REL_MODULOS.every(m=>estadoMod(m.key)==='validado');
 
+  const EST_M={em_curso:'Em Curso',em_aprovacao:'Em Aprovação',validado:'Validado'};
   const cards=REL_MODULOS.map(m=>{
     const est=estadoMod(m.key);
-    const badgeHtml=est==='validado'
-      ?`<span style="display:inline-block;font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;background:#E1F5EE;color:#0F6E56;margin-top:6px">✓ Validado</span>`
-      :est==='em_aprovacao'
-      ?`<span style="display:inline-block;font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;background:#E6F1FB;color:#185FA5;margin-top:6px">● Em Aprovação</span>`
-      :'';
-    const iconSvg=m.icon.replace('currentColor',corIcone(est));
-    return `<div onclick="relTab='${m.key}';render()" style="background:${bgMod(est)};border:${est!=='em_curso'?'1.5px':'0.5px'} solid ${corMod(est)};border-radius:var(--radius);cursor:pointer;transition:all .15s;padding:14px 12px;text-align:center"
-      onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='${corMod(est)}'">
-      <div style="font-size:9px;font-weight:700;color:var(--text-muted);letter-spacing:.8px;text-transform:uppercase;margin-bottom:5px">${m.sigla}</div>
-      <div style="width:44px;height:44px;margin:0 auto 8px;opacity:${opIcone(est)}">${iconSvg}</div>
-      <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:2px">${contagem(m.key)}</div>
-      <div style="font-size:11px;color:var(--text-muted)">${m.label}</div>
-      ${badgeHtml}
-    </div>`;
+    const corpo=cgR('Registos',esc(contagem(m.key)))+cgR('Estado',EST_M[est]||est);
+    return cgCartao(esc(m.sigla),esc(m.label),corpo,'DOC','','cg-int rm-mod" onclick="relTab=\''+m.key+'\';render()');
   }).join('');
-
-  app.innerHTML=`
+  const nV=REL_MODULOS.filter(m=>estadoMod(m.key)==='validado').length, nA=REL_MODULOS.filter(m=>estadoMod(m.key)==='em_aprovacao').length;
+  const cIde=cgR('N.º',esc(relNumero(r)))+cgR('Mês',esc(fmtMesAno(r.mes,r.ano)))+cgR('Estado',esc({rascunho:'Rascunho',revisao:'Em Revisão',aprovado:'Aprovado',disponibilizado:'Disponibilizado'}[r.estado]||r.estado||''))+cgDiv+
+    cgR('Validados',nV+' de '+REL_MODULOS.length)+cgR('Em Aprovação',String(nA));
+  app.innerHTML=PE_CSS+`
+  <div class="pe-wrap">
   <button class="back-btn" onclick="relRelId=null;render()">← Voltar à Capa</button>
-  <div class="page-header">
-    <div>
-      <div class="page-title">${relNumero(r)} — ${fmtMesAno(r.mes,r.ano)}</div>
-      <div style="margin-top:4px;display:flex;gap:8px;align-items:center">${relBadge(r.estado)}
-        <span style="font-size:12px;color:var(--text-muted)">${o?o.sigla+' — '+o.nome:''}</span>
-      </div>
-    </div>
-    <div class="page-actions">
-      ${todosValidados&&canAdmin()?`<button class="btn btn-sm" style="background:#0F6E56;color:#fff;border:none;cursor:pointer;font-family:Calibri,sans-serif;font-size:13px;font-weight:700;padding:5px 11px;border-radius:var(--radius)" onclick="disponibilizarRel('${r.id}')">✉ Enviar ao Dono de Obra</button>`:''}
-    </div>
-  </div>
-  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:14px">${cards}</div>
-  <div style="margin-top:14px;display:flex;gap:16px;font-size:11px;color:var(--text-muted)">
-    <span style="display:flex;align-items:center;gap:5px"><span style="width:8px;height:8px;border-radius:50%;background:#0F6E56;display:inline-block"></span>Validado (${REL_MODULOS.filter(m=>estadoMod(m.key)==='validado').length})</span>
-    <span style="display:flex;align-items:center;gap:5px"><span style="width:8px;height:8px;border-radius:50%;background:#185FA5;display:inline-block"></span>Em Aprovação (${REL_MODULOS.filter(m=>estadoMod(m.key)==='em_aprovacao').length})</span>
-    <span style="display:flex;align-items:center;gap:5px"><span style="width:8px;height:8px;border-radius:50%;background:var(--border-light);display:inline-block"></span>Em Curso (${REL_MODULOS.filter(m=>estadoMod(m.key)==='em_curso').length})</span>
-  </div>`;
+  <div class="page-header"><div class="pe-actbar">${todosValidados&&canAdmin()?`<button class="btn btn-sm" style="background:#0F6E56;color:#fff;border:none;cursor:pointer;font-family:Calibri,sans-serif;font-size:13px;font-weight:700;padding:5px 11px;border-radius:var(--radius)" onclick="disponibilizarRel('${r.id}')">✉ Enviar ao Dono de Obra</button>`:''}</div></div>
+  <div class="cg-cxs cg-2 cg-ficha cg-fpe cg-frel cg-frm">
+    ${relCartaoFlx(r)}
+    ${cgCartao('IDE','Identificação',cIde,'IDE','','cg-int fpe-m1')}
+    ${cards}
+    ${relCartaoHis(r,'rm-his')}
+  </div></div>`;
 }
 
 function relTabLista(r,edit,key,titulo){
