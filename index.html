@@ -314,7 +314,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.11.1807</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.11.1810</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -933,6 +933,10 @@ window.segoTema=function(){
   .cg-chks label{display:inline-flex;align-items:baseline;gap:4px;white-space:nowrap;cursor:pointer;font-weight:400}
   .cg-chks input{margin:0;width:12px;height:12px;align-self:center}
   .cg-rchk{height:22px !important}
+  .cg-vgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));column-gap:28px}
+  .cg-vcol{min-width:0}
+  .cg-vgt .cg-rl{color:var(--text) !important}
+  @media(max-width:1000px){ .cg-vgrid{grid-template-columns:1fr} }
   .cg-ranx{height:auto !important;min-height:22px}
   .cg-ranx .cg-rv{white-space:normal !important;overflow:visible !important;display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center}
   .cg-ax a{color:var(--info) !important;text-decoration:none}
@@ -995,7 +999,7 @@ window.segoTema=function(){
     const largComBola=l=>{ const x=parseFloat(l.style.getPropertyValue('--mk-x'))||0; return Math.max(largL(l), x?x+7+6:0); };
     const grupoLab=new Map();
     app.querySelectorAll('.cg-r .cg-rl:not(.cg-rl2),.cg-rtxt>.cg-rl').forEach(l=>{ if(l.closest('.co-semreg')) return;
-      const box=l.closest('.cg-fpe [class*="fpe-c"]') ? l.closest('.cg-fpe') : (l.closest('.cg-cx-b,.cg-card')||l.parentElement);
+      const box=l.closest('.cg-vgrid') || (l.closest('.cg-fpe [class*="fpe-c"]') ? l.closest('.cg-fpe') : (l.closest('.cg-cx-b,.cg-card')||l.parentElement));
       const w=largComBola(l); grupoLab.set(box,Math.max(grupoLab.get(box)||0,w)); });
     grupoLab.forEach((w,box)=>{ const v=Math.ceil(w)+'px';
       if(box.classList&&box.classList.contains('cg-fpe')) box.querySelectorAll('[class*="fpe-c"] .cg-cx-b').forEach(b=>b.style.setProperty('--lab-w',v));
@@ -1023,7 +1027,7 @@ window.segoTema=function(){
       });
     });
     app.querySelectorAll('.cg-fpe').forEach(g=>{ let mx=0; const m=document.createElement('span'); const gs=getComputedStyle(g); m.style.cssText='position:absolute;left:-9999px;top:0;visibility:hidden;white-space:nowrap;font-weight:700;font-family:'+gs.fontFamily+';font-size:'+gs.fontSize; document.body.appendChild(m);   /* sonda fora do #app: não dispara o observador (evita ciclo infinito) */
-      g.querySelectorAll('[class*="fpe-c"] .cg-rl:not(.cg-rl2)').forEach(l=>{ m.innerHTML=l.innerHTML; m.querySelectorAll('button,.cg-mk').forEach(b=>b.remove()); const x=parseFloat(l.style.getPropertyValue('--mk-x'))||0; mx=Math.max(mx,m.getBoundingClientRect().width+((l.querySelector('button'))?22:0),x?x+7+6:0); }); m.remove();
+      g.querySelectorAll('[class*="fpe-c"] .cg-cx-b>.cg-r>.cg-rl:not(.cg-rl2),[class*="fpe-c"] .cg-cx-b>.cg-rtxt>.cg-rl').forEach(l=>{ m.innerHTML=l.innerHTML; m.querySelectorAll('button,.cg-mk').forEach(b=>b.remove()); const x=parseFloat(l.style.getPropertyValue('--mk-x'))||0; mx=Math.max(mx,m.getBoundingClientRect().width+((l.querySelector('button'))?22:0),x?x+7+6:0); }); m.remove();
       g.style.setProperty('--val-l',Math.ceil(mx+22)+'px'); });
     app.querySelectorAll('.cg-ficha').forEach(g=>{ const c=g.querySelector('.cg-cx:not(.cg-s2):not(.cg-s3):not(.cg-docw):not([class*="fpe-c"]) .cg-cx-b'); if(!c) return; const cs=getComputedStyle(c);
       g.style.setProperty('--col-w',Math.round(c.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight))+'px'); });
@@ -6186,8 +6190,8 @@ function pbLerFormEmp(d){
 }
 function pbLerVerificacoes(d){
   VERIF_PB.forEach(g=>g.itens.forEach(([k])=>{
-    const el=document.querySelector(`input[name="vb-${k}"]:checked`);
-    if(el){ d.verificacoes=d.verificacoes||{}; d.verificacoes[k]=el.value; }
+    const el=document.querySelector(`input[name="vb-${k}"]:checked`)||document.querySelector(`select#vb-${k}`);
+    if(el){ d.verificacoes=d.verificacoes||{}; if(el.value) d.verificacoes[k]=el.value; else delete d.verificacoes[k]; }
   }));
 }
 
@@ -6348,82 +6352,92 @@ function renderFichaPB(app){
     notas.push('Preencha as verificações e decida: Aprovado fecha o pedido; Não Aprovado gera revisão para o Empreiteiro.');
   }
   if(d.estado==='fechado'||d.estado==='reaberto'){ acoes.push(`<button class="pe-btn info" onclick="pbPDF('${d.id}')" title="Descarregar o documento completo em PDF">📄 PDF</button>`); }
-  if(peESuper()){ acoes.push(`<button class="pe-btn" onclick="gpeAdmEditar('pb','${d.id}')">Editar (Admin)</button>`); acoes.push(`<button class="pe-btn red" onclick="pbEliminar('${d.id}')">Eliminar</button>`); }
+  const SA=peESuper();
+  if(SA){ acoes.push(`<button class="pe-btn red" onclick="pbEliminar('${d.id}')">Eliminar</button>`); }
+  const AE=pbAdmEd&&SA;
+  if(AE){ acoes.length=0; notas.length=0; acoes.push(`<button class="pe-btn gold" onclick="pbAdmGuardar()">Guardar</button>`); acoes.push(`<button class="pe-btn" onclick="pbAdmCancelar()">Cancelar</button>`); }
 
-  /* Identificação */
-  const secId=`<div class="pe-zone pe-ident"><div class="pe-zh"><span class="pe-zdot"></span><span class="pe-zt">Identificação</span></div>
-    <div class="pe-zb"><div class="pe-grid3">
-      ${peCampo('Id','x',d.id,null,false)}
-      ${peCampo('Data prevista','fb-dataPrevista',d.dataPrevista,'date',eEmp)}
-      ${peCampo('Hora prevista','fb-horaPrevista',d.horaPrevista,'text',eEmp)}
-    </div><div class="pe-grid3 pe-mt">
-      ${peCampo('Ref.ª / Desenho','fb-referencia',d.referencia,'text',eEmp)}
-      ${peCampo('Descarga','fb-descarga',d.descarga,'text',eEmp)}
-      ${peCampo('Autor','x',d.autorEmp,'text',false)}
-    </div></div></div>`;
+  /* ===== Layout em cartões (padrão da ficha PE) ===== */
+  const R=(l,v)=>cgR(l,v), dt=v=>v?peDataPT(v):'';
+  const OBR='obr', AUT='aut';
+  const L=(t,m)=>m?`<span class="cg-lm">${t}<i class="cg-mk ${m}" title="${m==='obr'?'Obrigatório':'Preenchido automaticamente'}"></i></span>`:`<span>${t}</span>`;
+  const inp=(id,val,tipo)=>`<input class="cg-i" id="${id}" type="${tipo||'text'}" value="${esc(val==null?'':val)}">`;
+  const txt=(id,val,ed)=>ed?`<textarea class="cg-ta" id="${id}">${esc(val||'')}</textarea>`:`<div class="cg-txt">${val?esc(val):''}</div>`;
+  const R2=(l1,v1,l2,v2)=>`<div class="cg-r cg-rdup"><span class="cg-rl">${l1}</span><span class="cg-rv">${v1}</span><span class="cg-rl cg-rl2">${l2}</span><span class="cg-rv">${v2}</span></div>`;
+  const campo=(c,tipo)=>AE?inp('pba-'+c,tipo==='date'?String(d[c]||'').slice(0,10):d[c],tipo):eEmp?inp('fb-'+c,tipo==='date'?String(d[c]||'').slice(0,10):d[c],tipo):(tipo==='date'?dt(d[c]):esc(d[c]==null?'':String(d[c])));
+  const decTxt=k=>k==='aprovado'?'Aprovado':k==='nao_aprovado'?'Não Aprovado':'';
 
-  /* Empreiteiro — plano de betonagem */
-  const secEmp=`<div class="pe-zone pe-emp"><div class="pe-zh"><span class="pe-zdot"></span><span class="pe-zt">Empreiteiro — Plano de Betonagem</span></div>
-    <div class="pe-zb">
-      <div class="pe-grid3">
-        ${peCampo('Localização','fb-localizacao',d.localizacao,'text',eEmp)}
-        ${peCampo('Elementos a Betonar','fb-elementos',d.elementos,'text',eEmp)}
-        ${peCampo('Peças a Betonar','fb-pecas',d.pecas,'text',eEmp)}
-      </div>
-      <div class="pe-grid3 pe-mt">
-        ${peCampo('Vol. Previsto ('+esc(d.unidade)+')','fb-volPrevisto',d.volPrevisto,'number',eEmp)}
-        ${peCampo('Tipo / Classe','fb-tipoClasse',d.tipoClasse,'text',eEmp)}
-        ${peCampo('Consistência','fb-consistencia',d.consistencia,'text',eEmp)}
-      </div>
-      <div class="pe-grid3 pe-mt">
-        ${peCampo('Provetes','fb-provetes',d.provetes,'text',eEmp)}
-        ${peCampo('Descofragem','fb-descofragem',d.descofragem,'text',eEmp)}
-        ${peCampo('Escoramento','fb-escoramento',d.escoramento,'text',eEmp)}
-      </div>
-      <div class="pe-mt"><label class="pe-rotanx">Anexos</label>${pbHtmlAnexos(d.anexosEmp,eEmp)}
-        ${eEmp?`<button class="pe-btn pe-mt" onclick="pbAdicionarAnexo()">+ Anexar Ficheiro</button>`:''}</div>
-    </div></div>`;
-
-  /* Verificações da Fiscalização */
-  const cel=(k,v,val)=>editVerif
-    ? `<td style="text-align:center"><input type="radio" name="vb-${k}" value="${v}" ${val===v?'checked':''}></td>`
-    : `<td style="text-align:center">${val===v?'<b style="color:'+CONF_PB[v].cor+'">●</b>':'<span class="pe-muted">·</span>'}</td>`;
-  const secVerif=`<div class="pe-zone pe-fisc"><div class="pe-zh"><span class="pe-zdot"></span><span class="pe-zt">Elementos a Verificar pela Fiscalização</span></div>
-    <div class="pe-zb"><table style="width:100%;border-collapse:collapse;font-size:13px">
-      <thead><tr style="background:var(--navy)"><th style="text-align:left;color:#fff;padding:6px 8px">Grupo</th><th style="text-align:left;color:#fff;padding:6px 8px">Item</th><th style="text-align:center;color:#fff;padding:6px 8px">Conforme</th><th style="text-align:center;color:#fff;padding:6px 8px">Não Conforme</th><th style="text-align:center;color:#fff;padding:6px 8px">Não Aplicável</th></tr></thead>
-      <tbody>${VERIF_PB.map(g=>g.itens.map(([k,rot],i)=>{
-        const val=(d.verificacoes||{})[k]||'';
-        return `<tr><td style="padding:6px 8px;border-bottom:1px solid var(--border-light)">${i===0?'<b>'+esc(g.grupo)+'</b>':''}</td><td style="padding:6px 8px;border-bottom:1px solid var(--border-light)">${esc(rot)}</td>${cel(k,'conf',val)}${cel(k,'nconf',val)}${cel(k,'na',val)}</tr>`;
-      }).join('')).join('')}</tbody>
-    </table></div></div>`;
-
-  /* Decisão */
-  const secDec=`<div class="pe-zone pe-fisc"><div class="pe-zh"><span class="pe-zdot"></span><span class="pe-zt">Fiscalização — Decisão</span></div>
-    <div class="pe-zb"><div class="pe-grid3">
-      ${peCampo('Data','x',d.dataDecisao,'date',false)}
-      ${peCampo('Autor','x',d.autorFisc,'text',false)}
-      <div class="pe-fld"><label>Decisão</label><div class="pe-ro">${pbDecPill(d.decisao)}</div></div>
-    </div><div class="pe-mt">${peCampo('Observações','x',d.observacoes,'textarea',false)}</div></div></div>`;
+  // FLX
+  const dataPasso={rascunho:d.dataCriacao,aberto:d.dataEnvio,fechado:d.dataFecho};
+  let cFlx=M.ordem.map(k=>R(L(M.estados[k].rot,AUT),dt(dataPasso[k]))).join('');
+  if(d.estado==='reaberto') cFlx+=R(L('Reaberto',AUT),'aguarda revisão');
+  if(notas.length) cFlx+=cgDiv+`<div class="cg-nota" title="${esc(notas.join(' '))}">${esc(notas.join(' '))}</div>`;
+  // IDE
+  let cIde=R(L('Id',AUT),esc(d.id))+R(L('Data',AUT),AE?inp('pba-dataEnvio',String(d.dataEnvio||d.dataCriacao||'').slice(0,10),'date'):dt(d.dataEnvio||d.dataCriacao))+R(L('Autor',AUT),AE?inp('pba-autorEmp',d.autorEmp):esc(d.autorEmp||''))+cgDiv+
+    R(L('Data Prevista',OBR),campo('dataPrevista','date'))+R('Hora Prevista',campo('horaPrevista'));
+  if(d.prevId||d.nextId) cIde+=cgDiv+(d.prevId?R('Revisão de',`<a class="cg-ver" onclick="pbAbrirFicha('${d.prevId}')">${esc(d.prevId)}</a>`):'')+(d.nextId?R('Revisto por',`<a class="cg-ver" onclick="pbAbrirFicha('${d.nextId}')">${esc(d.nextId)}</a>`):'');
+  // PED — plano de betonagem
+  const cPed=R2(L('Localização',OBR),campo('localizacao'),L('Elementos'),campo('elementos'))+
+    R2(L('Peças'),campo('pecas'),L('Ref.ª / Desenho'),campo('referencia'))+
+    R2(L('Vol. Previsto ('+esc(String(d.unidade||'m3').replace(/3$/,'³'))+')'),campo('volPrevisto','number'),L('Tipo / Classe'),campo('tipoClasse'))+
+    R2(L('Consistência'),campo('consistencia'),L('Provetes'),campo('provetes'))+
+    R2(L('Descofragem'),campo('descofragem'),L('Escoramento'),campo('escoramento'))+
+    R(L('Descarga'),campo('descarga'));
+  // VER — resumo · ELV — elementos a verificar (3 grupos lado a lado)
+  const ver=d.verificacoes||{}, editV=editVerif||AE;
+  const tot={conf:0,nconf:0,na:0,por:0}; VERIF_PB.forEach(g=>g.itens.forEach(([k])=>{ const v=ver[k]; if(CONF_PB[v]) tot[v]++; else tot.por++; }));
+  const cVer=R('Conforme',String(tot.conf))+R('Não Conforme',String(tot.nconf))+R('Não Aplicável',String(tot.na))+R('Por Verificar',String(tot.por));
+  const selV=(k,v)=>`<select class="cg-i" id="vb-${k}"><option value=""></option>${Object.keys(CONF_PB).map(c=>`<option value="${c}" ${v===c?'selected':''}>${CONF_PB[c].rot}</option>`).join('')}</select>`;
+  const cElv=`<div class="cg-vgrid">${VERIF_PB.map(g=>`<div class="cg-vcol"><div class="cg-r cg-rlab cg-vgt"><span class="cg-rl">${esc(g.grupo)}</span><span class="cg-rv"></span></div>${
+    g.itens.map(([k,rot])=>R(esc(rot),editV?selV(k,ver[k]||''):(CONF_PB[ver[k]]?CONF_PB[ver[k]].rot:''))).join('')}</div>`).join('')}</div>`;
+  // FIS · DEC
+  const cFis=R(L('Data',AUT),AE?inp('pba-dataDecisao',String(d.dataDecisao||'').slice(0,10),'date'):dt(d.dataDecisao))+R(L('Autor',AUT),AE?inp('pba-autorFisc',d.autorFisc):esc(d.autorFisc||''));
+  const cDec=R(L('Decisão'),AE?`<select class="cg-i" id="pba-decisao"><option value=""></option><option value="aprovado" ${d.decisao==='aprovado'?'selected':''}>Aprovado</option><option value="nao_aprovado" ${d.decisao==='nao_aprovado'?'selected':''}>Não Aprovado</option></select>`:decTxt(d.decisao))+
+    `<div class="cg-rtxt"><span class="cg-rl">${L('Observações')}</span>${AE?`<textarea class="cg-ta" id="pba-observacoes">${esc(d.observacoes||'')}</textarea>`:txt('x',d.observacoes,false)}</div>`;
+  const hs=(d.historico||[]);
+  const cHis=hs.length?hs.map(h=>`<div class="cg-r cg-dr cg-hr"><span class="cg-rl">${esc(h.data||'')}</span><div class="cg-dv"><span class="cg-hau" title="${esc(h.autor||'')}"><span>${esc(h.autor||'')}</span></span><span title="${esc(h.acao||'')}">${esc(h.acao||'')}</span></div></div>`).join('')
+    :`<div class="cg-r co-semreg"><span class="cg-rl">Sem registos</span><span class="cg-rv"></span></div>`;
 
   app.innerHTML=PE_CSS+`
   <div class="pe-wrap">
     <button class="back-btn" onclick="pbVoltarLista()">← Voltar</button>
-    <div class="page-header" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
-      <div>
-        <div class="page-title"><span class="code-pill" style="font-size:13px">${(pbObra()||{}).codigo||''}</span>${(pbObra()||{}).sigla||''} — PB ${d.id}</div>
-        <div class="page-count">${esc((pbObra()||{}).nome||d.obraNome)} · <span class="pe-estpill" style="background:${pbEST(d.estado).cor}">${pbEST(d.estado).rot}</span></div>
-      </div>
-      <div class="pe-fluxo" style="flex:1;justify-content:center;margin:0">${fluxo}</div>
-      <div class="pe-actbar" style="display:flex;gap:8px;flex-wrap:wrap">${acoes.join('')}</div>
-    </div>
-    ${notas.length?`<div class="pe-nota">${notas.map(esc).join(' ')}</div>`:''}
-    ${lig.length?`<div class="pe-lig">${lig.join(' · ')}</div>`:''}
-    ${secId}${secEmp}${secVerif}${secDec}
-    <div class="pe-hist"><b>Histórico</b>
-      ${(d.historico||[]).map(h=>`<div>· ${esc(h.data)} — [${esc(h.autor)}] ${esc(h.acao)}</div>`).join('')||'<div>—</div>'}
+    <div class="page-header"><div class="pe-actbar">${acoes.join('')}</div></div>
+    <div class="cg-cxs cg-2 cg-ficha cg-fpe cg-fpa cg-fpb${AE?' cg-admed':''}" ${SA&&!AE?'ondblclick="pbAdmEditar()" title="Duplo clique para editar (Superadmin)"':''}>
+      ${cgCartao('FLX','Fluxo',cFlx,'PRR','','cg-int fpe-flx')}
+      ${cgCartao('IDE','Identificação',cIde,'IDE','','cg-int fpe-m1')}
+      ${cgMaisAnexos(cgCartao('PED','Plano de Betonagem',cPed,'PEDE','','cg-int fpe-c1'),d.anexosEmp,(eEmp||SA),'pb','emp')}
+      ${cgCartao('VER','Verificação',cVer,'ESCL','','cg-int fpe-m2')}
+      ${cgCartao('ELV','Elementos a Verificar pela Fiscalização',cElv,'RESP','','cg-int fpe-c2')}
+      ${cgCartao('FIS','Fiscalização',cFis,'FISC','','cg-int fpe-m3')}
+      ${cgCartao('DEC','Decisão da Fiscalização',cDec,'PEDE','','cg-int fpe-c3')}
+      ${cgCartao('HIS','Histórico',cHis,'PRR','','cg-docw cg-hist')}
     </div>
   </div>`;
 }
+/* Edição inline pelo Superadmin (duplo clique) */
+let pbAdmEd=false;
+const PB_ADM_CAMPOS=[['dataEnvio','Data (Identificação)','date'],['autorEmp','Autor (Empreiteiro)'],['dataPrevista','Data Prevista','date'],['horaPrevista','Hora Prevista'],
+  ['localizacao','Localização'],['elementos','Elementos'],['pecas','Peças'],['referencia','Ref.ª / Desenho'],['volPrevisto','Vol. Previsto'],['tipoClasse','Tipo / Classe'],['consistencia','Consistência'],
+  ['provetes','Provetes'],['descofragem','Descofragem'],['escoramento','Escoramento'],['descarga','Descarga'],['dataDecisao','Data (Fiscalização)','date'],['autorFisc','Autor (Fiscalização)'],['decisao','Decisão','select'],['observacoes','Observações','ta']];
+window.pbAdmEditar=function(){ if(!peESuper()) return; pbAdmEd=true; render(); setTimeout(()=>{ const e=document.getElementById('pba-localizacao'); if(e) e.focus(); },50); };
+window.pbAdmCancelar=function(){ pbAdmEd=false; render(); };
+window.pbAdmGuardar=async function(){ const d=pbFichaAtualDoc(); if(!d) return; const mud=[];
+  const curto=v=>{ v=String(v==null?'':v).replace(/\s+/g,' ').trim(); return v.length>60?v.slice(0,57)+'…':v; };
+  const fmt=(k,t,v)=>t==='date'&&v?peDataPT(v):k==='decisao'?(v==='aprovado'?'Aprovado':v==='nao_aprovado'?'Não Aprovado':''):v;
+  PB_ADM_CAMPOS.forEach(([k,rot,t])=>{ const el=document.getElementById('pba-'+k); if(!el) return; let nv=el.value; if(t!=='ta') nv=nv.trim();
+    let ant=d[k]; if(k==='dataEnvio') ant=d.dataEnvio||d.dataCriacao;
+    const a=(t==='date'?String(ant||'').slice(0,10):String(ant==null?'':ant)), n=String(nv||'');
+    if(a===n) return; mud.push(rot+': "'+curto(fmt(k,t,a))+'" → "'+curto(fmt(k,t,n))+'"'); d[k]=(t==='date'||t==='select')&&!n?null:nv; });
+  VERIF_PB.forEach(g=>g.itens.forEach(([k,rot])=>{ const el=document.getElementById('vb-'+k); if(!el) return; const a=(d.verificacoes||{})[k]||'', n=el.value;
+    if(a!==n){ d.verificacoes=d.verificacoes||{}; if(n) d.verificacoes[k]=n; else delete d.verificacoes[k]; mud.push(g.grupo+' / '+rot+': "'+(CONF_PB[a]?CONF_PB[a].rot:'')+'" → "'+(CONF_PB[n]?CONF_PB[n].rot:'')+'"'); } }));
+  pbAdmEd=false;
+  if(mud.length){ pbRegistar(d,'Editado pelo Superadmin — '+mud.join('; ')); await pbPersistir(d); }
+  render(); };
+document.addEventListener('keydown',e=>{ if(!pbAdmEd||!pbFichaId) return; if(e.key==='Escape'){ e.preventDefault(); pbAdmCancelar(); } else if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){ e.preventDefault(); pbAdmGuardar(); } });
+GPE_ANX.pb={ doc:()=>pbFichaAtualDoc(), tit:{emp:'Plano de Betonagem'},
+  lista:d=>{ if(!d.anexosEmp) d.anexosEmp=[]; return d.anexosEmp; },
+  pode:d=>pbPodeEmp(d)||peESuper(), antes:d=>{ if(pbPodeEmp(d)) pbLerFormEmp(d); },
+  gravar:d=>pbPersistir(d), abrir:d=>pbAbrirFicha(d.id) };
 
 /* ---- Modal decisão ---- */
 function pbFecharModal(){ const v=document.getElementById('pe-veu'); if(v) v.remove(); }
