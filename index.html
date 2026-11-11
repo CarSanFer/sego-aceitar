@@ -908,6 +908,10 @@ window.segoTema=function(){
   .cg-r .cg-rl,.cg-rtxt>.cg-rl{display:grid !important;grid-template-columns:var(--lab-w,max-content) minmax(12px,1fr);align-items:baseline;column-gap:0}
   .cg-r .cg-rl::after,.cg-rtxt>.cg-rl::after{grid-column:2;width:auto !important;min-width:12px}
   .co-semreg .cg-rl{display:block !important}
+  /* "Com Caixa": todos os valores da app em caixa (leitura e edição) */
+  html[data-caixas] .cg-r .cg-rv:not(:empty):not(:has(input,select,textarea)){border:1px solid var(--border-light);border-radius:4px;padding:0 6px !important;height:20px;line-height:18px;box-sizing:border-box;background:var(--bg-card)}
+  html[data-caixas] .cg-txt{border:1px solid var(--border-light);border-radius:4px;padding:0 6px;box-sizing:border-box}
+  html[data-caixas] .cg-dr:not(.cg-dh) .cg-dv>span:not(:empty){border:1px solid var(--border-light);border-radius:4px;padding:0 6px;height:20px;line-height:18px;box-sizing:border-box}
 </style>
 <script>
 /* Pontilhado alinhado (intermédio): em cada bloco de linhas (separado por linha em branco), os valores curtos e
@@ -12198,7 +12202,7 @@ window.segoPaleta=function(k){ if(k==='navy') document.documentElement.setAttrib
   try{ localStorage.setItem('sego-paleta',k); }catch(e){} const m=document.getElementById('user-menu'); if(m&&m.style.display==='block'){ m.style.display='none'; userMenuAbrir(); } };
 document.addEventListener('click',e=>{ const t=e.target; if(t&&t.tagName==='INPUT'&&t.type==='date'&&!document.documentElement.hasAttribute('data-caixas')){ try{ t.showPicker&&t.showPicker(); }catch(_){} } },true);
 window.segoCaixas=function(k){ if(k==='1') document.documentElement.setAttribute('data-caixas',''); else document.documentElement.removeAttribute('data-caixas');
-  try{ localStorage.setItem('sego-caixas',k); }catch(e){} const m=document.getElementById('user-menu'); if(m&&m.style.display==='block'){ m.style.display='none'; userMenuAbrir(); } };
+  try{ localStorage.setItem('sego-caixas',k); }catch(e){} try{ render(); }catch(e){} const m=document.getElementById('user-menu'); if(m&&m.style.display==='block'){ m.style.display='none'; userMenuAbrir(); } };
 window.userMenuFechar=function(){ const m=document.getElementById('user-menu'); if(m) m.style.display='none'; };
 window.segoTemaDef=function(t){ const h=document.documentElement;
   h.removeAttribute('data-contraste'); if(t==='claro') h.removeAttribute('data-theme'); else h.setAttribute('data-theme','dark'); if(t==='contraste') h.setAttribute('data-contraste','');
