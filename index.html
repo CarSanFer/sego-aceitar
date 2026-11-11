@@ -313,7 +313,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.11.0131</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.11.0140</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -931,6 +931,19 @@ window.segoTema=function(){
   .cg-mk{position:absolute;left:var(--mk-x,calc(100% + 10px));top:50%;width:7px;height:7px;border-radius:50%;transform:translateY(-50%);font-style:normal}
   .cg-mk.obr{background:#DC2626}
   .cg-mk.aut{background:#F2C230}
+  /* Popup de anexos */
+  .modal.modal-anx{max-width:1100px !important;width:92vw !important}
+  .anx-wrap{display:grid;grid-template-columns:260px minmax(0,1fr);gap:12px;min-height:60vh}
+  .anx-lista{border-right:1px solid var(--border-light);padding-right:8px;overflow:auto;max-height:65vh}
+  .anx-it{display:flex;align-items:center;gap:6px;height:22px;padding:0 6px;border-radius:4px;cursor:pointer}
+  .anx-it:hover{background:rgba(127,140,160,.10)}
+  .anx-it.on{background:rgba(227,153,86,.18)}
+  .anx-n{flex:1 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .anx-t{color:var(--text-muted)}
+  .anx-prev{display:flex;align-items:center;justify-content:center;min-height:60vh;background:rgba(127,140,160,.06);border-radius:4px;overflow:auto}
+  .anx-prev img{max-width:100%;max-height:65vh;object-fit:contain}
+  .anx-prev iframe{width:100%;height:65vh;border:0;background:#fff}
+  .anx-vazio{color:var(--text-muted);text-align:center;line-height:22px}
 </style>
 <script>
 /* Pontilhado alinhado (intermédio): em cada bloco de linhas (separado por linha em branco), os valores curtos e
@@ -950,8 +963,8 @@ window.segoTema=function(){
       const k=(cont?contId.get(cont):0)+':'+(card?Math.round(card.getBoundingClientRect().left):0);
       if(!porCol.has(k)) porCol.set(k,[]); porCol.get(k).push({l,w:largL(l)}); });
     porCol.forEach(arr=>{ const ws=arr.map(a=>a.w).sort((a,b)=>a-b); let alvo=ws[0];
-      for(let i=1;i<ws.length;i++){ if(ws[i]-ws[i-1]<=20) alvo=ws[i]; else break; }
-      arr.forEach(a=>a.l.style.setProperty('--mk-x',Math.ceil((a.w<=alvo?alvo:a.w)+10)+'px')); });
+      for(let i=1;i<ws.length;i++){ if(ws[i]-ws[i-1]<=40) alvo=ws[i]; else break; }
+      arr.forEach(a=>a.l.style.setProperty('--mk-x',Math.ceil((a.w<=alvo?alvo:a.w)+18)+'px')); });
     const largComBola=l=>{ const x=parseFloat(l.style.getPropertyValue('--mk-x'))||0; return Math.max(largL(l), x?x+7+6:0); };
     const grupoLab=new Map();
     app.querySelectorAll('.cg-r .cg-rl:not(.cg-rl2),.cg-rtxt>.cg-rl').forEach(l=>{ if(l.closest('.co-semreg')) return;
@@ -4417,7 +4430,19 @@ window.peEliminar=async function(id){
 
 /* Anexos (base64 embutido no JSONB, cap 3 MB — como no GPE) */
 function peListaAnexos(d,chave){ return chave==='proj'?d.anexosProj:d.anexosEmp; }
-window.peAdicionarAnexo=function(chave){
+/* Popup de anexos: lista à esquerda, pré-visualização à direita (imagem / PDF), anexar e remover */
+window.peVerAnexos=function(chave,i){ const d=peFichaAtualDoc(); if(!d) return; const lista=peListaAnexos(d,chave)||[];
+  const pode=chave==='proj'?(pePodeProj(d)||peESuper()):(pePodeEmp(d)||peESuper()); window.__peAnx={chave};
+  i=Math.max(0,Math.min(i||0,lista.length-1)); const a=lista[i];
+  const ext=a?String(a.nome||'').split('.').pop().toLowerCase():''; const src=a?a.dados:'';
+  const eImg=a&&(/^data:image\//.test(src)||['png','jpg','jpeg','gif','webp','bmp','svg'].includes(ext));
+  const ePdf=a&&(/^data:application\/pdf/.test(src)||ext==='pdf');
+  const prev=!a?'<div class="anx-vazio">Sem anexos.</div>':eImg?`<img src="${src}" alt="">`:ePdf?`<iframe src="${src}"></iframe>`:`<div class="anx-vazio">Pré-visualização indisponível para este tipo de ficheiro.<br><a class="cg-ver" href="${src}" download="${esc(a.nome)}">Descarregar ${esc(a.nome)}</a></div>`;
+  const lst=lista.map((x,k)=>`<div class="anx-it ${k===i?'on':''}" onclick="peVerAnexos('${chave}',${k})"><span class="anx-n" title="${esc(x.nome)}">${esc(x.nome)}</span><span class="anx-t">${(x.tam/1024).toFixed(0)} KB</span>${pode?`<button class="cg-ax-x" title="Remover" onclick="event.stopPropagation();peRemoverAnexo('${chave}',${k})">×</button>`:''}</div>`).join('');
+  const bts=[]; if(pode) bts.push({label:'+ Anexar',cls:'btn-outline',fn:`peAdicionarAnexo('${chave}',true)`}); if(a) bts.push({label:'Descarregar',cls:'btn-outline',fn:`(function(){const l=document.createElement('a');l.href=peListaAnexos(peFichaAtualDoc(),'${chave}')[${i}].dados;l.download=peListaAnexos(peFichaAtualDoc(),'${chave}')[${i}].nome;l.click();})()`});
+  bts.push({label:'Fechar',cls:'btn-gold',fn:'window.__peAnx=null;closeModal()'});
+  showModal('Anexos — '+(chave==='proj'?'Resposta do Projetista':'Pedido do Empreiteiro')+' · '+d.id,`<div class="anx-wrap"><div class="anx-lista">${lst||'<div class="anx-vazio">—</div>'}</div><div class="anx-prev">${prev}</div></div>`,bts,'modal-anx'); };
+window.peAdicionarAnexo=function(chave,popup){
   const d=peFichaAtualDoc(); if(!d) return;
   const input=document.createElement('input'); input.type='file'; input.multiple=true;
   input.onchange=()=>{
@@ -4425,7 +4450,7 @@ window.peAdicionarAnexo=function(chave){
     if(chave==='emp') peLerFormEmp(d);
     if(chave==='proj') peLerFormProj(d);
     const fs=Array.from(input.files||[]); let pend=fs.length; if(!pend) return;
-    const fim=async()=>{ await pePersistir(d); peAbrirFicha(d.id); };
+    const fim=async()=>{ await pePersistir(d); await peAbrirFicha(d.id); if(popup||window.__peAnx) peVerAnexos(chave,peListaAnexos(d,chave).length-1); };
     fs.forEach(f=>{
       if(f.size>3*1024*1024){ alert('"'+f.name+'" excede 3 MB.'); if(--pend===0) fim(); return; }
       const r=new FileReader();
@@ -4437,8 +4462,9 @@ window.peAdicionarAnexo=function(chave){
 };
 window.peRemoverAnexo=async function(chave,i){
   const d=peFichaAtualDoc(); if(!d) return;
+  if(!confirm('Remover este anexo?')) return;
   peListaAnexos(d,chave).splice(i,1);
-  await pePersistir(d); peAbrirFicha(d.id);
+  await pePersistir(d); await peAbrirFicha(d.id); if(window.__peAnx) peVerAnexos(chave,Math.max(0,i-1));
 };
 function peHtmlAnexos(lista,podeRemover,chave){
   if(!lista||!lista.length) return '<div class="pe-muted">Sem anexos</div>';
@@ -4653,10 +4679,10 @@ function renderFichaPE(app){
   const L=(t,m)=>m?`<span class="cg-lm">${t}<i class="cg-mk ${m}" title="${m==='obr'?'Obrigatório':'Preenchido automaticamente'}"></i></span>`:`<span>${t}</span>`;
   const inp=(id,val,tipo)=>`<input class="cg-i" id="${id}" type="${tipo||'text'}" value="${esc(val||'')}">`;
   const txt=(id,val,ed)=>ed?`<textarea class="cg-ta" id="${id}">${esc(val||'')}</textarea>`:`<div class="cg-txt">${val?esc(val):''}</div>`;
-  const anexos=(lista,pode,chave)=>{ const ch=(lista||[]).map((a,i)=>`<span class="cg-ax" title="${esc(a.nome)} · ${(a.tam/1024).toFixed(0)} KB"><a href="${a.dados}" download="${esc(a.nome)}">${esc(a.nome)}</a>${pode?`<button class="cg-ax-x" title="Remover" onclick="peRemoverAnexo('${chave}',${i})">×</button>`:''}</span>`).join('');
-    return `<div class="cg-r cg-ranx"><span class="cg-rl">${L('Anexos'+(pode?` <button class="cg-ax-mais" title="Anexar ficheiro" onclick="peAdicionarAnexo('${chave}')">+</button>`:''))}</span><span class="cg-rv">${ch}</span></div>`; };
+  const anexos=(lista,pode,chave)=>{ const n=(lista||[]).length;
+    return `<div class="cg-r"><span class="cg-rl">${L('Anexos'+(pode?` <button class="cg-ax-mais" title="Anexar ficheiro" onclick="peAdicionarAnexo('${chave}',true)">+</button>`:''))}</span><span class="cg-rv">${n?`<a class="cg-ver" onclick="peVerAnexos('${chave}',0)" title="${esc((lista||[]).map(a=>a.nome).join('\n'))}">Ver</a>`:''}</span></div>`; };
   // IDE — linhas 1-3; Especialidade na linha 6 (em frente ao Fechado do FLX)
-  let cIde=R(L('Id',AUT),esc(d.id))+R(L('Data',AUT),dt(d.dataEnvio))+R(L('Autor',AUT),esc(d.autorEmp||''))+cgDiv+cgDiv+R(L('Especialidade',AUT),esc(d.projEspecialidade||''));
+  let cIde=R(L('Id',AUT),esc(d.id))+R(L('Data',AUT),dt(d.dataEnvio))+R(L('Autor',AUT),esc(d.autorEmp||''))+cgDiv+cgDiv+R('Especialidade',esc(d.projEspecialidade||''));
   if(d.prevId||d.nextId) cIde+=cgDiv+(d.prevId?R('Revisão de',`<a class="cg-ver" onclick="peAbrirFicha('${d.prevId}')">${esc(d.prevId)}</a>`):'')+(d.nextId?R('Revisto por',`<a class="cg-ver" onclick="peAbrirFicha('${d.nextId}')">${esc(d.nextId)}</a>`):'');
   // FLX — datas automáticas de cada passo
   const dataPasso={rascunho:d.dataCriacao,aberto:d.dataEnvio,pendente:d.dataEnvioProj,esclarecido:d.dataEsclarecido,respondido:d.dataResposta,fechado:d.dataFecho};
