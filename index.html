@@ -314,7 +314,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.11.1956</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.11.1957</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -888,6 +888,7 @@ window.segoTema=function(){
     .cg-fptq>.cg-cx.cg-docw{grid-row:5 !important}
     .cg-fptq>.cg-cx.fpq-his3{grid-row:4 !important}
     .cg-ftcm>.cg-cx.cg-docw{grid-row:4 !important}
+    .cg-fam>.cg-cx.cg-docw{grid-row:3 !important}
   }
   .cg-rlab .cg-rv{display:none !important}
   .cg-rlab .cg-rl::after{display:none}
@@ -951,6 +952,10 @@ window.segoTema=function(){
   .cg-ftcm .tcm-tab table{width:100%;border-collapse:collapse}
   .cg-ftcm .tcm-tab th{background:rgba(127,140,160,.10);font-weight:700;padding:4px 6px;border-bottom:1px solid var(--border-light)}
   .cg-ftcm .tcm-tab td{padding:3px 6px;border-bottom:1px solid var(--border-light)}
+  .cg-fam .am-fl{display:flex;gap:6px;align-items:center;margin-bottom:8px;flex-wrap:wrap}
+  .cg-fam table.am-tab{min-width:1180px}
+  .cg-fam table.am-tab th{background:rgba(127,140,160,.10);font-weight:700;padding:4px 6px;border-bottom:1px solid var(--border-light)}
+  .cg-fam table.am-tab td{padding:3px 6px;border-bottom:1px solid var(--border-light)}
   .cg-ranx{height:auto !important;min-height:22px}
   .cg-ranx .cg-rv{white-space:normal !important;overflow:visible !important;display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center}
   .cg-ax a{color:var(--info) !important;text-decoration:none}
@@ -9926,39 +9931,43 @@ function renderFichaAM(app){
   acoes.push(`<button class="pe-btn" onclick="amPDF('med')">PDF · Só Linhas Medidas</button>`);
   acoes.push(`<button class="pe-btn" onclick="amPDF('todas')">PDF · Todas as Linhas</button>`);
   if(peESuper()) acoes.push(`<button class="pe-btn red" onclick="amEliminarAM()">Eliminar</button>`);
-
-  app.innerHTML=PE_CSS+AM_CSS+`
-  <div class="pe-wrap am-wrap" style="max-width:1500px">
-    <button class="back-btn" onclick="amFecharFicha()">← Voltar aos Autos</button>
-    <div class="page-header">
-      <div>
-        <div class="page-title"><span class="code-pill" style="font-size:13px">${o.codigo}</span>AM ${amModo==='TCm'?'TCm':'TN'} ${esc(d.id)} · ${o.sigla} — ${o.nome}</div>
-        <div style="margin-top:4px;display:flex;gap:8px;align-items:center">
-          <span class="pe-estpill" style="background:${amEST(d.estado).cor}">${amEST(d.estado).rot}</span>
-          <span>Mês de Referência: <b>${esc(d.mes_ref||'—')}</b></span>
-          <span class="pe-muted">Criado por ${esc(d.autor_emp||'—')} em ${d.data_criacao?peDataPT(d.data_criacao):'—'}</span>${d.prev_id?`<span class="pe-revlink">↳ rev. de ${esc(d.prev_id)}</span>`:''}${d.next_id?`<span class="pe-revlink">↳ revisto por ${esc(d.next_id)}</span>`:''}
-        </div>
-      </div>
-      <div class="page-actions">${acoes.join('')}</div>
-    </div>
-    <div style="display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap">
-      <span class="am-total">Mês: <span id="am-tot-mes">${amFmt(totMes)} €</span></span>
-      <span class="am-total">Acumulado: <span id="am-tot-acum">${amFmt(totAcum)} €</span></span>
-      <span class="am-total">Saldo: <span id="am-tot-saldo">${amFmt(totSaldo)} €</span></span>
-      <span class="am-total" style="background:#EEF1F5;border-color:var(--border-light)">${amModo==='TCm'?'TCm Aprovados':'LPU'}: ${amFmt(totAcum+totSaldo)} €</span>
-    </div>
-    <div style="display:flex;gap:6px;align-items:center;margin-bottom:8px;flex-wrap:wrap">
+  const SA=peESuper(), AE=amAdmEd&&SA;
+  if(AE){ acoes.length=0; acoes.push(`<button class="pe-btn gold" onclick="amAdmGuardar()">Guardar</button>`); acoes.push(`<button class="pe-btn" onclick="amAdmCancelar()">Cancelar</button>`); }
+  /* ===== Layout em cartões (padrão da ficha PE) ===== */
+  const R=(l,v)=>cgR(l,v), dt=v=>v?peDataPT(v):'';
+  const AUT='aut';
+  const L=(t,m)=>m?`<span class="cg-lm">${t}<i class="cg-mk ${m}" title="${m==='obr'?'Obrigatório':'Preenchido automaticamente'}"></i></span>`:`<span>${t}</span>`;
+  const ai=(k,tipo)=>`<input class="cg-i" id="ama-${k}" type="${tipo||'text'}" value="${esc(tipo==='date'?String(d[k]||'').slice(0,10):(d[k]==null?'':d[k]))}">`;
+  const R2=(l1,v1,l2,v2)=>`<div class="cg-r cg-rdup"><span class="cg-rl">${l1}</span><span class="cg-rv">${v1}</span><span class="cg-rl cg-rl2">${l2}</span><span class="cg-rv">${v2}</span></div>`;
+  const ORD=AM_MOD.ordem;
+  const dataPasso={rascunho:d.data_criacao,enviado:d.data_envio,verificado:d.data_verificacao,aprovado:d.data_aprovacao,fechado:d.data_fecho};
+  let cFlx=ORD.map(k=>R(L(amEST(k).rot,AUT),dt(dataPasso[k]))).join('');
+  if(d.estado==='revisto'||d.estado==='reaberto') cFlx+=R(L(amEST(d.estado).rot,AUT),d.next_id?`<a class="cg-ver" onclick="amAbrirFicha('${d.next_id}')">${esc(d.next_id)}</a>`:'');
+  const nt=AE?'':(`${d.estado==='rascunho'&&eEmpAM?'<div class="pe-muted" style="margin-top:8px">Medição em % ou quantidade — a linha nunca pode ultrapassar o saldo disponível (o valor é ajustado automaticamente ao máximo). Guarde o rascunho antes de sair.</div>':''}
+    ${d.estado==='enviado'&&eFiscAM?'<div class="pe-muted" style="margin-top:8px">Verificação: corrija quantidades e registe observações por linha (✎). Ao concluir, é criada a revisão seguinte, que segue para o Dono de Obra — as alterações ficam gravadas nesse momento.</div>':''}
+    ${d.estado==='verificado'&&eDOAM?'<div class="pe-muted" style="margin-top:8px">Aprovação: pode corrigir quantidades e registar observações por linha (✎), tal como a Fiscalização. Se alterar algo, a aprovação cria a revisão seguinte; sem alterações, aprova diretamente.</div>':''}
+    ${d.estado==='rascunho'&&eEmpAM&&restrito?'<div class="pe-muted" style="margin-top:8px">Revisão por não concordância: apenas as linhas medidas no Auto em causa podem ser corrigidas e comentadas.</div>':''}
+    ${d.estado==='concordancia'&&eEmpAM?'<div class="pe-muted" style="margin-top:8px">Concordância: se não concordar, use "Não Concordar" — é criada uma revisão em rascunho onde corrige as quantidades e regista, nas linhas em causa, as observações da não concordância (✎); depois reenvie à Fiscalização.</div>':''}`).replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
+  if(nt) cFlx+=cgDiv+`<div class="cg-nota" title="${esc(nt)}">${esc(nt)}</div>`;
+  let cIde=R(L('Id',AUT),esc(d.id))+R(L('Data',AUT),AE?ai('data_criacao','date'):dt(d.data_criacao))+R(L('Autor',AUT),AE?ai('autor_emp'):esc(d.autor_emp||''))+cgDiv+
+    R(L('Fiscalização',AUT),AE?ai('autor_fisc'):esc(d.autor_fisc||''))+R(L('Dono de Obra',AUT),AE?ai('autor_do'):esc(d.autor_do||''));
+  if(d.prev_id||d.next_id) cIde+=cgDiv+(d.prev_id?R('Revisão de',`<a class="cg-ver" onclick="amAbrirFicha('${d.prev_id}')">${esc(d.prev_id)}</a>`):'')+(d.next_id?R('Revisto por',`<a class="cg-ver" onclick="amAbrirFicha('${d.next_id}')">${esc(d.next_id)}</a>`):'');
+  const cRes=R2(L('Mês de Referência'),AE?ai('mes_ref'):esc(d.mes_ref||''),L('Tipo'),amModo==='TCm'?'TCm':'TN')+
+    R2(L('Mês'),`<span id="am-tot-mes">${amFmt(totMes)} €</span>`,L('Acumulado'),`<span id="am-tot-acum">${amFmt(totAcum)} €</span>`)+
+    R2(L('Saldo'),`<span id="am-tot-saldo">${amFmt(totSaldo)} €</span>`,L(amModo==='TCm'?'TCm Aprovados':'LPU'),`${amFmt(totAcum+totSaldo)} €`)+
+    `<div class="cg-rtxt"><span class="cg-rl">${L('Observações')}</span>${AE?`<textarea class="cg-ta" id="ama-observacoes">${esc(d.observacoes||'')}</textarea>`:`<div class="cg-txt">${esc(d.observacoes||'')}</div>`}</div>`;
+  const cMed=`<div class="am-filt"><div class="am-fl">
       <span class="am-chip ${!amFCap?'on':''}" onclick="amFSetCap('')">Todos</span>
       ${caps1.map(c=>`<span class="am-chip ${amFCap===c.item_id?'on':''}" title="${esc(c.descricao)}" onclick="amFSetCap('${esc(c.item_id)}')">${esc(c.item_id)} · ${esc(c.rotulo||((c.descricao||'').slice(0,22)+((c.descricao||'').length>22?'…':'')))}</span>`).join('')}
     </div>
-    <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap">
+    <div class="am-fl">
       <button class="am-btn" onclick="amFColapsarTudo(true)">Colapsar Tudo</button>
       <button class="am-btn" onclick="amFColapsarTudo(false)">Descolapsar Tudo</button>
       <button class="am-btn ${amFSoMed?'on':''}" onclick="amFToggleSoMed()">Só Linhas Medidas</button>
       <button class="am-btn ${amFSoObs?'on':''}" onclick="amFToggleSoObs()">Só c/Observações${(()=>{const n=Object.keys(amFichaMed).filter(k=>amTemObs(amFichaMed[k])).length;return n?' ('+n+')':'';})()}</button>
       <input value="${esc(amFPesq)}" placeholder="Pesquisar Id ou descrição…" onchange="amFSetPesq(this.value)" style="height:26px;padding:2px 8px;border:1px solid var(--border-light);border-radius:4px;min-width:240px">
-    </div>
-    <div class="table-card" style="overflow-x:auto"><table style="min-width:1380px">
+    </div></div>
+    <div class="tcm-tab"><table class="am-tab">
       <thead>
         <tr>
           <th rowspan="2" style="width:74px">Id</th><th rowspan="2">Descrição</th><th rowspan="2" style="width:40px">Un</th>
@@ -9975,19 +9984,37 @@ function renderFichaAM(app){
         </tr>
       </thead>
       <tbody>${rows||''}</tbody>
-    </table>
-    ${rows?'':'<div class="pe-vazio">Sem resultados para o filtro.</div>'}
-    </div>
-    ${d.estado==='rascunho'&&eEmpAM?'<div class="pe-muted" style="margin-top:8px">Medição em % ou quantidade — a linha nunca pode ultrapassar o saldo disponível (o valor é ajustado automaticamente ao máximo). Guarde o rascunho antes de sair.</div>':''}
-    ${d.estado==='enviado'&&eFiscAM?'<div class="pe-muted" style="margin-top:8px">Verificação: corrija quantidades e registe observações por linha (✎). Ao concluir, é criada a revisão seguinte, que segue para o Dono de Obra — as alterações ficam gravadas nesse momento.</div>':''}
-    ${d.estado==='verificado'&&eDOAM?'<div class="pe-muted" style="margin-top:8px">Aprovação: pode corrigir quantidades e registar observações por linha (✎), tal como a Fiscalização. Se alterar algo, a aprovação cria a revisão seguinte; sem alterações, aprova diretamente.</div>':''}
-    ${d.estado==='rascunho'&&eEmpAM&&restrito?'<div class="pe-muted" style="margin-top:8px">Revisão por não concordância: apenas as linhas medidas no Auto em causa podem ser corrigidas e comentadas.</div>':''}
-    ${d.estado==='concordancia'&&eEmpAM?'<div class="pe-muted" style="margin-top:8px">Concordância: se não concordar, use "Não Concordar" — é criada uma revisão em rascunho onde corrige as quantidades e regista, nas linhas em causa, as observações da não concordância (✎); depois reenvie à Fiscalização.</div>':''}
-    <div class="pe-hist"><b>Histórico</b>
-      ${(d.historico||[]).map(h=>`<div>· ${esc(h.data)} — [${esc(h.autor)}] ${esc(h.acao)}</div>`).join('')||'<div>—</div>'}
+    </table></div>`;
+  const hs=(d.historico||[]);
+  const cHis=hs.length?hs.map(h=>`<div class="cg-r cg-dr cg-hr"><span class="cg-rl">${esc(h.data||'')}</span><div class="cg-dv"><span class="cg-hau" title="${esc(h.autor||'')}"><span>${esc(h.autor||'')}</span></span><span title="${esc(h.acao||'')}">${esc(h.acao||'')}</span></div></div>`).join('')
+    :`<div class="cg-r co-semreg"><span class="cg-rl">Sem registos</span><span class="cg-rv"></span></div>`;
+  app.innerHTML=PE_CSS+AM_CSS+`
+  <div class="pe-wrap am-wrap">
+    <button class="back-btn" onclick="amFecharFicha()">← Voltar aos Autos</button>
+    <div class="page-header"><div class="pe-actbar">${acoes.join('')}</div></div>
+    <div class="cg-cxs cg-2 cg-ficha cg-fpe cg-fpa cg-fptq cg-ftcm cg-fam${AE?' cg-admed':''}" ${SA&&!AE?'ondblclick="amAdmEditar(event)" title="Duplo clique para editar (Superadmin)"':''}>
+      ${cgCartao('FLX','Fluxo',cFlx,'PRR','','cg-int fpe-flx')}
+      ${cgCartao('IDE','Identificação',cIde,'IDE','','cg-int fpe-m1')}
+      ${cgCartao('RES','Resumo',cRes,'VAL','','cg-int fpe-c1')}
+      ${cgCartao('MED','Medição',cMed,'PEDE','','cg-int fpq-g fpq-g1')}
+      ${cgCartao('HIS','Histórico',cHis,'PRR','','cg-docw cg-hist')}
     </div>
   </div>`;
 }
+/* Edição inline pelo Superadmin (duplo clique): cabeçalho do Auto */
+let amAdmEd=false;
+const AM_ADM_CAMPOS=[['data_criacao','Data','date'],['autor_emp','Autor (Empreiteiro)'],['autor_fisc','Fiscalização'],['autor_do','Dono de Obra'],['mes_ref','Mês de Referência'],['observacoes','Observações','ta']];
+window.amAdmEditar=function(ev){ if(!peESuper()) return; if(ev&&ev.target&&ev.target.closest&&ev.target.closest('.fpq-g')) return; amAdmEd=true; render(); };
+window.amAdmCancelar=function(){ amAdmEd=false; render(); };
+window.amAdmGuardar=async function(){ const d=amPorId(amFichaId); if(!d) return; const mud=[];
+  const curto=v=>{ v=String(v==null?'':v).replace(/\s+/g,' ').trim(); return v.length>60?v.slice(0,57)+'…':v; };
+  AM_ADM_CAMPOS.forEach(([k,rot,t])=>{ const el=document.getElementById('ama-'+k); if(!el) return; let n=el.value; if(t!=='ta') n=n.trim();
+    const a=t==='date'?String(d[k]||'').slice(0,10):String(d[k]==null?'':d[k]); if(a===n) return;
+    mud.push(rot+': "'+curto(t==='date'&&a?peDataPT(a):a)+'" → "'+curto(t==='date'&&n?peDataPT(n):n)+'"'); d[k]=(t==='date'&&!n)?null:n; });
+  amAdmEd=false;
+  if(mud.length){ amRegistar(d,'Editado pelo Superadmin — '+mud.join('; ')); try{ await amPersistir(d); }catch(e){ alert('Erro ao gravar: '+(e.message||e)); } }
+  render(); };
+document.addEventListener('keydown',e=>{ if(!amAdmEd||!amFichaId) return; if(e.key==='Escape'){ e.preventDefault(); amAdmCancelar(); } else if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){ e.preventDefault(); amAdmGuardar(); } });
 
 /* ####################  FIM MÓDULO AM  #################### */
 
