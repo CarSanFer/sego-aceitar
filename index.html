@@ -314,7 +314,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.11.1811</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.11.1839</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -839,11 +839,11 @@ window.segoTema=function(){
   :root{--nav-bd:var(--cg-faixa,#E39956)}
   .navbar{border-bottom-color:var(--nav-bd) !important}
   #ver-dev,.cg-at button{border:1px solid var(--nav-bd) !important;border-radius:4px !important}
-  #nav-home,#nav-back,#btn-dashmenu,#btn-def,#nav-obras-n,#nav-obra .on-at:not(.on),#nav-acoes .on-at:not(.del),#nav-obras-qin svg{color:var(--nav-bd) !important;stroke:currentColor}
+  #nav-home,#nav-back,#btn-dashmenu,#btn-def,#nav-obras-n,#nav-obra .on-at:not(.on),#nav-acoes .on-at:not(.del),#nav-adm .on-at:not(.del),#nav-obras-qin svg{color:var(--nav-bd) !important;stroke:currentColor}
   #nav-home svg,#nav-back svg,#btn-dashmenu svg,#btn-def svg{stroke:var(--nav-bd) !important}
   #nav-obra .on-at.on,.nav-ord.on{background:var(--nav-bd) !important}
   #nav-obras-qin svg{stroke:var(--nav-bd) !important}
-  #nav-obras-n,#nav-home,#nav-back,#btn-dashmenu,#btn-def,#btn-sync,#verBadge,#nav-obras-est,#nav-obras-qin,#nav-obra-mid,.nav-ord,#nav-obra .on-at,#nav-acoes .on-at:not(.del){border:1px solid var(--nav-bd) !important}
+  #nav-obras-n,#nav-home,#nav-back,#btn-dashmenu,#btn-def,#btn-sync,#verBadge,#nav-obras-est,#nav-obras-qin,#nav-obra-mid,.nav-ord,#nav-obra .on-at,#nav-acoes .on-at:not(.del),#nav-adm .on-at:not(.del){border:1px solid var(--nav-bd) !important}
   #nav-obra-mid,#nav-obras-qbox{height:24px !important}
   #nav-obra-mid{box-sizing:border-box !important}
   .nav-avatar{background:var(--nav-bd) !important}
@@ -1053,12 +1053,13 @@ window.segoTema=function(){
   #app.co-modpg .page-header{display:none !important}
   .sego-mv,.sego-mv-row{display:none !important}
   #nav-acoes{display:none;align-items:center;gap:6px;margin-right:10px}
-  #nav-acoes .on-at{flex:0 0 auto;width:24px;height:24px;padding:0;box-sizing:border-box;border-radius:4px;border:1px solid #E39956;background:transparent;color:#E39956;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-family:inherit}
-  #nav-acoes .on-at:hover{background:rgba(227,153,86,.2)}
-  #nav-acoes .on-at.txt{width:auto;padding:0 8px;white-space:nowrap;color:rgba(255,255,255,.9)}
-  #nav-acoes .on-at.del{border-color:#f87171;color:#fca5a5}
-  #nav-acoes .on-at[disabled]{opacity:.4;cursor:default}
-  #nav-acoes .on-at svg{width:14px;height:14px}
+  #nav-adm{display:none;align-items:center;gap:6px;margin-right:10px}
+  #nav-acoes .on-at,#nav-adm .on-at{flex:0 0 auto;width:24px;height:24px;padding:0;box-sizing:border-box;border-radius:4px;border:1px solid #E39956;background:transparent;color:#E39956;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-family:inherit}
+  #nav-acoes .on-at:hover,#nav-adm .on-at:hover{background:rgba(227,153,86,.2)}
+  #nav-acoes .on-at.txt,#nav-adm .on-at.txt{width:auto;padding:0 8px;white-space:nowrap;color:rgba(255,255,255,.9)}
+  #nav-acoes .on-at.del,#nav-adm .on-at.del{border-color:#f87171;color:#fca5a5}
+  #nav-acoes .on-at[disabled],#nav-adm .on-at[disabled]{opacity:.4;cursor:default}
+  #nav-acoes .on-at svg,#nav-adm .on-at svg{width:14px;height:14px}
 </style>
 <script>
 (function(){
@@ -1110,7 +1111,7 @@ window.segoTema=function(){
     app.querySelectorAll('.sego-mv').forEach(b=>{ b.classList.remove('sego-mv'); b.removeAttribute('data-mv'); });
     app.querySelectorAll('.sego-mv-row').forEach(r=>r.classList.remove('sego-mv-row'));
     const fim=app.querySelector('table,.table-card,.pe-vazio,.co-cxs');
-    const lst=[]; let mais=null, nI=0;
+    const lst=[], adm=[]; let mais=null, nI=0; const ADM=/eliminar|apagar|renumer|importar hist/i;   // ações de Superadmin → junto ao DEV
     app.querySelectorAll('button').forEach(b=>{
       if(b.classList.contains('back-btn')||b.closest('table,.modal,.modal-bg,template')) return;
       if(getComputedStyle(b).display==='none'||b.hidden) return;
@@ -1120,7 +1121,7 @@ window.segoTema=function(){
       if(!noCab&&!(antes&&ACAO.test(t)&&!b.closest('.pe-zone,.pe-zb,.pe-modal,.cg-cx,.card,[class*="ficha"],label'))) return;
       const i=nI++; b.setAttribute('data-mv',i); b.classList.add('sego-mv');
       const it={i,t:t||b.title||'Ação',dis:b.disabled};
-      if(!mais&&/^\+/.test(t)) mais=it; else lst.push(it);
+      if(!mais&&/^\+/.test(t)) mais=it; else if(ADM.test(t)) adm.push(it); else lst.push(it);
       if(!noCab){ let r=b.parentElement; for(let k=0;k<2&&r&&r!==app;k++,r=r.parentElement){ if(!r.innerText.trim()&&!r.querySelector('input,select,textarea')) r.classList.add('sego-mv-row'); } }
     });
     const btn=(it,cls)=>{ const ic=ICONE(it.t); const tt=esc(it.t.replace(/^[+✕⇩✓]\s*/,''));
@@ -1130,7 +1131,7 @@ window.segoTema=function(){
     const at=(!o.comFases&&typeof CG_ATALHOS!=='undefined')?CG_ATALHOS.map(([k,t])=>`<button class="on-at ${k==='CO'?'on':''}" title="${t}" onclick="segoSairMod();${k==='CO'?`cgAbrirCO('${o.id}')`:`cgAbrir('${o.id}','${k}')`}">${CG_AT_IC[k]}</button>`).join(''):'';
     return { at, esq: mais?`<button type="button" class="on-at" title="${esc(mais.t.replace(/^\+\s*/,''))}" ${mais.dis?'disabled':''} onclick="segoMvClick(${mais.i})">${IC.plus}</button>`:'',
              meio:`<span class="on-sig">${sg}</span><span class="on-nome" title="${esc(o.nome||'')}">${esc(o.nome||'')}</span>`,
-             dir: lst.map(it=>btn(it)).join('') };
+             dir: lst.map(it=>btn(it)).join(''), adm: adm.map(it=>btn(it)).join('') };
   };
   window.segoSairMod=function(){ ['segObraId','metObraId','fiscObraId','peFichaId','peObraId','paFichaId','paObraId','pbFichaId','pbObraId','ptqFichaId','ptqObraId','qeFichaId','qeObraId','tcmFichaId','tcmObraId','amFichaId','amObraId','relRelId','relObraId'].forEach(v=>{ try{ window.eval(v+'=null'); }catch(e){} }); };
   window.segoMvClick=function(i){ const b=document.querySelector('#app [data-mv="'+i+'"]'); if(b) b.click(); };
@@ -1141,6 +1142,10 @@ window.segoTema=function(){
     if(!g){ g=document.createElement('div'); g.id='nav-acoes'; }
     if(g.parentNode!==cx||g.previousElementSibling!==document.getElementById('nav-obra')) cx.appendChild(g);   // ações à esquerda, logo a seguir a IA · ID · CO
     const h=mod?mod.dir:''; if(g.dataset.h!==h){ g.innerHTML=h; g.dataset.h=h; } g.style.display=h?'flex':'none';
+    let ga=document.getElementById('nav-adm');
+    if(!ga){ const nr=document.querySelector('.navbar .nav-right'); if(nr){ ga=document.createElement('div'); ga.id='nav-adm'; ga.title='Superadmin'; nr.insertBefore(ga,nr.firstChild); } }
+    if(ga){ const dv=document.getElementById('ver-dev'); if(dv&&dv.parentNode===ga.parentNode&&ga.nextSibling!==dv) ga.parentNode.insertBefore(ga,dv);
+      const ha=mod?(mod.adm||''):''; if(ga.dataset.h!==ha){ ga.innerHTML=ha; ga.dataset.h=ha; } ga.style.display=ha?'flex':'none'; }
   };
 })();
 </script>
@@ -1175,14 +1180,17 @@ window.segoTema=function(){
     // sonda invisível com a grelha de cards da obra (fora do #app, para não disparar observadores)
     if(!pr){ pr=document.createElement('div'); pr.id='nav-sonda'; pr.setAttribute('aria-hidden','true');
       pr.style.cssText='position:absolute;top:0;height:0;overflow:hidden;visibility:hidden;pointer-events:none';
-      pr.innerHTML='<div class="cg-cxs cg-2"><div class="cg-cx"></div><div class="cg-cx"></div></div>'; document.body.appendChild(pr); }
+      pr.innerHTML='<div class="cg-cxs cg-2"><div class="cg-cx"><div class="cg-cx-h cg-cab"><div style="min-width:0;flex:1"><div>X</div><div>X</div></div><div class="cg-cx-ic"><svg width="14" height="14"></svg></div></div></div><div class="cg-cx"><div class="cg-cx-h cg-cab"><div style="min-width:0;flex:1"><div>X</div><div>X</div></div><div class="cg-cx-ic"><svg width="14" height="14"></svg></div></div></div></div>'; document.body.appendChild(pr); }
     const ra=app.getBoundingClientRect(), cs=getComputedStyle(app);
     const l=ra.left+parseFloat(cs.paddingLeft||0)+parseFloat(cs.borderLeftWidth||0), w=app.clientWidth-parseFloat(cs.paddingLeft||0)-parseFloat(cs.paddingRight||0);
     pr.style.left=(l+window.scrollX)+'px'; pr.style.width=Math.max(0,w)+'px';
     const k=pr.querySelectorAll('.cg-cx'), r1=k[0].getBoundingClientRect(), r2=k[1].getBoundingClientRect();
+    // limites interiores do cartão: esquerda = início do texto do cabeçalho; direita = lado direito do ícone do cabeçalho
+    const hd=k[1].querySelector('.cg-cx-h'), ic=k[1].querySelector('.cg-cx-ic');
+    const inL=hd?(hd.firstElementChild.getBoundingClientRect().left-r2.left):0, inR=ic?(r2.right-ic.getBoundingClientRect().right):0;
     if(Math.abs(r2.top-r1.top)>1||r2.left<=r1.left){ cx.classList.remove('abs'); return; }   // uma só coluna: fica no fluxo normal
-    const x=Math.round(r2.left-nv.getBoundingClientRect().left);
-    cx.style.setProperty('--ctx-x',x+'px'); cx.style.setProperty('--ctx-w',Math.round(r2.width)+'px'); cx.classList.add('abs');
+    const x=Math.round(r2.left+inL-nv.getBoundingClientRect().left);
+    cx.style.setProperty('--ctx-x',x+'px'); cx.style.setProperty('--ctx-w',(Math.round(r2.right-inR-nv.getBoundingClientRect().left)-x)+'px'); cx.classList.add('abs');
     // se as ações forem muitas, o nome da obra afasta-se para a direita (nunca se sobrepõem)
     ['nav-obra-mid','nav-obras-qbox'].forEach(id=>{ const mid=document.getElementById(id); if(!mid) return; mid.style.removeProperty('left');
       if(getComputedStyle(mid).display!=='none'){ const rc=cx.getBoundingClientRect(), rm=mid.getBoundingClientRect();
