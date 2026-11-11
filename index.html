@@ -313,7 +313,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.11.0140</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.11.0148</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -916,12 +916,11 @@ window.segoTema=function(){
   /* PE: linha dupla (Assunto + Ids/Desenhos), texto de 5 linhas, anexos na própria linha, marcas obrigatório/automático */
   .cg-fpe [class*="fpe-c"] .cg-cx-b>.cg-r.cg-rdup{grid-template-columns:var(--val-l,140px) minmax(0,1fr) max-content minmax(0,26%) !important}
   .cg-rl.cg-rl2{grid-template-columns:max-content 24px !important;margin-left:14px}
-  .cg-fpe .cg-txt,.cg-fpe .cg-ta{height:110px !important;min-height:110px !important;overflow:auto}
+  .cg-fpe .cg-txt,.cg-fpe .cg-ta{height:105px !important;min-height:105px !important;overflow:auto;margin-top:5px}
+  .cg-fpe .cg-txt{line-height:22px;padding-top:0}
   .cg-fpe .cg-ta{resize:none}
   .cg-ranx{height:auto !important;min-height:22px}
   .cg-ranx .cg-rv{white-space:normal !important;overflow:visible !important;display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center}
-  .cg-ax{display:inline-flex;align-items:center;gap:3px;font-size:11px !important;line-height:16px}
-  .cg-ax *{font-size:11px !important}
   .cg-ax a{color:var(--info) !important;text-decoration:none}
   .cg-ax-x{border:none;background:none;color:var(--danger) !important;cursor:pointer;padding:0 2px;font-weight:700}
   .cg-ax-mais{border:1px solid var(--nav-bd);background:transparent;color:var(--nav-bd) !important;border-radius:4px;width:16px;height:16px;line-height:13px;padding:0;margin-left:4px;cursor:pointer;font-weight:700;font-family:inherit;vertical-align:baseline}
@@ -944,6 +943,16 @@ window.segoTema=function(){
   .anx-prev img{max-width:100%;max-height:65vh;object-fit:contain}
   .anx-prev iframe{width:100%;height:65vh;border:0;background:#fff}
   .anx-vazio{color:var(--text-muted);text-align:center;line-height:22px}
+  .cg-cxs>.cg-cx>.cg-cx-h .cg-cx-ic.co-mais.tem{background:var(--nav-bd) !important}
+  .cg-cxs>.cg-cx>.cg-cx-h .cg-cx-ic.co-mais.tem svg{color:#fff !important}
+  .anx-xl{width:100%;max-height:65vh;overflow:auto;align-self:stretch}
+  .anx-xl table{border-collapse:collapse;background:#fff;color:#111}
+  .anx-xl td{border:1px solid #D8DCE6;padding:0 6px;height:22px;white-space:nowrap}
+  .anx-abas{position:sticky;top:0;display:flex;gap:4px;padding:4px;background:var(--bg-card)}
+  .anx-aba{border:1px solid var(--nav-bd);background:transparent;color:var(--text);border-radius:4px;height:22px;padding:0 8px;cursor:pointer;font-family:inherit}
+  .anx-aba.on{background:var(--nav-bd);color:#fff}
+  .anx-doc{width:100%;max-height:65vh;overflow:auto;align-self:stretch;background:#fff;color:#111;padding:16px 24px;box-sizing:border-box;text-align:justify}
+  .anx-txt{width:100%;max-height:65vh;overflow:auto;align-self:stretch;margin:0;padding:8px;white-space:pre-wrap;font-family:inherit}
 </style>
 <script>
 /* Pontilhado alinhado (intermédio): em cada bloco de linhas (separado por linha em branco), os valores curtos e
@@ -4434,14 +4443,37 @@ function peListaAnexos(d,chave){ return chave==='proj'?d.anexosProj:d.anexosEmp;
 window.peVerAnexos=function(chave,i){ const d=peFichaAtualDoc(); if(!d) return; const lista=peListaAnexos(d,chave)||[];
   const pode=chave==='proj'?(pePodeProj(d)||peESuper()):(pePodeEmp(d)||peESuper()); window.__peAnx={chave};
   i=Math.max(0,Math.min(i||0,lista.length-1)); const a=lista[i];
-  const ext=a?String(a.nome||'').split('.').pop().toLowerCase():''; const src=a?a.dados:'';
-  const eImg=a&&(/^data:image\//.test(src)||['png','jpg','jpeg','gif','webp','bmp','svg'].includes(ext));
-  const ePdf=a&&(/^data:application\/pdf/.test(src)||ext==='pdf');
-  const prev=!a?'<div class="anx-vazio">Sem anexos.</div>':eImg?`<img src="${src}" alt="">`:ePdf?`<iframe src="${src}"></iframe>`:`<div class="anx-vazio">Pré-visualização indisponível para este tipo de ficheiro.<br><a class="cg-ver" href="${src}" download="${esc(a.nome)}">Descarregar ${esc(a.nome)}</a></div>`;
   const lst=lista.map((x,k)=>`<div class="anx-it ${k===i?'on':''}" onclick="peVerAnexos('${chave}',${k})"><span class="anx-n" title="${esc(x.nome)}">${esc(x.nome)}</span><span class="anx-t">${(x.tam/1024).toFixed(0)} KB</span>${pode?`<button class="cg-ax-x" title="Remover" onclick="event.stopPropagation();peRemoverAnexo('${chave}',${k})">×</button>`:''}</div>`).join('');
-  const bts=[]; if(pode) bts.push({label:'+ Anexar',cls:'btn-outline',fn:`peAdicionarAnexo('${chave}',true)`}); if(a) bts.push({label:'Descarregar',cls:'btn-outline',fn:`(function(){const l=document.createElement('a');l.href=peListaAnexos(peFichaAtualDoc(),'${chave}')[${i}].dados;l.download=peListaAnexos(peFichaAtualDoc(),'${chave}')[${i}].nome;l.click();})()`});
+  const bts=[]; if(pode) bts.push({label:'+ Anexar',cls:'btn-outline',fn:`peAdicionarAnexo('${chave}',true)`}); if(a) bts.push({label:'Descarregar',cls:'btn-outline',fn:`segoDescarregar(peListaAnexos(peFichaAtualDoc(),'${chave}')[${i}])`});
   bts.push({label:'Fechar',cls:'btn-gold',fn:'window.__peAnx=null;closeModal()'});
-  showModal('Anexos — '+(chave==='proj'?'Resposta do Projetista':'Pedido do Empreiteiro')+' · '+d.id,`<div class="anx-wrap"><div class="anx-lista">${lst||'<div class="anx-vazio">—</div>'}</div><div class="anx-prev">${prev}</div></div>`,bts,'modal-anx'); };
+  showModal('Anexos — '+(chave==='proj'?'Resposta do Projetista':'Pedido do Empreiteiro')+' · '+d.id,`<div class="anx-wrap"><div class="anx-lista">${lst||'<div class="anx-vazio">Sem anexos.</div>'}</div><div class="anx-prev" id="anx-prev"><div class="anx-vazio">${a?'A preparar a pré-visualização…':'Sem anexos.'}</div></div></div>`,bts,'modal-anx');
+  if(a) segoPrevAnexo(a,document.getElementById('anx-prev')); };
+window.segoDescarregar=function(a){ if(!a) return; const l=document.createElement('a'); l.href=a.dados; l.download=a.nome||'anexo'; document.body.appendChild(l); l.click(); l.remove(); };
+/* Pré-visualizadores: imagem, PDF, Excel/CSV (SheetJS), Word .docx (mammoth), texto, vídeo e áudio */
+function segoCarregarScript(url,teste){ return new Promise((ok,ko)=>{ if(teste()) return ok(); const sc=document.createElement('script'); sc.src=url; sc.onload=()=>ok(); sc.onerror=()=>ko(new Error('Não foi possível carregar '+url)); document.head.appendChild(sc); }); }
+async function segoBuffer(src){ const r=await fetch(src); return await r.arrayBuffer(); }
+window.segoPrevAnexo=async function(a,box){ if(!box) return; const src=a.dados||'', nome=String(a.nome||''), ext=nome.split('.').pop().toLowerCase();
+  const mime=(src.match(/^data:([^;,]+)/)||[])[1]||'';
+  window.__anxAtual=a; const sem=msg=>{ box.innerHTML=`<div class="anx-vazio">${msg}<br><a class="cg-ver" onclick="segoDescarregar(window.__anxAtual)">Descarregar ${esc(nome)}</a></div>`; };
+  try{
+    if(/^image\//.test(mime)||['png','jpg','jpeg','gif','webp','bmp','svg'].includes(ext)){ box.innerHTML=`<img src="${src}" alt="">`; return; }
+    if(mime==='application/pdf'||ext==='pdf'){ box.innerHTML=`<iframe src="${src}"></iframe>`; return; }
+    if(/^video\//.test(mime)||['mp4','webm','mov','m4v'].includes(ext)){ box.innerHTML=`<video src="${src}" controls style="max-width:100%;max-height:65vh"></video>`; return; }
+    if(/^audio\//.test(mime)||['mp3','wav','ogg','m4a'].includes(ext)){ box.innerHTML=`<audio src="${src}" controls></audio>`; return; }
+    if(['xlsx','xls','xlsm','ods','csv'].includes(ext)){
+      await segoCarregarScript('https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js',()=>!!window.XLSX);
+      const wb=XLSX.read(new Uint8Array(await segoBuffer(src)),{type:'array'});
+      const abas=wb.SheetNames.map((n,k)=>`<button class="anx-aba ${k===0?'on':''}" onclick="this.parentNode.querySelectorAll('.anx-aba').forEach(b=>b.classList.remove('on'));this.classList.add('on');this.closest('.anx-xl').querySelectorAll('.anx-folha').forEach((f,j)=>f.style.display=j===${k}?'block':'none')">${esc(n)}</button>`).join('');
+      const folhas=wb.SheetNames.map((n,k)=>`<div class="anx-folha" style="display:${k===0?'block':'none'}">${XLSX.utils.sheet_to_html(wb.Sheets[n],{header:'',footer:''})}</div>`).join('');
+      box.innerHTML=`<div class="anx-xl">${wb.SheetNames.length>1?`<div class="anx-abas">${abas}</div>`:''}${folhas}</div>`; return; }
+    if(ext==='docx'){
+      await segoCarregarScript('https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js',()=>!!window.mammoth);
+      const r=await mammoth.convertToHtml({arrayBuffer:await segoBuffer(src)});
+      box.innerHTML=`<div class="anx-doc">${r.value||'<i>Documento vazio.</i>'}</div>`; return; }
+    if(/^text\//.test(mime)||['txt','json','xml','md','log','eml'].includes(ext)){
+      const t=new TextDecoder('utf-8').decode(await segoBuffer(src)); box.innerHTML=`<pre class="anx-txt">${esc(t.slice(0,200000))}</pre>`; return; }
+    sem('Pré-visualização indisponível para este tipo de ficheiro (.'+esc(ext)+').');
+  }catch(e){ console.error(e); sem('Não foi possível pré-visualizar este ficheiro.'); } };
 window.peAdicionarAnexo=function(chave,popup){
   const d=peFichaAtualDoc(); if(!d) return;
   const input=document.createElement('input'); input.type='file'; input.multiple=true;
@@ -4679,8 +4711,11 @@ function renderFichaPE(app){
   const L=(t,m)=>m?`<span class="cg-lm">${t}<i class="cg-mk ${m}" title="${m==='obr'?'Obrigatório':'Preenchido automaticamente'}"></i></span>`:`<span>${t}</span>`;
   const inp=(id,val,tipo)=>`<input class="cg-i" id="${id}" type="${tipo||'text'}" value="${esc(val||'')}">`;
   const txt=(id,val,ed)=>ed?`<textarea class="cg-ta" id="${id}">${esc(val||'')}</textarea>`:`<div class="cg-txt">${val?esc(val):''}</div>`;
-  const anexos=(lista,pode,chave)=>{ const n=(lista||[]).length;
-    return `<div class="cg-r"><span class="cg-rl">${L('Anexos'+(pode?` <button class="cg-ax-mais" title="Anexar ficheiro" onclick="peAdicionarAnexo('${chave}',true)">+</button>`:''))}</span><span class="cg-rv">${n?`<a class="cg-ver" onclick="peVerAnexos('${chave}',0)" title="${esc((lista||[]).map(a=>a.nome).join('\n'))}">Ver</a>`:''}</span></div>`; };
+  const maisAnexos=(card,lista,pode,chave)=>{ const n=(lista||[]).length; if(!pode&&!n) return card;
+    const tit=n?'Anexos:\n'+(lista||[]).map(a=>'· '+a.nome).join('\n')+(pode?'\n\nClique para ver ou anexar mais':''):'Anexar ficheiro';
+    const ic=pode?'<path d="M12 5v14M5 12h14"/>':'<path d="M21 12.5 12.6 21a5.5 5.5 0 0 1-7.8-7.8l8.9-8.9a3.7 3.7 0 0 1 5.2 5.2l-8.9 8.9a1.8 1.8 0 0 1-2.6-2.6l8.2-8.2"/>';
+    const bt=`<button type="button" class="cg-cx-ic co-mais ${n?'tem':''}" title="${esc(tit)}" onclick="event.stopPropagation();${n?`peVerAnexos('${chave}',0)`:`peAdicionarAnexo('${chave}',true)`}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">${ic}</svg></button>`;
+    return card.replace(/<div class="cg-cx-ic" aria-hidden="true">[\s\S]*?<\/svg><\/div>/,bt); };
   // IDE — linhas 1-3; Especialidade na linha 6 (em frente ao Fechado do FLX)
   let cIde=R(L('Id',AUT),esc(d.id))+R(L('Data',AUT),dt(d.dataEnvio))+R(L('Autor',AUT),esc(d.autorEmp||''))+cgDiv+cgDiv+R('Especialidade',esc(d.projEspecialidade||''));
   if(d.prevId||d.nextId) cIde+=cgDiv+(d.prevId?R('Revisão de',`<a class="cg-ver" onclick="peAbrirFicha('${d.prevId}')">${esc(d.prevId)}</a>`):'')+(d.nextId?R('Revisto por',`<a class="cg-ver" onclick="peAbrirFicha('${d.nextId}')">${esc(d.nextId)}</a>`):'');
@@ -4692,11 +4727,11 @@ function renderFichaPE(app){
   // PED — linha 1: Assunto + Ids/Desenhos; linhas 2-6: Esclarecimento; linha 7: Anexos
   const artDes=[d.artigos,d.desenho].filter(Boolean).join(' / ');
   const cPed=`<div class="cg-r cg-rdup"><span class="cg-rl">${L('Assunto',OBR)}</span><span class="cg-rv">${eEmp?inp('f-assunto',d.assunto):esc(d.assunto||'')}</span><span class="cg-rl cg-rl2">${L('Ids / Desenhos')}</span><span class="cg-rv">${eEmp?inp('f-artigos',d.artigos):esc(artDes)}</span></div>`+
-    `<div class="cg-rtxt"><span class="cg-rl">${L('Esclarecimento',OBR)}</span>${txt('f-pedidoTexto',d.pedidoTexto,eEmp)}</div>`+cgDiv+anexos(d.anexosEmp,(eEmp||peESuper()),'emp');
+    `<div class="cg-rtxt"><span class="cg-rl">${L('Esclarecimento',OBR)}</span>${txt('f-pedidoTexto',d.pedidoTexto,eEmp)}</div>`;
   // ESC — dados do projetista · RES — resposta (2 colunas)
   const cEsc=R(L('Data',AUT),dt(d.dataEsclarecido||d.projData))+R(L('Autor',AUT),esc((eProj?(currentUser?currentUser.nome:''):d.autorProj)||d.projDestNome||''))+
     (d.comentFiscEnvio?cgDiv+R('Nota do envio',`<a class="cg-ver" onclick="peVerTexto('comentFiscEnvio','Nota do envio ao Projetista')">Ver</a>`):'');
-  const cRes=`<div class="cg-rtxt"><span class="cg-rl">${L('Resposta',OBR)}</span>${txt('f-proj-texto',d.esclarecimento,eProj)}</div>`+cgDiv+anexos(d.anexosProj,(eProj||peESuper()),'proj');
+  const cRes=`<div class="cg-rtxt"><span class="cg-rl">${L('Resposta',OBR)}</span>${txt('f-proj-texto',d.esclarecimento,eProj)}</div>`;
   // FIS — dados da fiscalização · OBS — observações (2 colunas)
   const cFis=R(L('Data',AUT),dt(d.dataResposta))+R(L('Autor',AUT),esc((eFiscR?(currentUser?currentUser.nome:''):d.autorFiscResp)||''));
   const cObs=`<div class="cg-rtxt"><span class="cg-rl">${L('Observações')}</span>${txt('f-fisc-obs',d.observacoes,eFiscR)}</div>`;
@@ -4712,9 +4747,9 @@ function renderFichaPE(app){
     <div class="cg-cxs cg-2 cg-ficha cg-fpe">
       ${cgCartao('FLX','Fluxo',cFlx,'PRR','','cg-int fpe-flx')}
       ${cgCartao('IDE','Identificação',cIde,'IDE','','cg-int fpe-m1')}
-      ${cgCartao('PED','Pedido do Empreiteiro',cPed,'PEDE','','cg-int fpe-c1')}
+      ${maisAnexos(cgCartao('PED','Pedido do Empreiteiro',cPed,'PEDE','','cg-int fpe-c1'),d.anexosEmp,(eEmp||peESuper()),'emp')}
       ${cgCartao('ESC','Esclarecimento',cEsc,'ESCL','','cg-int fpe-m2')}
-      ${cgCartao('RES','Resposta do Projetista',cRes,'RESP','','cg-int fpe-c2')}
+      ${maisAnexos(cgCartao('RES','Resposta do Projetista',cRes,'RESP','','cg-int fpe-c2'),d.anexosProj,(eProj||peESuper()),'proj')}
       ${cgCartao('FIS','Fiscalização',cFis,'FISC','','cg-int fpe-m3')}
       ${cgCartao('OBS','Observações da Fiscalização',cObs,'PEDE','','cg-int fpe-c3')}
       ${cgCartao('HIS','Histórico',cHis,'PRR','','cg-docw cg-hist')}
