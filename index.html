@@ -313,7 +313,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.11.1446</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.11.1525</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -1011,6 +1011,9 @@ window.segoTema=function(){
       g.style.setProperty('--val-l',Math.ceil(mx+22)+'px'); });
     app.querySelectorAll('.cg-ficha').forEach(g=>{ const c=g.querySelector('.cg-cx:not(.cg-s2):not(.cg-s3):not(.cg-docw):not([class*="fpe-c"]) .cg-cx-b'); if(!c) return; const cs=getComputedStyle(c);
       g.style.setProperty('--col-w',Math.round(c.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight))+'px'); });
+    // Documentos (ID): a largura acompanha os cartões de cima (até ao fim do último interveniente)
+    app.querySelectorAll('.cg-cxs:not(.cg-fpe)>.cg-docw').forEach(dw=>{ const g=dw.parentElement; const nCol=getComputedStyle(g).gridTemplateColumns.split(' ').filter(Boolean).length;
+      const nInt=g.querySelectorAll(':scope>.cg-int').length; const sp=Math.max(1,Math.min(nCol,nInt||nCol)); const v='1 / span '+sp; if(dw.style.gridColumn!==v) dw.style.setProperty('grid-column',v,'important'); });
     app.querySelectorAll('.cg-docw').forEach(dw=>{ const irmaos=dw.parentElement?[...dw.parentElement.children].filter(c=>c!==dw&&c.classList.contains('cg-cx')):[]; const dl=dw.getBoundingClientRect().left; const first=irmaos.find(c=>Math.abs(c.getBoundingClientRect().left-dl)<2)||irmaos[0]; const body=dw.querySelector('.cg-cx-b'); if(!first||!body) return;
       let L=Infinity; first.querySelectorAll('.cg-rv').forEach(v=>{ if((v.textContent||'').trim()) L=Math.min(L,v.getBoundingClientRect().left); });
       const fr=first.getBoundingClientRect(); if(!isFinite(L)) L=fr.left+fr.width*0.45;
@@ -12147,11 +12150,11 @@ function renderCardGeral(app){
       const def=(DB.tiposDoc||[]).filter(t=>(t.is_default||t.isDefault)&&String(t.fase||'').trim().toLowerCase()===k&&!lst.some(d=>d.tipo===t.id));
       corpo+=cgDiv; let n=0;
       lst.forEach(d=>{ const exp=d.validade&&d.validade<hoje;
-        corpo+=lin(n++?'':rot,[`<span title="${nomeDoc(d)}">${nomeDoc(d)}</span>`,esc(d.versao||'—'),fmtDate(d.criadoEm||d.data),d.validade?`<span style="${exp?'color:var(--danger)':''}">${fmtDate(d.validade)}</span>`:'—',
-          d.validade?(exp?'<b style="color:var(--danger)">NOK</b>':'<b style="color:var(--success)">OK</b>'):'—',
-          d.fileUrl?`<a href="${esc(d.fileUrl)}" target="_blank" title="${esc(d.fileName||'Abrir')}" style="color:#E39956">Abrir</a>`:'—',`<span style="color:var(--text-muted)" title="${esc(d.notas||'')}">${esc(d.notas||'')}</span>`]); });
+        corpo+=lin(n++?'':rot,[`<span title="${nomeDoc(d)}">${nomeDoc(d)}</span>`,esc(d.versao||''),((d.criadoEm||d.data)?fmtDate(d.criadoEm||d.data):''),d.validade?`<span style="${exp?'color:var(--danger)':''}">${fmtDate(d.validade)}</span>`:'',
+          d.validade?(exp?'<b style="color:var(--danger)">NOK</b>':'<b style="color:var(--success)">OK</b>'):'',
+          d.fileUrl?`<a href="${esc(d.fileUrl)}" target="_blank" title="${esc(d.fileName||'Abrir')}" style="color:#E39956">Abrir</a>`:'',`<span style="color:var(--text-muted)" title="${esc(d.notas||'')}">${esc(d.notas||'')}</span>`]); });
       def.forEach(t=>{ corpo+=lin(n++?'':rot,[`<i title="${esc(t.nome)}">${esc(t.nome)}</i>`,'<span style="color:var(--text-muted)">Em falta</span>','','','','',''],'cg-dfalta'); });
-      if(!n) corpo+=lin(rot,['<span style="color:var(--text-muted)">—</span>','','','','','','']); });
+      if(!n) corpo+=lin(rot,['','','','','','','']); });
     cards.push(cgCartao('DOC','Documentos',corpo,'DOC','','cg-docw'));
   }
   const podeEd=cgPodeEditar()&&cgTab!=='ID';
