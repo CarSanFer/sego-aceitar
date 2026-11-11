@@ -313,7 +313,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.11.0125</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.11.0131</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -927,8 +927,8 @@ window.segoTema=function(){
   .cg-ax-mais{border:1px solid var(--nav-bd);background:transparent;color:var(--nav-bd) !important;border-radius:4px;width:16px;height:16px;line-height:13px;padding:0;margin-left:4px;cursor:pointer;font-weight:700;font-family:inherit;vertical-align:baseline}
   /* Marcas: círculo vermelho = obrigatório; círculo amarelo = automático — alinhadas na vertical (fim da coluna das labels) */
   .cg-r .cg-rl,.cg-rtxt>.cg-rl{position:relative}
-  .cg-lm{display:inline-block;padding-right:14px}
-  .cg-mk{position:absolute;left:calc(var(--lab-w,100%) - 10px);top:50%;width:7px;height:7px;border-radius:50%;transform:translateY(-50%);font-style:normal}
+  .cg-lm{display:inline-block;justify-self:start;width:max-content}
+  .cg-mk{position:absolute;left:var(--mk-x,calc(100% + 10px));top:50%;width:7px;height:7px;border-radius:50%;transform:translateY(-50%);font-style:normal}
   .cg-mk.obr{background:#DC2626}
   .cg-mk.aut{background:#F2C230}
 </style>
@@ -943,13 +943,24 @@ window.segoTema=function(){
     // o pontilhado começa no mesmo sítio em cada cartão: logo a seguir à label mais comprida desse cartão
     const rng=document.createRange();
     const largL=l=>{ const lm=l.querySelector('.cg-lm'); if(lm) return lm.getBoundingClientRect().width; rng.selectNodeContents(l); return rng.getBoundingClientRect().width; };
+    // bolas (obrigatório/automático): alinhadas por coluna da grelha; labels muito compridas ficam de fora (bola a seguir ao texto)
+    const porCol=new Map(), contId=new Map();
+    app.querySelectorAll('.cg-rl .cg-mk').forEach(mk=>{ const l=mk.closest('.cg-rl'); const card=l.closest('.cg-cx,.cg-card'); const cont=card?card.parentElement:null;
+      if(cont&&!contId.has(cont)) contId.set(cont,contId.size+1);
+      const k=(cont?contId.get(cont):0)+':'+(card?Math.round(card.getBoundingClientRect().left):0);
+      if(!porCol.has(k)) porCol.set(k,[]); porCol.get(k).push({l,w:largL(l)}); });
+    porCol.forEach(arr=>{ const ws=arr.map(a=>a.w).sort((a,b)=>a-b); let alvo=ws[0];
+      for(let i=1;i<ws.length;i++){ if(ws[i]-ws[i-1]<=20) alvo=ws[i]; else break; }
+      arr.forEach(a=>a.l.style.setProperty('--mk-x',Math.ceil((a.w<=alvo?alvo:a.w)+10)+'px')); });
+    const largComBola=l=>{ const x=parseFloat(l.style.getPropertyValue('--mk-x'))||0; return Math.max(largL(l), x?x+7+6:0); };
     const grupoLab=new Map();
     app.querySelectorAll('.cg-r .cg-rl:not(.cg-rl2),.cg-rtxt>.cg-rl').forEach(l=>{ if(l.closest('.co-semreg')) return;
       const box=l.closest('.cg-fpe [class*="fpe-c"]') ? l.closest('.cg-fpe') : (l.closest('.cg-cx-b,.cg-card')||l.parentElement);
-      const w=largL(l); grupoLab.set(box,Math.max(grupoLab.get(box)||0,w)); });
+      const w=largComBola(l); grupoLab.set(box,Math.max(grupoLab.get(box)||0,w)); });
     grupoLab.forEach((w,box)=>{ const v=Math.ceil(w)+'px';
       if(box.classList&&box.classList.contains('cg-fpe')) box.querySelectorAll('[class*="fpe-c"] .cg-cx-b').forEach(b=>b.style.setProperty('--lab-w',v));
       else box.style.setProperty('--lab-w',v); });
+    window.__cgLargComBola=largComBola;
     cards.forEach(g=>{
       const lim=Math.floor(g.clientWidth*0.65);
       const blocos=[[]];
@@ -972,7 +983,7 @@ window.segoTema=function(){
       });
     });
     app.querySelectorAll('.cg-fpe').forEach(g=>{ let mx=0; const m=document.createElement('span'); m.style.cssText='position:absolute;visibility:hidden;white-space:nowrap;font-weight:700'; g.appendChild(m);
-      g.querySelectorAll('[class*="fpe-c"] .cg-rl:not(.cg-rl2)').forEach(l=>{ m.innerHTML=l.innerHTML; m.querySelectorAll('button').forEach(b=>b.remove()); mx=Math.max(mx,m.getBoundingClientRect().width+((l.querySelector('button'))?22:0)); }); m.remove();
+      g.querySelectorAll('[class*="fpe-c"] .cg-rl:not(.cg-rl2)').forEach(l=>{ m.innerHTML=l.innerHTML; m.querySelectorAll('button,.cg-mk').forEach(b=>b.remove()); const x=parseFloat(l.style.getPropertyValue('--mk-x'))||0; mx=Math.max(mx,m.getBoundingClientRect().width+((l.querySelector('button'))?22:0),x?x+7+6:0); }); m.remove();
       g.style.setProperty('--val-l',Math.ceil(mx+22)+'px'); });
     app.querySelectorAll('.cg-ficha').forEach(g=>{ const c=g.querySelector('.cg-cx:not(.cg-s2):not(.cg-s3):not(.cg-docw):not([class*="fpe-c"]) .cg-cx-b'); if(!c) return; const cs=getComputedStyle(c);
       g.style.setProperty('--col-w',Math.round(c.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight))+'px'); });
@@ -4654,12 +4665,12 @@ function renderFichaPE(app){
   if(notas.length) cFlx+=cgDiv+`<div class="cg-nota" title="${esc(notas.join(' '))}">${esc(notas.join(' '))}</div>`;
   // PED — linha 1: Assunto + Ids/Desenhos; linhas 2-6: Esclarecimento; linha 7: Anexos
   const artDes=[d.artigos,d.desenho].filter(Boolean).join(' / ');
-  const cPed=`<div class="cg-r cg-rdup"><span class="cg-rl">${L('Assunto',eEmp?OBR:'')}</span><span class="cg-rv">${eEmp?inp('f-assunto',d.assunto):esc(d.assunto||'')}</span><span class="cg-rl cg-rl2">${L('Ids / Desenhos')}</span><span class="cg-rv">${eEmp?inp('f-artigos',d.artigos):esc(artDes)}</span></div>`+
-    `<div class="cg-rtxt"><span class="cg-rl">${L('Esclarecimento',eEmp?OBR:'')}</span>${txt('f-pedidoTexto',d.pedidoTexto,eEmp)}</div>`+cgDiv+anexos(d.anexosEmp,(eEmp||peESuper()),'emp');
+  const cPed=`<div class="cg-r cg-rdup"><span class="cg-rl">${L('Assunto',OBR)}</span><span class="cg-rv">${eEmp?inp('f-assunto',d.assunto):esc(d.assunto||'')}</span><span class="cg-rl cg-rl2">${L('Ids / Desenhos')}</span><span class="cg-rv">${eEmp?inp('f-artigos',d.artigos):esc(artDes)}</span></div>`+
+    `<div class="cg-rtxt"><span class="cg-rl">${L('Esclarecimento',OBR)}</span>${txt('f-pedidoTexto',d.pedidoTexto,eEmp)}</div>`+cgDiv+anexos(d.anexosEmp,(eEmp||peESuper()),'emp');
   // ESC — dados do projetista · RES — resposta (2 colunas)
   const cEsc=R(L('Data',AUT),dt(d.dataEsclarecido||d.projData))+R(L('Autor',AUT),esc((eProj?(currentUser?currentUser.nome:''):d.autorProj)||d.projDestNome||''))+
     (d.comentFiscEnvio?cgDiv+R('Nota do envio',`<a class="cg-ver" onclick="peVerTexto('comentFiscEnvio','Nota do envio ao Projetista')">Ver</a>`):'');
-  const cRes=`<div class="cg-rtxt"><span class="cg-rl">${L('Resposta',eProj?OBR:'')}</span>${txt('f-proj-texto',d.esclarecimento,eProj)}</div>`+cgDiv+anexos(d.anexosProj,(eProj||peESuper()),'proj');
+  const cRes=`<div class="cg-rtxt"><span class="cg-rl">${L('Resposta',OBR)}</span>${txt('f-proj-texto',d.esclarecimento,eProj)}</div>`+cgDiv+anexos(d.anexosProj,(eProj||peESuper()),'proj');
   // FIS — dados da fiscalização · OBS — observações (2 colunas)
   const cFis=R(L('Data',AUT),dt(d.dataResposta))+R(L('Autor',AUT),esc((eFiscR?(currentUser?currentUser.nome:''):d.autorFiscResp)||''));
   const cObs=`<div class="cg-rtxt"><span class="cg-rl">${L('Observações')}</span>${txt('f-fisc-obs',d.observacoes,eFiscR)}</div>`;
