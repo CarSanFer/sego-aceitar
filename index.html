@@ -313,7 +313,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.11.0044</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.11.0052</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -871,13 +871,13 @@ window.segoTema=function(){
   .cg-ficha .co-semreg .cg-rl::after{display:none}.cg-ficha .co-semreg .cg-rl{color:var(--text-muted);font-weight:400}
   /* Ficha PE: coluna 1 = Fluxo (3 linhas); col. 2 = dados (Id/Esclarecimento/Fiscalização); col. 3-4 = conteúdo */
   @media(min-width:1231px){
-    .cg-fpe>.cg-cx.fpe-flx{grid-column:1 !important;grid-row:1 / span 3 !important}
+    .cg-fpe{grid-template-rows:repeat(3,minmax(0,1fr)) auto}
+    .cg-fpe>.cg-cx.fpe-flx{grid-column:1 !important;grid-row:1 !important}
     .cg-fpe>.cg-cx.fpe-m1{grid-column:2 !important;grid-row:1 !important}.cg-fpe>.cg-cx.fpe-c1{grid-column:3 / span 2 !important;grid-row:1 !important}
     .cg-fpe>.cg-cx.fpe-m2{grid-column:2 !important;grid-row:2 !important}.cg-fpe>.cg-cx.fpe-c2{grid-column:3 / span 2 !important;grid-row:2 !important}
     .cg-fpe>.cg-cx.fpe-m3{grid-column:2 !important;grid-row:3 !important}.cg-fpe>.cg-cx.fpe-c3{grid-column:3 / span 2 !important;grid-row:3 !important}
     .cg-fpe>.cg-cx.cg-docw{grid-row:4 !important}
   }
-  .cg-fpe .fpe-c1 .cg-cx-b>.cg-r,.cg-fpe .fpe-c2 .cg-cx-b>.cg-r,.cg-fpe .fpe-c3 .cg-cx-b>.cg-r{max-width:var(--col-w,100%)}
   .cg-rlab .cg-rv{display:none !important}
   .cg-rlab .cg-rl::after{display:none}
   .cg-fpe .cg-txt{min-height:66px}
@@ -886,6 +886,18 @@ window.segoTema=function(){
   html:not([data-caixas]) .cg-r .cg-i:hover,html:not([data-caixas]) .cg-r .cg-i:focus{outline:1px dotted var(--nav-bd);outline-offset:1px}
   html:not([data-caixas]) .cg-ta{border:none !important;background:rgba(127,140,160,.08) !important;padding:0 4px !important}
   html:not([data-caixas]) .cg-ta:focus{outline:1px dotted var(--nav-bd)}
+  /* Texto longo com label: o texto começa onde começam os valores do cartão (--val-l) */
+  .cg-rtxt{display:grid;grid-template-columns:var(--val-l,40%) minmax(0,1fr);align-items:start}
+  .cg-rtxt>.cg-rl{display:flex;align-items:baseline;min-width:0;height:22px;line-height:22px;color:var(--text-muted);font-weight:700}
+  .cg-rtxt>.cg-rl::after{content:'';flex:1 1 auto;min-width:12px;margin:0 2px 0 6px;border-bottom:1px dotted var(--text-muted);opacity:.22;transform:translateY(-3px)}
+  .cg-rtxt>.cg-txt,.cg-rtxt>.cg-ta{min-width:0}
+  /* Valores: sempre na cor do texto e sem negrito (as ligações mantêm a cor de link) */
+  .cg-r .cg-rv,.cg-r .cg-rv *:not(a):not(.cg-ver):not(button),.cg-dr:not(.cg-dh) .cg-dv>span,.cg-dr:not(.cg-dh) .cg-dv>span *:not(a),.cg-txt{color:var(--text) !important;font-weight:400 !important}
+  /* Campos sem caixa em TODA a app (opção "Com Caixa" no menu do utilizador) */
+  html:not([data-caixas]) :is(#app,#modal-box,.pe-modal,.um-box) :is(input:not([type=checkbox]):not([type=radio]):not([type=file]):not([type=range]):not([type=color]),select){border-color:transparent !important;background-color:transparent !important;box-shadow:none !important}
+  html:not([data-caixas]) :is(#app,#modal-box,.pe-modal) textarea{border-color:transparent !important;background-color:rgba(127,140,160,.08) !important;box-shadow:none !important}
+  html:not([data-caixas]) :is(#app,#modal-box,.pe-modal) :is(input,select,textarea):is(:hover,:focus){outline:1px dotted var(--nav-bd) !important;outline-offset:1px}
+  html:not([data-caixas]) :is(#app,#modal-box,.pe-modal) input[type=date]::-webkit-calendar-picker-indicator{display:none}
 </style>
 <script>
 /* Pontilhado alinhado (intermédio): em cada bloco de linhas (separado por linha em branco), os valores curtos e
@@ -916,6 +928,9 @@ window.segoTema=function(){
           else if(v.dataset.cgt){ v.removeAttribute('title'); delete v.dataset.cgt; } });
       });
     });
+    app.querySelectorAll('.cg-fpe').forEach(g=>{ const ped=g.querySelector('.fpe-c1 .cg-cx-b'); if(!ped) return; const pb=ped.getBoundingClientRect(), pl=pb.left+parseFloat(getComputedStyle(ped).paddingLeft||0);
+      let L=Infinity; ped.querySelectorAll('.cg-r .cg-rv').forEach(v=>{ const r=v.getBoundingClientRect(); if(r.width>2&&((v.textContent||'').trim()||v.querySelector('input,select'))) L=Math.min(L,r.left); });
+      const maxL=pl+ped.clientWidth*0.45; if(!isFinite(L)||L>maxL) L=maxL; g.style.setProperty('--val-l',Math.max(120,Math.round(L-pl))+'px'); });
     app.querySelectorAll('.cg-ficha').forEach(g=>{ const c=g.querySelector('.cg-cx:not(.cg-s2):not(.cg-s3):not(.cg-docw):not([class*="fpe-c"]) .cg-cx-b'); if(!c) return; const cs=getComputedStyle(c);
       g.style.setProperty('--col-w',Math.round(c.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight))+'px'); });
     app.querySelectorAll('.cg-docw').forEach(dw=>{ const first=dw.parentElement&&dw.parentElement.querySelector('.cg-cx:not(.cg-docw)'); const body=dw.querySelector('.cg-cx-b'); if(!first||!body) return;
@@ -4587,26 +4602,25 @@ function renderFichaPE(app){
     ((lista&&lista.length)||pode?`<div class="cg-anx">${(lista&&lista.length)?peHtmlAnexos(lista,pode,chave):''}${pode?`<button class="cg-anx-add" onclick="peAdicionarAnexo('${chave}')">+ Anexar Ficheiro</button>`:''}</div>`:'');
   const est=peEST(d.estado);
   // IDE
-  let cIde=R('Id',`<b>${esc(d.id)}</b>`)+R('Data',eEmp?inp('f-dataCriacao',d.dataCriacao,'date'):dt(d.dataCriacao))+R('Autor',esc(d.autorEmp||'—'));
+  let cIde=R('Id',esc(d.id))+R('Data',eEmp?inp('f-dataCriacao',d.dataCriacao,'date'):dt(d.dataCriacao))+R('Autor',esc(d.autorEmp||'—'));
   if(d.prevId||d.nextId) cIde+=cgDiv+(d.prevId?R('Revisão de',`<a class="cg-ver" onclick="peAbrirFicha('${d.prevId}')">${esc(d.prevId)}</a>`):'')+(d.nextId?R('Revisto por',`<a class="cg-ver" onclick="peAbrirFicha('${d.nextId}')">${esc(d.nextId)}</a>`):'');
   // FLX — fluxo com as datas de cada passo
   const dataPasso={rascunho:d.dataCriacao,aberto:d.dataEnvio,pendente:d.dataEnvioProj,esclarecido:d.dataEsclarecido,respondido:d.dataResposta,fechado:d.dataFecho};
   const ref=(d.estado==='reaberto')?'respondido':d.estado, idx=M.ordem.indexOf(ref);
   let cFlx=M.ordem.map((k,pos)=>{ const atual=k===d.estado, feito=pos<idx;
-    const l=atual?`<span style="color:${M.estados[k].cor}">${M.estados[k].rot}</span>`:`<span style="${feito?'':'opacity:.55'}">${M.estados[k].rot}</span>`;
-    return R(l,dataPasso[k]?dt(dataPasso[k]):(atual?'—':''),atual?'font-weight:700':(feito?'':mut)); }).join('');
-  if(d.estado==='reaberto') cFlx+=R(`<span style="color:${M.estados.reaberto.cor}">Reaberto</span>`,'aguarda revisão','font-weight:700');
+    return R(M.estados[k].rot,dataPasso[k]?dt(dataPasso[k]):'—'); }).join('');
+  if(d.estado==='reaberto') cFlx+=R('Reaberto','aguarda revisão');
   if(notas.length) cFlx+=cgDiv+`<div class="cg-nota" title="${esc(notas.join(' '))}">${esc(notas.join(' '))}</div>`;
   // PED — pedido do empreiteiro (3 colunas)
   const cPed=R('Assunto',eEmp?inp('f-assunto',d.assunto):(esc(d.assunto)||'—'))+R('Id(s) Artº(s)',eEmp?inp('f-artigos',d.artigos):(esc(d.artigos)||'—'))+R('Desenho N.º',eEmp?inp('f-desenho',d.desenho):(esc(d.desenho)||'—'))+cgDiv+
-    R('Pedido de Esclarecimento','').replace('class="cg-r"','class="cg-r cg-rlab"')+txt('f-pedidoTexto',d.pedidoTexto,eEmp,'')+cgDiv+anexos(d.anexosEmp,(eEmp||peESuper()),'emp');
+    `<div class="cg-rtxt"><span class="cg-rl">Pedido de Esclarecimento</span>${txt('f-pedidoTexto',d.pedidoTexto,eEmp,'')}</div>`+cgDiv+anexos(d.anexosEmp,(eEmp||peESuper()),'emp');
   // ESC — dados do esclarecimento (projetista) · RES — texto do esclarecimento (2 colunas)
   const cEsc=R('Data',eProj?inp('f-proj-data',d.projData||peHoje(),'date'):dt(d.projData))+R('Autor',esc((eProj?(currentUser?currentUser.nome:''):d.autorProj)||d.projDestNome||'—'))+
     R('Especialidade',esc(d.projEspecialidade||'—'))+(d.comentFiscEnvio?cgDiv+R('Nota do envio',`<a class="cg-ver" onclick="peVerTexto('comentFiscEnvio','Nota do envio ao Projetista')">Ver</a>`):'');
-  const cRes=R('Esclarecimento','').replace('class="cg-r"','class="cg-r cg-rlab"')+txt('f-proj-texto',d.esclarecimento,eProj,'')+cgDiv+anexos(d.anexosProj,(eProj||peESuper()),'proj');
+  const cRes=`<div class="cg-rtxt"><span class="cg-rl">Esclarecimento</span>${txt('f-proj-texto',d.esclarecimento,eProj,'')}</div>`+cgDiv+anexos(d.anexosProj,(eProj||peESuper()),'proj');
   // FIS — dados da resposta (fiscalização) · OBS — observações (2 colunas)
   const cFis=R('Data',eFiscR?inp('f-fisc-data',d.dataResposta||peHoje(),'date'):dt(d.dataResposta))+R('Autor',esc((eFiscR?(currentUser?currentUser.nome:''):d.autorFiscResp)||'—'));
-  const cObs=R('Observações','').replace('class="cg-r"','class="cg-r cg-rlab"')+txt('f-fisc-obs',d.observacoes,eFiscR,'');
+  const cObs=`<div class="cg-rtxt"><span class="cg-rl">Observações</span>${txt('f-fisc-obs',d.observacoes,eFiscR,'')}</div>`;
   // HIS — histórico (toda a largura)
   const hs=(d.historico||[]);
   const cHis=hs.length?hs.map((h,i)=>`<div class="cg-r cg-dr cg-hr"><span class="cg-rl">${esc(h.data||'')}</span><div class="cg-dv"><span title="${esc(h.autor||'')}">${esc(h.autor||'')}</span><span title="${esc(h.acao||'')}">${esc(h.acao||'')}</span></div></div>`).join('')
@@ -4623,7 +4637,7 @@ function renderFichaPE(app){
       ${cgCartao('ESC','Esclarecimento',cEsc,'ESCL','','cg-int fpe-m2')}
       ${cgCartao('RES','Resposta do Projetista',cRes,'RESP','','cg-int fpe-c2')}
       ${cgCartao('FIS','Fiscalização',cFis,'FISC','','cg-int fpe-m3')}
-      ${cgCartao('OBS','Observações ao Empreiteiro',cObs,'PEDE','','cg-int fpe-c3')}
+      ${cgCartao('OBS','Observações da Fiscalização',cObs,'PEDE','','cg-int fpe-c3')}
       ${cgCartao('HIS','Histórico',cHis,'PRR','','cg-docw cg-hist')}
     </div>
   </div>`;
@@ -12161,6 +12175,7 @@ window.userMenuAbrir=function(ev){ ev&&ev.stopPropagation(); defMenuFechar(); co
   m.style.display=m.style.display==='block'?'none':'block'; };
 window.segoPaleta=function(k){ if(k==='navy') document.documentElement.setAttribute('data-paleta','navy'); else document.documentElement.removeAttribute('data-paleta');
   try{ localStorage.setItem('sego-paleta',k); }catch(e){} const m=document.getElementById('user-menu'); if(m&&m.style.display==='block'){ m.style.display='none'; userMenuAbrir(); } };
+document.addEventListener('click',e=>{ const t=e.target; if(t&&t.tagName==='INPUT'&&t.type==='date'&&!document.documentElement.hasAttribute('data-caixas')){ try{ t.showPicker&&t.showPicker(); }catch(_){} } },true);
 window.segoCaixas=function(k){ if(k==='1') document.documentElement.setAttribute('data-caixas',''); else document.documentElement.removeAttribute('data-caixas');
   try{ localStorage.setItem('sego-caixas',k); }catch(e){} const m=document.getElementById('user-menu'); if(m&&m.style.display==='block'){ m.style.display='none'; userMenuAbrir(); } };
 window.userMenuFechar=function(){ const m=document.getElementById('user-menu'); if(m) m.style.display='none'; };
