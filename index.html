@@ -314,7 +314,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.12.0940</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.12.0941</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -1292,6 +1292,7 @@ window.segoTema=function(){
 <script>
 (function(){
   let pr=null;
+  const icsCab=cab=>{ if(!cab) return []; let a=[...cab.children].slice(1).filter(e=>e.offsetWidth); if(a.length===1&&a[0].children.length>1) a=[...a[0].children].filter(e=>e.offsetWidth); return a; };   // os 3 botões do cabeçalho do cartão da lista
   window.segoPosCtx=function(){
     const cx=document.getElementById('nav-ctx'), nv=document.querySelector('.navbar'), app=document.getElementById('app'); if(!cx||!nv||!app) return;
     const nob=document.getElementById('nav-obra'), na=document.getElementById('nav-acoes');
@@ -1325,14 +1326,14 @@ window.segoTema=function(){
     const est=document.getElementById('nav-obras-est'); if(est) est.style.removeProperty('width');
     if(lista){ // seletor do estado alinhado pelos 3 botões do cabeçalho do 2.º cartão da lista
       const c2=lcs[1], c1=lcs[0];
-      const ic2=(c2&&c1&&Math.abs(c2.getBoundingClientRect().top-c1.getBoundingClientRect().top)<=1)?[...c2.querySelector('.cg-cab').children].slice(1).filter(e=>e.offsetWidth):[];
+      const ic2=(c2&&c1&&Math.abs(c2.getBoundingClientRect().top-c1.getBoundingClientRect().top)<=1)?icsCab(c2.querySelector('.cg-cab')):[];
       if(ic2.length&&est){ const a=ic2[0].getBoundingClientRect(), z=ic2[ic2.length-1].getBoundingClientRect(); x=Math.round(a.left-nvl); xw=Math.round(z.right-a.left); est.style.setProperty('width',xw+'px','important'); est.style.setProperty('min-width','0','important'); } }
     cx.style.setProperty('--ctx-x',x+'px'); cx.style.setProperty('--ctx-w',xw+'px'); cx.classList.add('abs');
     // lista de obras: botões de ordenação encostados ao limite direito do 1.º cartão
     // (alinhados 3 por 3 com os 3 botões do cabeçalho do 1.º cartão da lista)
     if(nord){ nord.style.removeProperty('gap');
       if(lista&&getComputedStyle(nord).display!=='none'){ nord.classList.add('abs');
-        const cab=lcs[0]&&lcs[0].querySelector('.cg-cab'), ics=cab?[...cab.children].slice(1).filter(e=>e.offsetWidth):[], bs=[...nord.querySelectorAll('.nav-ord')].filter(e=>e.offsetWidth);
+        const cab=lcs[0]&&lcs[0].querySelector('.cg-cab'), ics=icsCab(cab), bs=[...nord.querySelectorAll('.nav-ord')].filter(e=>e.offsetWidth);
         if(ics.length===bs.length&&bs.length){ const q0=ics[0].getBoundingClientRect(), bw=bs[0].offsetWidth, step=ics.length>1?ics[1].getBoundingClientRect().left-q0.left:0;
           if(step) nord.style.setProperty('gap',Math.max(0,Math.round(step-(q0.width-bw)-bw))+'px','important');
           nord.style.left=Math.round(q0.left+(q0.width-bw)/2-nvl)+'px'; }
