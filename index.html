@@ -12479,7 +12479,7 @@ const PERM_MOD={
 function permRegras(oid,m){ const r=(DB.permissoes||[]).find(x=>String(x.obra_id)===String(oid)&&x.modulo===m); let g=r?r.regras:{}; if(typeof g==='string'){ try{ g=JSON.parse(g); }catch(e){ g={}; } } g=g||{}; g.perm=g.perm||{}; g.notif=g.notif||{}; return g; }
 function permPessoasObra(o){ if(!o) return [];
   const listas=['intervenientes_do','intervenientes_fisc','intervenientes_emp','intervenientes_proj','intervenientes_eq'].flatMap(k=>(o[k]||[]).map(String));
-  const ref=u=>u.obras==='todas'||(Array.isArray(u.obras)&&u.obras.some(x=>[String(o.id),String(o.codigo||''),String(o.sigla||'')].includes(String(x))))||listas.includes(String(u.id));
+  const ref=u=>u.role==='superadmin'||u.obras==='todas'||(Array.isArray(u.obras)&&u.obras.some(x=>[String(o.id),String(o.codigo||''),String(o.sigla||'')].includes(String(x))))||listas.includes(String(u.id));
   return (DB.utilizadores||[]).filter(u=>u.ativo!==false&&ref(u)); }
 /* pode o utilizador u (por defeito o atual) fazer a ação a no módulo m, na obra oid? */
 function segoPode(m,a,oid,u){ u=u||currentUser; if(!u) return false; if(u.role==='superadmin') return true;
