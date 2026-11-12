@@ -314,7 +314,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.12.1910</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.12.1912</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -7101,6 +7101,9 @@ table.pq-grade .pq-numcell{width:100%;height:100%;min-height:23px;display:flex;a
 table.pq-grade .pq-numcell:hover{background:var(--danger-bg);color:var(--danger)}
 table.pq-grade td.espelho{color:var(--text)}
 table.pq-grade td.c-del{padding:0;text-align:center}
+table.pq-grade th.pq-thl{padding:0 !important;text-align:center;vertical-align:middle}
+.pq-addl{border:1px solid var(--gold);background:#fff;color:var(--gold);cursor:pointer;border-radius:4px;padding:0 2px;height:20px;min-width:22px;font-weight:700;line-height:1;font-family:inherit;white-space:nowrap}
+.pq-addl:hover{background:var(--gold);color:#fff}
 .pq-btnx{border:none;background:none;color:var(--danger);cursor:pointer;font-size:14px;font-weight:700;line-height:1;padding:2px 4px}
 .pq-btnmais{margin-left:auto;border:1px solid var(--info);background:#fff;color:var(--info);cursor:pointer;border-radius:4px;width:24px;height:22px;font-weight:700;line-height:1}
 .pq-obs{width:100%;box-sizing:border-box;min-height:60px;border:1px solid var(--border-light);border-radius:var(--radius);padding:6px 8px;font-family:inherit;font-size:13px}
@@ -7284,11 +7287,13 @@ function renderFichaPTQ(app){
     R2(L('Semanas',AUT),esc(d.semanas==null?'':String(d.semanas)),L('RSO'),refs)+
     `<div class="cg-rtxt"><span class="cg-rl">${L('Observações')}</span>${ed?`<textarea class="cg-ta" id="pq-obs" onchange="pqLerFormAdm()">${esc(d.observacoes||'')}</textarea>`:`<div class="cg-txt">${esc(d.observacoes||'')}</div>`}</div>`;
   // grelhas
+  // + L (acrescentar linha) no canto da grelha, por cima dos × — não se confunde com o + de novo documento / anexo
+  const addL=t=>ed?`<button type="button" class="pq-addl" title="Acrescentar linha" onclick="event.stopPropagation();pqAddLinha('${t}')">+L</button>`:'';
   const grelha=(cab,corpo)=>`<div class="pq-scroll"><table class="pq-grade">${cg}<thead>${cab}</thead><tbody>${corpo}</tbody></table></div>`;
-  const cabA=`<tr><th rowspan="3" class="nlin">#</th><th rowspan="3">Trabalhos a Executar<i class="cg-mk obr pq-mk" title="Obrigatório"></i></th><th rowspan="3">Localização<i class="cg-mk obr pq-mk" title="Obrigatório"></i></th>${cabDatas}<th rowspan="3"></th></tr>${cabLetras}${cabTotais(totA)}`;
-  const cabS=`<tr><th rowspan="3" class="nlin">#</th><th rowspan="3">Trabalhos a Executar<i class="cg-mk aut pq-mk" title="Preenchido automaticamente (das Atividades)"></i></th><th rowspan="3">Subempreiteiro<i class="cg-mk obr pq-mk" title="Obrigatório"></i></th>${cabDatas}<th rowspan="3"></th></tr>${cabLetras}${cabTotais(totS)}`;
-  const cabE=`<tr><th rowspan="3" class="nlin">#</th><th rowspan="3" colspan="2">Equipamento</th>${cabDatas}<th rowspan="3"></th></tr>${cabLetras}${cabTotais(totE)}`;
-  const comMais=(card,tipo)=>ed?card.replace(/<div class="cg-cx-ic" aria-hidden="true">[\s\S]*?<\/svg><\/div>/,`<button type="button" class="cg-cx-ic co-mais" title="Acrescentar linha" onclick="event.stopPropagation();pqAddLinha('${tipo}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>`):card;
+  const cabA=`<tr><th rowspan="3" class="nlin">#</th><th rowspan="3">Trabalhos a Executar<i class="cg-mk obr pq-mk" title="Obrigatório"></i></th><th rowspan="3">Localização<i class="cg-mk obr pq-mk" title="Obrigatório"></i></th>${cabDatas}<th rowspan="3" class="pq-thl">${addL('a')}</th></tr>${cabLetras}${cabTotais(totA)}`;
+  const cabS=`<tr><th rowspan="3" class="nlin">#</th><th rowspan="3">Trabalhos a Executar<i class="cg-mk aut pq-mk" title="Preenchido automaticamente (das Atividades)"></i></th><th rowspan="3">Subempreiteiro<i class="cg-mk obr pq-mk" title="Obrigatório"></i></th>${cabDatas}<th rowspan="3" class="pq-thl">${addL('a')}</th></tr>${cabLetras}${cabTotais(totS)}`;
+  const cabE=`<tr><th rowspan="3" class="nlin">#</th><th rowspan="3" colspan="2">Equipamento</th>${cabDatas}<th rowspan="3" class="pq-thl">${addL('e')}</th></tr>${cabLetras}${cabTotais(totE)}`;
+  const comMais=(card,tipo)=>card;   // o acrescentar linha passou para o «+L» no canto da grelha
   const hs=(d.historico||[]);
   const cHis=hs.length?hs.map(h=>`<div class="cg-r cg-dr cg-hr"><span class="cg-rl">${esc(h.data||'')}</span><div class="cg-dv"><span class="cg-hau" title="${esc(h.autor||'')}"><span>${esc(h.autor||'')}</span></span><span title="${esc(h.acao||'')}">${esc(h.acao||'')}</span></div></div>`).join('')
     :`<div class="cg-r co-semreg"><span class="cg-rl">Sem registos</span><span class="cg-rv"></span></div>`;
