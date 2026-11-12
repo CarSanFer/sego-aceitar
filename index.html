@@ -314,7 +314,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.12.0141</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.12.0149</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -987,6 +987,22 @@ window.segoTema=function(){
   .cg-rl2 .cg-mk{position:static !important;display:inline-block;margin-left:6px;vertical-align:middle;transform:none !important}
   .cg-fptq .fpq-doc .cg-dv{grid-template-columns:1fr !important}
   .cg-fptq .fpq-doc .cg-dv>span{overflow:visible !important;white-space:nowrap}
+  .pm-bar{display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+  .pm-bar label{display:flex;gap:8px;align-items:center;font-weight:700;color:var(--text-muted)}
+  .pm-bar select{min-width:340px}
+  .pm-tabs{display:flex;gap:6px;align-items:center}
+  .pm-tab{border:1px solid var(--nav-bd);background:transparent;color:var(--text);border-radius:4px;padding:2px 10px;cursor:pointer;font-family:inherit;font-weight:700}
+  .pm-tab.on{background:var(--nav-bd);color:#fff}
+  .pm-brev{color:var(--text-muted);margin-left:6px}
+  .pm-leg{display:flex;gap:12px;align-items:center;margin-left:auto}
+  .pm-tab-x{}
+  table.pm-tab th{text-align:center}
+  table.pm-tab td.pm-c{text-align:center;cursor:pointer;width:90px;user-select:none}
+  .pm-def{color:var(--text-muted)}
+  .pm-alt{color:var(--nav-bd);font-weight:700;background:rgba(227,153,86,.10)}
+  td.pm-lock{color:var(--text-muted);cursor:default !important}
+  table.pm-tab td{font-weight:400 !important}
+  tr.pm-g td{font-weight:700 !important;background:rgba(127,140,160,.10);text-align:left}
   .cg-ranx{height:auto !important;min-height:22px}
   .cg-ranx .cg-rv{white-space:normal !important;overflow:visible !important;display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center}
   .cg-ax a{color:var(--info) !important;text-decoration:none}
@@ -1327,7 +1343,7 @@ window.segoTema=function(){
 <div id="def-menu" class="sego-pop" style="display:none">
   <div class="um-sec">Obras</div><div class="um-it" onclick="cgNovaObraModal()">🏗 + Nova Obra</div><div class="um-it" onclick="cgNovaFaseModal()">📑 + Nova Fase</div><div class="um-it" onclick="defMenuFechar();modPgAbrir()">🧩 Módulos por Obra</div>
   <div class="um-sec">Dados</div><div class="um-it" onclick="defMenuFechar();segoSync()">🔄 Sincronizar</div><div class="um-it" onclick="defAbrir('backup')">📤 Exportar Dados</div><div class="um-it" onclick="defAbrir('Importar Dados')">📥 Importar Dados</div>
-  <div class="um-sec">Administração</div><div class="um-it" onclick="defAbrir('Utilizadores')">👥 Utilizadores</div><div class="um-it" onclick="defAbrir('entidades')">🏢 Entidades</div><div class="um-it" onclick="defAbrir('Especialidades')">🏷 Especialidades</div><div class="um-it" onclick="defAbrir('Documentos')">📄 Documentos</div><div class="um-it" onclick="defAbrir('Auditoria')">📜 Auditoria</div>
+  <div class="um-sec">Administração</div><div class="um-it" onclick="defAbrir('Utilizadores')">👥 Utilizadores</div><div class="um-it" onclick="defAbrir('entidades')">🏢 Entidades</div><div class="um-it" onclick="defAbrir('permissoes')">🔐 Permissões por Obra</div><div class="um-it" onclick="defAbrir('Especialidades')">🏷 Especialidades</div><div class="um-it" onclick="defAbrir('Documentos')">📄 Documentos</div><div class="um-it" onclick="defAbrir('Auditoria')">📜 Auditoria</div>
   <div class="um-ver" id="def-versao"></div>
 </div>
 <div id="user-menu" class="sego-pop" style="display:none"></div>
@@ -1796,7 +1812,7 @@ async function loadDB() {
   showLoadingOverlay('A carregar dados...');
   try {
     const safe = async (table, client=sb) => { try { const d=await client.get(table); console.log('Loaded '+table+':', d.length,'rows'); return d; } catch(e) { console.error('FAILED to load '+table+':', e.message); return []; }};
-    const [obras, utils, subs, esps, tdocs, rels, ents] = await Promise.all([
+    const [obras, utils, subs, esps, tdocs, rels, ents, permRows] = await Promise.all([
       safe('obras'),
       safe('utilizadores'),
       safe('subempreiteiros'),
@@ -1804,8 +1820,10 @@ async function loadDB() {
       safe('tipos_doc'),
       safe('relatorios', sbRel),
       safe('entidades'),
+      safe('obra_permissoes'),
     ]);
     DB.entidades = ents||[];
+    DB.permissoes = permRows||[];
     DB.obras = obras.map(mapObra);
     DB.obras.forEach(o=>{ const d=DB.entidades.find(e=>e.id===o.entidadeDoId), m=DB.entidades.find(e=>e.id===o.entidadeEmpId); if(d) o.empresaDO=d.nome; if(m) o.empresaEmp=m.nome; });
     DB.utilizadores = utils.map(mapUtil);
@@ -6686,7 +6704,7 @@ function ptqEhUltimo(d){
   return !ptqDocs.some(x=>x.num>d.num||(x.num===d.num&&x.rev>d.rev));
 }
 window.ptqDuplicar=async function(){
-  if(!peEEmp()){ alert('Apenas o Empreiteiro cria planos.'); return; }
+  if(!segoPode('ptq','duplicar',ptqObraId)){ alert('Não tem permissão para duplicar planos nesta obra.'); return; }
   const base=ptqPorId(ptqFichaId); if(!base) return;
   if(base.estado!=='enviado'||!ptqEhUltimo(base)) return;
   const num=ptqProximoNum();
@@ -6704,7 +6722,7 @@ window.ptqDuplicar=async function(){
   ptqDocs.unshift(d); await ptqPersistir(d); ptqAbrirFicha(d.id);
 };
 window.ptqNovoPedido=async function(){
-  if(!peEEmp()){ alert('Apenas o Empreiteiro cria planos.'); return; }
+  if(!segoPode('ptq','criar',ptqObraId)){ alert('Não tem permissão para criar planos nesta obra.'); return; }
   const o=ptqObra(); if(!o){ alert('Sem obra selecionada.'); return; }
   const d=ptqDocNovo(ptqProximoNum());
   ptqRegistar(d,'Plano criado (rascunho).');
@@ -6721,7 +6739,7 @@ window.ptqEliminar=async function(id){
 
 /* ---- interações do calendário ---- */
 function ptqFichaAtualDoc(){ return ptqPorId(ptqFichaId); }
-function pqEditavel(d){ return (peEEmp() && d.estado==='rascunho') || (peESuper() && (d.estado==='rascunho'||ptqAdmEd)); }
+function pqEditavel(d){ if(peESuper()) return d.estado==='rascunho'||ptqAdmEd; return d.estado==='rascunho'&&segoPode('ptq','criar',d.obraId); }
 /* registo de edição admin (1x por abertura da ficha) quando o PTQ já não está em rascunho */
 let ptqAdmLogId=null;
 function ptqAdmMarca(d,txt){ if(!peESuper()||d.estado==='rascunho') return; if(ptqAdmLogId===d.id&&!txt) return; ptqRegistar(d,txt||'Edição Admin — grelha / observações alteradas em linha.'); if(!txt) ptqAdmLogId=d.id; }
@@ -6792,7 +6810,7 @@ window.ptqGuardarRascunho=async function(){
   const d=ptqFichaAtualDoc(); if(!d) return; pqLerForm();
   ptqRegistar(d,'Rascunho guardado.'); await ptqPersistir(d); ptqAbrirFicha(d.id);
 };
-function ptqPodeEnviar(){ if(peESuper()) return true; return peEEmp()&&/^\s*dir\.?\s*(de\s+)?obra/i.test(String((currentUser&&currentUser.funcao)||'')); }
+function ptqPodeEnviar(){ const o=ptqObra(); return segoPode('ptq','enviar',o&&o.id); }
 window.ptqEnviar=async function(){
   const d=ptqFichaAtualDoc(); if(!d) return; pqLerForm();
   if(!ptqPodeEnviar()){ alert('Só o Diretor de Obra pode enviar o plano à Fiscalização.'); return; }
@@ -6812,8 +6830,8 @@ window.ptqEnviar=async function(){
   d.autorEnvio=currentUser?currentUser.nome:''; d.estado='enviado'; d.dataEnvio=peHoje();
   ptqRegistar(d,'Plano enviado à Fiscalização por '+(d.autorEnvio||'')+' — passa a Enviado.');
   const o=ptqObra()||{};
-  const cso=segoCSOsDaObra(o).map(u=>u.email);
-  await ptqNotificar(d,ptqEmails('fiscalizacao'),[...SEGO_CC_DIRECAO,...cso],'Enviamos o PTQ '+d.id+' da Obra '+(o.nome||d.obraNome)+' para o qual solicitamos a v/melhor atenção.','Fiscalização');
+  const dest=segoNotifDest('ptq','enviado',o);
+  await ptqNotificar(d,dest.para,dest.cc,'Enviamos o PTQ '+d.id+' da Obra '+(o.nome||d.obraNome)+' para o qual solicitamos a v/melhor atenção.','Fiscalização');
   await ptqPersistir(d); ptqAbrirFicha(d.id);
 };
 
@@ -6880,7 +6898,7 @@ function renderListaPTQ(app){
       </div>
       <div class="page-actions"></div>
     </div>
-    <div style="margin-bottom:12px;display:flex;gap:8px;align-items:center">${peEEmp()?`<button class="btn btn-gold btn-sm" onclick="ptqNovoPedido()">+ Novo Plano</button>`:''}${peESuper()?`<span style="margin-left:auto;display:flex;gap:8px"><button class="btn btn-sm" style="border:1px solid var(--border-light);background:#fff" onclick="gpeAdmRenumerar('ptq')">Renumerar</button></span>`:''}</div>
+    <div style="margin-bottom:12px;display:flex;gap:8px;align-items:center">${segoPode('ptq','criar',ptqObraId)?`<button class="btn btn-gold btn-sm" onclick="ptqNovoPedido()">+ Novo Plano</button>`:''}${peESuper()?`<span style="margin-left:auto;display:flex;gap:8px"><button class="btn btn-sm" style="border:1px solid var(--border-light);background:#fff" onclick="gpeAdmRenumerar('ptq')">Renumerar</button></span>`:''}</div>
     <div class="table-card">
       ${lst.length?`<table>
         <thead><tr><th style="text-align:left">Id</th><th class="pe-th-state" style="--st:var(--success)">Enviado</th><th style="text-align:center">Início</th><th style="text-align:left">Período</th><th style="text-align:center">Semanas</th><th style="text-align:center">Actividades</th><th style="text-align:center">Subempreiteiros</th><th style="text-align:center">Equipamentos</th>${peESuper()?'<th style="text-align:center">×</th>':''}</tr></thead>
@@ -6967,12 +6985,12 @@ function renderFichaPTQ(app){
   }).join('<span style="color:#B8BEC7">›</span>');
 
   const acoes=[],notas=[];
-  if(d.estado==='rascunho'&&peEEmp()){
+  if(d.estado==='rascunho'&&segoPode('ptq','criar',d.obraId)){
     acoes.push(`<button class="pe-btn" onclick="ptqGuardarRascunho()">Guardar Rascunho</button>`);
     if(ptqPodeEnviar()) acoes.push(`<button class="pe-btn green" onclick="ptqEnviar()">Enviar à Fiscalização →</button>`);
     else notas.push('Só o Diretor de Obra pode enviar o plano à Fiscalização.');
   }
-  if(d.estado==='enviado'&&peEEmp()&&ptqEhUltimo(d)){
+  if(d.estado==='enviado'&&segoPode('ptq','duplicar',d.obraId)&&ptqEhUltimo(d)){
     acoes.push(`<button class="pe-btn gold" onclick="ptqDuplicar()">Duplicar →</button>`);
   }
 
@@ -7047,7 +7065,7 @@ function renderFichaPTQ(app){
     <div class="cg-cxs cg-2 cg-ficha cg-fpe cg-fpa cg-fptq${AE?' cg-admed':''}" ${SA&&!AE?'ondblclick="ptqAdmEditar(event)" title="Duplo clique para editar (Superadmin)"':''}>
       ${cgCartao('FLX','Fluxo',cFlx,'PRR','','cg-int fpe-flx')}
       ${cgCartao('IDE','Identificação',cIde,'IDE','','cg-int fpe-m1')}
-      ${d.estado==='enviado'?cgCartao('PLA','Plano Quinzenal de Trabalho',cPla,'PRO','','cg-int fpe-c1').replace(/<div class="cg-cx-ic" aria-hidden="true">[\s\S]*?<\/svg><\/div>/,`<button type="button" class="cg-cx-ic co-mais tem cg-pdf" title="Gravar PDF do PTQ ${esc(d.id)}" onclick="event.stopPropagation();ptqPDF('${d.id}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 15h6M9 18h4"/></svg></button>`):cgCartao('PLA','Plano Quinzenal de Trabalho',cPla,'PRO','','cg-int fpe-c1')}
+      ${d.estado==='enviado'&&segoPode('ptq','pdf',d.obraId)?cgCartao('PLA','Plano Quinzenal de Trabalho',cPla,'PRO','','cg-int fpe-c1').replace(/<div class="cg-cx-ic" aria-hidden="true">[\s\S]*?<\/svg><\/div>/,`<button type="button" class="cg-cx-ic co-mais tem cg-pdf" title="Gravar PDF do PTQ ${esc(d.id)}" onclick="event.stopPropagation();ptqPDF('${d.id}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 15h6M9 18h4"/></svg></button>`):cgCartao('PLA','Plano Quinzenal de Trabalho',cPla,'PRO','','cg-int fpe-c1')}
       ${comMais(cgCartao('ATV','Atividades',grelha(cabA,linhasA),'PEDE','','cg-int fpq-g fpq-g1'),'a')}
       ${comMais(cgCartao('MOB','Carga de Mão de Obra',grelha(cabS,linhasS),'EMPR','','cg-int fpq-g fpq-g2'),'a')}
       ${comMais(cgCartao('EQP','Carga de Equipamentos',grelha(cabE,linhasE),'ENVI','','cg-int fpq-g fpq-g3'),'e')}
@@ -12444,8 +12462,80 @@ window.defAbrir=function(pg){ defMenuFechar(); if(pg==='backup'){ if(typeof back
 function renderDefinicoes(app){
   if(!cgPodeEditar()){ defPg=null; render(); return; }
   if(defPg==='entidades') return renderEntidades(app);
+  if(defPg==='permissoes') return renderPermissoes(app);
   app.innerHTML=`<button class="back-btn" onclick="defPg=null;render()">← Voltar</button><div class="cg-bloco"><div class="cg-bt">${esc(defPg)}</div><div style="color:var(--text-muted)">Esta área chega na Fase 3 (Administração). Até lá continua no SID.</div></div>`;
 }
+/* ===================== Permissões e notificações por obra ===================== */
+/* Regras de origem por módulo (def / defNotif); a página guarda só as exceções (obra_permissoes.regras). */
+const PERM_MOD={
+  ptq:{ rot:'PTQ — Plano Quinzenal de Trabalho',
+    acoes:[['Rascunho','criar','Criar / Editar'],['Rascunho','enviar','Enviar'],['Enviado','duplicar','Duplicar'],['Enviado','pdf','PDF']],
+    notif:[['enviado','Enviado']],
+    def:(u,a)=>{ const emp=u.role==='empreiteiro', dobra=emp&&/^\s*dir\.?\s*(de\s+)?obra/i.test(String(u.funcao||''));
+      return a==='criar'?emp:a==='enviar'?dobra:a==='duplicar'?emp:a==='pdf'?true:false; },
+    defNotif:(u,est)=>{ if(est!=='enviado') return ''; if(u.role==='fiscalizacao') return segoEhCSO(u)?'cc':'para';
+      if(SEGO_CC_DIRECAO.includes(String(u.email||'').toLowerCase())) return 'cc'; return ''; } }
+};
+function permRegras(oid,m){ const r=(DB.permissoes||[]).find(x=>String(x.obra_id)===String(oid)&&x.modulo===m); let g=r?r.regras:{}; if(typeof g==='string'){ try{ g=JSON.parse(g); }catch(e){ g={}; } } g=g||{}; g.perm=g.perm||{}; g.notif=g.notif||{}; return g; }
+function permPessoasObra(o){ if(!o) return [];
+  const listas=['intervenientes_do','intervenientes_fisc','intervenientes_emp','intervenientes_proj','intervenientes_eq'].flatMap(k=>(o[k]||[]).map(String));
+  const ref=u=>u.obras==='todas'||(Array.isArray(u.obras)&&u.obras.some(x=>[String(o.id),String(o.codigo||''),String(o.sigla||'')].includes(String(x))))||listas.includes(String(u.id));
+  return (DB.utilizadores||[]).filter(u=>u.ativo!==false&&ref(u)); }
+/* pode o utilizador u (por defeito o atual) fazer a ação a no módulo m, na obra oid? */
+function segoPode(m,a,oid,u){ u=u||currentUser; if(!u) return false; if(u.role==='superadmin') return true;
+  const M=PERM_MOD[m]; if(!M) return false; const g=permRegras(oid,m); const ov=(g.perm[String(u.id)]||{})[a];
+  return typeof ov==='boolean'?ov:!!M.def(u,a); }
+function segoNotifDest(m,est,o){ const M=PERM_MOD[m], g=permRegras(o&&o.id,m), ov=g.notif[est]||{}; const para=[], cc=[];
+  permPessoasObra(o).forEach(u=>{ if(!u.email) return; const v=(String(u.id) in ov)?ov[String(u.id)]:M.defNotif(u,est); if(v==='para') para.push(u.email); else if(v==='cc') cc.push(u.email); });
+  const ord=e=>{ const i=SEGO_CC_DIRECAO.indexOf(String(e).toLowerCase()); return i<0?99:i; };   // CC: Direção primeiro (Tiago, Carlos), depois os restantes (CSO…)
+  return {para:[...new Set(para)],cc:[...new Set(cc.filter(e=>!para.includes(e)))].sort((a,b)=>ord(a)-ord(b))}; }
+
+let permObraId=null, permMod='ptq';
+const PERM_GRUPOS=[['Dono de Obra',u=>u.role==='dono_obra'],['Fiscalização',u=>u.role==='fiscalizacao'||u.role==='superadmin'],['Empreiteiro',u=>u.role==='empreiteiro'],['Projetista',u=>u.role==='projetista'],['Outros',u=>!['dono_obra','fiscalizacao','superadmin','empreiteiro','projetista'].includes(u.role)]];
+function renderPermissoes(app){
+  if(!peESuper()){ app.innerHTML='<div class="cg-bloco">Apenas o Superadmin.</div>'; return; }
+  const obras=(DB.obras||[]).filter(o=>!o.comFases).slice().sort((a,b)=>String(a.codigo||'').localeCompare(String(b.codigo||'')));
+  if(!permObraId&&obras.length) permObraId=obras[0].id;
+  const o=obras.find(x=>String(x.id)===String(permObraId))||null, M=PERM_MOD[permMod], g=permRegras(permObraId,permMod);
+  const pes=permPessoasObra(o);
+  const nAlt=Object.values(g.perm).reduce((n,x)=>n+Object.keys(x).length,0)+Object.values(g.notif).reduce((n,x)=>n+Object.keys(x).length,0);
+  const est=[...new Set(M.acoes.map(a=>a[0]))];
+  const cab1=`<tr><th rowspan="2" style="text-align:left">Interveniente</th><th rowspan="2" style="text-align:left">Função</th>${est.map(e=>`<th colspan="${M.acoes.filter(a=>a[0]===e).length}">${e}</th>`).join('')}<th colspan="${M.notif.length}">Notificação</th></tr>`;
+  const cab2=`<tr>${M.acoes.map(a=>`<th>${a[2]}</th>`).join('')}${M.notif.map(n=>`<th>${n[1]}</th>`).join('')}</tr>`;
+  const linha=u=>{ const sa=u.role==='superadmin', uid=String(u.id);
+    const cel=M.acoes.map(([e,a])=>{ if(sa) return `<td class="pm-c pm-lock" title="Superadmin: acesso total">✓</td>`;
+      const dv=!!M.def(u,a), ov=(g.perm[uid]||{})[a], v=typeof ov==='boolean'?ov:dv, alt=typeof ov==='boolean';
+      return `<td class="pm-c ${alt?'pm-alt':'pm-def'}" onclick="permToggle('${uid}','${a}')" title="${alt?'Alterado (origem: '+(dv?'Sim':'Não')+') — clique para mudar':'Regra de origem — clique para mudar'}">${v?'✓':'✗'}</td>`; }).join('');
+    const nc=M.notif.map(([es])=>{ const dv=M.defNotif(u,es), ovm=g.notif[es]||{}, alt=(uid in ovm), v=alt?ovm[uid]:dv;
+      return `<td class="pm-c ${alt?'pm-alt':'pm-def'}" onclick="permNotif('${uid}','${es}')" title="${alt?'Alterado (origem: '+({para:'Para',cc:'CC'}[dv]||'Não recebe')+')':'Regra de origem'} — clique: Para → CC → Não recebe">${({para:'Para',cc:'CC'}[v]||'')}</td>`; }).join('');
+    return `<tr><td style="text-align:left" title="${esc(u.email||'')}">${esc(u.nome||'')}</td><td style="text-align:left;color:var(--text-muted)">${esc(u.funcao||'')}</td>${cel}${nc}</tr>`; };
+  const ncol=2+M.acoes.length+M.notif.length;
+  const corpo=PERM_GRUPOS.map(([t,f])=>{ const us=pes.filter(f).sort((a,b)=>String(a.nome).localeCompare(String(b.nome))); if(!us.length) return '';
+    return `<tr class="pm-g"><td colspan="${ncol}">${t}</td></tr>`+us.map(linha).join(''); }).join('');
+  app.innerHTML=`<button class="back-btn" onclick="defPg=null;render()">← Voltar</button>
+  <div class="cg-head"><b>Permissões por Obra</b><span style="color:var(--text-muted)">· o que cada interveniente pode fazer e quem é notificado, em cada obra</span></div>
+  <div class="cg-bloco pm-bar">
+    <label>Obra <select class="form-input" onchange="permObraId=this.value;render()">${obras.map(x=>`<option value="${esc(x.id)}" ${String(x.id)===String(permObraId)?'selected':''}>${esc((x.codigo||'')+' · '+(x.sigla||'')+' — '+(x.nome||''))}</option>`).join('')}</select></label>
+    <span class="pm-tabs">${Object.keys(PERM_MOD).map(k=>`<button class="pm-tab ${k===permMod?'on':''}" onclick="permMod='${k}';render()">${k.toUpperCase()}</button>`).join('')}<span class="pm-brev" title="Os restantes módulos entram à medida que forem revistos">PE · PA · PB · QE · TCm · AM · RSO · RVT · SOS</span></span>
+    <span class="pm-leg"><span class="pm-def">✓ Regra de origem</span><span class="pm-alt">✓ Alterado nesta obra</span>${nAlt?`<button class="btn btn-outline btn-sm" onclick="permRepor()">Repor Origem (${nAlt})</button>`:''}</span>
+  </div>
+  <div class="table-card"><table class="data-table pm-tab"><thead>${cab1}${cab2}</thead><tbody>${corpo||`<tr><td colspan="${ncol}">Sem intervenientes nesta obra.</td></tr>`}</tbody></table></div>`;
+}
+async function permGravar(g){ const id=permObraId+'|'+permMod; const reg={id,obra_id:String(permObraId),modulo:permMod,regras:g,updated_at:new Date().toISOString(),updated_by:(currentUser&&currentUser.nome)||''};
+  DB.permissoes=DB.permissoes||[]; const i=DB.permissoes.findIndex(x=>x.id===id);
+  try{ if(i>=0){ await sb.patch('obra_permissoes',id,{regras:g,updated_at:reg.updated_at,updated_by:reg.updated_by}); DB.permissoes[i]=reg; }
+       else{ await sb.post('obra_permissoes',reg); DB.permissoes.push(reg); } }
+  catch(e){ alert('Erro ao gravar as permissões: '+(e.message||e)); }
+  render(); }
+window.permToggle=function(uid,a){ const u=(DB.utilizadores||[]).find(x=>String(x.id)===uid); if(!u) return; const M=PERM_MOD[permMod], g=permRegras(permObraId,permMod);
+  const dv=!!M.def(u,a), cur=g.perm[uid]&&typeof g.perm[uid][a]==='boolean'?g.perm[uid][a]:dv, nv=!cur;
+  g.perm[uid]=g.perm[uid]||{}; if(nv===dv) delete g.perm[uid][a]; else g.perm[uid][a]=nv; if(!Object.keys(g.perm[uid]).length) delete g.perm[uid];
+  permGravar(g); };
+window.permNotif=function(uid,es){ const u=(DB.utilizadores||[]).find(x=>String(x.id)===uid); if(!u) return; const M=PERM_MOD[permMod], g=permRegras(permObraId,permMod);
+  const dv=M.defNotif(u,es), m=g.notif[es]=g.notif[es]||{}, cur=(uid in m)?m[uid]:dv, ord=['para','cc',''], nv=ord[(ord.indexOf(cur)+1)%3];
+  if(nv===dv) delete m[uid]; else m[uid]=nv; if(!Object.keys(m).length) delete g.notif[es];
+  permGravar(g); };
+window.permRepor=function(){ if(!confirm('Repor as regras de origem deste módulo nesta obra?')) return; permGravar({perm:{},notif:{}}); };
 /* ---------- Entidades ---------- */
 function entUso(id){ return DB.obras.filter(o=>o.entidadeDoId===id||o.entidadeEmpId===id); }
 function renderEntidades(app){
