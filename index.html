@@ -314,7 +314,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.12.1219</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.12.1547</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -3654,7 +3654,7 @@ function sosActionBtn(r){
   const maxVerNum=sameNum.length?Math.max(...sameNum.map(x=>x.versao||0)):0;
   const isUltimaVersao=(r.versao||0)===maxVerNum;
   const isUltimoGlobal=(r.numero||0)===maxNum && isUltimaVersao;
-  const podeNovoRever=isUltimoGlobal && lista.length>1 && r.estado==='disponibilizado';
+  const podeNovoRever=isUltimoGlobal && r.estado==='disponibilizado';   // basta 1 relatório (ex.: o primeiro no SEGO, n.º 135) para duplicar/rever
   let b='';
   if(podeNovoRever) b+=`<button class="btn btn-outline btn-sm" onclick="criarSOS('${r.obra_id}')" title="Cria o SOS seguinte a partir deste">⧉ Duplicar</button>`;
   if(podeNovoRever) b+=`<button class="btn btn-outline btn-sm" onclick="criarRevisao('${r.id}')">✎ Criar revisão</button>`;
@@ -4365,7 +4365,7 @@ function rvtRowBtns(r){
   const isUltimoGlobal=(r.numero||0)===maxNum && isUltimaVersao;
   const temHistorico=lista.length>1;
   // Novo e Rever só aparecem no último global + histórico + disponibilizado
-  const podeNovoRever=isUltimoGlobal && temHistorico && r.estado==='disponibilizado';
+  const podeNovoRever=isUltimoGlobal && r.estado==='disponibilizado';   // basta 1 relatório para duplicar/rever
   const S='font-size:10px;padding:2px 7px';
   let b='';
   // ORDEM: Novo (esquerda) · Rever (centro) · Publicar/Reenviar (direita)
@@ -10892,7 +10892,7 @@ function fiscActionBtn(r){
   const maxVerNum=sameNum.length?Math.max(...sameNum.map(x=>x.versao||0)):0;
   const isUltimaVersao=(r.versao||0)===maxVerNum;
   const isUltimoGlobal=(r.numero||0)===maxNum && isUltimaVersao;
-  const podeNovoRever=isUltimoGlobal && lista.length>1 && r.estado==='disponibilizado';
+  const podeNovoRever=isUltimoGlobal && r.estado==='disponibilizado';   // basta 1 relatório (ex.: o primeiro no SEGO, n.º 135) para duplicar/rever
   let b='';
   // ORDEM: Novo · Rever · Publicar/Reenviar
   if(podeNovoRever) b+=`<button class="btn btn-outline btn-sm" onclick="criarCOdoUltimo('${r.obra_id}','fiscalizacao','RS')" title="Cria o RSO seguinte a partir deste">⧉ Duplicar</button>`;
@@ -11260,7 +11260,7 @@ function rvtActionBtn(r){
   const maxVerNum=sameNum.length?Math.max(...sameNum.map(x=>x.versao||0)):0;
   const isUltimaVersao=(r.versao||0)===maxVerNum;
   const isUltimoGlobal=(r.numero||0)===maxNum && isUltimaVersao;
-  const podeNovoRever=isUltimoGlobal && lista.length>1 && r.estado==='disponibilizado';
+  const podeNovoRever=isUltimoGlobal && r.estado==='disponibilizado';   // basta 1 relatório (ex.: o primeiro no SEGO, n.º 135) para duplicar/rever
   let b='';
   // ORDEM: Novo · Rever · Publicar/Reenviar
   if(podeNovoRever) b+=`<button class="btn btn-outline btn-sm" onclick="criarCOdoUltimo('${r.obra_id}','seguranca','RVT')" title="Cria o RVT seguinte a partir deste">⧉ Duplicar</button>`;
