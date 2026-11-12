@@ -314,7 +314,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.12.1103</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.12.1115</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -12516,28 +12516,29 @@ function renderCardGeral(app){
        IDE: Nome·Sigla·Código·B·Estado·B·B·B·Morada·Localidade·B·Dono de Obra·Empreiteiro
        CAR: Pisos+·Pisos−·B·B·Área·B·B·B·Tipo·Subtipo·B·Âmbito·Desafios
        VAL: Valor Obra·Valor m²·B×6·Adiantamento(€|%)·Retenção(S/N|%)·B·Garantia(€|%)·Retenção(S/N|%)
-       PZO: Contrato·Consignação·B·B·In. Previsto·Fim Previsto(|duração)·B·B·In. Real·Desvio·B·Fim Real·Desvio
-       PRO: (Tipo·Início·Fim(|duração)·B) × n, completado com B até 13 linhas */
-    const NL=13, B=cgDiv;
+       PZO: Contrato·Consignação·B·B·In. Previsto·Fim Previsto(|duração)·B·B·In. Real(|desvio)·B·B·Fim Real(|desvio)·B
+       PRO: (Tipo·Início·Fim(|duração)·B) × n, completado com B até ao fim da grelha
+       A linha L (7.ª) só existe com 2+ registos no PRO (o 2.º registo ocupa as linhas 5–7); sem isso a grelha tem 12 linhas. */
+    const L2=(o.prorrogacoes||[]).length>=2, NL=L2?13:12, B=cgDiv, L=L2?cgDiv:'';
     const pctTxt=v=>(v===null||v===undefined||v===''||isNaN(v))?'':cgNum(v,2).replace(/,00$/,'')+' %';
     const vermelho=d=>d>0?'color:var(--danger)':'';
-    cards.push(cgCartao('IDE','Identificação',cgR('Nome',cgIn('nome'))+cgR('Sigla',cgIn('sigla'))+cgR('Código',cgIn('codigo'))+B+cgR('Estado',cgIn('estado','sel',CG_ESTADOS))+B+B+B+
+    cards.push(cgCartao('IDE','Identificação',cgR('Nome',cgIn('nome'))+cgR('Sigla',cgIn('sigla'))+cgR('Código',cgIn('codigo'))+B+cgR('Estado',cgIn('estado','sel',CG_ESTADOS))+B+L+B+
       cgR('Morada',cgIn('morada'))+cgR('Localidade',cgEdit?`<span class="cg-cpl"><span>${cgIn('codigoPostal')}</span><span>${cgIn('localidade')}</span></span>`:(esc([o.codigoPostal,o.localidade].filter(Boolean).join(' '))||'—'))+B+cgR('Dono de Obra',cgIn('entidadeDoId','ent'))+cgR('Empreiteiro',cgIn('entidadeEmpId','ent')),'IDE','','cg-ide'));
-    cards.push(cgCartao('CAR','Características',cgR('Pisos +',cgIn('pisosAcima','num'))+cgR('Pisos −',cgIn('pisosAbaixo','num'))+B+B+cgR('Área m²',cgIn('area','num'))+B+B+B+
+    cards.push(cgCartao('CAR','Características',cgR('Pisos +',cgIn('pisosAcima','num'))+cgR('Pisos −',cgIn('pisosAbaixo','num'))+B+B+cgR('Área m²',cgIn('area','num'))+B+L+B+
       cgR('Tipo',cgIn('tipoObra','sel',CG_TIPOS))+cgR('Subtipo',cgIn('subtipo','sel',CG_SUBTIPOS))+B+cgR('Âmbito',`<a class="cg-ver" onclick="cgTextoVer('ambito','Âmbito')">${cgEdit?'Editar':'Ver'}</a>`)+cgR('Desafios',`<a class="cg-ver" onclick="cgTextoVer('principaisDesafios','Principais Desafios')">${cgEdit?'Editar':'Ver'}</a>`),'CAR','','cg-car'));
     // Valores: Adiantamento e Garantia introduzidos em € → % calculada; Retenção Sim/Não + %
     const vEur=(kv,kp)=>{ const v=o[kv]; if(v!=null&&v!=='') return Number(v); return (o[kp]!=null&&o.valorObra)?o.valorObra*o[kp]/100:null; };
     const vPct=(kv,kp)=>{ const v=o[kv]; if(v!=null&&v!==''&&o.valorObra) return Number(v)/o.valorObra*100; return o[kp]; };
     const linVal=(rot,kv,kp)=>cgR2(rot,cgEdit?cgIn(kv,'eur'):(vEur(kv,kp)==null?'':cgNum(vEur(kv,kp))+' €'),pctTxt(vPct(kv,kp)));
     const linRet=(kr,kp)=>cgR2('Retenção',cgEdit?cgIn(kr,'sel',['','Sim','Não']):esc(o[kr]||''),cgEdit?cgIn(kp,'pct'):(o[kr]==='Sim'?pctTxt(o[kp]):''));
-    cards.push(cgCartao('VAL','Valores',cgR2('Valor Obra',cgIn('valorObra','eur'),'',cgEdit?'':gold)+cgR2('Valor m²',(o.valorObra&&o.area)?cgNum(o.valorObra/o.area)+' €':'','',mut)+cgDivN(6)+
+    cards.push(cgCartao('VAL','Valores',cgR2('Valor Obra',cgIn('valorObra','eur'),'',cgEdit?'':gold)+cgR2('Valor m²',(o.valorObra&&o.area)?cgNum(o.valorObra/o.area)+' €':'','',mut)+B+B+B+B+L+B+
       linVal('Adiantamento','adiantamentoValor','adiantamentoPct')+linRet('retencao','retencaoPct')+B+
       linVal('Garantia','garantiaValor','garantiaPct')+linRet('retencaoGarantia','retencaoGarantiaPct'),'VAL'));
     { const durP=cgDias(o.inicioPrevisto,o.fimPrevisto), desvI=cgDias(o.inicioPrevisto,o.inicioReal), fimAt=cgFimAtual(o), desvF=o.fimReal?cgDias(fimAt,o.fimReal):null;
       cards.push(cgCartao('PZO','Prazo',cgR2('Contrato',cgIn('dataContrato','date'),'')+cgR2('Consignação',cgIn('dataConsignacao','date'),'')+B+B+
-        cgR2('In. Previsto',cgIn('inicioPrevisto','date'),'')+cgR2('Fim Previsto',cgIn('fimPrevisto','date'),durP===null?'':durP+' d')+B+B+
-        cgR2('In. Real',cgIn('inicioReal','date'),'')+cgR2('Desvio',sinal(desvI),'',vermelho(desvI))+B+
-        cgR2('Fim Real',cgIn('fimReal','date'),'')+cgR2('Desvio',sinal(desvF),'',vermelho(desvF)),'PRR')); }
+        cgR2('In. Previsto',cgIn('inicioPrevisto','date'),'')+cgR2('Fim Previsto',cgIn('fimPrevisto','date'),durP===null?'':durP+' d')+L+B+
+        cgR2('In. Real',cgIn('inicioReal','date'),desvI===null?'':sinal(desvI),'',vermelho(desvI))+B+B+   // desvio à frente da data (como a duração)
+        cgR2('Fim Real',cgIn('fimReal','date'),desvF===null?'':sinal(desvF),'',vermelho(desvF))+B,'PRR')); }
     { const prrs=o.prorrogacoes||[], tipos=CG_PRR_TIPOS.filter(Boolean); let corpo='', n=0;
       prrs.forEach((p,i)=>{ const d=cgDias(p.data,p.novoFim);
         if(i>0){ corpo+=B; n++; }
