@@ -314,7 +314,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.12.0245</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.12.0246</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -1031,6 +1031,8 @@ window.segoTema=function(){
   .pm-lk{color:var(--info);cursor:pointer;text-decoration:none}
   table.ut-tbl{width:100%}
   table.ut-tbl td{font-weight:400 !important}
+  .cg-pess.cg-saiu{color:var(--text-muted) !important}
+  .cg-saiu-d{color:var(--text-muted)}
   table.ut-tbl th{text-align:left}
   table.ut-tbl th.ut-c,table.ut-tbl td.ut-c{text-align:center;width:64px}
   table.ut-tbl td.ut-m{color:var(--text-muted);white-space:nowrap}
@@ -1816,6 +1818,7 @@ function mapUtil(r) {
     pwd: r.pwd||'', pwd_hash: r.pwd_hash||'', apps: r.apps||['sid'], foto: r.foto||'',
     especialidades: (()=>{let v=r.especialidades||[];if(typeof v==='string'){try{v=JSON.parse(v);}catch(e){v=[];}}return Array.isArray(v)?v:[];})(),
     obras_especialidades: (()=>{let v=r.obras_especialidades||{};if(typeof v==='string'){try{v=JSON.parse(v);}catch(e){v={};}}return v&&typeof v==='object'?v:{};})(),
+    obras_saida: (()=>{let v=r.obras_saida||{};if(typeof v==='string'){try{v=JSON.parse(v);}catch(e){v={};}}return v&&typeof v==='object'&&!Array.isArray(v)?v:{};})(),   // {obraId:data} saiu da obra (histórico)
   };
 }
 function unmapObra(o) {
@@ -12368,9 +12371,11 @@ function renderCardGeral(app){
                ['EMP','Empreiteiro','EMPR',u=>u.role==='empreiteiro'],['PRJ','Projetista','PROJ',u=>u.role==='projetista'],['OUT','Outros','OUTR',u=>u.role==='outros']];
     const temOrdem=segoOrdemObra(o0.id).length>0;   // ordem definida em Definições → Permissões (arrastar)
     const oConcl=segoObraConcl(o0);   // obra concluída: mostra a equipa que lá esteve, mesmo inativa
-    VAL.forEach(([sg,tit,ic,f])=>{ const us=segoOrdenarPessoas(DB.utilizadores.filter(u=>f(u)&&doObra(u)&&(oConcl||u.ativo!==false)),o0.id);
-      let corpo=us.map(u=>{ const tip=[u.funcao&&('Função: '+u.funcao),u.contacto&&('Contacto: '+u.contacto),u.email&&('Email: '+u.email)].filter(Boolean).join('\n')||'Sem mais dados';
-        const val=`<span class="cg-pess" title="${esc(tip)}">${esc(u.nome)}</span>`;
+    const saiu=u=>{ const d=(u.obras_saida||{})[String(o0.id)]; return d&&!doObra(u)?d:null; };
+    VAL.forEach(([sg,tit,ic,f])=>{ const us=[...segoOrdenarPessoas(DB.utilizadores.filter(u=>f(u)&&doObra(u)&&(oConcl||u.ativo!==false)),o0.id),
+        ...DB.utilizadores.filter(u=>f(u)&&saiu(u)).sort((a,b)=>String(saiu(a)).localeCompare(String(saiu(b))))];
+      let corpo=us.map(u=>{ const sd=saiu(u); const tip=[sd&&('Saiu da obra em '+fmtDate(sd)),u.funcao&&('Função: '+u.funcao),u.contacto&&('Contacto: '+u.contacto),u.email&&('Email: '+u.email)].filter(Boolean).join('\n')||'Sem mais dados';
+        const val=`<span class="cg-pess${sd?' cg-saiu':''}" title="${esc(tip)}">${esc(u.nome)}${sd?' <span class="cg-saiu-d">(saiu '+fmtDate(sd)+')</span>':''}</span>`;
         if(sg==='PRJ'){ // projetistas: a especialidade associada (na obra, ou geral), uma linha por especialidade
           const _eo=(u.obras_especialidades||{})[String(o0.id)]; const esps=((_eo&&_eo.length)?_eo:((u.especialidades&&u.especialidades.length)?u.especialidades:(u.especialidade?[u.especialidade]:[]))).map(c=>{ const e=(DB.especialidades||[]).find(x=>x.codigo===c||x.id===c); return e?e.nome:c; }).filter(Boolean);
           return esps.length?esps.map(e=>cgR(esc(e),val)).join(''):cgR('<span style="font-weight:400;font-style:italic">Sem especialidade</span>',val); }
@@ -12684,8 +12689,9 @@ window.utFiltrar=function(el){ const p=el.selectionStart; render(); const n=docu
 window.utEditar=function(id){ const u=id?(DB.utilizadores||[]).find(x=>String(x.id)===String(id)):null; if(id&&!u) return;
   const v=u||{role:'empreiteiro',ativo:true,apps:['sego'],obras:[]}; const ids=(v.obras||[]).map(String);
   const temPw=u&&(u.pwd_hash==='definida'||!!u.pwd_hash);
-  const obs=utObrasLista().map(({o,rot})=>{ const on=ids.includes(String(o.id)); const conc=o.estado==='Concluída';
-    return `<label class="ut-ob-i${conc?' ut-conc':''}" ${conc&&!on&&!utConcl?'style="display:none"':''}><input type="checkbox" class="ut-cb" value="${esc(o.id)}" ${on?'checked':''}> ${esc(rot)}${conc?' <span class="pm-n">(Concluída)</span>':''}</label>`; }).join('');
+  const sai=v.obras_saida||{};
+  const obs=utObrasLista().map(({o,rot})=>{ const on=ids.includes(String(o.id)); const conc=o.estado==='Concluída'; const sd=!on&&sai[String(o.id)];
+    return `<label class="ut-ob-i${conc?' ut-conc':''}" ${conc&&!on&&!sd&&!utConcl?'style="display:none"':''}><input type="checkbox" class="ut-cb" value="${esc(o.id)}" ${on?'checked':''}> ${esc(rot)}${conc?' <span class="pm-n">(Concluída)</span>':''}${sd?` <span class="pm-n" title="Saiu da obra: fica no histórico da equipa (ID da obra), sem acesso nem notificações. Marque para voltar a associar.">(saiu ${fmtDate(sd)})</span>`:''}</label>`; }).join('');
   showModal(u?'Editar Utilizador':'Novo Utilizador',`<div class="ut-form">
     <div class="form-row f2"><div><label class="form-label">Nome *</label><input class="form-input" id="ut-nome" value="${esc(v.nome||'')}"></div><div><label class="form-label">Email *</label><input class="form-input" id="ut-email" type="email" value="${esc(v.email||'')}"></div></div>
     <div class="form-row f2"><div><label class="form-label">Função</label><input class="form-input" id="ut-func" value="${esc(v.funcao||'')}" placeholder="ex.: Dir. Obra"></div><div><label class="form-label">Contacto</label><input class="form-input" id="ut-cont" value="${esc(v.contacto||'')}"></div></div>
@@ -12694,7 +12700,7 @@ window.utEditar=function(id){ const u=id?(DB.utilizadores||[]).find(x=>String(x.
       <div><label class="form-label">Acesso ao SEGO</label><select class="form-input" id="ut-sego"><option value="1" ${(v.apps||[]).includes('sego')?'selected':''}>Sim</option><option value="0" ${(v.apps||[]).includes('sego')?'':'selected'}>Não</option></select></div></div>
     <div class="form-row"><div><label class="form-label">${temPw?'Nova Password <span class="pm-n">(vazio mantém a atual)</span>':'Password <span class="pm-n">(sem password não consegue entrar)</span>'}</label>
       <div style="display:flex;gap:6px"><input class="form-input" id="ut-pwd" type="text" autocomplete="new-password" style="flex:1"><button class="btn btn-outline btn-sm" onclick="document.getElementById('ut-pwd').value=utGerarPwd()">Gerar</button></div></div></div>
-    <div class="form-row"><div><label class="form-label" style="display:flex;justify-content:space-between;align-items:center">Obras Associadas <span style="font-weight:400"><input class="form-input" id="ut-obq" placeholder="Filtrar…" oninput="utObFiltrar()" style="width:150px;display:inline-block"> <label class="pm-chk" style="display:inline-flex;gap:4px;margin-left:8px"><input type="checkbox" id="ut-concl" ${utConcl?'checked':''} onchange="utConcl=this.checked;utObFiltrar()"> Incluir Concluídas</label></span></label>
+    <div class="form-row"><div><label class="form-label" style="display:flex;justify-content:space-between;align-items:center">Obras Associadas <span class="pm-n" style="font-weight:400" title="Desmarcar uma obra = sai da obra: deixa de ter acesso e de ser notificado, mas continua na equipa da obra como histórico">(desmarcar = sai da obra, fica no histórico)</span><span style="font-weight:400"><input class="form-input" id="ut-obq" placeholder="Filtrar…" oninput="utObFiltrar()" style="width:150px;display:inline-block"> <label class="pm-chk" style="display:inline-flex;gap:4px;margin-left:8px"><input type="checkbox" id="ut-concl" ${utConcl?'checked':''} onchange="utConcl=this.checked;utObFiltrar()"> Incluir Concluídas</label></span></label>
       <div class="ut-obs">${obs||'<span class="pm-n">Sem obras.</span>'}</div></div></div>
   </div>`,[{label:'Cancelar',cls:'btn-outline',fn:'closeModal()'},{label:'Guardar',cls:'btn-gold',fn:`utGuardar('${u?esc(u.id):''}')`}],'ut-modal');
 };
@@ -12713,8 +12719,12 @@ window.utGuardar=async function(id){
   if(u&&currentUser&&String(u.id)===String(currentUser.id)&&(role!=='superadmin'||!ativo||!sego)){ alert('Não pode retirar a si próprio o tipo Superadmin, o acesso ao SEGO ou desativar-se.'); return; }
   const vis=new Set([...document.querySelectorAll('.ut-cb')].map(c=>c.value));
   const obras=[...((u&&u.obras)||[]).map(String).filter(x=>!vis.has(x)),...[...document.querySelectorAll('.ut-cb:checked')].map(c=>c.value)];
+  // quem sai de uma obra fica no histórico (obras_saida); se voltar, sai do histórico
+  const hoje=new Date().toISOString().slice(0,10), obras_saida=Object.assign({},(u&&u.obras_saida)||{});
+  ((u&&u.obras)||[]).map(String).forEach(x=>{ if(!obras.includes(x)&&!obras_saida[x]) obras_saida[x]=hoje; });
+  obras.forEach(x=>{ delete obras_saida[x]; });
   let apps=((u&&u.apps)||[]).filter(a=>a!=='sego'); if(sego) apps.push('sego');
-  const pl={nome,email,funcao:g('ut-func'),contacto:g('ut-cont'),role,ativo,obras,apps};
+  const pl={nome,email,funcao:g('ut-func'),contacto:g('ut-cont'),role,ativo,obras,apps,obras_saida};
   if(pwd) pl.pwd_hash=hashPwd(pwd);   // o servidor guarda a credencial à parte e devolve 'definida'
   try{ showLoadingOverlay('A guardar...');
     if(u){ await sb.patch('utilizadores',u.id,pl); const antes=JSON.stringify([u.nome,u.email,u.funcao,u.contacto,u.role,u.ativo,u.obras,u.apps]);
