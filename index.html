@@ -314,7 +314,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.12.1944</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.12.1949</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -1076,7 +1076,7 @@ window.segoTema=function(){
   .cg-cxs.pm-cxs{grid-template-columns:repeat(auto-fill,minmax(min(100%,var(--pm-cw,520px)),1fr)) !important}
   @media(max-width:1200px){ .cg-cxs.pm-cxs{grid-template-columns:repeat(auto-fill,minmax(min(100%,var(--pm-cw,520px)),1fr)) !important} }
   table.pm-cx{width:100%;border-collapse:collapse;table-layout:fixed}
-  table.pm-cx col.pm-cc{width:52px}
+  table.pm-cx col.pm-cc{width:60px}
   table.pm-cx thead,table.pm-cx thead tr{position:static !important;background:transparent !important}
   table.pm-cx th{background:transparent !important;color:var(--text-muted) !important;font-weight:700 !important;padding:2px 2px 4px !important;border:none;border-bottom:1px solid var(--border-light);white-space:normal;line-height:1.15;text-align:center;width:auto !important;min-width:0 !important;max-width:none !important}
   table.pm-cx th.pm-est{border-bottom:1px dotted var(--border-light);color:var(--text) !important}
@@ -12804,7 +12804,7 @@ const _pmTcmAm=(sig,rot)=>({ sig, rot,
 const _pmRel=(sig,rot,f)=>({ sig, rot, acoes:[], notif:[['disponibilizado','Publicado','Publicação']], def:()=>false, defNotif:(u,ev)=>ev==='disponibilizado'?f(u):'' });
 const PERM_MOD={
   ptq:{ sig:'PTQ', rot:'PTQ — Plano Quinzenal de Trabalho',
-    acoes:[['Rascunho','criar','Criar / Editar'],['Rascunho','enviar','Enviar'],['Enviado','duplicar','Duplicar'],['Enviado','pdf','PDF']],
+    acoes:[['Rascunho','criar','Criar'],['Rascunho','enviar','Enviar'],['Enviado','duplicar','Duplicar'],['Enviado','pdf','PDF']],
     notif:[['enviado','Enviado']],   // [estado, grupo onde aparece a coluna Notificação]
     def:(u,a)=>{ const emp=u.role==='empreiteiro', dobra=emp&&/^\s*dir\.?\s*(de\s+)?obra/i.test(String(u.funcao||''));
       return a==='criar'?emp:a==='enviar'?dobra:a==='duplicar'?emp:a==='pdf'?(emp||u.role==='fiscalizacao'):false; },
@@ -12920,9 +12920,9 @@ function renderPermissoes(app){
         if(v==='int') return `<td class="pm-c pm-def" onclick="permToggle('${uid}','${a}')" title="Regra de origem: pode quem interveio no documento — clique para mudar (Sempre → Nunca → origem)">Interveio</td>`;
         return `<td class="pm-c ${alt?'pm-alt':'pm-def'}" onclick="permToggle('${uid}','${a}')" title="${alt?'Alterado (origem: '+(dv==='int'?'quem interveio':(dv?'Sim':'Não'))+') — clique para mudar':'Regra de origem — clique para mudar'}">${v?'✓':'✗'}</td>`; }
       const es=c.es, dv=permDefNotif(M,u,es), ovm=g.notif[es]||{}, alt=(uid in ovm), v=alt?ovm[uid]:dv;
-      return `<td class="pm-c ${alt?'pm-alt':'pm-def'}" onclick="permNotif('${uid}','${es}')" title="${alt?'Alterado (origem: '+({para:'Para',cc:'CC',esc:'Para, se for o escolhido no documento'}[dv]||'Não recebe')+')':(v==='esc'?'Regra de origem: recebe (Para) quando é o escolhido no documento':'Regra de origem')} — clique: Para → CC → Não recebe">${({para:'Para',cc:'CC',esc:'Escolhido'}[v]||'')}</td>`; }).join('');
+      return `<td class="pm-c ${alt?'pm-alt':'pm-def'}" onclick="permNotif('${uid}','${es}')" title="${alt?'Alterado (origem: '+({para:'To',cc:'Cc',esc:'To, se for o escolhido no documento'}[dv]||'Não recebe')+')':(v==='esc'?'Regra de origem: recebe (To) quando é o escolhido no documento':'Regra de origem')} — clique: To → Cc → Não recebe (✗)">${({para:'To',cc:'Cc',esc:'To*'}[v]||'✗')}</td>`; }).join('');
     return `<tr class="pm-u" draggable="true" ondragstart="permDragIni(event,'${uid}',${gi})" ondragover="permDragSobre(event,${gi})" ondragleave="this.classList.remove('pm-over-t','pm-over-b')" ondrop="permDragLargar(event,'${uid}',${gi})" ondragend="permDragFim()">
-      <td class="pm-nome" title="${esc(u.nome||'')}${u.funcao?' · '+esc(u.funcao):''} · ${esc(u.email||'')} — arraste para ordenar"><span class="pm-h">⠿</span>${esc(u.nome||'')}${u.funcao?`<span class="pm-fn">${esc(u.funcao)}</span>`:''}</td>${cel}</tr>`; };
+      <td class="pm-nome" title="${esc(u.nome||'')}${u.funcao?' · '+esc(u.funcao):''} · ${esc(u.email||'')} — arraste para ordenar"><span class="pm-h">⠿</span>${esc(u.nome||'')}</td>${cel}</tr>`; };
   permOrdemAtual=[];
   // um cartão por grupo (como no ID da obra): cabeçalho com os estados e as ações; linhas = intervenientes (arrastar para ordenar)
   const PCX={'Dono de Obra':['DO','DONO'],'Fiscalização':['FIS','FISC'],'Empreiteiro':['EMP','EMPR'],'Projetista':['PRJ','PROJ'],'Outros':['OUT','OUTR']};
@@ -12936,7 +12936,7 @@ function renderPermissoes(app){
     <span class="nv-dir"></span>${nAlt?`<button class="on-at nv-b" title="Repor as regras de origem (${nAlt} alteração(ões) nesta obra)" onclick="permRepor()">${NV_IC.repor}<b class="nv-bdg">${nAlt}</b></button>`:''}<button class="on-at ${permConcl?'on':''}" title="${permConcl?'A mostrar também as obras concluídas — clique para esconder':'Mostrar também as obras concluídas'}" onclick="permConcl=!permConcl;permRender()">${NV_IC.concl}</button>
     </template>`;
   app.innerHTML=`<button class="back-btn" onclick="defPg=null;render()">← Voltar</button>${nav}
-  ${corpo?`<div class="cg-cxs pm-cxs" style="--pm-cw:${220+cols.length*52}px">${corpo}</div>`:'<div class="cg-bloco">Sem intervenientes nesta obra.</div>'}`;
+  ${corpo?`<div class="cg-cxs pm-cxs" style="--pm-cw:${170+cols.length*60}px">${corpo}</div>`:'<div class="cg-bloco">Sem intervenientes nesta obra.</div>'}`;
   permTopo();
 }
 function permRender(){ const y=window.scrollY; render(); window.scrollTo(0,y); }
