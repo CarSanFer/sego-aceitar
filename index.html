@@ -314,7 +314,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.12.0324</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.12.0327</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -1337,7 +1337,6 @@ window.segoTema=function(){
   /* TESTE: qualquer cartão recolhe numa faixa vertical; com algum recolhido, a grelha passa a fluxo e os abertos ocupam o espaço */
   .cg-cx[data-cx]>.cg-cx-h>div.cg-cx-ic[aria-hidden="true"]{display:none !important}
   #nav-cx{display:none;align-items:center;gap:6px;margin-left:auto !important;padding-left:6px}
-  #nav-ctx #nav-ords{margin:0 6px 0 0 !important}
   #nav-ctx #nav-acoes[style*="flex"]~#nav-cx{margin-left:6px !important}
   #nav-cx .on-at{width:24px;height:24px;padding:0;box-sizing:border-box;border-radius:4px;border:1px solid var(--nav-bd);background:transparent;color:var(--nav-bd);cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
   #nav-cx .on-at:hover{background:rgba(227,153,86,.2)}
@@ -1543,9 +1542,7 @@ window.addEventListener('DOMContentLoaded',()=>{ if(pwaStandalone()){ const b=do
         nc.innerHTML='<button type="button" class="on-at" title="Recolher todos os cartões" onclick="segoCxTodos(1)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 6l-6 6 6 6M19 6l-6 6 6 6"/></svg></button><button type="button" class="on-at" title="Mostrar todos os cartões" onclick="segoCxTodos(0)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6l6 6-6 6M13 6l6 6-6 6"/></svg></button>';
         nr.insertBefore(nc,nr.firstChild); }
       if(nc){ const tem=!!document.querySelector('#app .cg-cx[data-cx]'); nc.style.display=tem?'flex':'none';
-        const cxx=document.getElementById('nav-ctx'); if(cxx&&cxx.lastElementChild!==nc) cxx.appendChild(nc); }
-      // Lista de obras: botões de ordenação no canto superior esquerdo do 2.º cartão, seguidos do n.º e do estado
-      const nords=document.getElementById('nav-ords'), cxo=document.getElementById('nav-ctx'); if(nords&&cxo&&cxo.firstElementChild!==nords) cxo.insertBefore(nords,cxo.firstElementChild); }catch(e){}   // por cima do 2.º cartão, à direita
+        const cxx=document.getElementById('nav-ctx'); if(cxx&&cxx.lastElementChild!==nc) cxx.appendChild(nc); } }catch(e){}   // por cima do 2.º cartão, à direita
     if(window.segoPosCtx) segoPosCtx();
   };
   window.addEventListener('resize',()=>{ clearTimeout(window.__rszT); window.__rszT=setTimeout(()=>{ try{ sync(); }catch(e){} },120); });
