@@ -314,7 +314,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.12.1012</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.12.1017</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -1395,12 +1395,14 @@ window.segoTema=function(){
   .cg-cxs.cx-flex{display:flex !important;flex-wrap:wrap;align-items:stretch !important;gap:12px !important}
   .cg-cxs.cx-flex>.cg-cx{min-width:0;grid-column:auto !important;grid-row:auto !important}
   .cg-cxs.cx-flex>.cg-cx.cx-larga{flex:1 1 100% !important}
-  .cg-cxs>.cg-cx.cx-fech{flex:0 0 40px !important;max-width:40px;overflow:hidden;min-height:200px;display:flex;flex-direction:column}
+  .cg-cxs>.cg-cx.cx-fech{flex:0 0 40px !important;max-width:40px;overflow:hidden;height:var(--cx-h,300px) !important;min-height:0;display:flex;flex-direction:column}
+  .cg-cx.cx-fech .co-oc{display:none}   /* na faixa, o OCULTO percebe-se pelo tracejado */
   .cg-cxs.cx-flex>.cg-cx.cx-fech,.cg-cxs.cx-flex.flx-fech>.fpe-flx{order:-1}   /* faixas encostadas à esquerda */
   .cg-cxs.cx-flex.flx-fech>.fpe-flx{flex:0 0 40px !important;max-width:40px;min-height:200px;display:flex;flex-direction:column}
   .cg-cxs.cx-flex.flx-fech>.fpe-flx>.cg-cx-h{flex:1 1 auto;border-bottom:none !important}
   .cg-cx.cx-fech{box-sizing:border-box}
-  .cg-cxs.cx-flex>.cg-cx.cx-fech,.cg-cxs.cx-flex.flx-fech>.fpe-flx{align-self:stretch !important;height:auto !important}
+  .cg-cxs.cx-flex>.cg-cx.cx-fech{align-self:flex-start !important}   /* faixas com altura fixa: não esticam com o cartão maior */
+  .cg-cxs.cx-flex.flx-fech>.fpe-flx{align-self:stretch !important;height:auto !important}
   .cg-cx.cx-fech>.cg-cx-h{flex:1 1 auto}
   .cg-cx.cx-fech>.cg-cx-b,.cg-cx.cx-fech>*:not(.cg-cx-h){display:none !important}
   .cg-cx.cx-fech>.cg-cx-h{flex-direction:column !important;align-items:center !important;justify-content:flex-start !important;gap:12px;padding:10px 0 14px !important;height:100%;box-sizing:border-box;cursor:pointer;border-bottom:none !important}
@@ -12454,7 +12456,10 @@ window.segoCxToggle=function(k){ const f=segoCxFech(); f.has(k)?f.delete(k):f.ad
   document.querySelectorAll('.cg-cx[data-cx="'+k+'"]').forEach(c=>c.classList.toggle('cx-fech',f.has(k)));
   segoCxApply(); if(window.segoPosCtx) segoPosCtx(); };
 /* com cartões recolhidos, a grelha passa a fluxo: cada aberto cresce em proporção à largura que tinha na grelha (os largos ganham mais) */
-window.segoCxApply=function(){ if(window.segoFlxApply) segoFlxApply();
+function segoCxAltura(){ if(document.documentElement.style.getPropertyValue('--cx-h')) return;
+  try{ const sp=document.createElement('span'); sp.textContent='Elementos a Verificar pela Fiscalização'; sp.style.cssText='position:absolute;visibility:hidden;white-space:nowrap;font-family:inherit'; document.body.appendChild(sp);
+    const w=sp.getBoundingClientRect().width; sp.remove(); if(w>0) document.documentElement.style.setProperty('--cx-h',Math.ceil(10+24+12+16+12+w+16)+'px'); }catch(e){} }   // altura única das faixas: cabe a descrição mais longa
+window.segoCxApply=function(){ segoCxAltura(); if(window.segoFlxApply) segoFlxApply();
   document.querySelectorAll('#app .cg-cxs').forEach(g=>{ const tem=!!g.querySelector(':scope>.cg-cx.cx-fech');
     g.classList.remove('cx-flex'); g.querySelectorAll(':scope>.cg-cx').forEach(c=>{ c.style.removeProperty('flex'); c.classList.remove('cx-larga'); });
     if(!tem) return;
@@ -13430,7 +13435,7 @@ function renderCOPanel(o){
     const tit=m.label||CO_TIT[m.key]||m.sigla;
     const kc='co-'+String(m.key).replace(/[^A-Za-z0-9_-]/g,''), fe=segoCxFech().has(kc);
     return `<div class="cg-cx co-cx ${m.grp}${fe?' cx-fech':''}" data-cx="${kc}" onclick="if(this.classList.contains('cx-fech')){segoCxToggle('${kc}');return;}${onclick}"${_oc?' style="opacity:.55;border-style:dashed" title="Oculto para os utilizadores desta obra (só o Superadmin vê)"':''}>
-      <div class="cg-cx-h cg-cab"><div style="min-width:0;flex:1"><div style="font-weight:700;color:rgba(255,255,255,.7);margin-bottom:3px">${m.sigla}${_oc?' <span style="font-weight:700;color:#FFD0CC">OCULTO</span>':''}</div><div style="color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${tit}">${tit}</div></div>
+      <div class="cg-cx-h cg-cab"><div style="min-width:0;flex:1"><div style="font-weight:700;color:rgba(255,255,255,.7);margin-bottom:3px">${m.sigla}${_oc?' <span class="co-oc" style="font-weight:700;color:#FFD0CC">OCULTO</span>':''}</div><div style="color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${tit}">${tit}</div></div>
         <span class="co-cnt" id="co-cnt-${m.key}" hidden>${cntHtml}</span><button type="button" class="cg-cx-ic co-mais" title="Novo ${m.sigla}" onclick="event.stopPropagation();coNovo(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>${segoCxBtn(kc)}</div>
       <div class="cg-cx-b" id="co-rec-${m.key}">${coPad(recHtml)}</div>
     </div>`;
