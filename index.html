@@ -314,7 +314,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.12.0238</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.12.0245</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -996,13 +996,22 @@ window.segoTema=function(){
   .pm-tab.on{background:var(--nav-bd);color:#fff}
   .pm-brev{color:var(--text-muted);margin-left:6px}
   .pm-leg{display:flex;gap:12px;align-items:center;margin-left:auto}
-  .pm-bar{position:sticky;top:var(--pm-t,44px);z-index:30;margin-bottom:0 !important;border-radius:var(--radius) var(--radius) 0 0}
-  .pm-wrap{background:var(--bg-card);border:1px solid var(--border-light);border-top:none;border-radius:0 0 var(--radius) var(--radius)}
-  table.pm-tbl{width:auto;border-collapse:separate;border-spacing:0}
+  .pm-wrap{background:var(--bg-card);border:1px solid var(--border-light);border-radius:var(--radius)}
+  /* páginas de Definições: controlos na barra de cima (Obra/pesquisa ao centro; botões por cima do 2.º card, encostados ao ícone) */
+  #nav-obra-mid .nv-sel{width:100%;min-width:0;height:22px;box-sizing:border-box;background:transparent;border:none;outline:none;color:#fff;padding:0;font-family:inherit;cursor:pointer;text-overflow:ellipsis}
+  #nav-obra .nv-sel{height:24px;box-sizing:border-box;background:transparent;border:1px solid var(--nav-bd);border-radius:4px;color:#fff;padding:0 4px;font-family:inherit;cursor:pointer;max-width:150px}
+  .nv-sel option{color:#1E293B;background:#fff}
+  #nav-obra-mid .nv-q{display:flex;align-items:center;gap:6px;width:100%;height:22px;box-sizing:border-box;padding:0;border:none}
+  #nav-obra-mid .nv-q input{flex:1;min-width:0;background:transparent;border:none;outline:none;color:#fff;font-family:inherit;padding:0}
+  #nav-ctx.abs #nav-obra:has(.nv-dir){flex:1 1 auto}
+  #nav-obra .nv-dir{margin-left:auto}
+  table.pm-tbl{width:100%;border-collapse:separate;border-spacing:0}
   table.pm-fix{table-layout:fixed}
   table.pm-fix td.pm-nome,table.pm-fix td.pm-func{overflow:hidden;text-overflow:ellipsis;min-width:0 !important}
+  table.pm-fix td.pm-c{width:auto;min-width:0;max-width:none}
+  table.pm-fix th.pm-ch{width:auto;min-width:0;max-width:none}
   table.pm-fix th.pm-nome,table.pm-fix th.pm-func{min-width:0 !important}
-  table.pm-tbl thead{position:sticky;top:var(--pm-th,90px);z-index:20}
+  table.pm-tbl thead{position:sticky;top:var(--pm-th,44px);z-index:20}
   table.pm-tbl th{text-align:center;vertical-align:middle}
   table.pm-tbl th.pm-ch{white-space:normal;width:58px;min-width:58px;max-width:58px;line-height:1.15;padding:4px 3px}
   table.pm-tbl th.pm-nome,table.pm-tbl td.pm-nome{text-align:left;min-width:200px;white-space:nowrap}
@@ -12560,21 +12569,18 @@ function renderPermissoes(app){
   const corpo=PERM_GRUPOS.map(([t,f],gi)=>{ const us=segoOrdenarPessoas(pes.filter(f),permObraId); if(!us.length) return '';
     us.forEach(u=>permOrdemAtual.push(String(u.id))); const ab=permAbertos.has(t);
     return `<tr class="pm-g" onclick="permGrupo('${t}')"><td colspan="${ncol}"><span class="pm-sx">${ab?'▾':'▸'}</span>${t} <span class="pm-n">(${us.length})</span></td></tr>`+(ab?us.map(u=>linha(u,gi)).join(''):''); }).join('');
-  app.innerHTML=`<button class="back-btn" onclick="defPg=null;render()">← Voltar</button>
-  <div class="cg-bloco pm-bar">
-    <label>Obra <select class="form-input" onchange="permObraId=this.value;permRender()">${obras.map(x=>`<option value="${esc(x.id)}" ${String(x.id)===String(permObraId)?'selected':''}>${esc((x.codigo||'')+' · '+(x.sigla||'')+' — '+(x.nome||''))}</option>`).join('')}</select></label>
-    <label class="pm-chk"><input type="checkbox" ${permConcl?'checked':''} onchange="permConcl=this.checked;permRender()"> Incluir Concluídas</label>
-    <span class="pm-tabs">${Object.keys(PERM_MOD).map(k=>`<button class="pm-tab ${k===permMod?'on':''}" onclick="permMod='${k}';permRender()">${k.toUpperCase()}</button>`).join('')}<span class="pm-brev" title="Os restantes módulos entram à medida que forem revistos">PE · PA · PB · QE · TCm · AM · RSO · RVT · SOS</span></span>
-    <span class="pm-leg"><a class="pm-lk" onclick="permTodos(${permAbertos.size?0:1})">${permAbertos.size?'Fechar Todos':'Abrir Todos'}</a><span class="pm-def">✓ Regra de origem</span><span class="pm-alt">✓ Alterado nesta obra</span>${nAlt?`<button class="btn btn-outline btn-sm" onclick="permRepor()">Repor Origem (${nAlt})</button>`:''}</span>
-  </div>
-  <div class="pm-wrap"><table class="data-table pm-tbl pm-fix" style="width:${240+170+58*cols.length}px"><colgroup><col style="width:240px"><col style="width:170px">${cols.map(()=>'<col style="width:58px">').join('')}</colgroup><thead>${cab1}${cab2}</thead><tbody>${corpo||`<tr><td colspan="${ncol}">Sem intervenientes nesta obra.</td></tr>`}</tbody></table></div>`;
+  const nav=`<template id="obra-nav-tpl"><select class="nv-sel" title="Obra" onchange="permObraId=this.value;permRender()">${obras.map(x=>`<option value="${esc(x.id)}" ${String(x.id)===String(permObraId)?'selected':''}>${esc((x.codigo||'')+' · '+(x.sigla||'')+' — '+(x.nome||''))}</option>`).join('')}</select></template>
+  <template id="obra-mid-tpl">${Object.keys(PERM_MOD).map(k=>`<button class="on-at txt ${k===permMod?'on':''}" title="${esc(PERM_MOD[k].rot)}" onclick="permMod='${k}';permRender()">${k.toUpperCase()}</button>`).join('')}
+    <span class="nv-dir"></span><button class="on-at txt ${permConcl?'on':''}" title="${permConcl?'A mostrar também as obras concluídas':'Mostrar também as obras concluídas'}" onclick="permConcl=!permConcl;permRender()">Concluídas</button>
+    <button class="on-at txt" onclick="permTodos(${permAbertos.size?0:1})">${permAbertos.size?'Fechar Todos':'Abrir Todos'}</button>${nAlt?`<button class="on-at txt" title="Repor as regras de origem (${nAlt} alteração(ões) nesta obra)" onclick="permRepor()">Repor (${nAlt})</button>`:''}</template>`;
+  app.innerHTML=`<button class="back-btn" onclick="defPg=null;render()">← Voltar</button>${nav}
+  <div class="pm-wrap"><table class="data-table pm-tbl pm-fix"><colgroup><col><col style="width:220px">${cols.map(()=>'<col style="width:64px">').join('')}</colgroup><thead>${cab1}${cab2}</thead><tbody>${corpo||`<tr><td colspan="${ncol}">Sem intervenientes nesta obra.</td></tr>`}</tbody></table></div>`;
   permTopo();
 }
 function permRender(){ const y=window.scrollY; render(); window.scrollTo(0,y); }
-function permTopo(){ const nb=document.querySelector('.navbar'), bar=document.querySelector('.pm-bar'); if(!bar) return;
-  const t=nb?Math.round(nb.getBoundingClientRect().height):44; document.documentElement.style.setProperty('--pm-t',t+'px');
-  document.documentElement.style.setProperty('--pm-th',(t+Math.round(bar.getBoundingClientRect().height))+'px'); }
-window.addEventListener('resize',()=>{ if(defPg==='permissoes') permTopo(); });
+function permTopo(){ const nb=document.querySelector('.navbar'); const t=nb?Math.round(nb.getBoundingClientRect().height):44;
+  document.documentElement.style.setProperty('--pm-th',t+'px'); }
+window.addEventListener('resize',()=>{ if(defPg==='permissoes'||defPg==='Utilizadores') permTopo(); });
 window.permGrupo=function(t){ permAbertos.has(t)?permAbertos.delete(t):permAbertos.add(t); permRender(); };
 window.permTodos=function(abrir){ permAbertos=new Set(abrir?PERM_GRUPOS.map(x=>x[0]):[]); permRender(); };
 window.permDragIni=function(ev,uid,gi){ permDrag={uid,gi}; ev.dataTransfer.effectAllowed='move'; try{ ev.dataTransfer.setData('text/plain',uid); }catch(e){} ev.currentTarget.classList.add('pm-drag'); };
@@ -12664,16 +12670,15 @@ function renderUtilSego(app){
       <td>${esc(u.nome||'')}</td><td class="ut-m">${esc(u.funcao||'')}</td><td class="ut-m">${esc(u.email||'')}</td><td class="ut-m">${esc(u.contacto||'')}</td>
       <td class="ut-ob" title="${esc(utObrasTxt(u))}">${esc(utObrasTxt(u))}</td>
       <td class="ut-c" title="${ac?'Pode entrar no SEGO':'Sem acesso ao SEGO'}">${ac?'✓':''}</td><td class="ut-c" title="${pw?'Password definida':'Sem password'}">${pw?'✓':''}</td><td class="ut-c">${u.ativo===false?'':'✓'}</td></tr>`; }).join('');
-  app.innerHTML=`<button class="back-btn" onclick="defPg=null;render()">← Voltar</button>
-  <div class="cg-bloco pm-bar ut-bar">
-    <input class="form-input" placeholder="Pesquisar nome, email, função, obra…" value="${esc(utQ)}" oninput="utQ=this.value;utFiltrar(this)" style="width:280px">
-    <label>Tipo <select class="form-input" onchange="utTipo=this.value;render()"><option value="">Todos</option>${UT_TIPOS.map(([v,l])=>`<option value="${v}" ${utTipo===v?'selected':''}>${l}</option>`).join('')}</select></label>
-    <span class="pm-tabs"><button class="pm-tab ${utVista==='ativos'?'on':''}" onclick="utVista='ativos';render()">Ativos (${nAt})</button><button class="pm-tab ${utVista==='inativos'?'on':''}" onclick="utVista='inativos';render()">Inativos (${nIn})</button></span>
-    <span class="pm-leg">${nRev?`<button class="btn btn-outline btn-sm" onclick="segoRevInativos(null)" title="Externos cujas obras estão todas concluídas">Rever Inativos (${nRev})</button>`:''}<span class="pm-n">${us.length} utilizador${us.length===1?'':'es'}</span><button class="btn btn-gold btn-sm" onclick="utEditar('')">+ Novo Utilizador</button></span>
-  </div>
+  const nav=`<template id="obra-nav-tpl"><span class="nv-q"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input id="ut-q" type="text" autocomplete="off" title="Pesquisar nome, email, função ou obra" oninput="utQ=this.value;render()"></span></template>
+  <template id="obra-mid-tpl"><button class="on-at txt ${utVista==='ativos'?'on':''}" onclick="utVista='ativos';render()">Ativos (${nAt})</button><button class="on-at txt ${utVista==='inativos'?'on':''}" onclick="utVista='inativos';render()">Inativos (${nIn})</button>
+    <select class="nv-sel" title="Tipo" onchange="utTipo=this.value;render()"><option value="">Todos os Tipos</option>${UT_TIPOS.map(([v,l])=>`<option value="${v}" ${utTipo===v?'selected':''}>${l}</option>`).join('')}</select>
+    <span class="nv-dir"></span>${nRev?`<button class="on-at txt" title="Externos cujas obras estão todas concluídas — rever e passar a inativos" onclick="segoRevInativos(null)">Rever Inativos (${nRev})</button>`:''}<button class="on-at" title="Novo Utilizador" onclick="utEditar('')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button></template>`;
+  app.innerHTML=`<button class="back-btn" onclick="defPg=null;render()">← Voltar</button>${nav}
   <div class="pm-wrap"><table class="data-table pm-tbl ut-tbl"><thead><tr><th>Nome</th><th>Função</th><th>Email</th><th>Contacto</th><th>Obras</th><th class="ut-c">SEGO</th><th class="ut-c">Password</th><th class="ut-c">Ativo</th></tr></thead>
   <tbody>${linhas||'<tr><td colspan="8">Sem utilizadores.</td></tr>'}</tbody></table></div>`;
   permTopo();
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{ const q=document.getElementById('ut-q'); if(q&&document.activeElement!==q&&q.value!==utQ) q.value=utQ; }));
 }
 window.utFiltrar=function(el){ const p=el.selectionStart; render(); const n=document.querySelector('.ut-bar input'); if(n){ n.focus(); try{ n.setSelectionRange(p,p); }catch(e){} } };
 window.utEditar=function(id){ const u=id?(DB.utilizadores||[]).find(x=>String(x.id)===String(id)):null; if(id&&!u) return;
