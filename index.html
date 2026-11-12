@@ -314,7 +314,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.12.1137</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.12.1138</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -1265,7 +1265,10 @@ window.segoTema=function(){
     const at=(!o.comFases&&typeof CG_ATALHOS!=='undefined')?CG_ATALHOS.map(([k,t])=>`<button class="on-at ${k==='CO'?'on':''}" title="${t}" onclick="segoSairMod();${k==='CO'?`cgAbrirCO('${o.id}')`:`cgAbrir('${o.id}','${k}')`}">${CG_AT_IC[k]}</button>`).join(''):'';
     // o + (novo documento) fica na caixa do centro, logo a seguir à sigla do módulo
     const novo=mais?`<button type="button" class="on-novo" title="${esc(mais.t.replace(/^\+\s*/,''))}" ${mais.dis?'disabled':''} onclick="segoMvClick(${mais.i})">+</button>`:'';
-    return { at, esq:'',
+    // nas fichas: as ações (Gravar, Enviar, …) vão para o cabeçalho do IDE, ao lado do recolher
+    const btnIde=it=>{ const ic=ICONE(it.t); const tt=esc(it.t.replace(/^[+✕⇩✓]\s*/,''));
+      return `<button type="button" class="cg-cx-ic co-mais ide-at ${ic?'':'txt'}" title="${tt}" ${it.dis?'disabled':''} onclick="event.stopPropagation();segoMvClick(${it.i})" ondblclick="event.stopPropagation()">${ic?IC[ic[0]]:tt}</button>`; };
+    return { at, esq:'', ide: lst.map(btnIde).join(''),
              meio:`<span class="on-sig">${sg}</span><span class="on-nome" title="${esc(o.nome||'')}">${esc(o.nome||'')}</span>${segoOndeMod(mk,novo)}`,
              dir: lst.map(it=>btn(it)).join(''), adm: adm.map(it=>btn(it)).join('') };
   };
@@ -1287,7 +1290,11 @@ window.segoTema=function(){
     const cx=document.getElementById('nav-ctx'); if(!cx) return;
     if(!g){ g=document.createElement('div'); g.id='nav-acoes'; }
     if(g.parentNode!==cx||g.previousElementSibling!==document.getElementById('nav-obra')) cx.appendChild(g);   // ações à esquerda, logo a seguir a IA · ID · CO
-    const h=mod?mod.dir:''; if(g.dataset.h!==h){ g.innerHTML=h; g.dataset.h=h; } g.style.display=h?'flex':'none';
+    const ide=mod&&document.querySelector('#app .cg-cx[data-cx="IDE"]'), noIde=!!(ide&&!ide.classList.contains('cx-fech')&&mod.ide);
+    if(ide){ const hd=ide.querySelector(':scope>.cg-cx-h'), tg=hd&&hd.querySelector(':scope>.cx-tg'); let sp=hd&&hd.querySelector(':scope>.ide-acoes'); const hh=noIde?mod.ide:'';
+      if(!sp&&hh&&tg){ sp=document.createElement('span'); sp.className='ide-acoes'; hd.insertBefore(sp,tg); }
+      if(sp&&sp.dataset.h!==hh){ sp.innerHTML=hh; sp.dataset.h=hh; } }
+    const h=mod&&!noIde?mod.dir:''; if(g.dataset.h!==h){ g.innerHTML=h; g.dataset.h=h; } g.style.display=h?'flex':'none';   // IDE recolhido → ações voltam à barra
     let ga=document.getElementById('nav-adm');
     if(!ga){ const nr=document.querySelector('.navbar .nav-right'); if(nr){ ga=document.createElement('div'); ga.id='nav-adm'; ga.title='Superadmin'; nr.insertBefore(ga,nr.firstChild); } }
     if(ga){ const dv=document.getElementById('ver-dev'); if(dv&&dv.parentNode===ga.parentNode&&ga.nextSibling!==dv) ga.parentNode.insertBefore(ga,dv);
@@ -1425,6 +1432,10 @@ window.segoTema=function(){
   .cg-cxs>.cg-cx>.cg-cx-h .cg-cx-ic.cx-tg:hover{background:rgba(227,153,86,.25) !important}
   .cg-cx.cx-fech .cx-tg svg{transform:rotate(180deg)}
   .cg-cx.cx-fech>.cg-cx-h>.cg-cx-ic.co-mais{display:none !important}
+  .cg-cx-h>.ide-acoes{display:flex;align-items:center;gap:6px;flex:0 0 auto;margin-right:2px}
+  .cg-cx-h>.ide-acoes:empty,.cg-cx.cx-fech>.cg-cx-h>.ide-acoes{display:none !important}
+  .cg-cxs>.cg-cx>.cg-cx-h .ide-acoes .cg-cx-ic.ide-at.txt{width:auto !important;padding:0 8px;white-space:nowrap}
+  .cg-cxs>.cg-cx>.cg-cx-h .ide-acoes .cg-cx-ic.ide-at[disabled]{opacity:.4 !important;cursor:default !important}
   .cg-cx-ic.cx-tg:hover{background:rgba(227,153,86,.25) !important}
   .cg-cxs.cx-flex{display:flex !important;flex-wrap:wrap;align-items:stretch !important;gap:12px !important}
   .cg-cxs.cx-flex>.cg-cx{min-width:0;grid-column:auto !important;grid-row:auto !important}
@@ -1647,6 +1658,7 @@ window.addEventListener('DOMContentLoaded',()=>{ if(pwaStandalone()){ const b=do
   window.navVoltar=function(){ const bb=document.querySelector('#app .back-btn'); if(bb) bb.click(); };
   const arm=()=>{ const app=document.getElementById('app'); if(!app){ setTimeout(arm,300); return; }
     new MutationObserver(()=>{ if(!pend){ pend=true; requestAnimationFrame(sync); } }).observe(app,{childList:true,subtree:true}); sync(); };
+  window.segoNavSync=()=>{ if(!pend){ pend=true; requestAnimationFrame(sync); } };
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',arm); else arm();
 })();
 // DEPLOY TO GITHUB
@@ -12489,7 +12501,7 @@ let SEGO_CX_FECH=new Set(), SEGO_CX_SIG=null;
 function segoCxSig(){ return ['page','cgObraId','cgTab','defPg','peObraId','peFichaId','paFichaId','pbFichaId','qeFichaId','ptqFichaId','tcmFichaId','amFichaId','relObraId','relRelId'].map(n=>{ try{ const v=window.eval(n); return v==null?'':String(v); }catch(e){ return ''; } }).join('|'); }
 function segoCxFech(){ const sg=segoCxSig(); if(sg!==SEGO_CX_SIG){ if(SEGO_CX_SIG!==null){ SEGO_CX_FECH=new Set(); try{ localStorage.setItem('sego-flx-fechado','0'); }catch(e){} } SEGO_CX_SIG=sg; } return SEGO_CX_FECH; }
 try{ localStorage.removeItem('sego-cx-fech'); localStorage.setItem('sego-flx-fechado','0'); }catch(e){}
-window.segoCxToggle=function(k){ const f=segoCxFech(); f.has(k)?f.delete(k):f.add(k); 
+window.segoCxToggle=function(k){ const f=segoCxFech(); f.has(k)?f.delete(k):f.add(k); if(window.segoNavSync) segoNavSync();
   document.querySelectorAll('.cg-cx[data-cx="'+k+'"]').forEach(c=>c.classList.toggle('cx-fech',f.has(k)));
   segoCxApply(); if(window.segoPosCtx) segoPosCtx(); };
 /* com cartões recolhidos, a grelha passa a fluxo: cada aberto cresce em proporção à largura que tinha na grelha (os largos ganham mais) */
