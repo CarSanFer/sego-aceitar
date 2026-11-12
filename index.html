@@ -314,7 +314,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.12.0015</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.12.0129</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -886,6 +886,7 @@ window.segoTema=function(){
     .cg-fptq>.cg-cx.fpq-g2{grid-column:2 / -1 !important;grid-row:3 !important}
     .cg-fptq>.cg-cx.fpq-g3{grid-column:2 / -1 !important;grid-row:4 !important}
     .cg-fptq>.cg-cx.cg-docw{grid-row:5 !important}
+    .cg-fptq>.cg-cx.fpq-doc{grid-row:6 !important}
     .cg-fptq>.cg-cx.fpq-his3{grid-row:4 !important}
     .cg-ftcm>.cg-cx.cg-docw{grid-row:4 !important}
     .cg-fam>.cg-cx.cg-docw{grid-row:3 !important}
@@ -982,6 +983,10 @@ window.segoTema=function(){
   .cg-frso .rs-sec>.cg-cx-b{overflow-x:auto}
   .cg-frm .rm-mod{cursor:pointer}
   .cg-frm .rm-mod:hover{box-shadow:0 0 0 1px var(--nav-bd)}
+  table.pq-grade th .pq-mk{position:static !important;display:inline-block;margin-left:6px;vertical-align:middle;transform:none !important}
+  .cg-rl2 .cg-mk{position:static !important;display:inline-block;margin-left:6px;vertical-align:middle;transform:none !important}
+  .cg-fptq .fpq-doc .cg-dv{grid-template-columns:1fr !important}
+  .cg-fptq .fpq-doc .cg-dv>span{overflow:visible !important;white-space:nowrap}
   .cg-ranx{height:auto !important;min-height:22px}
   .cg-ranx .cg-rv{white-space:normal !important;overflow:visible !important;display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center}
   .cg-ax a{color:var(--info) !important;text-decoration:none}
@@ -3713,7 +3718,7 @@ window.relEnviarMeLink=async function(relId){
   if(!window.emailjs){ alert('EmailJS não carregou.'); return; }
   try{
     showLoadingOverlay('A enviar...');
-    const html='<div style="font-family:Calibri,Carlito,Arial,sans-serif;font-size:14px;line-height:1.5;color:#333"><p>Link do '+ref+' da Obra '+obraTxt.replace(/</g,'&lt;')+':</p><p><a href="'+link+'" style="color:#1B4F9B;text-decoration:underline">Abrir documento</a></p></div>';
+    const html='<div style="font-family:Calibri,Carlito,Arial,sans-serif;font-size:10pt;line-height:1.5;color:#333"><p>Link do '+ref+' da Obra '+obraTxt.replace(/</g,'&lt;')+':</p><p><a href="'+link+'" style="color:#1B4F9B;text-decoration:underline">Abrir documento</a></p></div>';
     await emailjs.send(EJS.service, PE_EJS_TEMPLATE, {to_email:para,to_name:(currentUser.nome||''),from_name:(currentUser.nome||'SEGO'),reply_to:'',pe_id:ref,obra:obraTxt,assunto:ref,estado:'Publicado',
       mensagem:html,link:link,password:'',app_url:link,role:'Cópia interna',cc:''});
     hideLoadingOverlay(); alert('Link do '+ref+' enviado para '+para+'.');
@@ -3759,7 +3764,7 @@ window.publicarEnviar=async function(relId){
       try{
         const _msgEsc=String(msg||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
         const _linkHTML='<a href="'+link+'" style="color:#1B4F9B;text-decoration:underline">Abrir documento</a>';
-        const _msgHTML='<div style="font-family:Calibri,Carlito,Arial,sans-serif;font-size:14px;line-height:1.5;color:#333">'+'<p>'+segoSaud()+',</p>'+'<p>'+_msgEsc+' '+_linkHTML+'</p>'+''+(typeof _alertaHTML!=='undefined'?_alertaHTML:'')+'<p style="margin-top:34px;margin-bottom:34px;font-size:11px;color:#777">Email automático da plataforma SEGO — não responda diretamente a esta conta.<br><br>Ao usar "Responder", a mensagem será dirigida a quem enviou a notificação.</p>'+'</div>';
+        const _msgHTML='<div style="font-family:Calibri,Carlito,Arial,sans-serif;font-size:10pt;line-height:1.5;color:#333">'+'<p>'+segoSaud()+',</p>'+'<p>'+_msgEsc+' '+_linkHTML+'</p>'+''+(typeof _alertaHTML!=='undefined'?_alertaHTML:'')+'<p style="margin-top:24px;margin-bottom:24px;font-size:10pt;color:#777">Email enviado pela plataforma SEGO. A resposta deve ser dada na plataforma, através do link acima.</p>'+'</div>';
         const _toEmail=dest.map(d=>d.email).join(',');
         const _toName=dest.map(d=>d.nome||d.email).join(', ');
         const _fromName=(currentUser&&currentUser.nome)?currentUser.nome:'CSO / Aceitar';
@@ -3837,7 +3842,7 @@ window.reenviarEnviar=async function(relId){
       try{
         const _msgEsc=String(msg||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
         const _linkHTML='<a href="'+link+'" style="color:#1B4F9B;text-decoration:underline">Abrir documento</a>';
-        const _msgHTML='<div style="font-family:Calibri,Carlito,Arial,sans-serif;font-size:14px;line-height:1.5;color:#333">'+'<p>'+segoSaud()+',</p>'+'<p>'+_msgEsc+' '+_linkHTML+'</p>'+''+(typeof _alertaHTML!=='undefined'?_alertaHTML:'')+'<p style="margin-top:34px;margin-bottom:34px;font-size:11px;color:#777">Email automático da plataforma SEGO — não responda diretamente a esta conta.<br><br>Ao usar "Responder", a mensagem será dirigida a quem enviou a notificação.</p>'+'</div>';
+        const _msgHTML='<div style="font-family:Calibri,Carlito,Arial,sans-serif;font-size:10pt;line-height:1.5;color:#333">'+'<p>'+segoSaud()+',</p>'+'<p>'+_msgEsc+' '+_linkHTML+'</p>'+''+(typeof _alertaHTML!=='undefined'?_alertaHTML:'')+'<p style="margin-top:24px;margin-bottom:24px;font-size:10pt;color:#777">Email enviado pela plataforma SEGO. A resposta deve ser dada na plataforma, através do link acima.</p>'+'</div>';
         const _toEmail=dest.map(d=>d.email).join(',');
         const _toName=dest.map(d=>d.nome||d.email).join(', ');
         const _fromName=(currentUser&&currentUser.nome)?currentUser.nome:'CSO / Aceitar';
@@ -6090,10 +6095,22 @@ function pbUtilsDaObra(role){
   return [...m.values()];
 }
 function pbEmails(role){ return pbUtilsDaObra(role).filter(u=>u.email&&!segoEhCSO(u)).map(u=>u.email); }
+/* Assunto normalizado de todas as notificações: [Aceitar SEGO] Sigla · Doc N.º — Descrição curta (sem estado; a revisão separa conversas).
+   O template do EmailJS deve usar {{subject}} no campo Subject (e {{cc}} em CC, {{reply_to}} em Reply To). */
+function segoAssuntoEmail(p){ p=p||{};
+  const nomeObra=String(p.obra||p.obra_nome||''); const o=(DB.obras||[]).find(x=>x.nome===nomeObra||((x.sigla||'')+' — '+(x.nome||''))===nomeObra||x.sigla===nomeObra)||null;
+  const sig=o&&o.sigla?o.sigla:(nomeObra.split(' — ')[0]||'');
+  const ref=String(p.pe_id||p.rvt_ref||'').trim();
+  let desc=String(p.assunto_curto||p.assunto||'').replace(/\s+/g,' ').trim(); if(desc===ref) desc='';
+  if(desc.length>40) desc=desc.slice(0,39).trim()+'…';
+  return '[Aceitar SEGO] '+[sig,ref].filter(Boolean).join(' · ')+(desc?' — '+desc:''); }
+(function(){ const arma=()=>{ if(!window.emailjs||window.emailjs.__segoSub) return; const orig=window.emailjs.send.bind(window.emailjs);
+  window.emailjs.send=function(svc,tpl,par,...r){ par=Object.assign({},par||{}); if(!par.subject) par.subject=segoAssuntoEmail(par); return orig(svc,tpl,par,...r); }; window.emailjs.__segoSub=true; };
+  arma(); window.addEventListener('load',arma); })();
 function segoSaud(){ const h=new Date().getHours(); return h<13?'Bom dia':(h<20?'Boa tarde':'Boa noite'); }
-function gpeContactoNota(){ return '<p style="margin-top:34px;margin-bottom:34px;font-size:11px;color:#777">Email automático da plataforma SEGO — não responda diretamente a esta conta.<br><br>Ao usar "Responder", a mensagem será dirigida a quem enviou a notificação.</p>'; }
-function gpeEmailHTML(texto,link){ const t=String(texto==null?'':texto).replace(/\n/g,'<br>'); return '<div style="font-family:Calibri,Carlito,Arial,sans-serif;font-size:14px;line-height:1.5;color:#333"><p>'+segoSaud()+',</p><p>'+t+'</p>'+(link?'<p>Acesso ao documento: <a href="'+link+'" style="color:#1B4F9B;text-decoration:underline">Abrir Documento</a></p>':'')+gpeContactoNota()+'</div>'; }
-function segoAssinatura(html){ const n=(currentUser&&currentUser.nome)?currentUser.nome:'',e=(currentUser&&currentUser.email)?currentUser.email:''; const t=(n||e)?'Enviado por: '+(n||e)+(n&&e?' ('+e+')':''):''; const a='Email automático da plataforma SEGO — não responda diretamente a esta conta.',b='Ao usar "Responder", a mensagem será dirigida a quem enviou a notificação.'; return html?(t?'<br><br><b>'+t+'</b>':'')+'<br><br><span style="font-size:11px;color:#777">'+a+'<br><br>'+b+'</span>':(t?'\n\n'+t:'')+'\n\n'+a+'\n\n'+b; }
+function gpeContactoNota(){ return '<p style="margin-top:24px;margin-bottom:24px;font-size:10pt;color:#777">Email enviado pela plataforma SEGO. A resposta deve ser dada na plataforma, através do link acima.</p>'; }
+function gpeEmailHTML(texto,link){ const t=String(texto==null?'':texto).replace(/\n/g,'<br>'); return '<div style="font-family:Calibri,Carlito,Arial,sans-serif;font-size:10pt;line-height:1.5;color:#333"><p>'+segoSaud()+',</p><p>'+t+'</p>'+(link?'<p>Acesso ao documento: <a href="'+link+'" style="color:#1B4F9B;text-decoration:underline">Abrir Documento</a></p>':'')+gpeContactoNota()+'</div>'; }
+function segoAssinatura(html){ const n=(currentUser&&currentUser.nome)?currentUser.nome:'',e=(currentUser&&currentUser.email)?currentUser.email:''; const t=(n||e)?'Enviado por: '+(n||e)+(n&&e?' ('+e+')':''):''; const a='Email enviado pela plataforma SEGO. A resposta deve ser dada na plataforma, através do link acima.'; return html?(t?'<br><br><b>'+t+'</b>':'')+'<br><br><span style="font-size:10pt;color:#777">'+a+'</span>':(t?'\n\n'+t:'')+'\n\n'+a; }
 function segoEhCSO(u){ return /\bcso\b|\btss?t\b|seguran/i.test(String(u.funcao||'')); }
 function pbEmailsFiscSemCSO(){ return pbUtilsDaObra('fiscalizacao').filter(u=>u.email&&!segoEhCSO(u)).map(u=>u.email); }
 function pbEquipaDaObra(){
@@ -6604,7 +6621,7 @@ function ptqMap(r){
   return {tipo:'ptq',id:r.id,num:r.num,rev:r.rev,obraId:r.obra_id,obraNome:r.obra_nome,estado:r.estado,histImport:!!r.historico_import,
     dataCriacao:r.data_criacao,dataEnvio:r.data_envio,
     inicioPlano:ini,periodo:pqPeriodoTexto(ini)||r.periodo||'',semanas:pqSemanasTexto(ini)||r.semanas||'',
-    autorEmp:r.autor_empreiteiro||'',entidade:r.entidade_executante||'',
+    autorEmp:r.autor_empreiteiro||'',autorEnvio:r.autor_envio||'',entidade:r.entidade_executante||'',
     feriados:(r.feriados&&typeof r.feriados==='object')?r.feriados:{},
     atividades:Array.isArray(r.atividades)?r.atividades:[],
     subs:Array.isArray(r.subempreiteiros)?r.subempreiteiros:[],
@@ -6614,7 +6631,7 @@ function ptqMap(r){
 function ptqUnmap(d){
   return {id:d.id,num:d.num,rev:d.rev,obra_id:d.obraId,obra_nome:d.obraNome,estado:d.estado,historico_import:!!d.histImport,
     data_criacao:d.dataCriacao||null,data_envio:d.dataEnvio||null,inicio_plano:d.inicioPlano||null,
-    periodo:d.periodo,semanas:d.semanas,autor_empreiteiro:d.autorEmp,entidade_executante:d.entidade,
+    periodo:d.periodo,semanas:d.semanas,autor_empreiteiro:d.autorEmp,autor_envio:d.autorEnvio||null,entidade_executante:d.entidade,
     feriados:d.feriados||{},atividades:d.atividades||[],subempreiteiros:d.subs||[],equipamentos:d.equipamentos||[],
     observacoes:d.observacoes,anexos_emp:d.anexosEmp,rsos_ref:d.rsosRef||[],historico:d.historico,updated_at:new Date().toISOString()};
 }
@@ -6635,20 +6652,19 @@ async function ptqPersistir(d){
   }catch(e){ console.error(e); alert('Erro ao guardar: '+e.message); }
 }
 function ptqLink(d){ return location.href.split('?')[0]+'?ptq='+encodeURIComponent(d.id)+(d.obraId||ptqObraId?'&o='+encodeURIComponent(d.obraId||ptqObraId):''); }
-async function ptqNotificar(d,destinos,mensagem,rotulo){
-  const lista=(Array.isArray(destinos)?destinos:[destinos]).filter(Boolean);
-  const et=`Notificação → ${rotulo}${lista.length?' ('+lista.join(', ')+')':''}: ${mensagem}`;
-  if(!lista.length){ ptqRegistar(d,et+' [sem destinatário na obra — verifique a ficha no SID]'); return; }
-  let ok=0;
-  for(const to of lista){
-    try{
-      await emailjs.send(EJS.service, PE_EJS_TEMPLATE, {
-        to_email:to,to_name:'',from_name:(currentUser&&currentUser.nome?currentUser.nome:'SEGO'),reply_to:(currentUser&&currentUser.email?currentUser.email:''),pe_id:'PTQ '+d.id,obra:(ptqObra()?ptqObra().nome:d.obraNome),
-        assunto:d.periodo||'',estado:ptqEST(d.estado).rot,mensagem:gpeEmailHTML(mensagem,ptqLink(d)),link:ptqLink(d),password:'',app_url:ptqLink(d),role:rotulo});
-      ok++;
-    }catch(e){ console.error('PTQ notificar falhou:',e); }
-  }
-  ptqRegistar(d,et+(ok===lista.length?' [enviada]':` [enviadas ${ok}/${lista.length}]`));
+/* Notificação do PTQ: um único email — Para: Fiscal(is) da obra · CC: Direção (Tiago Faria, Carlos Ferreira) e CSO da Fiscalização da obra */
+const SEGO_CC_DIRECAO=['tiago.faria@aceitar.pt','carlos.ferreira@aceitar.pt'];
+async function ptqNotificar(d,para,cc,mensagem,rotulo){
+  para=[...new Set((para||[]).filter(Boolean))]; cc=[...new Set((cc||[]).filter(e=>e&&!para.includes(e)))];
+  const et=`Notificação → ${rotulo}${para.length?' (Para: '+para.join(', ')+(cc.length?' · CC: '+cc.join(', '):'')+')':''}: ${mensagem}`;
+  if(!para.length){ ptqRegistar(d,et+' [sem Fiscal na obra — verifique a ficha no SID]'); return; }
+  try{
+    await emailjs.send(EJS.service, PE_EJS_TEMPLATE, {
+      to_email:para.join(','),to_name:'',cc:cc.join(','),from_name:(currentUser&&currentUser.nome?currentUser.nome:'SEGO'),reply_to:(currentUser&&currentUser.email?currentUser.email:''),
+      pe_id:'PTQ '+d.id,obra:(ptqObra()?ptqObra().nome:d.obraNome),assunto:[d.semanas,d.periodo].filter(Boolean).join(' · '),estado:ptqEST(d.estado).rot,
+      mensagem:gpeEmailHTML(mensagem,ptqLink(d)),link:ptqLink(d),password:'',app_url:ptqLink(d),role:rotulo});
+    ptqRegistar(d,et+' [enviada]');
+  }catch(e){ console.error('PTQ notificar falhou:',e); ptqRegistar(d,et+' [falhou: '+((e&&(e.text||e.message))||e)+']'); alert('O plano foi enviado, mas o email de notificação falhou.'); }
 }
 
 function ptqProximoNum(){ const n=ptqDocs.map(d=>d.num); return n.length?Math.max(...n)+1:1; }
@@ -6678,7 +6694,6 @@ window.ptqDuplicar=async function(){
   const d=ptqDocNovo(num);
   d.inicioPlano=pqQuinzenaSeguinte(base.inicioPlano);
   d.periodo=pqPeriodoTexto(d.inicioPlano); d.semanas=pqSemanasTexto(d.inicioPlano);
-  d.entidade=base.entidade||'';
   d.atividades=(base.atividades||[]).map(a=>({desc:a.desc||'',local:a.local||'',dias:Array(12).fill(0)}));
   d.subs=(base.subs||[]).map(x=>({sub:x.sub||'',dias:Array(12).fill(''),auto:Array(12).fill(false)}));
   d.equipamentos=(base.equipamentos||[]).map(x=>({desc:x.desc||'',dias:Array(12).fill(''),auto:Array(12).fill(false)}));
@@ -6777,14 +6792,28 @@ window.ptqGuardarRascunho=async function(){
   const d=ptqFichaAtualDoc(); if(!d) return; pqLerForm();
   ptqRegistar(d,'Rascunho guardado.'); await ptqPersistir(d); ptqAbrirFicha(d.id);
 };
+function ptqPodeEnviar(){ if(peESuper()) return true; return peEEmp()&&/^\s*dir\.?\s*(de\s+)?obra/i.test(String((currentUser&&currentUser.funcao)||'')); }
 window.ptqEnviar=async function(){
   const d=ptqFichaAtualDoc(); if(!d) return; pqLerForm();
-  if(!d.inicioPlano){ alert('Indique o início do plano.'); return; }
-  const comAtiv=(d.atividades||[]).filter(a=>a.desc&&a.local);
-  if(!comAtiv.length){ alert('Preencha pelo menos uma actividade com descrição e localização.'); return; }
-  d.autorEmp=currentUser?currentUser.nome:''; d.estado='enviado'; d.dataEnvio=peHoje();
-  ptqRegistar(d,'Plano enviado à Fiscalização — passa a Enviado.');
-  await ptqNotificar(d,[...new Set([...ptqEmails('fiscalizacao'),...segoCSOsDaObra(ptqObra()||{}).map(u=>u.email)])],'Enviamos o PTQ '+d.id+' da Obra '+(ptqObra()?ptqObra().nome:d.obraNome)+' para o qual solicitamos a v/melhor atenção.','Fiscalização');
+  if(!ptqPodeEnviar()){ alert('Só o Diretor de Obra pode enviar o plano à Fiscalização.'); return; }
+  const err=[];
+  if(!d.inicioPlano) err.push('Indique o Início do Plano.');
+  const A=d.atividades||[], S=d.subs||[];
+  const usada=(a,i)=>!!(a.desc||a.local||(a.dias||[]).some(v=>v)||(S[i]&&(S[i].sub||(S[i].dias||[]).some(v=>v!==''&&v!=null))));
+  const idx=A.map((a,i)=>usada(a,i)?i:-1).filter(i=>i>=0);
+  if(!idx.length) err.push('Preencha pelo menos uma Atividade.');
+  idx.forEach(i=>{ const a=A[i], s=S[i]||{}, n=i+1, f=[];
+    if(!a.desc) f.push('Trabalhos a Executar'); if(!a.local) f.push('Localização');
+    if(!(a.dias||[]).some(v=>v)) f.push('pelo menos um dia previsto (P)');
+    if(!s.sub) f.push('Subempreiteiro (Carga de Mão de Obra)');
+    if(!(s.dias||[]).some(v=>Number(v)>0)) f.push('n.º de colaboradores em pelo menos um dia');
+    if(f.length) err.push('Linha '+n+': falta '+f.join(', ')+'.'); });
+  if(err.length){ alert('Não é possível enviar:\n\n'+err.join('\n')); return; }
+  d.autorEnvio=currentUser?currentUser.nome:''; d.estado='enviado'; d.dataEnvio=peHoje();
+  ptqRegistar(d,'Plano enviado à Fiscalização por '+(d.autorEnvio||'')+' — passa a Enviado.');
+  const o=ptqObra()||{};
+  const cso=segoCSOsDaObra(o).map(u=>u.email);
+  await ptqNotificar(d,ptqEmails('fiscalizacao'),[...SEGO_CC_DIRECAO,...cso],'Enviamos o PTQ '+d.id+' da Obra '+(o.nome||d.obraNome)+' para o qual solicitamos a v/melhor atenção.','Fiscalização');
   await ptqPersistir(d); ptqAbrirFicha(d.id);
 };
 
@@ -6861,7 +6890,7 @@ function renderListaPTQ(app){
 }
 
 /* ---- Edição Admin em linha (Identificação) ---- */
-const PTQ_COL={dataCriacao:'data_criacao',dataEnvio:'data_envio',autorEmp:'autor_empreiteiro',entidade:'entidade_executante',estado:'estado'};
+const PTQ_COL={dataCriacao:'data_criacao',dataEnvio:'data_envio',autorEmp:'autor_empreiteiro',autorEnvio:'autor_envio',entidade:'entidade_executante',estado:'estado'};
 function ptqIPValor(d,c){ return c==='id'?d.id:(d[c]==null?'':d[c]); }
 function ptqIPMostra(d,c,t){ const v=ptqIPValor(d,c); if(v===''||v==null) return '<span class="pe-muted">—</span>'; if(t==='date') return esc(peDataPT(v)); if(c==='estado') return esc(ptqEST(v).rot); return esc(v); }
 function ptqIP(rot,c,t){
@@ -6940,12 +6969,13 @@ function renderFichaPTQ(app){
   const acoes=[],notas=[];
   if(d.estado==='rascunho'&&peEEmp()){
     acoes.push(`<button class="pe-btn" onclick="ptqGuardarRascunho()">Guardar Rascunho</button>`);
-    acoes.push(`<button class="pe-btn green" onclick="ptqEnviar()">Enviar à Fiscalização →</button>`);
+    if(ptqPodeEnviar()) acoes.push(`<button class="pe-btn green" onclick="ptqEnviar()">Enviar à Fiscalização →</button>`);
+    else notas.push('Só o Diretor de Obra pode enviar o plano à Fiscalização.');
   }
   if(d.estado==='enviado'&&peEEmp()&&ptqEhUltimo(d)){
     acoes.push(`<button class="pe-btn gold" onclick="ptqDuplicar()">Duplicar →</button>`);
   }
-  if(d.estado==='enviado'){ acoes.push(`<button class="pe-btn info" onclick="ptqPDF('${d.id}')" title="Descarregar o documento completo em PDF">📄 PDF</button>`); }
+
   if(peESuper()){ acoes.push(`<button class="pe-btn red" onclick="ptqEliminar('${d.id}')">Eliminar</button>`); }
 
   const cg=`<colgroup><col class="c-num"><col class="c-trab"><col class="c-sec">`+dias.map(()=>'<col class="c-dia">').join('')+`<col class="c-del"></colgroup>`;
@@ -6994,16 +7024,16 @@ function renderFichaPTQ(app){
   if(notas.length) cFlx+=cgDiv+`<div class="cg-nota" title="${esc(notas.join(' '))}">${esc(notas.join(' '))}</div>`;
   // IDE
   const cIde=R(L('Id',AUT),AE?inp('pta-id',d.id):esc(d.id))+R(L('Data',AUT),AE?inp('pta-dataCriacao',String(d.dataCriacao||'').slice(0,10),'date'):dt(d.dataCriacao))+R(L('Autor',AUT),AE?inp('pta-autorEmp',d.autorEmp):esc(d.autorEmp||''))+cgDiv+
-    R('Entidade Executante',AE?inp('pta-entidade',d.entidade):esc(d.entidade||''))+(AE?R('Data de Envio',inp('pta-dataEnvio',String(d.dataEnvio||'').slice(0,10),'date')):'');
+    R(L('Enviado por',AUT),AE?inp('pta-autorEnvio',d.autorEnvio):esc(d.autorEnvio||''))+R(L('Data de Envio',AUT),AE?inp('pta-dataEnvio',String(d.dataEnvio||'').slice(0,10),'date'):dt(d.dataEnvio));
   // PLA — plano
   const refs=(d.rsosRef&&d.rsosRef.length)?d.rsosRef.map(x=>`<a class="cg-ver" onclick="rsoAbrirRSOref('${d.obraId}','${x.relId}')">RSO ${esc(x.numero)}${x.semana?' (S'+x.semana+')':''}</a>`).join(' · '):'';
-  const cPla=R2(L('Início do Plano'),ed?`<input class="cg-i" type="date" value="${esc(String(d.inicioPlano||'').slice(0,10))}" onchange="pqAlterarInicio(this.value)">`:dt(d.inicioPlano),L('Período'),esc(d.periodo||''))+
-    R2(L('Semanas'),esc(d.semanas==null?'':String(d.semanas)),L('RSO'),refs)+
+  const cPla=R2(L('Início do Plano','obr'),ed?`<input class="cg-i" type="date" value="${esc(String(d.inicioPlano||'').slice(0,10))}" onchange="pqAlterarInicio(this.value)">`:dt(d.inicioPlano),L('Período',AUT),esc(d.periodo||''))+
+    R2(L('Semanas',AUT),esc(d.semanas==null?'':String(d.semanas)),L('RSO'),refs)+
     `<div class="cg-rtxt"><span class="cg-rl">${L('Observações')}</span>${ed?`<textarea class="cg-ta" id="pq-obs" onchange="pqLerFormAdm()">${esc(d.observacoes||'')}</textarea>`:`<div class="cg-txt">${esc(d.observacoes||'')}</div>`}</div>`;
   // grelhas
   const grelha=(cab,corpo)=>`<div class="pq-scroll"><table class="pq-grade">${cg}<thead>${cab}</thead><tbody>${corpo}</tbody></table></div>`;
-  const cabA=`<tr><th rowspan="3" class="nlin">#</th><th rowspan="3">Trabalhos a Executar</th><th rowspan="3">Localização</th>${cabDatas}<th rowspan="3"></th></tr>${cabLetras}${cabTotais(totA)}`;
-  const cabS=`<tr><th rowspan="3" class="nlin">#</th><th rowspan="3">Trabalhos a Executar</th><th rowspan="3">Subempreiteiro</th>${cabDatas}<th rowspan="3"></th></tr>${cabLetras}${cabTotais(totS)}`;
+  const cabA=`<tr><th rowspan="3" class="nlin">#</th><th rowspan="3">Trabalhos a Executar<i class="cg-mk obr pq-mk" title="Obrigatório"></i></th><th rowspan="3">Localização<i class="cg-mk obr pq-mk" title="Obrigatório"></i></th>${cabDatas}<th rowspan="3"></th></tr>${cabLetras}${cabTotais(totA)}`;
+  const cabS=`<tr><th rowspan="3" class="nlin">#</th><th rowspan="3">Trabalhos a Executar</th><th rowspan="3">Subempreiteiro<i class="cg-mk obr pq-mk" title="Obrigatório"></i></th>${cabDatas}<th rowspan="3"></th></tr>${cabLetras}${cabTotais(totS)}`;
   const cabE=`<tr><th rowspan="3" class="nlin">#</th><th rowspan="3" colspan="2">Equipamento</th>${cabDatas}<th rowspan="3"></th></tr>${cabLetras}${cabTotais(totE)}`;
   const comMais=(card,tipo)=>ed?card.replace(/<div class="cg-cx-ic" aria-hidden="true">[\s\S]*?<\/svg><\/div>/,`<button type="button" class="cg-cx-ic co-mais" title="Acrescentar linha" onclick="event.stopPropagation();pqAddLinha('${tipo}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>`):card;
   const hs=(d.historico||[]);
@@ -7022,6 +7052,7 @@ function renderFichaPTQ(app){
       ${comMais(cgCartao('MOB','Carga de Mão de Obra',grelha(cabS,linhasS),'EMPR','','cg-int fpq-g fpq-g2'),'a')}
       ${comMais(cgCartao('EQP','Carga de Equipamentos',grelha(cabE,linhasE),'ENVI','','cg-int fpq-g fpq-g3'),'e')}
       ${cgCartao('HIS','Histórico',cHis,'PRR','','cg-docw cg-hist')}
+      ${cgCartao('DOC','Documento',`<div class="cg-r cg-dr"><span class="cg-rl"><span>PDF</span></span><div class="cg-dv"><span><a class="cg-ver" onclick="ptqPDF('${d.id}')" title="Gerar e gravar o PDF">PTQ ${esc(d.id)}${d.periodo?' · '+esc(d.periodo):''}.pdf</a></span><span></span></div></div>`,'DOC','','cg-docw cg-hist fpq-doc')}
     </div>
   </div>`;
 }
@@ -7030,7 +7061,7 @@ let ptqAdmEd=false;
 window.ptqAdmEditar=function(ev){ if(!peESuper()) return; if(ev&&ev.target&&ev.target.closest&&ev.target.closest('.pq-grade')) return; ptqAdmEd=true; render(); };
 window.ptqAdmCancelar=function(){ ptqAdmEd=false; render(); };
 window.ptqAdmGuardar=async function(){ const d=ptqFichaAtualDoc(); if(!d) return; pqLerForm(); const mud=[]; let novoId=null;
-  const C=[['dataCriacao','Data','date'],['autorEmp','Autor'],['entidade','Entidade Executante'],['dataEnvio','Data de Envio','date']];
+  const C=[['dataCriacao','Data','date'],['autorEmp','Autor'],['autorEnvio','Enviado por'],['dataEnvio','Data de Envio','date']];
   const fmt=(t,v)=>!v?'':t==='date'?peDataPT(v):v;
   const corpo={};
   C.forEach(([k,rot,t])=>{ const el=document.getElementById('pta-'+k); if(!el) return; const n=el.value.trim(); const a=t==='date'?String(d[k]||'').slice(0,10):String(d[k]==null?'':d[k]);
@@ -7223,7 +7254,7 @@ window.ptqPDF=function(id){
       const tS=Array(dias.length).fill(0); S.forEach(s=>(s.dias||[]).forEach((v,c)=>{ const n=Number(v); if(v!==''&&!isNaN(n)) tS[c]+=n; }));
       const tE=Array(dias.length).fill(0); E.forEach(e=>(e.dias||[]).forEach((v,c)=>{ const n=Number(v); if(v!==''&&!isNaN(n)) tE[c]+=n; }));
       return [
-        K.sec('Identificação',K.NAVY,[[K.cols([K.fld('Id',d.id),K.fld('Data',K.dt(d.dataCriacao)),K.fld('Autor',K.v(d.autorEmp)),K.fld('Entidade Executante',K.v(d.entidade))]),
+        K.sec('Identificação',K.NAVY,[[K.cols([K.fld('Id',d.id),K.fld('Data',K.dt(d.dataCriacao)),K.fld('Autor',K.v(d.autorEmp)),K.fld('Enviado por',K.v(d.autorEnvio)),K.fld('Data de Envio',K.dt(d.dataEnvio))]),
           K.cols([K.fld('Início do Plano',K.dt(d.inicioPlano)),K.fld('Período',K.v(d.periodo)),K.fld('Semanas',K.v(d.semanas)),{text:''}])]]),
         grade('Actividades','Trabalhos a Executar','Localização',A.map(a=>({a:a.desc,b:a.local,dias:a.dias||[]})),x=>x?'X':'',tA,true),
         grade('Carga de Mão de Obra','Trabalhos a Executar','Subempreiteiro',S.map((s,i)=>({a:((A[i]||{}).desc)||'',b:s.sub,dias:s.dias||[]})),x=>(x===''||x==null)?'':String(x),tS,true),
