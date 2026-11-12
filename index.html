@@ -314,7 +314,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.12.0149</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.12.0156</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -991,6 +991,7 @@ window.segoTema=function(){
   .pm-bar label{display:flex;gap:8px;align-items:center;font-weight:700;color:var(--text-muted)}
   .pm-bar select{min-width:340px}
   .pm-tabs{display:flex;gap:6px;align-items:center}
+  .pm-bar label.pm-chk{font-weight:400;gap:4px}
   .pm-tab{border:1px solid var(--nav-bd);background:transparent;color:var(--text);border-radius:4px;padding:2px 10px;cursor:pointer;font-family:inherit;font-weight:700}
   .pm-tab.on{background:var(--nav-bd);color:#fff}
   .pm-brev{color:var(--text-muted);margin-left:6px}
@@ -1914,7 +1915,7 @@ window.enviarConvite=function(uid){
     to_email: u.email,
     password: u.pwd,
     app_url: 'https://sigo.aceitar.pt',
-    role: ({superadmin:'Administrador',fiscalizacao:'Fiscalização',dono_obra:'Dono de Obra',projetista:'Projetista',empreiteiro:'Empreiteiro'})[u.role]||u.role,
+    role: ({superadmin:'Administrador',fiscalizacao:'Fiscalização',dono_obra:'Dono de Obra',projetista:'Projetista',empreiteiro:'Empreiteiro',outros:'Outros'})[u.role]||u.role,
   })
   .then(()=>{
     if(btn){btn.textContent='✓ Enviado';btn.style.background='var(--success)';btn.style.color='#fff';}
@@ -3657,7 +3658,7 @@ window.abrirPublicar=function(relId){
   const o=DB.obras.find(x=>x.id===rel.obra_id)||{};
   const _sub=(rel.conteudo&&rel.conteudo.subtipo)||'';
   const _sigla=siglaRel(_sub);
-  const roleL={dono_obra:'Dono de Obra',fiscalizacao:'Fiscalização',superadmin:'Fiscalização',empreiteiro:'Empreiteiro',projetista:'Projetista'};
+  const roleL={dono_obra:'Dono de Obra',fiscalizacao:'Fiscalização',superadmin:'Fiscalização',empreiteiro:'Empreiteiro',projetista:'Projetista',outros:'Outros'};
   const inObra=u=>u.obras==='todas'||(Array.isArray(u.obras)&&u.obras.some(oid=>String(oid)===String(o.id)));
   const people=(DB.utilizadores||[]).filter(u=>u.email&&roleL[u.role]&&inObra(u));
   const _ehSeg=(rel.conteudo&&rel.conteudo.tipo)==='seguranca';
@@ -3814,7 +3815,7 @@ window.abrirReenviar=function(relId){
   const o=DB.obras.find(x=>x.id===rel.obra_id)||{};
   const _sub=(rel.conteudo&&rel.conteudo.subtipo)||'';
   const _sigla=siglaRel(_sub);
-  const roleL={dono_obra:'Dono de Obra',fiscalizacao:'Fiscalização',superadmin:'Fiscalização',empreiteiro:'Empreiteiro',projetista:'Projetista'};
+  const roleL={dono_obra:'Dono de Obra',fiscalizacao:'Fiscalização',superadmin:'Fiscalização',empreiteiro:'Empreiteiro',projetista:'Projetista',outros:'Outros'};
   const inObra=u=>u.obras==='todas'||(Array.isArray(u.obras)&&u.obras.some(oid=>String(oid)===String(o.id)));
   const _ehSegR=(rel.conteudo&&rel.conteudo.tipo)==='seguranca';
   if(_ehSegR&&!rvtPode()){ alert('Apenas o Coordenador de Segurança (CSO) pode reenviar RVT.'); return; }
@@ -4271,7 +4272,7 @@ function peUtilsDaObra(role){
 function peEmails(role){ return peUtilsDaObra(role).filter(u=>u.email&&!segoEhCSO(u)).map(u=>u.email); }
 function peEmailsFiscSemCSO(){ return peUtilsDaObra('fiscalizacao').filter(u=>u.email&&!segoEhCSO(u)).map(u=>u.email); }
 function peEquipaDaObra(){
-  const roleL={fiscalizacao:'Fiscalização',empreiteiro:'Empreiteiro',projetista:'Projetista',dono_obra:'Dono de Obra',cliente:'Cliente'};
+  const roleL={fiscalizacao:'Fiscalização',empreiteiro:'Empreiteiro',projetista:'Projetista',dono_obra:'Dono de Obra',outros:'Outros',cliente:'Cliente'};
   const m=new Map();
   Object.keys(roleL).forEach(r=>{ peUtilsDaObra(r).forEach(u=>{ if(u.email&&!m.has(String(u.id))) m.set(String(u.id),{id:u.id,nome:u.nome,email:u.email,papel:roleL[r]+(segoEhCSO(u)?' · CSO':'')}); }); });
   return [...m.values()];
@@ -5097,7 +5098,7 @@ function paUtilsDaObra(role){
 function paEmails(role){ return paUtilsDaObra(role).filter(u=>u.email&&!segoEhCSO(u)).map(u=>u.email); }
 function paEmailsFiscSemCSO(){ return paUtilsDaObra('fiscalizacao').filter(u=>u.email&&!segoEhCSO(u)).map(u=>u.email); }
 function paEquipaDaObra(){
-  const roleL={fiscalizacao:'Fiscalização',empreiteiro:'Empreiteiro',projetista:'Projetista',dono_obra:'Dono de Obra',cliente:'Cliente'};
+  const roleL={fiscalizacao:'Fiscalização',empreiteiro:'Empreiteiro',projetista:'Projetista',dono_obra:'Dono de Obra',outros:'Outros',cliente:'Cliente'};
   const m=new Map();
   Object.keys(roleL).forEach(r=>{ paUtilsDaObra(r).forEach(u=>{ if(u.email&&!m.has(String(u.id))) m.set(String(u.id),{id:u.id,nome:u.nome,email:u.email,papel:roleL[r]+(segoEhCSO(u)?' · CSO':'')}); }); });
   return [...m.values()];
@@ -6132,7 +6133,7 @@ function segoAssinatura(html){ const n=(currentUser&&currentUser.nome)?currentUs
 function segoEhCSO(u){ return /\bcso\b|\btss?t\b|seguran/i.test(String(u.funcao||'')); }
 function pbEmailsFiscSemCSO(){ return pbUtilsDaObra('fiscalizacao').filter(u=>u.email&&!segoEhCSO(u)).map(u=>u.email); }
 function pbEquipaDaObra(){
-  const roleL={fiscalizacao:'Fiscalização',empreiteiro:'Empreiteiro',projetista:'Projetista',dono_obra:'Dono de Obra',cliente:'Cliente'};
+  const roleL={fiscalizacao:'Fiscalização',empreiteiro:'Empreiteiro',projetista:'Projetista',dono_obra:'Dono de Obra',outros:'Outros',cliente:'Cliente'};
   const m=new Map();
   Object.keys(roleL).forEach(r=>{ pbUtilsDaObra(r).forEach(u=>{ if(u.email&&!m.has(String(u.id))) m.set(String(u.id),{id:u.id,nome:u.nome,email:u.email,papel:roleL[r]+(segoEhCSO(u)?' · CSO':'')}); }); });
   return [...m.values()];
@@ -12472,7 +12473,7 @@ const PERM_MOD={
     acoes:[['Rascunho','criar','Criar / Editar'],['Rascunho','enviar','Enviar'],['Enviado','duplicar','Duplicar'],['Enviado','pdf','PDF']],
     notif:[['enviado','Enviado']],
     def:(u,a)=>{ const emp=u.role==='empreiteiro', dobra=emp&&/^\s*dir\.?\s*(de\s+)?obra/i.test(String(u.funcao||''));
-      return a==='criar'?emp:a==='enviar'?dobra:a==='duplicar'?emp:a==='pdf'?true:false; },
+      return a==='criar'?emp:a==='enviar'?dobra:a==='duplicar'?emp:a==='pdf'?(emp||u.role==='fiscalizacao'):false; },
     defNotif:(u,est)=>{ if(est!=='enviado') return ''; if(u.role==='fiscalizacao') return segoEhCSO(u)?'cc':'para';
       if(SEGO_CC_DIRECAO.includes(String(u.email||'').toLowerCase())) return 'cc'; return ''; } }
 };
@@ -12490,12 +12491,12 @@ function segoNotifDest(m,est,o){ const M=PERM_MOD[m], g=permRegras(o&&o.id,m), o
   const ord=e=>{ const i=SEGO_CC_DIRECAO.indexOf(String(e).toLowerCase()); return i<0?99:i; };   // CC: Direção primeiro (Tiago, Carlos), depois os restantes (CSO…)
   return {para:[...new Set(para)],cc:[...new Set(cc.filter(e=>!para.includes(e)))].sort((a,b)=>ord(a)-ord(b))}; }
 
-let permObraId=null, permMod='ptq';
+let permObraId=null, permMod='ptq', permConcl=false;
 const PERM_GRUPOS=[['Dono de Obra',u=>u.role==='dono_obra'],['Fiscalização',u=>u.role==='fiscalizacao'||u.role==='superadmin'],['Empreiteiro',u=>u.role==='empreiteiro'],['Projetista',u=>u.role==='projetista'],['Outros',u=>!['dono_obra','fiscalizacao','superadmin','empreiteiro','projetista'].includes(u.role)]];
 function renderPermissoes(app){
   if(!peESuper()){ app.innerHTML='<div class="cg-bloco">Apenas o Superadmin.</div>'; return; }
-  const obras=(DB.obras||[]).filter(o=>!o.comFases).slice().sort((a,b)=>String(a.codigo||'').localeCompare(String(b.codigo||'')));
-  if(!permObraId&&obras.length) permObraId=obras[0].id;
+  const obras=(DB.obras||[]).filter(o=>!o.comFases&&(permConcl||o.estado!=='Concluída')).slice().sort((a,b)=>String(a.codigo||'').localeCompare(String(b.codigo||'')));
+  if((!permObraId||!obras.some(x=>String(x.id)===String(permObraId)))&&obras.length) permObraId=obras[0].id;
   const o=obras.find(x=>String(x.id)===String(permObraId))||null, M=PERM_MOD[permMod], g=permRegras(permObraId,permMod);
   const pes=permPessoasObra(o);
   const nAlt=Object.values(g.perm).reduce((n,x)=>n+Object.keys(x).length,0)+Object.values(g.notif).reduce((n,x)=>n+Object.keys(x).length,0);
@@ -12516,6 +12517,7 @@ function renderPermissoes(app){
   <div class="cg-head"><b>Permissões por Obra</b><span style="color:var(--text-muted)">· o que cada interveniente pode fazer e quem é notificado, em cada obra</span></div>
   <div class="cg-bloco pm-bar">
     <label>Obra <select class="form-input" onchange="permObraId=this.value;render()">${obras.map(x=>`<option value="${esc(x.id)}" ${String(x.id)===String(permObraId)?'selected':''}>${esc((x.codigo||'')+' · '+(x.sigla||'')+' — '+(x.nome||''))}</option>`).join('')}</select></label>
+    <label class="pm-chk"><input type="checkbox" ${permConcl?'checked':''} onchange="permConcl=this.checked;render()"> Incluir Concluídas</label>
     <span class="pm-tabs">${Object.keys(PERM_MOD).map(k=>`<button class="pm-tab ${k===permMod?'on':''}" onclick="permMod='${k}';render()">${k.toUpperCase()}</button>`).join('')}<span class="pm-brev" title="Os restantes módulos entram à medida que forem revistos">PE · PA · PB · QE · TCm · AM · RSO · RVT · SOS</span></span>
     <span class="pm-leg"><span class="pm-def">✓ Regra de origem</span><span class="pm-alt">✓ Alterado nesta obra</span>${nAlt?`<button class="btn btn-outline btn-sm" onclick="permRepor()">Repor Origem (${nAlt})</button>`:''}</span>
   </div>
@@ -12571,7 +12573,7 @@ window.entEliminar=async function(id){ const e=DB.entidades.find(x=>x.id===id); 
 
 /* ---------- Menu do Utilizador ---------- */
 window.userMenuAbrir=function(ev){ ev&&ev.stopPropagation(); defMenuFechar(); const m=document.getElementById('user-menu'); if(!m||!currentUser) return;
-  const rot={superadmin:'Superadmin',fiscalizacao:'Fiscalização',dono_obra:'Dono de Obra',empreiteiro:'Empreiteiro',projetista:'Projetista'}[currentUser.role]||currentUser.role;
+  const rot={superadmin:'Superadmin',fiscalizacao:'Fiscalização',dono_obra:'Dono de Obra',empreiteiro:'Empreiteiro',projetista:'Projetista',outros:'Outros'}[currentUser.role]||currentUser.role;
   const tema=document.documentElement.getAttribute('data-contraste')!==null?'contraste':(document.documentElement.getAttribute('data-theme')==='dark'?'escuro':'claro');
   m.innerHTML=`<div class="um-top"><div class="nav-avatar" style="width:38px !important;height:38px !important">${esc((currentUser.nome||'').split(' ').map(x=>x[0]).filter(Boolean).slice(0,1).concat((currentUser.nome||'').split(' ').slice(-1).map(x=>x[0])).join('').toUpperCase())}</div>
     <div><b>${esc(currentUser.nome||'')}</b><div style="color:var(--text-muted)">${esc(rot)}</div></div><button class="um-x" onclick="userMenuFechar()">✕</button></div>
@@ -14087,7 +14089,7 @@ window.saveEditTipoDoc=async function(id){
 // UTILIZADORES
 // ================================================================
 function renderUtilizadores(app){
-  const roleLabels={superadmin:'Super Admin',fiscalizacao:'Fiscalização',dono_obra:'Dono de Obra',projetista:'Projetista',empreiteiro:'Empreiteiro',cliente:'Cliente'};
+  const roleLabels={superadmin:'Super Admin',fiscalizacao:'Fiscalização',dono_obra:'Dono de Obra',projetista:'Projetista',empreiteiro:'Empreiteiro',outros:'Outros',cliente:'Cliente'};
   app.innerHTML=`
   <div class="page-header">
     <div>
@@ -14216,7 +14218,7 @@ function utilFormHtml(u={}){
   const roles=[
     {v:'superadmin',l:'Super Admin'},{v:'fiscalizacao',l:'Fiscalização'},
     {v:'dono_obra',l:'Dono de Obra'},{v:'projetista',l:'Projetista'},
-    {v:'empreiteiro',l:'Empreiteiro'},
+    {v:'empreiteiro',l:'Empreiteiro'},{v:'outros',l:'Outros'},
   ];
   const obrasOpts=DB.obras.map(o=>`<div class="multi-opt"><input type="checkbox" class="cb-util-obra" value="${o.id}" ${Array.isArray(u.obras)&&u.obras.includes(o.id)?'checked':''}><span class="opt-code">${o.codigo}</span><span>${o.nome}</span></div>`).join('');
   return `
