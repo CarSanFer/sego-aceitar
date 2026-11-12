@@ -314,7 +314,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.12.1942</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.12.1944</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -1076,7 +1076,7 @@ window.segoTema=function(){
   .cg-cxs.pm-cxs{grid-template-columns:repeat(auto-fill,minmax(min(100%,var(--pm-cw,520px)),1fr)) !important}
   @media(max-width:1200px){ .cg-cxs.pm-cxs{grid-template-columns:repeat(auto-fill,minmax(min(100%,var(--pm-cw,520px)),1fr)) !important} }
   table.pm-cx{width:100%;border-collapse:collapse;table-layout:fixed}
-  table.pm-cx col.pm-cc{width:56px}
+  table.pm-cx col.pm-cc{width:52px}
   table.pm-cx thead,table.pm-cx thead tr{position:static !important;background:transparent !important}
   table.pm-cx th{background:transparent !important;color:var(--text-muted) !important;font-weight:700 !important;padding:2px 2px 4px !important;border:none;border-bottom:1px solid var(--border-light);white-space:normal;line-height:1.15;text-align:center;width:auto !important;min-width:0 !important;max-width:none !important}
   table.pm-cx th.pm-est{border-bottom:1px dotted var(--border-light);color:var(--text) !important}
@@ -2435,6 +2435,11 @@ function render(){
   if(segObraId){ renderCapaSeguranca(app); return; }
   if(metObraId){ renderListaMET(app); return; }
   if(fiscObraId){ renderCapaFiscalizacao(app); return; }
+  { // Consulta (Permissões): sem permissão de Ver, não entra no módulo
+    const vk=[['pe',peObraId],['pa',paObraId],['pb',pbObraId],['ptq',ptqObraId],['qe',qeObraId],['tcm',tcmObraId],['am',amObraId]].find(x=>x[1]);
+    let k=vk&&vk[0], oid=vk&&vk[1];
+    if(!k&&relObraId){ const rr=relRelId&&DB.relatorios.find(x=>x.id===relRelId); k=rr?relModKey(rr):({RS:'rso',SOS:'sos',RVT:'rvt'}[(typeof capaContext!=='undefined'&&capaContext&&capaContext.subtipo)||'']||null); oid=relObraId; }
+    if(k&&!segoPodeVerMod(k,oid)){ app.innerHTML=`<div class="cg-bloco" style="margin:20px">Sem permissão para consultar ${esc(PERM_MOD[k].sig)} nesta obra.</div>`; return; } }
   if(peFichaId){ renderFichaPE(app); return; }
   if(peObraId){ renderListaPE(app); return; }
   if(paFichaId){ renderFichaPA(app); return; }
@@ -12840,6 +12845,9 @@ const PERM_MOD={
   sos:_pmRel('SOS','SOS — Situações Operacionais Semanais',u=>((u.role==='dono_obra'||u.role==='empreiteiro')&&_pmNC(u))?'para':''),
   rvt:_pmRel('RVT','RVT — Relatório de Visita Técnica',u=>u.role==='empreiteiro'?'para':((u.role==='fiscalizacao'&&_pmNC(u))?'cc':''))
 };
+/* Consulta: em todos os módulos, quem pode ver (lista e fichas). Por omissão todos os intervenientes da obra. */
+Object.values(PERM_MOD).forEach(M=>{ M.acoes.unshift(['Consulta','ver','Ver']); const d=M.def; M.def=(u,a)=>a==='ver'?true:d(u,a); });
+function segoPodeVerMod(k,oid){ k={RS:'rso',SOS:'sos',RVT:'rvt'}[k]||k; return !PERM_MOD[k]||segoPode(k,'ver',oid); }
 /* destino final de uma notificação: regras da obra (Permissões) + CC escolhidos à mão (no QE o remetente não vai em CC, como antes) */
 function segoNotifFinal(m,d,o,base,ccExtra){
   const ev=(d&&d.__ev)||(d&&d.estado); if(d) delete d.__ev;
@@ -12900,6 +12908,8 @@ function renderPermissoes(app){
   // colunas agrupadas por estado: em cada estado, primeiro a Notificação (ao entrar no estado), depois as ações
   const est=[...(M.ordem||[])]; M.acoes.forEach(a=>{ if(!est.includes(a[0])) est.push(a[0]); }); M.notif.forEach(n=>{ if(!est.includes(n[1])) est.push(n[1]); });
   const cols=[]; est.forEach(e=>{ M.notif.filter(n=>n[1]===e).forEach(n=>cols.push({t:'n',es:n[0],rot:n[2]||'Notificação'})); M.acoes.filter(a=>a[0]===e).forEach(a=>cols.push({t:'a',a:a[1],rot:a[2]})); });
+  if(est.includes('Consulta')){ est.splice(est.indexOf('Consulta'),1); est.unshift('Consulta'); }   // Consulta sempre em 1.º
+  cols.sort((a,b)=>(a.t==='a'&&a.a==='ver'?0:1)-(b.t==='a'&&b.a==='ver'?0:1));
   const _gc=c=>c.t==='n'?M.notif.find(n=>n[0]===c.es)[1]:M.acoes.find(a=>a[1]===c.a)[0]; for(let i=est.length-1;i>=0;i--) if(!cols.some(c=>_gc(c)===est[i])) est.splice(i,1);
   const cab1=`<tr><th rowspan="2" class="pm-nome">Interveniente</th><th rowspan="2" class="pm-func">Função</th>${est.map(e=>`<th colspan="${cols.filter(c=>(c.t==='n'?M.notif.find(n=>n[0]===c.es)[1]:M.acoes.find(a=>a[1]===c.a)[0])===e).length}" class="pm-est">${e}</th>`).join('')}</tr>`;
   const cab2=`<tr>${cols.map(c=>`<th class="pm-ch">${c.rot}</th>`).join('')}</tr>`;
@@ -12926,7 +12936,7 @@ function renderPermissoes(app){
     <span class="nv-dir"></span>${nAlt?`<button class="on-at nv-b" title="Repor as regras de origem (${nAlt} alteração(ões) nesta obra)" onclick="permRepor()">${NV_IC.repor}<b class="nv-bdg">${nAlt}</b></button>`:''}<button class="on-at ${permConcl?'on':''}" title="${permConcl?'A mostrar também as obras concluídas — clique para esconder':'Mostrar também as obras concluídas'}" onclick="permConcl=!permConcl;permRender()">${NV_IC.concl}</button>
     </template>`;
   app.innerHTML=`<button class="back-btn" onclick="defPg=null;render()">← Voltar</button>${nav}
-  ${corpo?`<div class="cg-cxs pm-cxs" style="--pm-cw:${260+cols.length*56}px">${corpo}</div>`:'<div class="cg-bloco">Sem intervenientes nesta obra.</div>'}`;
+  ${corpo?`<div class="cg-cxs pm-cxs" style="--pm-cw:${220+cols.length*52}px">${corpo}</div>`:'<div class="cg-bloco">Sem intervenientes nesta obra.</div>'}`;
   permTopo();
 }
 function permRender(){ const y=window.scrollY; render(); window.scrollTo(0,y); }
@@ -13524,7 +13534,7 @@ window.coAbrirRel=function(obraId,tipo,subtipo,sigla,label){
 };
 
 function renderCOPanel(o){
-  const boxes=CO_MODS.filter(m=>(!m.soCSO||rvtPode())&&modVisivel(o.id,m.key)).map(m=>{
+  const boxes=CO_MODS.filter(m=>(!m.soCSO||rvtPode())&&modVisivel(o.id,m.key)&&segoPodeVerMod(m.key,o.id)).map(m=>{
     let cntHtml, recHtml, onclick;
     const _oc=modOculto(o.id,m.key);
     if(m.kind==='rel'){
