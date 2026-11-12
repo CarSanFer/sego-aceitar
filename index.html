@@ -314,7 +314,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.12.0213</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.12.0234</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -999,6 +999,9 @@ window.segoTema=function(){
   .pm-bar{position:sticky;top:var(--pm-t,44px);z-index:30;margin-bottom:0 !important;border-radius:var(--radius) var(--radius) 0 0}
   .pm-wrap{background:var(--bg-card);border:1px solid var(--border-light);border-top:none;border-radius:0 0 var(--radius) var(--radius)}
   table.pm-tbl{width:auto;border-collapse:separate;border-spacing:0}
+  table.pm-fix{table-layout:fixed}
+  table.pm-fix td.pm-nome,table.pm-fix td.pm-func{overflow:hidden;text-overflow:ellipsis;min-width:0 !important}
+  table.pm-fix th.pm-nome,table.pm-fix th.pm-func{min-width:0 !important}
   table.pm-tbl thead{position:sticky;top:var(--pm-th,90px);z-index:20}
   table.pm-tbl th{text-align:center;vertical-align:middle}
   table.pm-tbl th.pm-ch{white-space:normal;width:58px;min-width:58px;max-width:58px;line-height:1.15;padding:4px 3px}
@@ -12556,20 +12559,21 @@ function renderPermissoes(app){
     return `<tr class="pm-g" onclick="permGrupo('${t}')"><td colspan="${ncol}"><span class="pm-sx">${ab?'▾':'▸'}</span>${t} <span class="pm-n">(${us.length})</span></td></tr>`+(ab?us.map(u=>linha(u,gi)).join(''):''); }).join('');
   app.innerHTML=`<button class="back-btn" onclick="defPg=null;render()">← Voltar</button>
   <div class="cg-bloco pm-bar">
-    <label>Obra <select class="form-input" onchange="permObraId=this.value;render()">${obras.map(x=>`<option value="${esc(x.id)}" ${String(x.id)===String(permObraId)?'selected':''}>${esc((x.codigo||'')+' · '+(x.sigla||'')+' — '+(x.nome||''))}</option>`).join('')}</select></label>
-    <label class="pm-chk"><input type="checkbox" ${permConcl?'checked':''} onchange="permConcl=this.checked;render()"> Incluir Concluídas</label>
-    <span class="pm-tabs">${Object.keys(PERM_MOD).map(k=>`<button class="pm-tab ${k===permMod?'on':''}" onclick="permMod='${k}';render()">${k.toUpperCase()}</button>`).join('')}<span class="pm-brev" title="Os restantes módulos entram à medida que forem revistos">PE · PA · PB · QE · TCm · AM · RSO · RVT · SOS</span></span>
+    <label>Obra <select class="form-input" onchange="permObraId=this.value;permRender()">${obras.map(x=>`<option value="${esc(x.id)}" ${String(x.id)===String(permObraId)?'selected':''}>${esc((x.codigo||'')+' · '+(x.sigla||'')+' — '+(x.nome||''))}</option>`).join('')}</select></label>
+    <label class="pm-chk"><input type="checkbox" ${permConcl?'checked':''} onchange="permConcl=this.checked;permRender()"> Incluir Concluídas</label>
+    <span class="pm-tabs">${Object.keys(PERM_MOD).map(k=>`<button class="pm-tab ${k===permMod?'on':''}" onclick="permMod='${k}';permRender()">${k.toUpperCase()}</button>`).join('')}<span class="pm-brev" title="Os restantes módulos entram à medida que forem revistos">PE · PA · PB · QE · TCm · AM · RSO · RVT · SOS</span></span>
     <span class="pm-leg"><a class="pm-lk" onclick="permTodos(${permAbertos.size?0:1})">${permAbertos.size?'Fechar Todos':'Abrir Todos'}</a><span class="pm-def">✓ Regra de origem</span><span class="pm-alt">✓ Alterado nesta obra</span>${nAlt?`<button class="btn btn-outline btn-sm" onclick="permRepor()">Repor Origem (${nAlt})</button>`:''}</span>
   </div>
-  <div class="pm-wrap"><table class="data-table pm-tbl"><thead>${cab1}${cab2}</thead><tbody>${corpo||`<tr><td colspan="${ncol}">Sem intervenientes nesta obra.</td></tr>`}</tbody></table></div>`;
+  <div class="pm-wrap"><table class="data-table pm-tbl pm-fix" style="width:${240+170+58*cols.length}px"><colgroup><col style="width:240px"><col style="width:170px">${cols.map(()=>'<col style="width:58px">').join('')}</colgroup><thead>${cab1}${cab2}</thead><tbody>${corpo||`<tr><td colspan="${ncol}">Sem intervenientes nesta obra.</td></tr>`}</tbody></table></div>`;
   permTopo();
 }
+function permRender(){ const y=window.scrollY; render(); window.scrollTo(0,y); }
 function permTopo(){ const nb=document.querySelector('.navbar'), bar=document.querySelector('.pm-bar'); if(!bar) return;
   const t=nb?Math.round(nb.getBoundingClientRect().height):44; document.documentElement.style.setProperty('--pm-t',t+'px');
   document.documentElement.style.setProperty('--pm-th',(t+Math.round(bar.getBoundingClientRect().height))+'px'); }
 window.addEventListener('resize',()=>{ if(defPg==='permissoes') permTopo(); });
-window.permGrupo=function(t){ permAbertos.has(t)?permAbertos.delete(t):permAbertos.add(t); render(); };
-window.permTodos=function(abrir){ permAbertos=new Set(abrir?PERM_GRUPOS.map(x=>x[0]):[]); render(); };
+window.permGrupo=function(t){ permAbertos.has(t)?permAbertos.delete(t):permAbertos.add(t); permRender(); };
+window.permTodos=function(abrir){ permAbertos=new Set(abrir?PERM_GRUPOS.map(x=>x[0]):[]); permRender(); };
 window.permDragIni=function(ev,uid,gi){ permDrag={uid,gi}; ev.dataTransfer.effectAllowed='move'; try{ ev.dataTransfer.setData('text/plain',uid); }catch(e){} ev.currentTarget.classList.add('pm-drag'); };
 window.permDragSobre=function(ev,gi){ if(!permDrag||permDrag.gi!==gi) return; ev.preventDefault(); ev.dataTransfer.dropEffect='move';
   const tr=ev.currentTarget, r=tr.getBoundingClientRect(), baixo=ev.clientY>r.top+r.height/2;
@@ -12582,11 +12586,13 @@ window.permDragLargar=function(ev,uid,gi){ ev.preventDefault(); const d=permDrag
   const ant=segoOrdemObra(permObraId).filter(x=>!ord.includes(x));   // quem saiu da obra fica guardado no fim da lista
   permGravar({ordem:[...ord,...ant]},'_ordem'); };
 async function permGravar(g,mod){ mod=mod||permMod; const id=permObraId+'|'+mod; const reg={id,obra_id:String(permObraId),modulo:mod,regras:g,updated_at:new Date().toISOString(),updated_by:(currentUser&&currentUser.nome)||''};
-  DB.permissoes=DB.permissoes||[]; const i=DB.permissoes.findIndex(x=>x.id===id);
-  try{ if(i>=0){ await sb.patch('obra_permissoes',id,{regras:g,updated_at:reg.updated_at,updated_by:reg.updated_by}); DB.permissoes[i]=reg; }
-       else{ await sb.post('obra_permissoes',reg); DB.permissoes.push(reg); } }
-  catch(e){ alert('Erro ao gravar as permissões: '+(e.message||e)); }
-  render(); }
+  DB.permissoes=DB.permissoes||[]; const i=DB.permissoes.findIndex(x=>x.id===id), ant=i>=0?DB.permissoes[i]:null;
+  if(i>=0) DB.permissoes[i]=reg; else DB.permissoes.push(reg);
+  permRender();   // mostra logo a alteração; grava a seguir
+  try{ if(ant) await sb.patch('obra_permissoes',id,{regras:g,updated_at:reg.updated_at,updated_by:reg.updated_by});
+       else await sb.post('obra_permissoes',reg); }
+  catch(e){ const j=DB.permissoes.indexOf(reg); if(j>=0){ if(ant) DB.permissoes[j]=ant; else DB.permissoes.splice(j,1); }
+    alert('Erro ao gravar as permissões: '+(e.message||e)); permRender(); } }
 window.permToggle=function(uid,a){ const u=(DB.utilizadores||[]).find(x=>String(x.id)===uid); if(!u) return; const M=PERM_MOD[permMod], g=permRegras(permObraId,permMod);
   const dv=!!M.def(u,a), cur=g.perm[uid]&&typeof g.perm[uid][a]==='boolean'?g.perm[uid][a]:dv, nv=!cur;
   g.perm[uid]=g.perm[uid]||{}; if(nv===dv) delete g.perm[uid][a]; else g.perm[uid][a]=nv; if(!Object.keys(g.perm[uid]).length) delete g.perm[uid];
