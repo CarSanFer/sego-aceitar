@@ -314,7 +314,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.12.0309</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.12.0318</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -1328,25 +1328,37 @@ window.segoTema=function(){
   .cg-fpe.flx-fech .flx-tg svg{transform:rotate(180deg)}
   .flx-tg{cursor:pointer;background:transparent;pointer-events:auto !important;position:relative;z-index:2}
   /* TESTE: qualquer cartão recolhe numa faixa vertical; com algum recolhido, a grelha passa a fluxo e os abertos ocupam o espaço */
-  .cg-cx-ic.cx-tg{cursor:pointer;pointer-events:auto !important}
+  .cg-cx[data-cx]>.cg-cx-h>div.cg-cx-ic[aria-hidden="true"]{display:none !important}
+  #nav-cx{display:none;align-items:center;gap:6px;margin-right:10px}
+  #nav-cx .on-at{width:24px;height:24px;padding:0;box-sizing:border-box;border-radius:4px;border:1px solid var(--nav-bd);background:transparent;color:var(--nav-bd);cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+  #nav-cx .on-at:hover{background:rgba(227,153,86,.2)}
+  .cg-cx-h>.cg-cx-ic+.cx-tg,.cg-cx-h>.co-mais+.cx-tg{margin-left:6px}
+  .cg-cx-ic.cx-tg{cursor:pointer;pointer-events:auto !important;background:transparent}
+  .cg-cx.cx-fech .cx-tg svg{transform:rotate(180deg)}
+  .cg-cx.cx-fech>.cg-cx-h>.cg-cx-ic.co-mais{display:none !important}
   .cg-cx-ic.cx-tg:hover{background:rgba(227,153,86,.25) !important}
   .cg-cxs.cx-flex{display:flex !important;flex-wrap:wrap;align-items:stretch !important;gap:12px !important}
   .cg-cxs.cx-flex>.cg-cx{min-width:0;grid-column:auto !important;grid-row:auto !important}
   .cg-cxs.cx-flex>.cg-cx.cx-larga{flex:1 1 100% !important}
   .cg-cxs>.cg-cx.cx-fech{flex:0 0 40px !important;max-width:40px;overflow:hidden;min-height:200px;display:flex;flex-direction:column}
-  .cg-cxs.cx-flex>.cg-cx.cx-fech{order:-1}
+  .cg-cxs.cx-flex>.cg-cx.cx-fech,.cg-cxs.cx-flex.flx-fech>.fpe-flx{order:-1}
+  .cg-cxs.cx-flex.flx-fech>.fpe-flx{flex:0 0 40px !important;max-width:40px;min-height:200px;display:flex;flex-direction:column}
+  .cg-cxs.cx-flex.flx-fech>.fpe-flx>.cg-cx-h{flex:1 1 auto;border-bottom:none !important}
+  .cg-cx.cx-fech{box-sizing:border-box}
+  .cg-cxs.cx-flex>.cg-cx.cx-fech,.cg-cxs.cx-flex.flx-fech>.fpe-flx{align-self:stretch !important;height:auto !important}
   .cg-cx.cx-fech>.cg-cx-h{flex:1 1 auto}
   .cg-cx.cx-fech>.cg-cx-b,.cg-cx.cx-fech>*:not(.cg-cx-h){display:none !important}
   .cg-cx.cx-fech>.cg-cx-h{flex-direction:column-reverse !important;align-items:center !important;justify-content:flex-end !important;gap:12px;padding:10px 0 !important;height:100%;box-sizing:border-box;cursor:pointer;border-bottom:none !important}
   .cg-cx.cx-fech>.cg-cx-h>div:first-child{writing-mode:vertical-rl;transform:rotate(180deg);flex:0 0 auto !important;display:flex;gap:4px;align-items:center}
   .cg-cx.cx-fech>.cg-cx-h>div:first-child>div{margin:0 !important;overflow:visible !important}
-  .cg-cx.cx-fech>.cg-cx-h>*:not(:first-child):not(.cg-cx-ic){display:none !important}
+  .cg-cx.cx-fech>.cg-cx-h>*:not(:first-child):not(.cx-tg){display:none !important}
 </style>
 <script>
 (function(){
   const LS='sego-flx-fechado';
   const fechado=()=>{ try{ return localStorage.getItem(LS)==='1'; }catch(e){ return false; } };
   window.segoFlxToggle=function(){ try{ localStorage.setItem(LS,fechado()?'0':'1'); }catch(e){} segoFlxApply(); if(window.segoPosCtx) segoPosCtx(); };
+  window.segoFlxSet=function(f){ if(!document.querySelector('.cg-fpe>.fpe-flx')) return; try{ localStorage.setItem(LS,f?'1':'0'); }catch(e){} };
   window.segoFlxApply=function(){
     document.querySelectorAll('.cg-fpe').forEach(g=>{
       if(!g.querySelector(':scope>.fpe-flx')) return;
@@ -1515,6 +1527,13 @@ window.addEventListener('DOMContentLoaded',()=>{ if(pwaStandalone()){ const b=do
         if(o){ const m=o.obraMaeId?(DB.obras||[]).find(x=>x.id===o.obraMaeId):null; const e=(m&&m.estado==='Concluída')?'Concluída':o.estado;
           est={'Concluída':'o-concl','Suspensa':'o-susp','Em Preparação':'o-prep'}[e]||''; } }
       if(app&&app.dataset.est!==est){ ['o-concl','o-susp','o-prep'].forEach(c=>app.classList.remove(c)); if(est) app.classList.add(est); app.dataset.est=est; } }catch(e){}
+    try{ // Recolher tudo / Mostrar tudo (cartões recolhíveis da página)
+      let nc=document.getElementById('nav-cx'); const nr=document.querySelector('.navbar .nav-right');
+      if(!nc&&nr){ nc=document.createElement('div'); nc.id='nav-cx'; nc.style.display='none';
+        nc.innerHTML='<button type="button" class="on-at" title="Recolher todos os cartões" onclick="segoCxTodos(1)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 6l-6 6 6 6M19 6l-6 6 6 6"/></svg></button><button type="button" class="on-at" title="Mostrar todos os cartões" onclick="segoCxTodos(0)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6l6 6-6 6M13 6l6 6-6 6"/></svg></button>';
+        nr.insertBefore(nc,nr.firstChild); }
+      if(nc){ const tem=!!document.querySelector('#app .cg-cx[data-cx]'); nc.style.display=tem?'flex':'none';
+        const ga=document.getElementById('nav-adm'), dv=document.getElementById('ver-dev'), ref=ga&&ga.parentNode===nr?ga:(dv&&dv.parentNode===nr?dv:null); if(ref&&nc.nextSibling!==ref) nr.insertBefore(nc,ref); } }catch(e){}
     if(window.segoPosCtx) segoPosCtx();
   };
   window.addEventListener('resize',()=>{ clearTimeout(window.__rszT); window.__rszT=setTimeout(()=>{ try{ sync(); }catch(e){} },120); });
@@ -12343,7 +12362,9 @@ function cgOrdemIA(cards){ const sig=c=>{ const m=c.match(/font-weight:700[^"]*"
   const ord=['IDE','CAR','PZO','PRO','VAL'], usados=new Set(); let h='';
   ord.forEach(k=>{ if(k==='_'){ h+='<div class="cg-esp"></div>'; return; } const c=cards.find(x=>sig(x)===k); if(c){ h+=c; usados.add(c); } });
   cards.forEach(c=>{ if(!usados.has(c)) h+=c; }); return h; }
-/* TESTE: cartões recolhíveis (todos) — recolhido = faixa vertical; a vista recompõe-se com os abertos */
+/* Cartões recolhíveis (todos) — recolhido = faixa vertical; a vista recompõe-se com os abertos.
+   O ícone decorativo do cartão dá lugar ao botão de recolher; os botões próprios (+, PDF, anexos) ficam imediatamente à esquerda. */
+function segoCxBtn(k){ return `<button type="button" class="cg-cx-ic cx-tg" title="Recolher / abrir o cartão" onclick="event.stopPropagation();segoCxToggle('${k}')" ondblclick="event.stopPropagation()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button>`; }
 let SEGO_CX_FECH=null;
 function segoCxFech(){ if(!SEGO_CX_FECH){ try{ SEGO_CX_FECH=new Set(JSON.parse(localStorage.getItem('sego-cx-fech')||'[]')); }catch(e){ SEGO_CX_FECH=new Set(); } } return SEGO_CX_FECH; }
 window.segoCxToggle=function(k){ const f=segoCxFech(); f.has(k)?f.delete(k):f.add(k); try{ localStorage.setItem('sego-cx-fech',JSON.stringify([...f])); }catch(e){}
@@ -12354,13 +12375,18 @@ window.segoCxApply=function(){ if(window.segoFlxApply) segoFlxApply();
   document.querySelectorAll('#app .cg-cxs').forEach(g=>{ const tem=!!g.querySelector(':scope>.cg-cx.cx-fech');
     g.classList.remove('cx-flex'); g.querySelectorAll(':scope>.cg-cx').forEach(c=>{ c.style.removeProperty('flex'); c.classList.remove('cx-larga'); });
     if(!tem) return;
-    const W=g.clientWidth, ab=[...g.querySelectorAll(':scope>.cg-cx:not(.cx-fech)')].map(c=>[c,c.getBoundingClientRect().width]);
+    const W=g.clientWidth, ab=[...g.querySelectorAll(':scope>.cg-cx:not(.cx-fech)')].filter(c=>!(g.classList.contains('flx-fech')&&c.classList.contains('fpe-flx'))).map(c=>[c,c.getBoundingClientRect().width]);
     ab.forEach(([c,w])=>{ if(w>=W*0.95) c.classList.add('cx-larga'); else c.style.flex=(w/100).toFixed(2)+' 1 '+Math.round(w)+'px'; });
     g.classList.add('cx-flex'); });
   if(window.cgRealinhar) cgRealinhar(); };
 (function(){ const app=document.getElementById('app'); if(!app) return; let t=null;
   new MutationObserver(()=>{ if(t) return; t=requestAnimationFrame(()=>{ t=null; if(document.querySelector('#app .cg-cx.cx-fech')||document.querySelector('#app .cg-cxs.cx-flex')) segoCxApply(); }); }).observe(app,{childList:true});
   window.addEventListener('resize',()=>{ clearTimeout(window.__cxT); window.__cxT=setTimeout(()=>{ if(document.querySelector('#app .cg-cx.cx-fech')) segoCxApply(); },150); }); })();
+window.segoCxTodos=function(fechar){ const f=segoCxFech(), ks=[...new Set([...document.querySelectorAll('#app .cg-cx[data-cx]')].map(c=>c.dataset.cx))];
+  ks.forEach(k=>fechar?f.add(k):f.delete(k)); try{ localStorage.setItem('sego-cx-fech',JSON.stringify([...f])); }catch(e){}
+  document.querySelectorAll('#app .cg-cx[data-cx]').forEach(c=>c.classList.toggle('cx-fech',f.has(c.dataset.cx)));
+  if(window.segoFlxSet) segoFlxSet(!!fechar);
+  segoCxApply(); if(window.segoPosCtx) segoPosCtx(); };
 window.segoCxAbrirTodos=function(){ SEGO_CX_FECH=new Set(); try{ localStorage.setItem('sego-cx-fech','[]'); }catch(e){} document.querySelectorAll('.cg-cx.cx-fech').forEach(c=>c.classList.remove('cx-fech')); segoCxApply(); };
 function cgCartao(sig,titulo,corpo,ic,extra,cls){ const [c,bg,p]=CG_IC[ic||sig]||CG_IC.DOC;
   if(sig==='FLX'&&/fpe-flx/.test(cls||'')){ const h=cgCartaoBase(sig,titulo,corpo,ic,extra,cls);
@@ -12368,7 +12394,7 @@ function cgCartao(sig,titulo,corpo,ic,extra,cls){ const [c,bg,p]=CG_IC[ic||sig]|
   return cgCartaoBase(sig,titulo,corpo,ic,extra,cls); }
 function cgCartaoBase(sig,titulo,corpo,ic,extra,cls){ const [c,bg,p]=CG_IC[ic||sig]||CG_IC.DOC;
   const k=String(sig).replace(/[^A-Za-z0-9_-]/g,''), fl=!/fpe-flx/.test(cls||'')&&k, fe=fl&&segoCxFech().has(k);
-  return `<div class="cg-cx ${cls||''}${fe?' cx-fech':''}" ${fl?`data-cx="${k}"`:''}><div class="cg-cx-h cg-cab" ${fl?`onclick="if(this.parentNode.classList.contains('cx-fech'))segoCxToggle('${k}')"`:''}><div style="min-width:0;flex:1"><div style="font-weight:700;color:rgba(255,255,255,.7);margin-bottom:3px">${sig}</div><div style="color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${titulo}">${titulo}</div></div>${extra||''}<div class="cg-cx-ic${fl?' cx-tg':''}" ${fl?`title="Recolher / abrir o cartão" onclick="event.stopPropagation();segoCxToggle('${k}')" ondblclick="event.stopPropagation()"`:'aria-hidden="true"'}><svg width="14" height="14" viewBox="0 0 48 48" fill="none">${p.replace(/"C"/g,'"currentColor"')}</svg></div></div><div class="cg-cx-b">${corpo}</div></div>`; }
+  return `<div class="cg-cx ${cls||''}${fe?' cx-fech':''}" ${fl?`data-cx="${k}"`:''}><div class="cg-cx-h cg-cab" ${fl?`onclick="if(this.parentNode.classList.contains('cx-fech'))segoCxToggle('${k}')"`:''}><div style="min-width:0;flex:1"><div style="font-weight:700;color:rgba(255,255,255,.7);margin-bottom:3px">${sig}</div><div style="color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${titulo}">${titulo}</div></div>${extra||''}<div class="cg-cx-ic" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 48 48" fill="none">${p.replace(/"C"/g,'"currentColor"')}</svg></div>${fl?segoCxBtn(k):''}</div><div class="cg-cx-b">${corpo}</div></div>`; }
 function cgNavTpl(o,atual,botoes){ const mae=cgMae(o);
   const sg=mae?`${esc(mae.sigla||'')} · ${esc(o.sigla||'')}`:esc(o.sigla||'');
   const meio=(botoes||'')||(atual&&!o.comFases?CG_ATALHOS.map(([k,t])=>`<button class="on-at ${atual===k?'on':''}" title="${t}" onclick="${k==='CO'?`cgAbrirCO('${o.id}')`:`cgAbrir('${o.id}','${k}')`}">${CG_AT_IC[k]}</button>`).join(''):'');
@@ -13252,9 +13278,10 @@ function renderCOPanel(o){
     }
     const cor=m.grp==='seg'?'#A32D2D':'#185FA5', cbg=m.grp==='seg'?'#FCEBEB':'#E6F1FB';
     const tit=m.label||CO_TIT[m.key]||m.sigla;
-    return `<div class="cg-cx co-cx ${m.grp}" onclick="${onclick}"${_oc?' style="opacity:.55;border-style:dashed" title="Oculto para os utilizadores desta obra (só o Superadmin vê)"':''}>
+    const kc='co-'+String(m.key).replace(/[^A-Za-z0-9_-]/g,''), fe=segoCxFech().has(kc);
+    return `<div class="cg-cx co-cx ${m.grp}${fe?' cx-fech':''}" data-cx="${kc}" onclick="if(this.classList.contains('cx-fech')){segoCxToggle('${kc}');return;}${onclick}"${_oc?' style="opacity:.55;border-style:dashed" title="Oculto para os utilizadores desta obra (só o Superadmin vê)"':''}>
       <div class="cg-cx-h cg-cab"><div style="min-width:0;flex:1"><div style="font-weight:700;color:rgba(255,255,255,.7);margin-bottom:3px">${m.sigla}${_oc?' <span style="font-weight:700;color:#FFD0CC">OCULTO</span>':''}</div><div style="color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${tit}">${tit}</div></div>
-        <span class="co-cnt" id="co-cnt-${m.key}" hidden>${cntHtml}</span><button type="button" class="cg-cx-ic co-mais" title="Novo ${m.sigla}" onclick="event.stopPropagation();coNovo(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button></div>
+        <span class="co-cnt" id="co-cnt-${m.key}" hidden>${cntHtml}</span><button type="button" class="cg-cx-ic co-mais" title="Novo ${m.sigla}" onclick="event.stopPropagation();coNovo(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>${segoCxBtn(kc)}</div>
       <div class="cg-cx-b" id="co-rec-${m.key}">${coPad(recHtml)}</div>
     </div>`;
   }).join('');
