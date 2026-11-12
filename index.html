@@ -314,7 +314,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.12.1956</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.12.2002</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -1086,6 +1086,7 @@ window.segoTema=function(){
   table.pm-cx .pm-fn{color:var(--text-muted);margin-left:8px}
   table.pm-cx tr.pm-u:hover td{background:rgba(127,140,160,.08)}
   .pm-alt{color:var(--nav-bd);font-weight:700;background:rgba(227,153,86,.10)}
+  .pm-pad{color:#2563EB;font-weight:700;background:rgba(37,99,235,.07)}   /* vem do Padrão (todas as obras) */
   td.pm-lock{color:var(--text-muted);cursor:default !important}
   tr.pm-g td{font-weight:700 !important;background:rgba(127,140,160,.10);text-align:left}
   .cg-ranx{height:auto !important;min-height:22px}
@@ -12860,7 +12861,13 @@ function segoNotifFinal(m,d,o,base,ccExtra){
   const para=(r.para.length||temOv)?uniq(r.para):base, pl=new Set(para.map(low));
   return {para,cc:uniq([...r.cc.filter(e=>!(M.exclRem&&low(e)===eu)),...(ccExtra||[])]).filter(e=>!pl.has(low(e)))};
 }
-function permRegras(oid,m){ const r=(DB.permissoes||[]).find(x=>String(x.obra_id)===String(oid)&&x.modulo===m); let g=r?r.regras:{}; if(typeof g==='string'){ try{ g=JSON.parse(g); }catch(e){ g={}; } } g=g||{}; g.perm=g.perm||{}; g.notif=g.notif||{}; return g; }
+function permRaw(oid,m){ const r=(DB.permissoes||[]).find(x=>String(x.obra_id)===String(oid)&&x.modulo===m); let g=r?r.regras:{}; if(typeof g==='string'){ try{ g=JSON.parse(g); }catch(e){ g={}; } } g=JSON.parse(JSON.stringify(g||{})); g.perm=g.perm||{}; g.notif=g.notif||{}; return g; }
+/* Padrão (obra_id '_padrao'): exceções que valem para todas as obras; cada obra pode depois ter as suas, por cima */
+const PERM_PAD='_padrao';
+function permRegras(oid,m){ const o=permRaw(oid,m); if(String(oid)===PERM_PAD) return o; const p=permRaw(PERM_PAD,m);
+  const perm={}; Object.keys(p.perm).forEach(u=>perm[u]={...p.perm[u]}); Object.keys(o.perm).forEach(u=>perm[u]={...(perm[u]||{}),...o.perm[u]});
+  const notif={}; [...new Set([...Object.keys(p.notif),...Object.keys(o.notif)])].forEach(e=>notif[e]={...(p.notif[e]||{}),...(o.notif[e]||{})});
+  return {perm,notif}; }
 function permPessoasObra(o){ if(!o) return [];
   const listas=['intervenientes_do','intervenientes_fisc','intervenientes_emp','intervenientes_proj','intervenientes_eq'].flatMap(k=>(o[k]||[]).map(String));
   const ref=u=>u.role==='superadmin'||u.obras==='todas'||(Array.isArray(u.obras)&&u.obras.some(x=>[String(o.id),String(o.codigo||''),String(o.sigla||'')].includes(String(x))))||listas.includes(String(u.id));
@@ -12903,9 +12910,10 @@ function segoOrdenarPessoas(us,oid){ const ord=segoOrdemObra(oid), ix=u=>{ const
 function renderPermissoes(app){
   if(!peESuper()){ app.innerHTML='<div class="cg-bloco">Apenas o Superadmin.</div>'; return; }
   const obras=(DB.obras||[]).filter(o=>!o.comFases&&(permConcl||o.estado!=='Concluída')).slice().sort((a,b)=>String(a.codigo||'').localeCompare(String(b.codigo||'')));
-  if((!permObraId||!obras.some(x=>String(x.id)===String(permObraId)))&&obras.length) permObraId=obras[0].id;
-  const o=obras.find(x=>String(x.id)===String(permObraId))||null, M=PERM_MOD[permMod], g=permRegras(permObraId,permMod);
-  const pes=permPessoasObra(o);
+  const PAD=String(permObraId)===PERM_PAD;
+  if(!PAD&&(!permObraId||!obras.some(x=>String(x.id)===String(permObraId)))) permObraId=PERM_PAD;
+  const o=obras.find(x=>String(x.id)===String(permObraId))||null, M=PERM_MOD[permMod], g=permRaw(permObraId,permMod);   // g = só as exceções deste âmbito
+  const pes=String(permObraId)===PERM_PAD?(DB.utilizadores||[]).filter(u=>u.ativo!==false):permPessoasObra(o);   // Padrão: todos os utilizadores ativos
   const nAlt=Object.values(g.perm).reduce((n,x)=>n+Object.keys(x).length,0)+Object.values(g.notif).reduce((n,x)=>n+Object.keys(x).length,0);
   // colunas agrupadas por estado: em cada estado, primeiro a Notificação (ao entrar no estado), depois as ações
   const est=[...(M.ordem||[])]; M.acoes.forEach(a=>{ if(!est.includes(a[0])) est.push(a[0]); }); M.notif.forEach(n=>{ if(!est.includes(n[1])) est.push(n[1]); });
@@ -12918,11 +12926,14 @@ function renderPermissoes(app){
   const linha=(u,gi)=>{ const sa=u.role==='superadmin', uid=String(u.id);
     const cel=cols.map(c=>{
       if(c.t==='a'){ const a=c.a; if(sa) return `<td class="pm-c pm-lock" title="Superadmin: acesso total">✓</td>`;
-        const d0=M.def(u,a), dv=d0==='int'?'int':!!d0, ov=(g.perm[uid]||{})[a], v=typeof ov==='boolean'?ov:dv, alt=typeof ov==='boolean';
+        const B=permBaseA(M,u,a,permObraId,permMod), dv=B.v, ov=(g.perm[uid]||{})[a], v=typeof ov==='boolean'?ov:dv, alt=typeof ov==='boolean';
+        if(!alt&&B.pad) return `<td class="pm-c pm-pad" onclick="permToggle('${uid}','${a}')" title="Do Padrão (todas as obras) — clique para mudar só nesta obra">${v?'✓':'✗'}</td>`;
         if(v==='int') return `<td class="pm-c pm-def" onclick="permToggle('${uid}','${a}')" title="Regra de origem: pode quem interveio no documento — clique para mudar (Sempre → Nunca → origem)">Interveio</td>`;
-        return `<td class="pm-c ${alt?'pm-alt':'pm-def'}" onclick="permToggle('${uid}','${a}')" title="${alt?'Alterado (origem: '+(dv==='int'?'quem interveio':(dv?'Sim':'Não'))+') — clique para mudar':'Regra de origem — clique para mudar'}">${v?'✓':'✗'}</td>`; }
-      const es=c.es, dv=permDefNotif(M,u,es), ovm=g.notif[es]||{}, alt=(uid in ovm), v=alt?ovm[uid]:dv;
-      return `<td class="pm-c ${alt?'pm-alt':'pm-def'}" onclick="permNotif('${uid}','${es}')" title="${alt?'Alterado (origem: '+({para:'To',cc:'Cc',esc:'To, se for o escolhido no documento'}[dv]||'Não recebe')+')':(v==='esc'?'Regra de origem: recebe (To) quando é o escolhido no documento':'Regra de origem')} — clique: To → Cc → Não recebe (✗)">${({para:'To',cc:'Cc',esc:'To*'}[v]||'✗')}</td>`; }).join('');
+        return `<td class="pm-c ${alt?'pm-alt':'pm-def'}" onclick="permToggle('${uid}','${a}')" title="${alt?'Alterado'+(String(permObraId)===PERM_PAD?' no Padrão':' nesta obra')+' (base: '+(dv==='int'?'quem interveio':(dv?'Sim':'Não'))+') — clique para mudar':'Regra de origem — clique para mudar'}">${v?'✓':'✗'}</td>`; }
+      const es=c.es, BN=permBaseN(M,u,es,permObraId,permMod), dv=BN.v, ovm=g.notif[es]||{}, alt=(uid in ovm), v=alt?ovm[uid]:dv;
+      if(!alt&&BN.pad) return `<td class="pm-c pm-pad" onclick="permNotif('${uid}','${es}')" title="Do Padrão (todas as obras) — clique para mudar só nesta obra">${({para:'To',cc:'Cc',esc:'To*'}[v]||'✗')}</td>`;
+      return `<td class="pm-c ${alt?'pm-alt':'pm-def'}" onclick="permNotif('${uid}','${es}')" title="${alt?'Alterado'+(String(permObraId)===PERM_PAD?' no Padrão':' nesta obra')+' (base: '+({para:'To',cc:'Cc',esc:'To, se for o escolhido no documento'}[dv]||'Não recebe')+')':(v==='esc'?'Regra de origem: recebe (To) quando é o escolhido no documento':'Regra de origem')} — clique: To → Cc → Não recebe (✗)">${({para:'To',cc:'Cc',esc:'To*'}[v]||'✗')}</td>`; }).join('');
+    if(String(permObraId)===PERM_PAD) return `<tr class="pm-u"><td class="pm-nome" title="${esc(u.nome||'')}${u.funcao?' · '+esc(u.funcao):''} · ${esc(u.email||'')}">${esc(u.nome||'')}</td>${cel}</tr>`;
     return `<tr class="pm-u" draggable="true" ondragstart="permDragIni(event,'${uid}',${gi})" ondragover="permDragSobre(event,${gi})" ondragleave="this.classList.remove('pm-over-t','pm-over-b')" ondrop="permDragLargar(event,'${uid}',${gi})" ondragend="permDragFim()">
       <td class="pm-nome" title="${esc(u.nome||'')}${u.funcao?' · '+esc(u.funcao):''} · ${esc(u.email||'')} — arraste para ordenar"><span class="pm-h">⠿</span>${esc(u.nome||'')}</td>${cel}</tr>`; };
   permOrdemAtual=[];
@@ -12933,7 +12944,7 @@ function renderPermissoes(app){
   const corpo=PERM_GRUPOS.map(([t,f],gi)=>{ const us=segoOrdenarPessoas(pes.filter(f),permObraId); if(!us.length) return '';
     us.forEach(u=>permOrdemAtual.push(String(u.id))); const [sg,ic]=PCX[t]||['OUT','OUTR'];
     return cgCartao(sg,t+' ('+us.length+')',`<table class="pm-tbl pm-cx">${cgp}${cabC}<tbody>${us.map(u=>linha(u,gi)).join('')}</tbody></table>`,ic,'','cg-int pm-card'); }).join('');
-  const nav=`<template id="obra-nav-tpl"><select class="nv-sel" title="Obra" onchange="permObraId=this.value;permRender()">${obras.map(x=>`<option value="${esc(x.id)}" ${String(x.id)===String(permObraId)?'selected':''}>${esc((x.codigo||'')+' · '+(x.sigla||'')+' — '+(x.nome||''))}</option>`).join('')}</select></template>
+  const nav=`<template id="obra-nav-tpl"><select class="nv-sel" title="Obra" onchange="permObraId=this.value;permRender()"><option value="${PERM_PAD}" ${String(permObraId)===PERM_PAD?'selected':''}>★ Padrão — Todas as Obras</option>${obras.map(x=>`<option value="${esc(x.id)}" ${String(x.id)===String(permObraId)?'selected':''}>${esc((x.codigo||'')+' · '+(x.sigla||'')+' — '+(x.nome||''))}</option>`).join('')}</select></template>
   <template id="obra-mid-tpl">${Object.keys(PERM_MOD).map(k=>`<button class="on-at txt ${k===permMod?'on':''}" title="${esc(PERM_MOD[k].rot)}" onclick="permMod='${k}';permRender()">${PERM_MOD[k].sig||k.toUpperCase()}</button>`).join('')}
     <span class="nv-dir"></span>${nAlt?`<button class="on-at nv-b" title="Repor as regras de origem (${nAlt} alteração(ões) nesta obra)" onclick="permRepor()">${NV_IC.repor}<b class="nv-bdg">${nAlt}</b></button>`:''}<button class="on-at ${permConcl?'on':''}" title="${permConcl?'A mostrar também as obras concluídas — clique para esconder':'Mostrar também as obras concluídas'}" onclick="permConcl=!permConcl;permRender()">${NV_IC.concl}</button>
     </template>`;
@@ -12966,16 +12977,21 @@ async function permGravar(g,mod){ mod=mod||permMod; const id=permObraId+'|'+mod;
        else await sb.post('obra_permissoes',reg); }
   catch(e){ const j=DB.permissoes.indexOf(reg); if(j>=0){ if(ant) DB.permissoes[j]=ant; else DB.permissoes.splice(j,1); }
     alert('Erro ao gravar as permissões: '+(e.message||e)); permRender(); } }
-window.permToggle=function(uid,a){ const u=(DB.utilizadores||[]).find(x=>String(x.id)===uid); if(!u) return; const M=PERM_MOD[permMod], g=permRegras(permObraId,permMod);
-  const d0=M.def(u,a), dv=d0==='int'?'int':!!d0, cur=g.perm[uid]&&typeof g.perm[uid][a]==='boolean'?g.perm[uid][a]:dv;
+/* valor de base de uma célula no âmbito em edição: na obra = Padrão (se houver) ou regra de origem; no Padrão = regra de origem */
+function permBaseA(M,u,a,oid,m){ const d0=M.def(u,a), dv=d0==='int'?'int':!!d0; if(String(oid)===PERM_PAD) return {v:dv,pad:false};
+  const p=(permRaw(PERM_PAD,m).perm[String(u.id)]||{})[a]; return typeof p==='boolean'?{v:p,pad:true,orig:dv}:{v:dv,pad:false}; }
+function permBaseN(M,u,es,oid,m){ const dv=permDefNotif(M,u,es); if(String(oid)===PERM_PAD) return {v:dv,pad:false};
+  const pm=permRaw(PERM_PAD,m).notif[es]||{}; return (String(u.id) in pm)?{v:pm[String(u.id)],pad:true,orig:dv}:{v:dv,pad:false}; }
+window.permToggle=function(uid,a){ const u=(DB.utilizadores||[]).find(x=>String(x.id)===uid); if(!u) return; const M=PERM_MOD[permMod], g=permRaw(permObraId,permMod);
+  const dv=permBaseA(M,u,a,permObraId,permMod).v, cur=g.perm[uid]&&typeof g.perm[uid][a]==='boolean'?g.perm[uid][a]:dv;
   const nv=dv==='int'?(cur==='int'?true:(cur===true?false:'int')):!cur;
   g.perm[uid]=g.perm[uid]||{}; if(nv===dv) delete g.perm[uid][a]; else g.perm[uid][a]=nv; if(!Object.keys(g.perm[uid]).length) delete g.perm[uid];
   permGravar(g); };
-window.permNotif=function(uid,es){ const u=(DB.utilizadores||[]).find(x=>String(x.id)===uid); if(!u) return; const M=PERM_MOD[permMod], g=permRegras(permObraId,permMod);
-  const dv=permDefNotif(M,u,es), m=g.notif[es]=g.notif[es]||{}, cur=(uid in m)?m[uid]:dv, ord=['para','cc',''], nv=ord[(ord.indexOf(cur)+1)%3];
+window.permNotif=function(uid,es){ const u=(DB.utilizadores||[]).find(x=>String(x.id)===uid); if(!u) return; const M=PERM_MOD[permMod], g=permRaw(permObraId,permMod);
+  const dv=permBaseN(M,u,es,permObraId,permMod).v, m=g.notif[es]=g.notif[es]||{}, cur=(uid in m)?m[uid]:dv, ord=['para','cc',''], nv=ord[(ord.indexOf(cur)+1)%3];
   if(nv===dv) delete m[uid]; else m[uid]=nv; if(!Object.keys(m).length) delete g.notif[es];
   permGravar(g); };
-window.permRepor=function(){ if(!confirm('Repor as regras de origem deste módulo nesta obra?')) return; permGravar({perm:{},notif:{}}); };
+window.permRepor=function(){ if(!confirm(String(permObraId)===PERM_PAD?'Repor as regras de origem no Padrão deste módulo (vale para todas as obras)?':'Repor este módulo nesta obra (volta ao Padrão)?')) return; permGravar({perm:{},notif:{}}); };
 /* ===================== Obra concluída → intervenientes inativos ===================== */
 /* Regra: quem é externo (DO, Empreiteiro, Projetista, Outros) e fica sem nenhuma obra em curso passa a Inativo (deixa de entrar).
    Fiscalização e Superadmin nunca passam a inativos: só "perdem" a obra enquanto ativa. A associação à obra fica (histórico). */
