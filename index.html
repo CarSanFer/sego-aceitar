@@ -314,7 +314,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.12.0836</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.12.0915</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -1281,6 +1281,7 @@ window.segoTema=function(){
   #nav-ctx #nav-obra{margin:0 !important}
   #nav-ctx #nav-obras{margin:0 !important}
   #nav-ords{align-items:center;gap:6px;margin-left:18px;margin-right:auto !important}
+  #nav-ords.abs{position:absolute;top:50%;transform:translateY(-50%);margin:0 !important}
   #nav-obras-est{min-width:110px}
   @media (max-width:900px){ #nav-ctx{flex:0 0 auto;margin-left:8px} #nav-obras-est{min-width:0;width:88px} #nav-ords{margin-right:0 !important;margin-left:10px} #nav-obras-qbox{min-width:80px !important} }
   #nav-ctx #nav-acoes{margin:0 0 0 10px !important}
@@ -1296,7 +1297,8 @@ window.segoTema=function(){
     const nlo=document.getElementById('nav-obras');
     const ncx=document.getElementById('nav-cx');
     const vis=(nob&&nob.style.display==='flex'&&nob.innerHTML.trim())||(na&&na.style.display==='flex')||(nlo&&nlo.style.display==='flex')||(ncx&&ncx.style.display==='flex');
-    const limpaMid=()=>['nav-obra-mid','nav-obras-qbox'].forEach(id=>{ const m0=document.getElementById(id); if(m0){ m0.style.removeProperty('left'); m0.style.removeProperty('width'); } });
+    const nord=document.getElementById('nav-ords'), lista=!!app.querySelector('#obras-lista-mark'), nvl=nv.getBoundingClientRect().left;
+    const limpaMid=()=>{ ['nav-obra-mid','nav-obras-qbox'].forEach(id=>{ const m0=document.getElementById(id); if(m0){ m0.style.removeProperty('left'); m0.style.removeProperty('width'); } }); if(nord){ nord.classList.remove('abs'); nord.style.removeProperty('left'); } };
     if(!vis||window.innerWidth<=900){ cx.classList.remove('abs'); limpaMid(); return; }
     // sonda invisível com a grelha de cards da obra (fora do #app, para não disparar observadores)
     if(!pr){ pr=document.createElement('div'); pr.id='nav-sonda'; pr.setAttribute('aria-hidden','true');
@@ -1310,15 +1312,20 @@ window.segoTema=function(){
     const hd=k[1].querySelector('.cg-cx-h'), ic=k[1].querySelector('.cg-cx-ic');
     const inL=hd?(hd.firstElementChild.getBoundingClientRect().left-r2.left):0, inR=ic?(r2.right-ic.getBoundingClientRect().right):0;
     if(Math.abs(r2.top-r1.top)>1||r2.left<=r1.left){ cx.classList.remove('abs'); limpaMid(); return; }   // uma só coluna: fica no fluxo normal
-    const x=Math.round(r2.left+inL-nv.getBoundingClientRect().left);
-    cx.style.setProperty('--ctx-x',x+'px'); cx.style.setProperty('--ctx-w',(Math.round(r2.right-inR-nv.getBoundingClientRect().left)-x)+'px'); cx.classList.add('abs');
+    // lista de obras: n.º e estado encostados ao limite esquerdo do 2.º cartão; nas obras: início do título do 2.º cartão
+    const x=Math.round((lista?r2.left:r2.left+inL)-nvl);
+    cx.style.setProperty('--ctx-x',x+'px'); cx.style.setProperty('--ctx-w',(Math.round((lista?r2.right:r2.right-inR)-nvl)-x)+'px'); cx.classList.add('abs');
+    // lista de obras: botões de ordenação encostados ao limite direito do 1.º cartão
+    if(nord){ if(lista&&getComputedStyle(nord).display!=='none'){ nord.classList.add('abs'); nord.style.left=Math.round(r1.right-nvl-nord.offsetWidth)+'px'; } else { nord.classList.remove('abs'); nord.style.removeProperty('left'); } }
     // se as ações forem muitas, o nome da obra afasta-se para a direita (nunca se sobrepõem)
     // caixa da obra / pesquisa: centrada no 3.º cartão, com a largura interior dele (do título ao ícone)
     const r3=k[2].getBoundingClientRect(), hd3=k[2].querySelector('.cg-cx-h'), ic3=k[2].querySelector('.cg-cx-ic');
     const tres=Math.abs(r3.top-r2.top)<=1&&r3.left>r2.left;
     const x3=tres?r3.left+(hd3?(hd3.firstElementChild.getBoundingClientRect().left-r3.left):0):0, x3r=tres?r3.right-(ic3?(r3.right-ic3.getBoundingClientRect().right):0):0;
     ['nav-obra-mid','nav-obras-qbox'].forEach(id=>{ const mid=document.getElementById(id); if(!mid) return; mid.style.removeProperty('left'); mid.style.removeProperty('width');
-      if(tres){ mid.style.setProperty('left',Math.round((x3+x3r)/2-nv.getBoundingClientRect().left)+'px','important'); mid.style.setProperty('width',Math.round(x3r-x3)+'px','important'); }
+      if(tres){ const fu=id==='nav-obras-qbox', a3=fu?r3.left:x3; let b3=fu?r3.right:x3r;   // pesquisa da lista: justificada ao 3.º cartão (limite a limite)
+        const nrt=nv.querySelector('.nav-right'), nrL=nrt?nrt.getBoundingClientRect().left:1e9; if(b3>nrL-12) b3=nrL-12;   // nunca por baixo dos botões da direita
+        if(b3-a3>=140){ mid.style.setProperty('left',Math.round((a3+b3)/2-nvl)+'px','important'); mid.style.setProperty('width',Math.round(b3-a3)+'px','important'); } }
       if(getComputedStyle(mid).display!=='none'){ const rc=cx.getBoundingClientRect(), rm=mid.getBoundingClientRect();
         if(rc.right+12>rm.left){ const nl=rc.right+12+rm.width/2-nv.getBoundingClientRect().left; mid.style.setProperty('left',Math.round(nl)+'px','important'); } } });
   };
@@ -1492,7 +1499,7 @@ window.addEventListener('DOMContentLoaded',()=>{ if(pwaStandalone()){ const b=do
     const lbl=bb?((bb.textContent||'Voltar').replace(/^\s*←\s*/,'').trim()||'Voltar'):'';
     const vaiInicio=/^Voltar a Obras$/i.test(lbl);           // na ficha da obra: Voltar = Início → só o botão Início
     nb.style.display=(bb&&!vaiInicio)?'flex':'none'; nb.title=lbl;
-    if(nh){ nh.style.display=bb?'flex':'none'; nh.style.marginRight=(bb&&!vaiInicio)?'0':'auto'; }
+    if(nh){ nh.style.display='flex'; nh.style.marginRight=(bb&&!vaiInicio)?'0':'auto'; }   // Início sempre visível (na lista não faz nada; fica uniforme)
     // dentro da obra: Início · [Voltar ou espaço] · IA DV ID CO … nome da obra no lugar da pesquisa
     const nob=document.getElementById('nav-obra'), nmid=document.getElementById('nav-obra-mid');
     const tpl=document.querySelector('#app #obra-nav-tpl'), tm=document.querySelector('#app #obra-mid-tpl');
