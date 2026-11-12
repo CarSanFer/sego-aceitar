@@ -314,7 +314,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.12.0156</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.12.0213</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -343,9 +343,9 @@ tr.tr-click:hover td{background:#F5F7FA}
   #chat-bubble,#chat-panel{display:none !important}
 </style>
 <style>
-  /* ===== Tipografia única: Calibri 9,5 pt em toda a app (hierarquia só por negrito e cor) ===== */
+  /* ===== Tipografia única: Calibri 8,5 pt em toda a app (hierarquia só por negrito e cor) ===== */
   body, body *:not(svg):not(svg *):not(.nav-logo-text):not(.nav-logo-sub){font-family:Calibri,Carlito,sans-serif !important}
-  body *:not(svg):not(svg *):not(.nav-logo-text):not(.nav-logo-sub):not(#nav-back){font-size:9pt !important}
+  body *:not(svg):not(svg *):not(.nav-logo-text):not(.nav-logo-sub):not(#nav-back){font-size:8.5pt !important}
   .page-title,.ficha-title{font-weight:700 !important}
   /* Rótulos (labels) uniformes em toda a app: cinzento + negrito; valores a preto normal */
   .field-label,.form-label,.ident-label,.kpi-label,.stat-label,.upload-label-txt,.pe-fld label,.pe-fld>.pe-l{color:var(--text-muted) !important;font-weight:700 !important}
@@ -996,13 +996,42 @@ window.segoTema=function(){
   .pm-tab.on{background:var(--nav-bd);color:#fff}
   .pm-brev{color:var(--text-muted);margin-left:6px}
   .pm-leg{display:flex;gap:12px;align-items:center;margin-left:auto}
-  .pm-tab-x{}
-  table.pm-tab th{text-align:center}
-  table.pm-tab td.pm-c{text-align:center;cursor:pointer;width:90px;user-select:none}
+  .pm-bar{position:sticky;top:var(--pm-t,44px);z-index:30;margin-bottom:0 !important;border-radius:var(--radius) var(--radius) 0 0}
+  .pm-wrap{background:var(--bg-card);border:1px solid var(--border-light);border-top:none;border-radius:0 0 var(--radius) var(--radius)}
+  table.pm-tbl{width:auto;border-collapse:separate;border-spacing:0}
+  table.pm-tbl thead{position:sticky;top:var(--pm-th,90px);z-index:20}
+  table.pm-tbl th{text-align:center;vertical-align:middle}
+  table.pm-tbl th.pm-ch{white-space:normal;width:58px;min-width:58px;max-width:58px;line-height:1.15;padding:4px 3px}
+  table.pm-tbl th.pm-nome,table.pm-tbl td.pm-nome{text-align:left;min-width:200px;white-space:nowrap}
+  table.pm-tbl th.pm-func,table.pm-tbl td.pm-func{text-align:left;min-width:150px;white-space:nowrap}
+  table.pm-tbl td.pm-func{color:var(--text-muted)}
+  table.pm-tbl td.pm-c{text-align:center;cursor:pointer;width:58px;min-width:58px;max-width:58px;padding:3px 2px;user-select:none}
+  table.pm-tbl td{font-weight:400 !important}
+  tr.pm-g{cursor:pointer;user-select:none}
+  tr.pm-g:hover td{background:rgba(127,140,160,.18)}
+  .pm-sx{display:inline-block;width:14px;color:var(--nav-bd)}
+  .pm-n{color:var(--text-muted);font-weight:400}
+  .pm-h{cursor:grab;color:var(--text-muted);margin-right:6px;opacity:.55}
+  tr.pm-u:hover .pm-h{opacity:1}
+  tr.pm-drag{opacity:.45}
+  tr.pm-over-t td{box-shadow:inset 0 2px 0 var(--nav-bd)}
+  tr.pm-over-b td{box-shadow:inset 0 -2px 0 var(--nav-bd)}
+  .pm-lk{color:var(--info);cursor:pointer;text-decoration:none}
+  table.ut-tbl{width:100%}
+  table.ut-tbl td{font-weight:400 !important}
+  table.ut-tbl th{text-align:left}
+  table.ut-tbl th.ut-c,table.ut-tbl td.ut-c{text-align:center;width:64px}
+  table.ut-tbl td.ut-m{color:var(--text-muted);white-space:nowrap}
+  table.ut-tbl td.ut-ob{max-width:340px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  table.ut-tbl tr.ut-g{cursor:default}
+  tr.ut-r{cursor:pointer}
+  tr.ut-inat td{opacity:.5}
+  .ut-modal{max-width:760px !important;width:760px}
+  .ut-obs{max-height:260px;overflow:auto;border:1px solid var(--border-light);border-radius:var(--radius);padding:4px 8px;display:flex;flex-direction:column}
+  .ut-ob-i{display:flex;gap:6px;align-items:center;padding:2px 0;cursor:pointer;font-weight:400 !important;color:var(--text) !important}
   .pm-def{color:var(--text-muted)}
   .pm-alt{color:var(--nav-bd);font-weight:700;background:rgba(227,153,86,.10)}
   td.pm-lock{color:var(--text-muted);cursor:default !important}
-  table.pm-tab td{font-weight:400 !important}
   tr.pm-g td{font-weight:700 !important;background:rgba(127,140,160,.10);text-align:left}
   .cg-ranx{height:auto !important;min-height:22px}
   .cg-ranx .cg-rv{white-space:normal !important;overflow:visible !important;display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center}
@@ -12325,14 +12354,15 @@ function renderCardGeral(app){
     // Intervenientes: um cartão por valência (5 por linha, como IA)
     const VAL=[['DO','Dono de Obra','DONO',u=>u.role==='dono_obra'],['FIS','Fiscalização','FISC',u=>u.role==='fiscalizacao'||u.role==='superadmin'],
                ['EMP','Empreiteiro','EMPR',u=>u.role==='empreiteiro'],['PRJ','Projetista','PROJ',u=>u.role==='projetista'],['OUT','Outros','OUTR',u=>u.role==='outros']];
-    VAL.forEach(([sg,tit,ic,f])=>{ const us=DB.utilizadores.filter(u=>f(u)&&doObra(u)&&u.ativo!==false).sort((a,b)=>String(a.nome).localeCompare(String(b.nome)));
+    const temOrdem=segoOrdemObra(o0.id).length>0;   // ordem definida em Definições → Permissões (arrastar)
+    VAL.forEach(([sg,tit,ic,f])=>{ const us=segoOrdenarPessoas(DB.utilizadores.filter(u=>f(u)&&doObra(u)&&u.ativo!==false),o0.id);
       let corpo=us.map(u=>{ const tip=[u.funcao&&('Função: '+u.funcao),u.contacto&&('Contacto: '+u.contacto),u.email&&('Email: '+u.email)].filter(Boolean).join('\n')||'Sem mais dados';
         const val=`<span class="cg-pess" title="${esc(tip)}">${esc(u.nome)}</span>`;
         if(sg==='PRJ'){ // projetistas: a especialidade associada (na obra, ou geral), uma linha por especialidade
           const _eo=(u.obras_especialidades||{})[String(o0.id)]; const esps=((_eo&&_eo.length)?_eo:((u.especialidades&&u.especialidades.length)?u.especialidades:(u.especialidade?[u.especialidade]:[]))).map(c=>{ const e=(DB.especialidades||[]).find(x=>x.codigo===c||x.id===c); return e?e.nome:c; }).filter(Boolean);
           return esps.length?esps.map(e=>cgR(esc(e),val)).join(''):cgR('<span style="font-weight:400;font-style:italic">Sem especialidade</span>',val); }
         return cgR(esc(u.funcao||'Interveniente'),val); }).join('');
-      if(sg==='PRJ'&&us.length){ const rows=corpo.match(/<div class="cg-r">.*?<\/span><\/span><\/div>/g)||[]; const key=r=>{ const m=r.match(/<span class="cg-rl">(.*?)<\/span>/); const t=m?m[1]:''; return [t.indexOf('Sem especialidade')>=0?1:0,t.replace(/<[^>]*>/g,'')]; };
+      if(sg==='PRJ'&&us.length&&!temOrdem){ const rows=corpo.match(/<div class="cg-r">.*?<\/span><\/span><\/div>/g)||[]; const key=r=>{ const m=r.match(/<span class="cg-rl">(.*?)<\/span>/); const t=m?m[1]:''; return [t.indexOf('Sem especialidade')>=0?1:0,t.replace(/<[^>]*>/g,'')]; };
         if(rows.length) corpo=rows.sort((a,b)=>{ const x=key(a),y=key(b); return (x[0]-y[0])||x[1].localeCompare(y[1],'pt'); }).join(''); }
       if(!us.length) corpo=`<div class="cg-r co-semreg"><span class="cg-rl">Sem registos</span><span class="cg-rv"></span></div>`;
       cards.push(cgCartao(sg,tit,corpo,ic,'','cg-int')); });
@@ -12464,6 +12494,7 @@ function renderDefinicoes(app){
   if(!cgPodeEditar()){ defPg=null; render(); return; }
   if(defPg==='entidades') return renderEntidades(app);
   if(defPg==='permissoes') return renderPermissoes(app);
+  if(defPg==='Utilizadores') return renderUtilSego(app);
   app.innerHTML=`<button class="back-btn" onclick="defPg=null;render()">← Voltar</button><div class="cg-bloco"><div class="cg-bt">${esc(defPg)}</div><div style="color:var(--text-muted)">Esta área chega na Fase 3 (Administração). Até lá continua no SID.</div></div>`;
 }
 /* ===================== Permissões e notificações por obra ===================== */
@@ -12471,7 +12502,7 @@ function renderDefinicoes(app){
 const PERM_MOD={
   ptq:{ rot:'PTQ — Plano Quinzenal de Trabalho',
     acoes:[['Rascunho','criar','Criar / Editar'],['Rascunho','enviar','Enviar'],['Enviado','duplicar','Duplicar'],['Enviado','pdf','PDF']],
-    notif:[['enviado','Enviado']],
+    notif:[['enviado','Enviado']],   // [estado, grupo onde aparece a coluna Notificação]
     def:(u,a)=>{ const emp=u.role==='empreiteiro', dobra=emp&&/^\s*dir\.?\s*(de\s+)?obra/i.test(String(u.funcao||''));
       return a==='criar'?emp:a==='enviar'?dobra:a==='duplicar'?emp:a==='pdf'?(emp||u.role==='fiscalizacao'):false; },
     defNotif:(u,est)=>{ if(est!=='enviado') return ''; if(u.role==='fiscalizacao') return segoEhCSO(u)?'cc':'para';
@@ -12491,8 +12522,13 @@ function segoNotifDest(m,est,o){ const M=PERM_MOD[m], g=permRegras(o&&o.id,m), o
   const ord=e=>{ const i=SEGO_CC_DIRECAO.indexOf(String(e).toLowerCase()); return i<0?99:i; };   // CC: Direção primeiro (Tiago, Carlos), depois os restantes (CSO…)
   return {para:[...new Set(para)],cc:[...new Set(cc.filter(e=>!para.includes(e)))].sort((a,b)=>ord(a)-ord(b))}; }
 
-let permObraId=null, permMod='ptq', permConcl=false;
+let permObraId=null, permMod='ptq', permConcl=false, permAbertos=new Set(), permOrdemAtual=[], permDrag=null;
 const PERM_GRUPOS=[['Dono de Obra',u=>u.role==='dono_obra'],['Fiscalização',u=>u.role==='fiscalizacao'||u.role==='superadmin'],['Empreiteiro',u=>u.role==='empreiteiro'],['Projetista',u=>u.role==='projetista'],['Outros',u=>!['dono_obra','fiscalizacao','superadmin','empreiteiro','projetista'].includes(u.role)]];
+/* Ordem dos intervenientes de cada obra (arrastada na página Permissões): obra_permissoes, módulo '_ordem', regras {ordem:[uid…]} */
+function segoOrdemObra(oid){ const r=(DB.permissoes||[]).find(x=>String(x.obra_id)===String(oid)&&x.modulo==='_ordem'); let g=r?r.regras:{}; if(typeof g==='string'){ try{ g=JSON.parse(g); }catch(e){ g={}; } }
+  return (g&&Array.isArray(g.ordem))?g.ordem.map(String):[]; }
+function segoOrdenarPessoas(us,oid){ const ord=segoOrdemObra(oid), ix=u=>{ const k=ord.indexOf(String(u.id)); return k<0?1e6:k; };
+  return us.slice().sort((a,b)=>(ix(a)-ix(b))||String(a.nome||'').localeCompare(String(b.nome||''),'pt')); }
 function renderPermissoes(app){
   if(!peESuper()){ app.innerHTML='<div class="cg-bloco">Apenas o Superadmin.</div>'; return; }
   const obras=(DB.obras||[]).filter(o=>!o.comFases&&(permConcl||o.estado!=='Concluída')).slice().sort((a,b)=>String(a.codigo||'').localeCompare(String(b.codigo||'')));
@@ -12500,30 +12536,52 @@ function renderPermissoes(app){
   const o=obras.find(x=>String(x.id)===String(permObraId))||null, M=PERM_MOD[permMod], g=permRegras(permObraId,permMod);
   const pes=permPessoasObra(o);
   const nAlt=Object.values(g.perm).reduce((n,x)=>n+Object.keys(x).length,0)+Object.values(g.notif).reduce((n,x)=>n+Object.keys(x).length,0);
-  const est=[...new Set(M.acoes.map(a=>a[0]))];
-  const cab1=`<tr><th rowspan="2" style="text-align:left">Interveniente</th><th rowspan="2" style="text-align:left">Função</th>${est.map(e=>`<th colspan="${M.acoes.filter(a=>a[0]===e).length}">${e}</th>`).join('')}<th colspan="${M.notif.length}">Notificação</th></tr>`;
-  const cab2=`<tr>${M.acoes.map(a=>`<th>${a[2]}</th>`).join('')}${M.notif.map(n=>`<th>${n[1]}</th>`).join('')}</tr>`;
-  const linha=u=>{ const sa=u.role==='superadmin', uid=String(u.id);
-    const cel=M.acoes.map(([e,a])=>{ if(sa) return `<td class="pm-c pm-lock" title="Superadmin: acesso total">✓</td>`;
-      const dv=!!M.def(u,a), ov=(g.perm[uid]||{})[a], v=typeof ov==='boolean'?ov:dv, alt=typeof ov==='boolean';
-      return `<td class="pm-c ${alt?'pm-alt':'pm-def'}" onclick="permToggle('${uid}','${a}')" title="${alt?'Alterado (origem: '+(dv?'Sim':'Não')+') — clique para mudar':'Regra de origem — clique para mudar'}">${v?'✓':'✗'}</td>`; }).join('');
-    const nc=M.notif.map(([es])=>{ const dv=M.defNotif(u,es), ovm=g.notif[es]||{}, alt=(uid in ovm), v=alt?ovm[uid]:dv;
+  // colunas agrupadas por estado: em cada estado, primeiro a Notificação (ao entrar no estado), depois as ações
+  const est=[]; M.acoes.forEach(a=>{ if(!est.includes(a[0])) est.push(a[0]); }); M.notif.forEach(n=>{ if(!est.includes(n[1])) est.push(n[1]); });
+  const cols=[]; est.forEach(e=>{ M.notif.filter(n=>n[1]===e).forEach(n=>cols.push({t:'n',es:n[0],rot:'Notificação'})); M.acoes.filter(a=>a[0]===e).forEach(a=>cols.push({t:'a',a:a[1],rot:a[2]})); });
+  const cab1=`<tr><th rowspan="2" class="pm-nome">Interveniente</th><th rowspan="2" class="pm-func">Função</th>${est.map(e=>`<th colspan="${cols.filter(c=>(c.t==='n'?M.notif.find(n=>n[0]===c.es)[1]:M.acoes.find(a=>a[1]===c.a)[0])===e).length}" class="pm-est">${e}</th>`).join('')}</tr>`;
+  const cab2=`<tr>${cols.map(c=>`<th class="pm-ch">${c.rot}</th>`).join('')}</tr>`;
+  const linha=(u,gi)=>{ const sa=u.role==='superadmin', uid=String(u.id);
+    const cel=cols.map(c=>{
+      if(c.t==='a'){ const a=c.a; if(sa) return `<td class="pm-c pm-lock" title="Superadmin: acesso total">✓</td>`;
+        const dv=!!M.def(u,a), ov=(g.perm[uid]||{})[a], v=typeof ov==='boolean'?ov:dv, alt=typeof ov==='boolean';
+        return `<td class="pm-c ${alt?'pm-alt':'pm-def'}" onclick="permToggle('${uid}','${a}')" title="${alt?'Alterado (origem: '+(dv?'Sim':'Não')+') — clique para mudar':'Regra de origem — clique para mudar'}">${v?'✓':'✗'}</td>`; }
+      const es=c.es, dv=M.defNotif(u,es), ovm=g.notif[es]||{}, alt=(uid in ovm), v=alt?ovm[uid]:dv;
       return `<td class="pm-c ${alt?'pm-alt':'pm-def'}" onclick="permNotif('${uid}','${es}')" title="${alt?'Alterado (origem: '+({para:'Para',cc:'CC'}[dv]||'Não recebe')+')':'Regra de origem'} — clique: Para → CC → Não recebe">${({para:'Para',cc:'CC'}[v]||'')}</td>`; }).join('');
-    return `<tr><td style="text-align:left" title="${esc(u.email||'')}">${esc(u.nome||'')}</td><td style="text-align:left;color:var(--text-muted)">${esc(u.funcao||'')}</td>${cel}${nc}</tr>`; };
-  const ncol=2+M.acoes.length+M.notif.length;
-  const corpo=PERM_GRUPOS.map(([t,f])=>{ const us=pes.filter(f).sort((a,b)=>String(a.nome).localeCompare(String(b.nome))); if(!us.length) return '';
-    return `<tr class="pm-g"><td colspan="${ncol}">${t}</td></tr>`+us.map(linha).join(''); }).join('');
+    return `<tr class="pm-u" draggable="true" ondragstart="permDragIni(event,'${uid}',${gi})" ondragover="permDragSobre(event,${gi})" ondragleave="this.classList.remove('pm-over-t','pm-over-b')" ondrop="permDragLargar(event,'${uid}',${gi})" ondragend="permDragFim()">
+      <td class="pm-nome" title="${esc(u.email||'')} — arraste para ordenar"><span class="pm-h">⠿</span>${esc(u.nome||'')}</td><td class="pm-func">${esc(u.funcao||'')}</td>${cel}</tr>`; };
+  const ncol=2+cols.length; permOrdemAtual=[];
+  const corpo=PERM_GRUPOS.map(([t,f],gi)=>{ const us=segoOrdenarPessoas(pes.filter(f),permObraId); if(!us.length) return '';
+    us.forEach(u=>permOrdemAtual.push(String(u.id))); const ab=permAbertos.has(t);
+    return `<tr class="pm-g" onclick="permGrupo('${t}')"><td colspan="${ncol}"><span class="pm-sx">${ab?'▾':'▸'}</span>${t} <span class="pm-n">(${us.length})</span></td></tr>`+(ab?us.map(u=>linha(u,gi)).join(''):''); }).join('');
   app.innerHTML=`<button class="back-btn" onclick="defPg=null;render()">← Voltar</button>
-  <div class="cg-head"><b>Permissões por Obra</b><span style="color:var(--text-muted)">· o que cada interveniente pode fazer e quem é notificado, em cada obra</span></div>
   <div class="cg-bloco pm-bar">
     <label>Obra <select class="form-input" onchange="permObraId=this.value;render()">${obras.map(x=>`<option value="${esc(x.id)}" ${String(x.id)===String(permObraId)?'selected':''}>${esc((x.codigo||'')+' · '+(x.sigla||'')+' — '+(x.nome||''))}</option>`).join('')}</select></label>
     <label class="pm-chk"><input type="checkbox" ${permConcl?'checked':''} onchange="permConcl=this.checked;render()"> Incluir Concluídas</label>
     <span class="pm-tabs">${Object.keys(PERM_MOD).map(k=>`<button class="pm-tab ${k===permMod?'on':''}" onclick="permMod='${k}';render()">${k.toUpperCase()}</button>`).join('')}<span class="pm-brev" title="Os restantes módulos entram à medida que forem revistos">PE · PA · PB · QE · TCm · AM · RSO · RVT · SOS</span></span>
-    <span class="pm-leg"><span class="pm-def">✓ Regra de origem</span><span class="pm-alt">✓ Alterado nesta obra</span>${nAlt?`<button class="btn btn-outline btn-sm" onclick="permRepor()">Repor Origem (${nAlt})</button>`:''}</span>
+    <span class="pm-leg"><a class="pm-lk" onclick="permTodos(${permAbertos.size?0:1})">${permAbertos.size?'Fechar Todos':'Abrir Todos'}</a><span class="pm-def">✓ Regra de origem</span><span class="pm-alt">✓ Alterado nesta obra</span>${nAlt?`<button class="btn btn-outline btn-sm" onclick="permRepor()">Repor Origem (${nAlt})</button>`:''}</span>
   </div>
-  <div class="table-card"><table class="data-table pm-tab"><thead>${cab1}${cab2}</thead><tbody>${corpo||`<tr><td colspan="${ncol}">Sem intervenientes nesta obra.</td></tr>`}</tbody></table></div>`;
+  <div class="pm-wrap"><table class="data-table pm-tbl"><thead>${cab1}${cab2}</thead><tbody>${corpo||`<tr><td colspan="${ncol}">Sem intervenientes nesta obra.</td></tr>`}</tbody></table></div>`;
+  permTopo();
 }
-async function permGravar(g){ const id=permObraId+'|'+permMod; const reg={id,obra_id:String(permObraId),modulo:permMod,regras:g,updated_at:new Date().toISOString(),updated_by:(currentUser&&currentUser.nome)||''};
+function permTopo(){ const nb=document.querySelector('.navbar'), bar=document.querySelector('.pm-bar'); if(!bar) return;
+  const t=nb?Math.round(nb.getBoundingClientRect().height):44; document.documentElement.style.setProperty('--pm-t',t+'px');
+  document.documentElement.style.setProperty('--pm-th',(t+Math.round(bar.getBoundingClientRect().height))+'px'); }
+window.addEventListener('resize',()=>{ if(defPg==='permissoes') permTopo(); });
+window.permGrupo=function(t){ permAbertos.has(t)?permAbertos.delete(t):permAbertos.add(t); render(); };
+window.permTodos=function(abrir){ permAbertos=new Set(abrir?PERM_GRUPOS.map(x=>x[0]):[]); render(); };
+window.permDragIni=function(ev,uid,gi){ permDrag={uid,gi}; ev.dataTransfer.effectAllowed='move'; try{ ev.dataTransfer.setData('text/plain',uid); }catch(e){} ev.currentTarget.classList.add('pm-drag'); };
+window.permDragSobre=function(ev,gi){ if(!permDrag||permDrag.gi!==gi) return; ev.preventDefault(); ev.dataTransfer.dropEffect='move';
+  const tr=ev.currentTarget, r=tr.getBoundingClientRect(), baixo=ev.clientY>r.top+r.height/2;
+  document.querySelectorAll('.pm-over-t,.pm-over-b').forEach(x=>{ if(x!==tr) x.classList.remove('pm-over-t','pm-over-b'); });
+  tr.classList.toggle('pm-over-b',baixo); tr.classList.toggle('pm-over-t',!baixo); };
+window.permDragFim=function(){ permDrag=null; document.querySelectorAll('.pm-drag,.pm-over-t,.pm-over-b').forEach(x=>x.classList.remove('pm-drag','pm-over-t','pm-over-b')); };
+window.permDragLargar=function(ev,uid,gi){ ev.preventDefault(); const d=permDrag, baixo=ev.currentTarget.classList.contains('pm-over-b'); permDragFim();
+  if(!d||d.gi!==gi||d.uid===uid) return;
+  const ord=permOrdemAtual.filter(x=>x!==d.uid); let i=ord.indexOf(uid); if(i<0) return; if(baixo) i++; ord.splice(i,0,d.uid);
+  const ant=segoOrdemObra(permObraId).filter(x=>!ord.includes(x));   // quem saiu da obra fica guardado no fim da lista
+  permGravar({ordem:[...ord,...ant]},'_ordem'); };
+async function permGravar(g,mod){ mod=mod||permMod; const id=permObraId+'|'+mod; const reg={id,obra_id:String(permObraId),modulo:mod,regras:g,updated_at:new Date().toISOString(),updated_by:(currentUser&&currentUser.nome)||''};
   DB.permissoes=DB.permissoes||[]; const i=DB.permissoes.findIndex(x=>x.id===id);
   try{ if(i>=0){ await sb.patch('obra_permissoes',id,{regras:g,updated_at:reg.updated_at,updated_by:reg.updated_by}); DB.permissoes[i]=reg; }
        else{ await sb.post('obra_permissoes',reg); DB.permissoes.push(reg); } }
@@ -12538,6 +12596,86 @@ window.permNotif=function(uid,es){ const u=(DB.utilizadores||[]).find(x=>String(
   if(nv===dv) delete m[uid]; else m[uid]=nv; if(!Object.keys(m).length) delete g.notif[es];
   permGravar(g); };
 window.permRepor=function(){ if(!confirm('Repor as regras de origem deste módulo nesta obra?')) return; permGravar({perm:{},notif:{}}); };
+/* ===================== Utilizadores (gestão no SEGO) ===================== */
+const UT_TIPOS=[['dono_obra','Dono de Obra'],['fiscalizacao','Fiscalização'],['empreiteiro','Empreiteiro'],['projetista','Projetista'],['outros','Outros'],['superadmin','Superadmin']];
+const utTipoL=r=>(UT_TIPOS.find(x=>x[0]===r)||[r,r||''])[1];
+let utQ='', utTipo='', utInat=false, utConcl=false;
+function utObrasLista(){ const mae=id=>(DB.obras||[]).find(x=>x.id===id);
+  return (DB.obras||[]).filter(o=>!o.comFases).map(o=>{ const m=o.obraMaeId?mae(o.obraMaeId):null;
+    return {o,rot:(o.codigo||'')+' · '+(m?(m.sigla||'')+' / ':'')+(o.sigla||'')+' — '+(o.nome||'')}; }).sort((a,b)=>a.rot.localeCompare(b.rot,'pt')); }
+function utObrasTxt(u){ const ids=(Array.isArray(u.obras)?u.obras:[]).map(String);
+  return (DB.obras||[]).filter(o=>ids.includes(String(o.id))).map(o=>{ const m=o.obraMaeId?(DB.obras||[]).find(x=>x.id===o.obraMaeId):null; return (m?(m.sigla||'')+'/':'')+(o.sigla||o.codigo||''); }).sort().join(', '); }
+function renderUtilSego(app){
+  if(!peESuper()){ app.innerHTML='<div class="cg-bloco">Apenas o Superadmin.</div>'; return; }
+  const q=utQ.trim().toLowerCase();
+  const us=(DB.utilizadores||[]).filter(u=>(utInat||u.ativo!==false)&&(!utTipo||u.role===utTipo)&&(!q||[u.nome,u.email,u.funcao,u.contacto,utObrasTxt(u)].join(' ').toLowerCase().includes(q)));
+  const ordT=r=>{ const i=UT_TIPOS.findIndex(x=>x[0]===r); return i<0?99:i; };
+  us.sort((a,b)=>(ordT(a.role)-ordT(b.role))||String(a.nome||'').localeCompare(String(b.nome||''),'pt'));
+  let ult=null; const linhas=us.map(u=>{ let h='';
+    if(u.role!==ult){ ult=u.role; h=`<tr class="pm-g ut-g"><td colspan="8">${esc(utTipoL(u.role))} <span class="pm-n">(${us.filter(x=>x.role===u.role).length})</span></td></tr>`; }
+    const ac=(u.apps||[]).includes('sego'), pw=u.pwd_hash==='definida'||(!!u.pwd_hash&&u.pwd_hash!=='');
+    return h+`<tr class="ut-r${u.ativo===false?' ut-inat':''}" ondblclick="utEditar('${esc(u.id)}')" title="Duplo clique para editar">
+      <td>${esc(u.nome||'')}</td><td class="ut-m">${esc(u.funcao||'')}</td><td class="ut-m">${esc(u.email||'')}</td><td class="ut-m">${esc(u.contacto||'')}</td>
+      <td class="ut-ob" title="${esc(utObrasTxt(u))}">${esc(utObrasTxt(u))}</td>
+      <td class="ut-c" title="${ac?'Pode entrar no SEGO':'Sem acesso ao SEGO'}">${ac?'✓':''}</td><td class="ut-c" title="${pw?'Password definida':'Sem password'}">${pw?'✓':''}</td><td class="ut-c">${u.ativo===false?'':'✓'}</td></tr>`; }).join('');
+  app.innerHTML=`<button class="back-btn" onclick="defPg=null;render()">← Voltar</button>
+  <div class="cg-bloco pm-bar ut-bar">
+    <input class="form-input" placeholder="Pesquisar nome, email, função, obra…" value="${esc(utQ)}" oninput="utQ=this.value;utFiltrar(this)" style="width:280px">
+    <label>Tipo <select class="form-input" onchange="utTipo=this.value;render()"><option value="">Todos</option>${UT_TIPOS.map(([v,l])=>`<option value="${v}" ${utTipo===v?'selected':''}>${l}</option>`).join('')}</select></label>
+    <label class="pm-chk"><input type="checkbox" ${utInat?'checked':''} onchange="utInat=this.checked;render()"> Incluir Inativos</label>
+    <span class="pm-leg"><span class="pm-n">${us.length} utilizador${us.length===1?'':'es'}</span><button class="btn btn-gold btn-sm" onclick="utEditar('')">+ Novo Utilizador</button></span>
+  </div>
+  <div class="pm-wrap"><table class="data-table pm-tbl ut-tbl"><thead><tr><th>Nome</th><th>Função</th><th>Email</th><th>Contacto</th><th>Obras</th><th class="ut-c">SEGO</th><th class="ut-c">Password</th><th class="ut-c">Ativo</th></tr></thead>
+  <tbody>${linhas||'<tr><td colspan="8">Sem utilizadores.</td></tr>'}</tbody></table></div>`;
+  permTopo();
+}
+window.utFiltrar=function(el){ const p=el.selectionStart; render(); const n=document.querySelector('.ut-bar input'); if(n){ n.focus(); try{ n.setSelectionRange(p,p); }catch(e){} } };
+window.utEditar=function(id){ const u=id?(DB.utilizadores||[]).find(x=>String(x.id)===String(id)):null; if(id&&!u) return;
+  const v=u||{role:'empreiteiro',ativo:true,apps:['sego'],obras:[]}; const ids=(v.obras||[]).map(String);
+  const temPw=u&&(u.pwd_hash==='definida'||!!u.pwd_hash);
+  const obs=utObrasLista().map(({o,rot})=>{ const on=ids.includes(String(o.id)); const conc=o.estado==='Concluída';
+    return `<label class="ut-ob-i${conc?' ut-conc':''}" ${conc&&!on&&!utConcl?'style="display:none"':''}><input type="checkbox" class="ut-cb" value="${esc(o.id)}" ${on?'checked':''}> ${esc(rot)}${conc?' <span class="pm-n">(Concluída)</span>':''}</label>`; }).join('');
+  showModal(u?'Editar Utilizador':'Novo Utilizador',`<div class="ut-form">
+    <div class="form-row f2"><div><label class="form-label">Nome *</label><input class="form-input" id="ut-nome" value="${esc(v.nome||'')}"></div><div><label class="form-label">Email *</label><input class="form-input" id="ut-email" type="email" value="${esc(v.email||'')}"></div></div>
+    <div class="form-row f2"><div><label class="form-label">Função</label><input class="form-input" id="ut-func" value="${esc(v.funcao||'')}" placeholder="ex.: Dir. Obra"></div><div><label class="form-label">Contacto</label><input class="form-input" id="ut-cont" value="${esc(v.contacto||'')}"></div></div>
+    <div class="form-row f3"><div><label class="form-label">Tipo</label><select class="form-input" id="ut-tipo">${UT_TIPOS.map(([k,l])=>`<option value="${k}" ${v.role===k?'selected':''}>${l}</option>`).join('')}</select></div>
+      <div><label class="form-label">Ativo</label><select class="form-input" id="ut-ativo"><option value="1" ${v.ativo!==false?'selected':''}>Sim</option><option value="0" ${v.ativo===false?'selected':''}>Não</option></select></div>
+      <div><label class="form-label">Acesso ao SEGO</label><select class="form-input" id="ut-sego"><option value="1" ${(v.apps||[]).includes('sego')?'selected':''}>Sim</option><option value="0" ${(v.apps||[]).includes('sego')?'':'selected'}>Não</option></select></div></div>
+    <div class="form-row"><div><label class="form-label">${temPw?'Nova Password <span class="pm-n">(vazio mantém a atual)</span>':'Password <span class="pm-n">(sem password não consegue entrar)</span>'}</label>
+      <div style="display:flex;gap:6px"><input class="form-input" id="ut-pwd" type="text" autocomplete="new-password" style="flex:1"><button class="btn btn-outline btn-sm" onclick="document.getElementById('ut-pwd').value=utGerarPwd()">Gerar</button></div></div></div>
+    <div class="form-row"><div><label class="form-label" style="display:flex;justify-content:space-between;align-items:center">Obras Associadas <span style="font-weight:400"><input class="form-input" id="ut-obq" placeholder="Filtrar…" oninput="utObFiltrar()" style="width:150px;display:inline-block"> <label class="pm-chk" style="display:inline-flex;gap:4px;margin-left:8px"><input type="checkbox" id="ut-concl" ${utConcl?'checked':''} onchange="utConcl=this.checked;utObFiltrar()"> Incluir Concluídas</label></span></label>
+      <div class="ut-obs">${obs||'<span class="pm-n">Sem obras.</span>'}</div></div></div>
+  </div>`,[{label:'Cancelar',cls:'btn-outline',fn:'closeModal()'},{label:'Guardar',cls:'btn-gold',fn:`utGuardar('${u?esc(u.id):''}')`}],'ut-modal');
+};
+window.utObFiltrar=function(){ const q=((document.getElementById('ut-obq')||{}).value||'').toLowerCase(), c=(document.getElementById('ut-concl')||{}).checked;
+  document.querySelectorAll('.ut-ob-i').forEach(l=>{ const on=l.querySelector('input').checked; const ok=(!q||l.textContent.toLowerCase().includes(q))&&(on||c||!l.classList.contains('ut-conc')); l.style.display=ok?'':'none'; }); };
+window.utGerarPwd=function(){ const ch='ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789'; const a=new Uint32Array(10); (window.crypto||{}).getRandomValues?crypto.getRandomValues(a):a.forEach((_,i)=>a[i]=Math.random()*1e9); return Array.from(a,x=>ch[x%ch.length]).join(''); };
+window.utGuardar=async function(id){
+  const g=k=>((document.getElementById(k)||{}).value||'').trim();
+  const nome=g('ut-nome'), email=g('ut-email').toLowerCase(), pwd=g('ut-pwd');
+  if(!nome||!email){ alert('Nome e Email são obrigatórios.'); return; }
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ alert('Email inválido.'); return; }
+  if((DB.utilizadores||[]).some(x=>String(x.id)!==String(id)&&String(x.email||'').trim().toLowerCase()===email)){ alert('Já existe um utilizador com o email '+email+'.'); return; }
+  if(pwd&&pwd.length<8){ alert('A password deve ter pelo menos 8 caracteres.'); return; }
+  const u=id?(DB.utilizadores||[]).find(x=>String(x.id)===String(id)):null;
+  const role=g('ut-tipo'), ativo=g('ut-ativo')==='1', sego=g('ut-sego')==='1';
+  if(u&&currentUser&&String(u.id)===String(currentUser.id)&&(role!=='superadmin'||!ativo||!sego)){ alert('Não pode retirar a si próprio o tipo Superadmin, o acesso ao SEGO ou desativar-se.'); return; }
+  const vis=new Set([...document.querySelectorAll('.ut-cb')].map(c=>c.value));
+  const obras=[...((u&&u.obras)||[]).map(String).filter(x=>!vis.has(x)),...[...document.querySelectorAll('.ut-cb:checked')].map(c=>c.value)];
+  let apps=((u&&u.apps)||[]).filter(a=>a!=='sego'); if(sego) apps.push('sego');
+  const pl={nome,email,funcao:g('ut-func'),contacto:g('ut-cont'),role,ativo,obras,apps};
+  if(pwd) pl.pwd_hash=hashPwd(pwd);   // o servidor guarda a credencial à parte e devolve 'definida'
+  try{ showLoadingOverlay('A guardar...');
+    if(u){ await sb.patch('utilizadores',u.id,pl); const antes=JSON.stringify([u.nome,u.email,u.funcao,u.contacto,u.role,u.ativo,u.obras,u.apps]);
+      Object.assign(u,pl); if(pwd) u.pwd_hash='definida';
+      try{ auditLog('Utilizador',nome,'editado',(pwd?'Password alterada. ':'')+'Antes: '+antes); }catch(e){} }
+    else{ const nu=Object.assign({id:'u'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),foto:''},pl); if(!pwd) nu.pwd_hash='';
+      await sb.post('utilizadores',nu); nu.pwd_hash=pwd?'definida':''; DB.utilizadores.push(mapUtil(nu));
+      try{ auditLog('Utilizador',nome,'criado'); }catch(e){} }
+    hideLoadingOverlay(); closeModal(); render();
+    if(pwd) showModal('Credenciais',`<div>Guarde ou envie ao utilizador (a password não volta a ser mostrada):</div><div style="margin-top:8px"><b class="pm-n">Endereço</b> sego.aceitar.pt<br><b class="pm-n">Email</b> ${esc(email)}<br><b class="pm-n">Password</b> <span style="user-select:all">${esc(pwd)}</span></div>`,[{label:'Fechar',cls:'btn-outline',fn:'closeModal()'}]);
+  }catch(e){ hideLoadingOverlay(); alert('Erro ao guardar o utilizador: '+(e.message||e)); }
+};
 /* ---------- Entidades ---------- */
 function entUso(id){ return DB.obras.filter(o=>o.entidadeDoId===id||o.entidadeEmpId===id); }
 function renderEntidades(app){
