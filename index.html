@@ -314,7 +314,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.12.1124</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.12.1128</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -709,6 +709,12 @@ window.segoTema=function(){
   #nav-obra-mid{flex:0 1 280px !important;margin:0 auto !important;justify-content:flex-start !important;align-items:center;gap:6px !important;height:26px;box-sizing:border-box;border:1px solid rgba(255,255,255,.3);border-radius:4px;padding:0 9px;background:rgba(255,255,255,.06);min-width:0;color:#fff}
   #nav-obra-mid .on-sig{font-weight:700;color:var(--gold-light);white-space:nowrap}
   #nav-obra-mid .on-nome{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+  #nav-obra-mid .on-nome{flex:0 1 auto}
+  #nav-obra-mid .on-sep{color:rgba(255,255,255,.45);flex:0 0 auto}
+  #nav-obra-mid .on-mod{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:0 0.05 auto;color:#fff}   /* o nome da obra encolhe primeiro */
+  #nav-obra-mid .on-doc{font-weight:700;color:#fff;white-space:nowrap;flex:0 0 auto}
+  .navbar #nav-home:has(+#nav-back.pos-abs){margin-right:auto !important}   /* Voltar fora do fluxo: o Início segura o espaço */
+  .navbar .pos-abs,#nav-back.pos-abs,#nav-mais.pos-abs{position:absolute !important;top:50%;transform:translateY(-50%);margin:0 !important}
 </style>
 
 <style>
@@ -1227,7 +1233,7 @@ window.segoTema=function(){
   window.segoModCtx=function(){
     if(['dashAtivo','segDashAtivo','modPgAtivo','guiaAtivo','defPg'].some(flag)) return null;
     const app=document.getElementById('app'); if(!app||!app.querySelector('.page-header')) return null;
-    let id=null; for(const n of ['peObraId','paObraId','pbObraId','ptqObraId','qeObraId','tcmObraId','amObraId','metObraId','relObraId']){ try{ const v=window.eval(n); if(v){ id=v; break; } }catch(e){} }
+    let id=null, mk=null; for(const n of ['peObraId','paObraId','pbObraId','ptqObraId','qeObraId','tcmObraId','amObraId','metObraId','relObraId']){ try{ const v=window.eval(n); if(v){ id=v; mk=n.replace('ObraId',''); break; } }catch(e){} }
     const o=id&&(DB.obras||[]).find(x=>String(x.id)===String(id)); if(!o) return null;
     const mae=(typeof cgMae==='function')?cgMae(o):null;
     const sg=mae?`${esc(mae.sigla||'')} · ${esc(o.sigla||'')}`:esc(o.sigla||'');
@@ -1254,9 +1260,19 @@ window.segoTema=function(){
     app.classList.add('co-modpg');
     const at=(!o.comFases&&typeof CG_ATALHOS!=='undefined')?CG_ATALHOS.map(([k,t])=>`<button class="on-at ${k==='CO'?'on':''}" title="${t}" onclick="segoSairMod();${k==='CO'?`cgAbrirCO('${o.id}')`:`cgAbrir('${o.id}','${k}')`}">${CG_AT_IC[k]}</button>`).join(''):'';
     return { at, esq: mais?`<button type="button" class="on-at" title="${esc(mais.t.replace(/^\+\s*/,''))}" ${mais.dis?'disabled':''} onclick="segoMvClick(${mais.i})">${IC.plus}</button>`:'',
-             meio:`<span class="on-sig">${sg}</span><span class="on-nome" title="${esc(o.nome||'')}">${esc(o.nome||'')}</span>`,
+             meio:`<span class="on-sig">${sg}</span><span class="on-nome" title="${esc(o.nome||'')}">${esc(o.nome||'')}</span>${segoOndeMod(mk)}`,
              dir: lst.map(it=>btn(it)).join(''), adm: adm.map(it=>btn(it)).join('') };
   };
+  // onde estamos: «obra | SIGLA Módulo · n.º do documento» na caixa do centro
+  window.segoOndeMod=function(mk){ if(!mk) return ''; const ev=n=>{ try{ return window.eval(n); }catch(e){ return null; } };
+    const TIT=(typeof CO_TIT!=='undefined')?CO_TIT:{}, MODS=(typeof CO_MODS!=='undefined')?CO_MODS:[];
+    let sig='', rot='', doc='';
+    if(mk==='rel'){ const cc=ev('capaContext')||{}, rid=ev('relRelId'), rr=rid&&(DB.relatorios||[]).find(x=>String(x.id)===String(rid));
+      const sub=(rr&&rr.conteudo&&rr.conteudo.subtipo)||cc.subtipo||''; const m=MODS.find(x=>x.kind==='rel'&&x.subtipo===sub);
+      sig=(m&&m.sigla)||cc.sigla||sub; rot=(m&&m.label)||cc.label||''; if(rr&&typeof relNumero==='function') doc=relNumero(rr); }
+    else { const m=MODS.find(x=>x.key===mk); sig=(m&&m.sigla)||mk.toUpperCase(); rot=TIT[mk]||''; const f=ev(mk+'FichaId'); if(f) doc=String(f); }
+    if(!sig) return '';
+    return `<span class="on-sep">|</span><span class="on-sig">${esc(sig)}</span><span class="on-mod" title="${esc(rot)}">${esc(rot)}</span>${doc?`<span class="on-sep">·</span><span class="on-doc">${esc(doc)}</span>`:''}`; };
   window.segoSairMod=function(){ ['segObraId','metObraId','fiscObraId','peFichaId','peObraId','paFichaId','paObraId','pbFichaId','pbObraId','ptqFichaId','ptqObraId','qeFichaId','qeObraId','tcmFichaId','tcmObraId','amFichaId','amObraId','relRelId','relObraId'].forEach(v=>{ try{ window.eval(v+'=null'); }catch(e){} }); };
   window.segoMvClick=function(i){ const b=document.querySelector('#app [data-mv="'+i+'"]'); if(b) b.click(); };
   window.segoModAcoes=function(mod){
@@ -1358,6 +1374,13 @@ window.segoTema=function(){
         nob.classList.add('at-abs'); nob.style.setProperty('gap',Math.max(0,Math.round(step-bw))+'px','important');
         nob.style.left=Math.round(q0.left+(q0.width-bw)/2-nvl-x)+'px'; }
       else { nob.classList.remove('at-abs'); nob.style.removeProperty('left'); nob.style.removeProperty('gap'); } }
+    // páginas dos módulos: Voltar e + logo a seguir a IA · ID · CO (antes ficavam por baixo deles)
+    { const modpg=app.classList.contains('co-modpg')&&nob&&nob.classList.contains('at-abs');
+      const nbk=document.getElementById('nav-back'), nm=document.getElementById('nav-mais');
+      let px=modpg?nob.getBoundingClientRect().right+14:0;
+      [nbk,nm].forEach(e=>{ if(!e) return; const ok=modpg&&getComputedStyle(e).display!=='none'&&e.style.visibility!=='hidden'&&(e!==nm||e.innerHTML.trim());
+        if(ok){ e.classList.add('pos-abs'); e.style.left=Math.round(px-nvl)+'px'; px+=e.offsetWidth+6; } else { e.classList.remove('pos-abs'); e.style.removeProperty('left'); } });
+      if(na){ if(modpg&&na.style.display==='flex'){ na.style.removeProperty('margin-left'); const d=Math.round(px+8-na.getBoundingClientRect().left); if(d>0) na.style.setProperty('margin-left',d+'px','important'); } else na.style.removeProperty('margin-left'); } }
     // se as ações forem muitas, o nome da obra afasta-se para a direita (nunca se sobrepõem)
     // caixa da obra / pesquisa: centrada no 3.º cartão, com a largura interior dele (do título ao ícone)
     const r3=k[2].getBoundingClientRect(), hd3=k[2].querySelector('.cg-cx-h'), ic3=k[2].querySelector('.cg-cx-ic');
@@ -1489,9 +1512,9 @@ window.segoTema=function(){
 
 <!-- MODAL -->
 <div id="def-menu" class="sego-pop" style="display:none">
-  <div class="um-sec">Obras</div><div class="um-it" onclick="cgNovaObraModal()">🏗 + Nova Obra</div><div class="um-it" onclick="cgNovaFaseModal()">📑 + Nova Fase</div><div class="um-it" onclick="defMenuFechar();modPgAbrir()">🧩 Módulos por Obra</div>
-  <div class="um-sec">Dados</div><div class="um-it" onclick="defMenuFechar();segoSync()">🔄 Sincronizar</div><div class="um-it" onclick="defAbrir('backup')">📤 Exportar Dados</div><div class="um-it" onclick="defAbrir('Importar Dados')">📥 Importar Dados</div>
   <div class="um-sec">Administração</div><div class="um-it" onclick="defAbrir('Utilizadores')">👥 Utilizadores</div><div class="um-it" onclick="defAbrir('entidades')">🏢 Entidades</div><div class="um-it" onclick="defAbrir('permissoes')">🔐 Permissões por Obra</div><div class="um-it" onclick="defAbrir('Especialidades')">🏷 Especialidades</div><div class="um-it" onclick="defAbrir('Documentos')">📄 Documentos</div><div class="um-it" onclick="defAbrir('Auditoria')">📜 Auditoria</div>
+  <div class="um-sec">Obras</div><div class="um-it" onclick="cgNovaObraModal()">🏗 + Nova Obra</div><div class="um-it" onclick="cgNovaFaseModal()">📑 + Nova Fase</div><div class="um-it" onclick="defMenuFechar();modPgAbrir()">🧩 Módulos por Obra</div>
+  <div class="um-sec">Dados</div><div class="um-it" onclick="defAbrir('backup')">📤 Exportar Dados</div><div class="um-it" onclick="defAbrir('Importar Dados')">📥 Importar Dados</div>
   <div class="um-ver" id="def-versao"></div>
 </div>
 <div id="user-menu" class="sego-pop" style="display:none"></div>
