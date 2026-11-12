@@ -314,7 +314,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.12.1135</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.12.1137</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -712,6 +712,9 @@ window.segoTema=function(){
   #nav-obra-mid .on-nome{flex:0 1 auto}
   #nav-obra-mid .on-sep{color:rgba(255,255,255,.45);flex:0 0 auto}
   #nav-obra-mid .on-mod{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:0 0.05 auto;color:#fff}   /* o nome da obra encolhe primeiro */
+  #nav-obra-mid .on-novo{flex:0 0 auto;width:18px;height:18px;padding:0;margin-left:-2px;border-radius:3px;border:1px solid var(--nav-bd);background:transparent;color:var(--gold-light);font-weight:700;line-height:16px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-family:inherit}
+  #nav-obra-mid .on-novo:hover{background:rgba(227,153,86,.25)}
+  #nav-obra-mid .on-novo[disabled]{opacity:.4;cursor:default}
   #nav-obra-mid .on-doc{font-weight:700;color:#fff;white-space:nowrap;flex:0 0 auto}
   .navbar #nav-home{margin-left:0 !important}
   .navbar #nav-back:has(+#nav-mais.pos-abs){margin-right:auto !important}   /* + fora do fluxo: o Voltar segura o espaço */   /* Início encostado ao logótipo: o Voltar cabe ao lado sem tocar em IA · ID · CO */
@@ -1260,12 +1263,14 @@ window.segoTema=function(){
                :`<button type="button" class="on-at txt ${cls||''}" title="${tt}" ${it.dis?'disabled':''} onclick="segoMvClick(${it.i})">${tt}</button>`; };
     app.classList.add('co-modpg');
     const at=(!o.comFases&&typeof CG_ATALHOS!=='undefined')?CG_ATALHOS.map(([k,t])=>`<button class="on-at ${k==='CO'?'on':''}" title="${t}" onclick="segoSairMod();${k==='CO'?`cgAbrirCO('${o.id}')`:`cgAbrir('${o.id}','${k}')`}">${CG_AT_IC[k]}</button>`).join(''):'';
-    return { at, esq: mais?`<button type="button" class="on-at" title="${esc(mais.t.replace(/^\+\s*/,''))}" ${mais.dis?'disabled':''} onclick="segoMvClick(${mais.i})">${IC.plus}</button>`:'',
-             meio:`<span class="on-sig">${sg}</span><span class="on-nome" title="${esc(o.nome||'')}">${esc(o.nome||'')}</span>${segoOndeMod(mk)}`,
+    // o + (novo documento) fica na caixa do centro, logo a seguir à sigla do módulo
+    const novo=mais?`<button type="button" class="on-novo" title="${esc(mais.t.replace(/^\+\s*/,''))}" ${mais.dis?'disabled':''} onclick="segoMvClick(${mais.i})">+</button>`:'';
+    return { at, esq:'',
+             meio:`<span class="on-sig">${sg}</span><span class="on-nome" title="${esc(o.nome||'')}">${esc(o.nome||'')}</span>${segoOndeMod(mk,novo)}`,
              dir: lst.map(it=>btn(it)).join(''), adm: adm.map(it=>btn(it)).join('') };
   };
   // onde estamos: «obra | SIGLA Módulo · n.º do documento» na caixa do centro
-  window.segoOndeMod=function(mk){ if(!mk) return ''; const ev=n=>{ try{ return window.eval(n); }catch(e){ return null; } };
+  window.segoOndeMod=function(mk,novo){ if(!mk) return ''; const ev=n=>{ try{ return window.eval(n); }catch(e){ return null; } };
     const TIT=(typeof CO_TIT!=='undefined')?CO_TIT:{}, MODS=(typeof CO_MODS!=='undefined')?CO_MODS:[];
     let sig='', rot='', doc='';
     if(mk==='rel'){ const cc=ev('capaContext')||{}, rid=ev('relRelId'), rr=rid&&(DB.relatorios||[]).find(x=>String(x.id)===String(rid));
@@ -1273,7 +1278,7 @@ window.segoTema=function(){
       sig=(m&&m.sigla)||cc.sigla||sub; rot=(m&&m.label)||cc.label||''; if(rr&&typeof relNumero==='function') doc=relNumero(rr); }
     else { const m=MODS.find(x=>x.key===mk); sig=(m&&m.sigla)||mk.toUpperCase(); rot=TIT[mk]||''; const f=ev(mk+'FichaId'); if(f) doc=String(f); }
     if(!sig) return '';
-    return `<span class="on-sep">|</span><span class="on-sig" title="${esc(rot)}">${esc(sig)}</span>${doc?`<span class="on-sep">·</span><span class="on-doc">${esc(doc)}</span>`:''}`; };
+    return `<span class="on-sep">|</span><span class="on-sig" title="${esc(rot)}">${esc(sig)}</span>${novo||''}${doc?`<span class="on-sep">·</span><span class="on-doc">${esc(doc)}</span>`:''}`; };
   window.segoSairMod=function(){ ['segObraId','metObraId','fiscObraId','peFichaId','peObraId','paFichaId','paObraId','pbFichaId','pbObraId','ptqFichaId','ptqObraId','qeFichaId','qeObraId','tcmFichaId','tcmObraId','amFichaId','amObraId','relRelId','relObraId'].forEach(v=>{ try{ window.eval(v+'=null'); }catch(e){} }); };
   window.segoMvClick=function(i){ const b=document.querySelector('#app [data-mv="'+i+'"]'); if(b) b.click(); };
   window.segoModAcoes=function(mod){
