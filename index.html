@@ -314,7 +314,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.12.0234</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.12.0238</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -12358,7 +12358,8 @@ function renderCardGeral(app){
     const VAL=[['DO','Dono de Obra','DONO',u=>u.role==='dono_obra'],['FIS','Fiscalização','FISC',u=>u.role==='fiscalizacao'||u.role==='superadmin'],
                ['EMP','Empreiteiro','EMPR',u=>u.role==='empreiteiro'],['PRJ','Projetista','PROJ',u=>u.role==='projetista'],['OUT','Outros','OUTR',u=>u.role==='outros']];
     const temOrdem=segoOrdemObra(o0.id).length>0;   // ordem definida em Definições → Permissões (arrastar)
-    VAL.forEach(([sg,tit,ic,f])=>{ const us=segoOrdenarPessoas(DB.utilizadores.filter(u=>f(u)&&doObra(u)&&u.ativo!==false),o0.id);
+    const oConcl=segoObraConcl(o0);   // obra concluída: mostra a equipa que lá esteve, mesmo inativa
+    VAL.forEach(([sg,tit,ic,f])=>{ const us=segoOrdenarPessoas(DB.utilizadores.filter(u=>f(u)&&doObra(u)&&(oConcl||u.ativo!==false)),o0.id);
       let corpo=us.map(u=>{ const tip=[u.funcao&&('Função: '+u.funcao),u.contacto&&('Contacto: '+u.contacto),u.email&&('Email: '+u.email)].filter(Boolean).join('\n')||'Sem mais dados';
         const val=`<span class="cg-pess" title="${esc(tip)}">${esc(u.nome)}</span>`;
         if(sg==='PRJ'){ // projetistas: a especialidade associada (na obra, ou geral), uma linha por especialidade
@@ -12403,9 +12404,9 @@ window.cgGuardar=async function(){
   if(mae&&cgFases(mae.id).some(f=>f.id!==b.id&&String(f.sigla||'').toLowerCase()===String(b.sigla).trim().toLowerCase())){ alert('Já existe uma fase com a sigla "'+b.sigla+'" nesta obra.'); return; }
   b.empresaDO=cgEntNome(b.entidadeDoId); b.empresaEmp=cgEntNome(b.entidadeEmpId);
   try{ await sb.patch('obras',b.id,Object.assign(unmapObra(b),{updated_at:new Date().toISOString()}));
-    const i=DB.obras.findIndex(x=>x.id===b.id); DB.obras[i]=b; cgEdit=false; cgBuf=null;
+    const i=DB.obras.findIndex(x=>x.id===b.id), estAnt=(DB.obras[i]||{}).estado; DB.obras[i]=b; cgEdit=false; cgBuf=null;
     try{ auditLog('obra',b.codigo+' '+b.sigla,'editada'); }catch(e){}
-    render(); }catch(e){ alert('Erro ao guardar: '+e.message); }
+    render(); if(estAnt!==b.estado) segoRevEstadoObra([b.id],estAnt,b.estado); }catch(e){ alert('Erro ao guardar: '+e.message); }
 };
 
 /* ---------- Nova Obra / Nova Fase ---------- */
@@ -12483,7 +12484,9 @@ window.cgEditarMaeModal=function(id){ const m=DB.obras.find(x=>x.id===id); if(!m
     [{label:'Cancelar',cls:'btn-outline',fn:'closeModal()'},{label:'Guardar',cls:'btn-gold',fn:`cgEditarMaeGuardar('${id}')`}]); };
 window.cgEditarMaeGuardar=async function(id){ const m=DB.obras.find(x=>x.id===id); const g=k=>document.getElementById(k).value.trim();
   const p={codigo:g('em-cod'),sigla:g('em-sig'),nome:g('em-nom'),estado:document.getElementById('em-est').value}; if(!p.codigo||!p.sigla||!p.nome){ alert('Código, Sigla e Nome são obrigatórios.'); return; }
-  try{ await sb.patch('obras',id,p); Object.assign(m,p); for(const f of cgFases(id)){ if(f.codigo!==p.codigo){ await sb.patch('obras',f.id,{codigo:p.codigo}); f.codigo=p.codigo; } } closeModal(); render(); }catch(e){ alert('Erro: '+e.message); } };
+  const estAnt=m.estado;
+  try{ await sb.patch('obras',id,p); Object.assign(m,p); for(const f of cgFases(id)){ if(f.codigo!==p.codigo){ await sb.patch('obras',f.id,{codigo:p.codigo}); f.codigo=p.codigo; } } closeModal(); render();
+    if(estAnt!==p.estado) segoRevEstadoObra([id,...cgFases(id).map(f=>f.id)],estAnt,p.estado); }catch(e){ alert('Erro: '+e.message); } };
 
 /* ---------- Definições ---------- */
 window.dashMenuAbrir=function(ev){ ev&&ev.stopPropagation(); userMenuFechar(); defMenuFechar(); const m=document.getElementById('dash-menu'); const b=document.getElementById('btn-dashmenu');
@@ -12515,7 +12518,7 @@ function permRegras(oid,m){ const r=(DB.permissoes||[]).find(x=>String(x.obra_id
 function permPessoasObra(o){ if(!o) return [];
   const listas=['intervenientes_do','intervenientes_fisc','intervenientes_emp','intervenientes_proj','intervenientes_eq'].flatMap(k=>(o[k]||[]).map(String));
   const ref=u=>u.role==='superadmin'||u.obras==='todas'||(Array.isArray(u.obras)&&u.obras.some(x=>[String(o.id),String(o.codigo||''),String(o.sigla||'')].includes(String(x))))||listas.includes(String(u.id));
-  return (DB.utilizadores||[]).filter(u=>u.ativo!==false&&ref(u)); }
+  const concl=segoObraConcl(o); return (DB.utilizadores||[]).filter(u=>(concl||u.ativo!==false)&&ref(u)); }
 /* pode o utilizador u (por defeito o atual) fazer a ação a no módulo m, na obra oid? */
 function segoPode(m,a,oid,u){ u=u||currentUser; if(!u) return false; if(u.role==='superadmin') return true;
   const M=PERM_MOD[m]; if(!M) return false; const g=permRegras(oid,m); const ov=(g.perm[String(u.id)]||{})[a];
@@ -12602,10 +12605,46 @@ window.permNotif=function(uid,es){ const u=(DB.utilizadores||[]).find(x=>String(
   if(nv===dv) delete m[uid]; else m[uid]=nv; if(!Object.keys(m).length) delete g.notif[es];
   permGravar(g); };
 window.permRepor=function(){ if(!confirm('Repor as regras de origem deste módulo nesta obra?')) return; permGravar({perm:{},notif:{}}); };
+/* ===================== Obra concluída → intervenientes inativos ===================== */
+/* Regra: quem é externo (DO, Empreiteiro, Projetista, Outros) e fica sem nenhuma obra em curso passa a Inativo (deixa de entrar).
+   Fiscalização e Superadmin nunca passam a inativos: só "perdem" a obra enquanto ativa. A associação à obra fica (histórico). */
+const SEGO_INTERNOS=['fiscalizacao','superadmin'];
+function segoObraConcl(o){ if(!o) return false; if(o.estado==='Concluída') return true; const m=o.obraMaeId?(DB.obras||[]).find(x=>x.id===o.obraMaeId):null; return !!(m&&m.estado==='Concluída'); }
+function segoUtObras(u){ return (Array.isArray(u.obras)?u.obras:[]).map(id=>(DB.obras||[]).find(o=>String(o.id)===String(id))).filter(Boolean); }
+function segoUtSemObraAtiva(u){ const os=segoUtObras(u); return os.length>0&&os.every(segoObraConcl); }
+function segoCandInativos(oids){ const ids=oids&&oids.map(String);
+  return (DB.utilizadores||[]).filter(u=>u.ativo!==false&&!SEGO_INTERNOS.includes(u.role)&&segoUtSemObraAtiva(u)&&(!ids||(u.obras||[]).some(x=>ids.includes(String(x))))); }
+function segoCandReativar(oids){ const ids=oids.map(String);
+  return (DB.utilizadores||[]).filter(u=>u.ativo===false&&!SEGO_INTERNOS.includes(u.role)&&(u.obras||[]).some(x=>ids.includes(String(x)))&&!segoUtSemObraAtiva(u)); }
+function segoRevEstadoObra(oids,antes,depois){ if(!peESuper()) return;
+  const o=(DB.obras||[]).find(x=>String(x.id)===String(oids[0])), nm=o?((o.sigla||'')+' — '+(o.nome||'')):'';
+  if(depois==='Concluída') segoRevInativos(oids,nm);
+  else if(antes==='Concluída'){ const c=segoCandReativar(oids); if(c.length) segoRevModal(c,true,nm); } }
+window.segoRevInativos=function(oids,nm){ const c=segoCandInativos(oids);
+  const ids=oids&&oids.map(String);
+  const perdem=ids?(DB.utilizadores||[]).filter(u=>u.ativo!==false&&(u.obras||[]).some(x=>ids.includes(String(x)))&&!c.includes(u)):[];
+  if(!c.length&&!perdem.length){ if(!oids) alert('Não há utilizadores a inativar.'); return; }
+  segoRevModal(c,false,nm,perdem); };
+function segoRevModal(lst,reativar,nm,perdem){
+  const lin=u=>{ const os=segoUtObras(u).map(o=>(o.sigla||o.codigo||'')+(segoObraConcl(o)?' (Concl.)':'')).join(', ');
+    return `<label class="ut-ob-i"><input type="checkbox" class="rv-cb" value="${esc(u.id)}" checked> <b>${esc(u.nome||'')}</b> <span class="pm-n">· ${esc(utTipoL(u.role))}${u.funcao?' · '+esc(u.funcao):''} · ${esc(os)}</span></label>`; };
+  const txt=reativar
+    ?`A obra ${esc(nm)} voltou a estar em curso. Estes intervenientes estão inativos e passam a ter uma obra ativa. Reativar (voltam a poder entrar)?`
+    :(nm?`A obra ${esc(nm)} passou a Concluída. `:'')+(lst.length?'Estes intervenientes externos ficam sem nenhuma obra em curso e passam a <b>Inativos</b> (deixam de entrar no SEGO; continuam na equipa da obra, como histórico):':'Ninguém fica sem obras em curso.');
+  const p=(perdem&&perdem.length)?`<div style="margin-top:10px" class="pm-n">Continuam ativos (Fiscalização ou com outras obras em curso), só perdem esta obra enquanto ativa: ${perdem.map(u=>esc(u.nome)).join(', ')}.</div>`:'';
+  showModal(reativar?'Reativar Intervenientes':'Intervenientes da Obra Concluída',`<div>${txt}</div>${lst.length?`<div class="ut-obs" style="margin-top:8px">${lst.map(lin).join('')}</div>`:''}${p}`,
+    lst.length?[{label:'Agora Não',cls:'btn-outline',fn:'closeModal()'},{label:reativar?'Reativar':'Passar a Inativos',cls:'btn-gold',fn:`segoRevAplicar(${reativar?1:0})`}]:[{label:'Fechar',cls:'btn-outline',fn:'closeModal()'}]);
+}
+window.segoRevAplicar=async function(reativar){ const ids=[...document.querySelectorAll('.rv-cb:checked')].map(c=>c.value); if(!ids.length){ closeModal(); return; }
+  showLoadingOverlay('A atualizar…'); let erros=0;
+  for(const id of ids){ const u=(DB.utilizadores||[]).find(x=>String(x.id)===String(id)); if(!u) continue;
+    try{ await sb.patch('utilizadores',u.id,{ativo:!!reativar}); u.ativo=!!reativar; try{ auditLog('Utilizador',u.nome,reativar?'reativado':'inativado',reativar?'Obra voltou a estar em curso':'Sem obras em curso (obra concluída)'); }catch(e){} }
+    catch(e){ erros++; } }
+  hideLoadingOverlay(); closeModal(); render(); if(erros) alert(erros+' utilizador(es) não foram atualizados.'); };
 /* ===================== Utilizadores (gestão no SEGO) ===================== */
 const UT_TIPOS=[['dono_obra','Dono de Obra'],['fiscalizacao','Fiscalização'],['empreiteiro','Empreiteiro'],['projetista','Projetista'],['outros','Outros'],['superadmin','Superadmin']];
 const utTipoL=r=>(UT_TIPOS.find(x=>x[0]===r)||[r,r||''])[1];
-let utQ='', utTipo='', utInat=false, utConcl=false;
+let utQ='', utTipo='', utVista='ativos', utConcl=false;
 function utObrasLista(){ const mae=id=>(DB.obras||[]).find(x=>x.id===id);
   return (DB.obras||[]).filter(o=>!o.comFases).map(o=>{ const m=o.obraMaeId?mae(o.obraMaeId):null;
     return {o,rot:(o.codigo||'')+' · '+(m?(m.sigla||'')+' / ':'')+(o.sigla||'')+' — '+(o.nome||'')}; }).sort((a,b)=>a.rot.localeCompare(b.rot,'pt')); }
@@ -12614,7 +12653,8 @@ function utObrasTxt(u){ const ids=(Array.isArray(u.obras)?u.obras:[]).map(String
 function renderUtilSego(app){
   if(!peESuper()){ app.innerHTML='<div class="cg-bloco">Apenas o Superadmin.</div>'; return; }
   const q=utQ.trim().toLowerCase();
-  const us=(DB.utilizadores||[]).filter(u=>(utInat||u.ativo!==false)&&(!utTipo||u.role===utTipo)&&(!q||[u.nome,u.email,u.funcao,u.contacto,utObrasTxt(u)].join(' ').toLowerCase().includes(q)));
+  const nAt=(DB.utilizadores||[]).filter(u=>u.ativo!==false).length, nIn=(DB.utilizadores||[]).length-nAt, nRev=segoCandInativos().length;
+  const us=(DB.utilizadores||[]).filter(u=>(utVista==='inativos'?u.ativo===false:u.ativo!==false)&&(!utTipo||u.role===utTipo)&&(!q||[u.nome,u.email,u.funcao,u.contacto,utObrasTxt(u)].join(' ').toLowerCase().includes(q)));
   const ordT=r=>{ const i=UT_TIPOS.findIndex(x=>x[0]===r); return i<0?99:i; };
   us.sort((a,b)=>(ordT(a.role)-ordT(b.role))||String(a.nome||'').localeCompare(String(b.nome||''),'pt'));
   let ult=null; const linhas=us.map(u=>{ let h='';
@@ -12628,8 +12668,8 @@ function renderUtilSego(app){
   <div class="cg-bloco pm-bar ut-bar">
     <input class="form-input" placeholder="Pesquisar nome, email, função, obra…" value="${esc(utQ)}" oninput="utQ=this.value;utFiltrar(this)" style="width:280px">
     <label>Tipo <select class="form-input" onchange="utTipo=this.value;render()"><option value="">Todos</option>${UT_TIPOS.map(([v,l])=>`<option value="${v}" ${utTipo===v?'selected':''}>${l}</option>`).join('')}</select></label>
-    <label class="pm-chk"><input type="checkbox" ${utInat?'checked':''} onchange="utInat=this.checked;render()"> Incluir Inativos</label>
-    <span class="pm-leg"><span class="pm-n">${us.length} utilizador${us.length===1?'':'es'}</span><button class="btn btn-gold btn-sm" onclick="utEditar('')">+ Novo Utilizador</button></span>
+    <span class="pm-tabs"><button class="pm-tab ${utVista==='ativos'?'on':''}" onclick="utVista='ativos';render()">Ativos (${nAt})</button><button class="pm-tab ${utVista==='inativos'?'on':''}" onclick="utVista='inativos';render()">Inativos (${nIn})</button></span>
+    <span class="pm-leg">${nRev?`<button class="btn btn-outline btn-sm" onclick="segoRevInativos(null)" title="Externos cujas obras estão todas concluídas">Rever Inativos (${nRev})</button>`:''}<span class="pm-n">${us.length} utilizador${us.length===1?'':'es'}</span><button class="btn btn-gold btn-sm" onclick="utEditar('')">+ Novo Utilizador</button></span>
   </div>
   <div class="pm-wrap"><table class="data-table pm-tbl ut-tbl"><thead><tr><th>Nome</th><th>Função</th><th>Email</th><th>Contacto</th><th>Obras</th><th class="ut-c">SEGO</th><th class="ut-c">Password</th><th class="ut-c">Ativo</th></tr></thead>
   <tbody>${linhas||'<tr><td colspan="8">Sem utilizadores.</td></tr>'}</tbody></table></div>`;
