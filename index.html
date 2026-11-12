@@ -314,7 +314,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.12.1151</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.12.1158</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -712,6 +712,9 @@ window.segoTema=function(){
   #nav-obra-mid .on-nome{flex:0 1 auto}
   #nav-obra-mid .on-sep{color:rgba(255,255,255,.45);flex:0 0 auto}
   #nav-obra-mid .on-mod{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:0 0.05 auto;color:#fff}   /* o nome da obra encolhe primeiro */
+  #app .lst-ic{width:24px !important;height:24px !important;min-width:0 !important;padding:0 !important;box-sizing:border-box;display:inline-flex !important;align-items:center;justify-content:center;border:1px solid var(--nav-bd) !important;border-radius:4px !important;background:transparent !important;color:var(--nav-bd) !important;cursor:pointer}
+  #app .lst-ic:hover{background:rgba(227,153,86,.18) !important}
+  #app .lst-ic svg{width:14px;height:14px}
   #nav-obra-mid .on-novo{flex:0 0 auto;width:18px;height:18px;padding:0;margin-left:-2px;border-radius:3px;border:1px solid var(--nav-bd);background:transparent;color:var(--gold-light);font-weight:700;line-height:16px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-family:inherit}
   #nav-obra-mid .on-novo svg{width:12px;height:12px}
   #nav-obra-mid .on-novo+.on-novo{margin-left:0}
@@ -1253,7 +1256,7 @@ window.segoTema=function(){
       if(getComputedStyle(b).display==='none'||b.hidden) return;
       const noCab=!!b.closest('.page-header');
       const antes=!fim||(b.compareDocumentPosition(fim)&Node.DOCUMENT_POSITION_FOLLOWING);
-      const t=(b.textContent||'').replace(/\s+/g,' ').trim();
+      const t=(b.textContent||b.dataset.t||'').replace(/\s+/g,' ').trim();   // (botões já em ícone guardam o texto em data-t)
       if(!noCab&&!(antes&&ACAO.test(t)&&!b.closest('.pe-zone,.pe-zb,.pe-modal,.cg-cx,.card,[class*="ficha"],label'))) return;
       const i=nI++; b.setAttribute('data-mv',i); b.classList.add('sego-mv');
       const it={i,t:t||b.title||'Ação',dis:b.disabled};
@@ -1268,10 +1271,13 @@ window.segoTema=function(){
     // o + (novo documento) fica na caixa do centro, logo a seguir à sigla do módulo
     const temIde=!!app.querySelector('.cg-cx[data-cx="IDE"]');   // ficha: todos os botões (+, sino, gravar, enviar…) vão para o IDE
     if(temIde&&mais){ lst.unshift(mais); mais=null; }
-    if(mais){ // lista: o + fica em baixo, no sítio dele na página (o cartão do CO também o tem)
-      const mb=app.querySelector('[data-mv="'+mais.i+'"]'); if(mb){ mb.classList.remove('sego-mv'); let r=mb.parentElement; for(let k=0;k<3&&r&&r!==app;k++,r=r.parentElement) r.classList.remove('sego-mv-row'); }
-      mais=null; }
-    const sinos=temIde?[]:lst.filter(it=>/alertar|notificar/i.test(it.t)); sinos.forEach(it=>lst.splice(lst.indexOf(it),1));   // lista: o sino vai para junto do +
+    // lista: o + e o sino ficam em baixo, no sítio deles na página, mas como ícones (texto no tooltip)
+    const sinos=temIde?[]:lst.filter(it=>/alertar|notificar/i.test(it.t)); sinos.forEach(it=>lst.splice(lst.indexOf(it),1));
+    const iconiza=(it,ic)=>{ const b=app.querySelector('[data-mv="'+it.i+'"]'); if(!b||!IC[ic]) return; b.classList.remove('sego-mv');
+      let r=b.parentElement; for(let k=0;k<3&&r&&r!==app;k++,r=r.parentElement) r.classList.remove('sego-mv-row');
+      b.dataset.t=it.t; b.title=it.t.replace(/^\+\s*/,''); if(b.dataset.ic!==ic||b.textContent.trim()){ b.innerHTML=IC[ic]; b.dataset.ic=ic; } b.classList.add('lst-ic'); };
+    if(mais){ iconiza(mais,'plus'); mais=null; }
+    sinos.forEach(it=>iconiza(it,'bell')); sinos.length=0;
     const novo=(mais?`<button type="button" class="on-novo" title="${esc(mais.t.replace(/^\+\s*/,''))}" ${mais.dis?'disabled':''} onclick="segoMvClick(${mais.i})">+</button>`:'')+
       sinos.map(it=>`<button type="button" class="on-novo" title="${esc(it.t)}" ${it.dis?'disabled':''} onclick="segoMvClick(${it.i})">${IC.bell}</button>`).join('');
     // nas fichas: as ações (Gravar, Enviar, …) vão para o cabeçalho do IDE, ao lado do recolher
