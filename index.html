@@ -314,7 +314,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.12.0344</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.12.0836</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -4941,7 +4941,7 @@ function renderFichaPE(app){
     acoes.push(`<button class="pe-btn green" onclick="peFechar()">Fechar</button>`);
     acoes.push(`<button class="pe-btn" onclick="peRever()">Revisão</button>`);
   }
-  if((d.estado==='fechado'||d.estado==='reaberto')&&segoPode('pe','pdf',d.obraId||peObraId)){ acoes.push(`<button class="pe-btn info" onclick="pePDF('${d.id}')" title="Descarregar o documento completo em PDF">📄 PDF</button>`); }
+  if((d.estado==='fechado'||d.estado==='reaberto')&&segoPode('pe','pdf',d.obraId||peObraId,null,d)){ acoes.push(`<button class="pe-btn info" onclick="pePDF('${d.id}')" title="Descarregar o documento completo em PDF">📄 PDF</button>`); }
   if(peESuper()){ acoes.push(`<button class="pe-btn red" onclick="peEliminar('${d.id}')">Eliminar</button>`); }
   const AE=peAdmEd&&peESuper();
   if(AE){ acoes.length=0; notas.length=0; acoes.push(`<button class="pe-btn gold" onclick="peAdmGuardar()">Guardar</button>`); acoes.push(`<button class="pe-btn" onclick="peAdmCancelar()">Cancelar</button>`); }
@@ -5867,7 +5867,7 @@ function renderFichaPA(app){
     acoes.push(`<button class="pe-btn green" onclick="paFechar()">Fechar</button>`);
     acoes.push(`<button class="pe-btn" onclick="paRever()">Revisão</button>`);
   }
-  if((d.estado==='fechado'||d.estado==='reaberto')&&segoPode('pa','pdf',d.obraId||paObraId)){ acoes.push(`<button class="pe-btn info" onclick="paPDF('${d.id}')" title="Descarregar o documento completo em PDF">📄 PDF</button>`); }
+  if((d.estado==='fechado'||d.estado==='reaberto')&&segoPode('pa','pdf',d.obraId||paObraId,null,d)){ acoes.push(`<button class="pe-btn info" onclick="paPDF('${d.id}')" title="Descarregar o documento completo em PDF">📄 PDF</button>`); }
   const SA=peESuper();
   if(SA){ acoes.push(`<button class="pe-btn red" onclick="paEliminar('${d.id}')">Eliminar</button>`); }
   const AE=paAdmEd&&SA;
@@ -6526,7 +6526,7 @@ function renderFichaPB(app){
     acoes.push(`<button class="pe-btn gold" onclick="pbModalDecisao()">Decidir →</button>`);
     notas.push('Preencha as verificações e decida: Aprovado fecha o pedido; Não Aprovado gera revisão para o Empreiteiro.');
   }
-  if((d.estado==='fechado'||d.estado==='reaberto')&&segoPode('pb','pdf',d.obraId||pbObraId)){ acoes.push(`<button class="pe-btn info" onclick="pbPDF('${d.id}')" title="Descarregar o documento completo em PDF">📄 PDF</button>`); }
+  if((d.estado==='fechado'||d.estado==='reaberto')&&segoPode('pb','pdf',d.obraId||pbObraId,null,d)){ acoes.push(`<button class="pe-btn info" onclick="pbPDF('${d.id}')" title="Descarregar o documento completo em PDF">📄 PDF</button>`); }
   const SA=peESuper();
   if(SA){ acoes.push(`<button class="pe-btn red" onclick="pbEliminar('${d.id}')">Eliminar</button>`); }
   const AE=pbAdmEd&&SA;
@@ -7794,7 +7794,7 @@ function renderFichaQE(app){
     acoes.push(`<button class="pe-btn gold" onclick="qeModalParecer()">Dar Parecer →</button>`);
     notas.push('Aceite a correção (fecha) ou peça revisão indicando o motivo (gera nova revisão para o Empreiteiro).');
   }
-  if(d.estado!=='rascunho'&&segoPode('qe','pdf',d.obraId||qeObraId)){ acoes.push(`<button class="pe-btn info" onclick="qeImprimir('${d.id}')" title="Descarregar a QE em PDF (ex.: para reencaminhar a um subempreiteiro)">📄 PDF</button>`); }
+  if(d.estado!=='rascunho'&&segoPode('qe','pdf',d.obraId||qeObraId,null,d)){ acoes.push(`<button class="pe-btn info" onclick="qeImprimir('${d.id}')" title="Descarregar a QE em PDF (ex.: para reencaminhar a um subempreiteiro)">📄 PDF</button>`); }
   const SA=peESuper();
   if(SA){ acoes.push(`<button class="pe-btn red" onclick="qeEliminar('${d.id}')">Eliminar</button>`); }
   const AE=qeAdmEd&&SA;
@@ -8747,7 +8747,7 @@ function renderFichaTCm(app){
   if(d.estado==='verificado'&&P.eDO) acoes.push(`<button class="pe-btn green" onclick="tcmAprovarDO()">Concluir Aprovação → Fiscalização</button>`);
   if(d.estado==='aprovado'&&segoPode('tcm','reencaminhar',d.obra_id||tcmObraId)) acoes.push(`<button class="pe-btn green" onclick="tcmReencaminhar()">Reencaminhar ao Empreiteiro →</button>`);
   if(d.estado==='concordancia'&&segoPode('tcm','concordar',d.obra_id||tcmObraId)){ acoes.push(`<button class="pe-btn green" onclick="tcmFechar()">Concordar e Fechar ✓</button>`); acoes.push(`<button class="pe-btn gold" onclick="tcmNaoConcordar()">Não Concordar →</button>`); }
-  if(d.estado!=='rascunho'&&segoPode('tcm','pdf',d.obra_id||tcmObraId)) acoes.push(`<button class="pe-btn info" onclick="tcmPDF('${d.id}')">📄 PDF</button>`);
+  if(d.estado!=='rascunho'&&segoPode('tcm','pdf',d.obra_id||tcmObraId,null,d)) acoes.push(`<button class="pe-btn info" onclick="tcmPDF('${d.id}')">📄 PDF</button>`);
   if(peESuper()) acoes.push(`<button class="pe-btn red" onclick="tcmEliminar('${d.id}')">Eliminar</button>`);
   const SA=peESuper(), AE=tcmAdmEd&&SA;
   const cabEd=d.estado==='rascunho'&&P.eEmp&&!AE;
@@ -10092,8 +10092,9 @@ function renderFichaAM(app){
   }
   if(amModo==='TN'){ const n=amTmenosPendentesTN(d).length; if(n) acoes.unshift(`<button class="pe-btn gold" onclick="amTmenosAvisoTN()" title="T− de TCm aprovados por descontar">⚠ T− por Descontar (${n})</button>`); }
   else { const n=amTmenosMovimentos(d).length; if(n) acoes.unshift(`<button class="pe-btn gold" onclick="amTmenosAvisoTCm()" title="Quantidades medidas nos AM TN a movimentar neste AM TCm">⚠ Movimentos T− (${n})</button>`); }
+  if(segoPode('am','pdf',d.obra_id||amObraId,null,d)){
   acoes.push(`<button class="pe-btn" onclick="amPDF('med')">PDF · Só Linhas Medidas</button>`);
-  acoes.push(`<button class="pe-btn" onclick="amPDF('todas')">PDF · Todas as Linhas</button>`);
+  acoes.push(`<button class="pe-btn" onclick="amPDF('todas')">PDF · Todas as Linhas</button>`); }
   if(peESuper()) acoes.push(`<button class="pe-btn red" onclick="amEliminarAM()">Eliminar</button>`);
   const SA=peESuper(), AE=amAdmEd&&SA;
   if(AE){ acoes.length=0; acoes.push(`<button class="pe-btn gold" onclick="amAdmGuardar()">Guardar</button>`); acoes.push(`<button class="pe-btn" onclick="amAdmCancelar()">Cancelar</button>`); }
@@ -12624,7 +12625,7 @@ const _pmTcmAm=(sig,rot)=>({ sig, rot,
     ordem:['Rascunho','Enviado','Verificado','Aprovado','Concordância','Fechado','Sempre'],
     acoes:[['Rascunho','criar','Criar / Enviar'],['Enviado','verificar','Verificar'],['Verificado','aprovar','Aprovar (DO)'],['Aprovado','reencaminhar','Enviar ao Emp.'],['Concordância','concordar','Concordar / Não'],['Sempre','pdf','PDF']],
     notif:[['enviado','Enviado'],['verificado','Verificado'],['aprovado','Aprovado'],['concordancia','Concordância'],['rascunho','Concordância','Não Concorda'],['fechado','Fechado']],
-    def:(u,a)=>({criar:u.role==='empreiteiro',verificar:u.role==='fiscalizacao',aprovar:u.role==='dono_obra',reencaminhar:u.role==='fiscalizacao',concordar:u.role==='empreiteiro',pdf:true})[a]||false,
+    def:(u,a)=>({criar:u.role==='empreiteiro',verificar:u.role==='fiscalizacao',aprovar:u.role==='dono_obra',reencaminhar:u.role==='fiscalizacao',concordar:u.role==='empreiteiro',pdf:'int'})[a]||false,
     defNotif:(u,ev)=>{ if(!_pmNC(u)) return ''; const r=u.role;
       if(['enviado','aprovado','fechado','rascunho'].includes(ev)) return r==='fiscalizacao'?'para':'';
       if(ev==='verificado') return r==='dono_obra'?'para':''; if(ev==='concordancia') return r==='empreiteiro'?'para':''; return ''; } });
@@ -12640,7 +12641,7 @@ const PERM_MOD={
   pe:{ sig:'PE', rot:'PE — Pedido de Esclarecimento',
     acoes:[['Rascunho','criar','Criar / Enviar'],['Aberto','proj','Enviar ao Projetista'],['Pendente','esclarecer','Esclarecer'],['Esclarecido','responder','Responder ao Empreiteiro'],['Respondido','fechar','Fechar / Rever'],['Fechado','pdf','PDF']],
     notif:[['aberto','Aberto'],['pendente','Pendente'],['esclarecido','Esclarecido'],['respondido','Respondido']],
-    def:(u,a)=>({criar:['empreiteiro','fiscalizacao'].includes(u.role),proj:u.role==='fiscalizacao',esclarecer:u.role==='projetista',responder:u.role==='fiscalizacao',fechar:u.role==='empreiteiro',pdf:true})[a]||false,
+    def:(u,a)=>({criar:['empreiteiro','fiscalizacao'].includes(u.role),proj:u.role==='fiscalizacao',esclarecer:u.role==='projetista',responder:u.role==='fiscalizacao',fechar:u.role==='empreiteiro',pdf:'int'})[a]||false,
     defNotif:(u,ev,c)=>{ if(!_pmNC(u)) return ''; const r=u.role;
       if(ev==='aberto'||ev==='esclarecido') return r==='fiscalizacao'?'para':'';
       if(ev==='pendente') return r==='projetista'?(c&&c.d?(String(c.d.projDestId)===String(u.id)?'para':''):'esc'):'';
@@ -12648,7 +12649,7 @@ const PERM_MOD={
   pa:{ sig:'PA', rot:'PA — Pedido de Aprovação',
     acoes:[['Rascunho','criar','Criar / Enviar'],['Aberto','proj','Projetista / Decidir'],['Pendente','parecer','Parecer'],['Analisado','decidir','Decisão Final'],['Respondido','fechar','Fechar / Rever'],['Fechado','pdf','PDF']],
     notif:[['aberto','Aberto'],['pendente','Pendente'],['analisado','Analisado'],['respondido','Respondido'],['fechado','Fechado']],
-    def:(u,a)=>({criar:u.role==='empreiteiro',proj:u.role==='fiscalizacao',parecer:u.role==='projetista',decidir:u.role==='fiscalizacao',fechar:u.role==='empreiteiro',pdf:true})[a]||false,
+    def:(u,a)=>({criar:u.role==='empreiteiro',proj:u.role==='fiscalizacao',parecer:u.role==='projetista',decidir:u.role==='fiscalizacao',fechar:u.role==='empreiteiro',pdf:'int'})[a]||false,
     defNotif:(u,ev,c)=>{ if(!_pmNC(u)) return ''; const r=u.role;
       if(['aberto','analisado','fechado'].includes(ev)) return r==='fiscalizacao'?'para':'';
       if(ev==='pendente') return r==='projetista'?(c&&c.d?(String(c.d.projDestId)===String(u.id)?'para':''):'esc'):'';
@@ -12656,21 +12657,21 @@ const PERM_MOD={
   pb:{ sig:'PB', rot:'PB — Pedido de Betonagem',
     acoes:[['Rascunho','criar','Criar / Enviar'],['Aberto','decidir','Decidir'],['Fechado','pdf','PDF']],
     notif:[['aberto','Aberto'],['fechado','Decisão','Aprovado'],['naoaprovado','Decisão','Não Aprovado']],
-    def:(u,a)=>({criar:u.role==='empreiteiro',decidir:u.role==='fiscalizacao',pdf:true})[a]||false,
+    def:(u,a)=>({criar:u.role==='empreiteiro',decidir:u.role==='fiscalizacao',pdf:'int'})[a]||false,
     defNotif:(u,ev)=>{ if(!_pmNC(u)) return ''; if(ev==='aberto') return u.role==='fiscalizacao'?'para':''; if(ev==='fechado'||ev==='naoaprovado') return u.role==='empreiteiro'?'para':''; return ''; } },
   qe:{ sig:'QE', rot:'QE — Qualidade de Execução', exclRem:true,
     acoes:[['Rascunho','criar','Criar / Enviar'],['Pendente','responder','Responder'],['Respondido','parecer','Parecer'],['Enviado','pdf','PDF']],
     notif:[['pendente','Pendente'],['respondido','Respondido'],['fechado','Fechado']],
-    def:(u,a)=>({criar:u.role==='fiscalizacao',responder:u.role==='empreiteiro',parecer:u.role==='fiscalizacao',pdf:true})[a]||false,
+    def:(u,a)=>({criar:u.role==='fiscalizacao',responder:u.role==='empreiteiro',parecer:u.role==='fiscalizacao',pdf:'int'})[a]||false,
     defNotif:(u,ev)=>{ if(_pmDir(u)) return 'cc'; if(!_pmNC(u)) return ''; const r=u.role;
       if(r==='dono_obra') return 'para';
       if(ev==='respondido') return r==='fiscalizacao'?'para':'';
       if(ev==='pendente'||ev==='fechado') return r==='empreiteiro'?'para':(r==='fiscalizacao'?'cc':''); return ''; } },
   tcm:_pmTcmAm('TCm','TCm — Trabalhos Complementares'),
   am:_pmTcmAm('AM','AM — Autos Mensais'),
-  rso:_pmRel('RSO','RSO — Relatório Semanal de Obra',u=>((u.role==='dono_obra'||u.role==='empreiteiro')&&_pmNC(u))?'para':((u.role==='fiscalizacao'&&!_pmNC(u))?'cc':'')),
+  rso:_pmRel('RSO','RSO — Relatório Semanal de Obra',u=>((u.role==='dono_obra'||u.role==='empreiteiro')&&_pmNC(u))?'para':''),
   sos:_pmRel('SOS','SOS — Situações Operacionais Semanais',u=>((u.role==='dono_obra'||u.role==='empreiteiro')&&_pmNC(u))?'para':''),
-  rvt:_pmRel('RVT','RVT — Relatório de Visita Técnica',u=>u.role==='empreiteiro'?'para':(u.role==='fiscalizacao'?'cc':''))
+  rvt:_pmRel('RVT','RVT — Relatório de Visita Técnica',u=>u.role==='empreiteiro'?'para':((u.role==='fiscalizacao'&&_pmNC(u))?'cc':''))
 };
 /* destino final de uma notificação: regras da obra (Permissões) + CC escolhidos à mão (no QE o remetente não vai em CC, como antes) */
 function segoNotifFinal(m,d,o,base,ccExtra){
@@ -12689,11 +12690,20 @@ function permPessoasObra(o){ if(!o) return [];
   const ref=u=>u.role==='superadmin'||u.obras==='todas'||(Array.isArray(u.obras)&&u.obras.some(x=>[String(o.id),String(o.codigo||''),String(o.sigla||'')].includes(String(x))))||listas.includes(String(u.id));
   const concl=segoObraConcl(o); return (DB.utilizadores||[]).filter(u=>(concl||u.ativo!==false)&&ref(u)); }
 /* pode o utilizador u (por defeito o atual) fazer a ação a no módulo m, na obra oid? */
-function segoPode(m,a,oid,u){ u=u||currentUser; if(!u) return false; if(u.role==='superadmin') return true;
+function permDefNotif(M,u,ev,ctx){ return M.defNotif(u,ev,ctx)||(_pmDir(u)?'cc':''); }   // Direção (Carlos, Tiago) sempre em CC
+/* "Interveio": quem interagiu com o documento (autor de alguma fase ou registado no histórico) */
+function segoInterveio(u,d){ if(!u||!d) return false; const nm=String(u.nome||'').trim().toLowerCase(), em=String(u.email||'').trim().toLowerCase(); if(!nm&&!em) return false;
+  const bate=v=>{ const t=String(v==null?'':v).trim().toLowerCase(); return !!t&&(t===nm||t===em||(nm&&t.includes(nm))); };
+  for(const [k,v] of Object.entries(d)){ if(v==null) continue;
+    if(typeof v==='string'&&/autor|criad|enviad|resp|por$|nome$/i.test(k)&&bate(v)) return true;
+    if(Array.isArray(v)) for(const x of v){ if(x&&typeof x==='object'&&Object.entries(x).some(([k2,v2])=>typeof v2==='string'&&/autor|utiliz|user|por|quem|nome/i.test(k2)&&bate(v2))) return true; } }
+  const cv=d.conteudo&&typeof d.conteudo==='object'?d.conteudo:null; if(cv&&Array.isArray(cv.historico)&&cv.historico.some(x=>x&&Object.values(x).some(bate))) return true;
+  return false; }
+function segoPode(m,a,oid,u,d){ u=u||currentUser; if(!u) return false; if(u.role==='superadmin') return true;
   const M=PERM_MOD[m]; if(!M) return false; const g=permRegras(oid,m); const ov=(g.perm[String(u.id)]||{})[a];
-  return typeof ov==='boolean'?ov:!!M.def(u,a); }
+  if(typeof ov==='boolean') return ov; const v=M.def(u,a); return v==='int'?segoInterveio(u,d):!!v; }
 function segoNotifDest(m,est,o,ctx){ const M=PERM_MOD[m], g=permRegras(o&&o.id,m), ov=g.notif[est]||{}; const para=[], cc=[];
-  permPessoasObra(o).forEach(u=>{ if(!u.email) return; const v=(String(u.id) in ov)?ov[String(u.id)]:M.defNotif(u,est,ctx); if(v==='para') para.push(u.email); else if(v==='cc') cc.push(u.email); });
+  permPessoasObra(o).forEach(u=>{ if(!u.email) return; const v=(String(u.id) in ov)?ov[String(u.id)]:permDefNotif(M,u,est,ctx); if(v==='para') para.push(u.email); else if(v==='cc') cc.push(u.email); });
   const ord=e=>{ const i=SEGO_CC_DIRECAO.indexOf(String(e).toLowerCase()); return i<0?99:i; };   // CC: Direção primeiro (Tiago, Carlos), depois os restantes (CSO…)
   return {para:[...new Set(para)],cc:[...new Set(cc.filter(e=>!para.includes(e)))].sort((a,b)=>ord(a)-ord(b))}; }
 
@@ -12729,9 +12739,10 @@ function renderPermissoes(app){
   const linha=(u,gi)=>{ const sa=u.role==='superadmin', uid=String(u.id);
     const cel=cols.map(c=>{
       if(c.t==='a'){ const a=c.a; if(sa) return `<td class="pm-c pm-lock" title="Superadmin: acesso total">✓</td>`;
-        const dv=!!M.def(u,a), ov=(g.perm[uid]||{})[a], v=typeof ov==='boolean'?ov:dv, alt=typeof ov==='boolean';
-        return `<td class="pm-c ${alt?'pm-alt':'pm-def'}" onclick="permToggle('${uid}','${a}')" title="${alt?'Alterado (origem: '+(dv?'Sim':'Não')+') — clique para mudar':'Regra de origem — clique para mudar'}">${v?'✓':'✗'}</td>`; }
-      const es=c.es, dv=M.defNotif(u,es), ovm=g.notif[es]||{}, alt=(uid in ovm), v=alt?ovm[uid]:dv;
+        const d0=M.def(u,a), dv=d0==='int'?'int':!!d0, ov=(g.perm[uid]||{})[a], v=typeof ov==='boolean'?ov:dv, alt=typeof ov==='boolean';
+        if(v==='int') return `<td class="pm-c pm-def" onclick="permToggle('${uid}','${a}')" title="Regra de origem: pode quem interveio no documento — clique para mudar (Sempre → Nunca → origem)">Interveio</td>`;
+        return `<td class="pm-c ${alt?'pm-alt':'pm-def'}" onclick="permToggle('${uid}','${a}')" title="${alt?'Alterado (origem: '+(dv==='int'?'quem interveio':(dv?'Sim':'Não'))+') — clique para mudar':'Regra de origem — clique para mudar'}">${v?'✓':'✗'}</td>`; }
+      const es=c.es, dv=permDefNotif(M,u,es), ovm=g.notif[es]||{}, alt=(uid in ovm), v=alt?ovm[uid]:dv;
       return `<td class="pm-c ${alt?'pm-alt':'pm-def'}" onclick="permNotif('${uid}','${es}')" title="${alt?'Alterado (origem: '+({para:'Para',cc:'CC',esc:'Para, se for o escolhido no documento'}[dv]||'Não recebe')+')':(v==='esc'?'Regra de origem: recebe (Para) quando é o escolhido no documento':'Regra de origem')} — clique: Para → CC → Não recebe">${({para:'Para',cc:'CC',esc:'Escolhido'}[v]||'')}</td>`; }).join('');
     return `<tr class="pm-u" draggable="true" ondragstart="permDragIni(event,'${uid}',${gi})" ondragover="permDragSobre(event,${gi})" ondragleave="this.classList.remove('pm-over-t','pm-over-b')" ondrop="permDragLargar(event,'${uid}',${gi})" ondragend="permDragFim()">
       <td class="pm-nome" title="${esc(u.email||'')} — arraste para ordenar"><span class="pm-h">⠿</span>${esc(u.nome||'')}</td><td class="pm-func">${esc(u.funcao||'')}</td>${cel}</tr>`; };
@@ -12773,11 +12784,12 @@ async function permGravar(g,mod){ mod=mod||permMod; const id=permObraId+'|'+mod;
   catch(e){ const j=DB.permissoes.indexOf(reg); if(j>=0){ if(ant) DB.permissoes[j]=ant; else DB.permissoes.splice(j,1); }
     alert('Erro ao gravar as permissões: '+(e.message||e)); permRender(); } }
 window.permToggle=function(uid,a){ const u=(DB.utilizadores||[]).find(x=>String(x.id)===uid); if(!u) return; const M=PERM_MOD[permMod], g=permRegras(permObraId,permMod);
-  const dv=!!M.def(u,a), cur=g.perm[uid]&&typeof g.perm[uid][a]==='boolean'?g.perm[uid][a]:dv, nv=!cur;
+  const d0=M.def(u,a), dv=d0==='int'?'int':!!d0, cur=g.perm[uid]&&typeof g.perm[uid][a]==='boolean'?g.perm[uid][a]:dv;
+  const nv=dv==='int'?(cur==='int'?true:(cur===true?false:'int')):!cur;
   g.perm[uid]=g.perm[uid]||{}; if(nv===dv) delete g.perm[uid][a]; else g.perm[uid][a]=nv; if(!Object.keys(g.perm[uid]).length) delete g.perm[uid];
   permGravar(g); };
 window.permNotif=function(uid,es){ const u=(DB.utilizadores||[]).find(x=>String(x.id)===uid); if(!u) return; const M=PERM_MOD[permMod], g=permRegras(permObraId,permMod);
-  const dv=M.defNotif(u,es), m=g.notif[es]=g.notif[es]||{}, cur=(uid in m)?m[uid]:dv, ord=['para','cc',''], nv=ord[(ord.indexOf(cur)+1)%3];
+  const dv=permDefNotif(M,u,es), m=g.notif[es]=g.notif[es]||{}, cur=(uid in m)?m[uid]:dv, ord=['para','cc',''], nv=ord[(ord.indexOf(cur)+1)%3];
   if(nv===dv) delete m[uid]; else m[uid]=nv; if(!Object.keys(m).length) delete g.notif[es];
   permGravar(g); };
 window.permRepor=function(){ if(!confirm('Repor as regras de origem deste módulo nesta obra?')) return; permGravar({perm:{},notif:{}}); };
