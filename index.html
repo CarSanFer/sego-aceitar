@@ -314,7 +314,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.12.1006</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.12.1012</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -12445,9 +12445,12 @@ function cgOrdemIA(cards){ const sig=c=>{ const m=c.match(/font-weight:700[^"]*"
 /* Cartões recolhíveis (todos) — recolhido = faixa vertical; a vista recompõe-se com os abertos.
    O ícone decorativo do cartão dá lugar ao botão de recolher; os botões próprios (+, PDF, anexos) ficam imediatamente à esquerda. */
 function segoCxBtn(k){ return `<button type="button" class="cg-cx-ic cx-tg" title="Recolher / abrir o cartão" onclick="event.stopPropagation();segoCxToggle('${k}')" ondblclick="event.stopPropagation()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button>`; }
-let SEGO_CX_FECH=null;
-function segoCxFech(){ if(!SEGO_CX_FECH){ try{ SEGO_CX_FECH=new Set(JSON.parse(localStorage.getItem('sego-cx-fech')||'[]')); }catch(e){ SEGO_CX_FECH=new Set(); } } return SEGO_CX_FECH; }
-window.segoCxToggle=function(k){ const f=segoCxFech(); f.has(k)?f.delete(k):f.add(k); try{ localStorage.setItem('sego-cx-fech',JSON.stringify([...f])); }catch(e){}
+/* Por defeito tudo aberto: o recolhido só vale enquanto se está na mesma vista (obra/separador/documento); ao mudar, abre tudo (FLX incluído). */
+let SEGO_CX_FECH=new Set(), SEGO_CX_SIG=null;
+function segoCxSig(){ return ['page','cgObraId','cgTab','defPg','peObraId','peFichaId','paFichaId','pbFichaId','qeFichaId','ptqFichaId','tcmFichaId','amFichaId','relObraId','relRelId'].map(n=>{ try{ const v=window.eval(n); return v==null?'':String(v); }catch(e){ return ''; } }).join('|'); }
+function segoCxFech(){ const sg=segoCxSig(); if(sg!==SEGO_CX_SIG){ if(SEGO_CX_SIG!==null){ SEGO_CX_FECH=new Set(); try{ localStorage.setItem('sego-flx-fechado','0'); }catch(e){} } SEGO_CX_SIG=sg; } return SEGO_CX_FECH; }
+try{ localStorage.removeItem('sego-cx-fech'); localStorage.setItem('sego-flx-fechado','0'); }catch(e){}
+window.segoCxToggle=function(k){ const f=segoCxFech(); f.has(k)?f.delete(k):f.add(k); 
   document.querySelectorAll('.cg-cx[data-cx="'+k+'"]').forEach(c=>c.classList.toggle('cx-fech',f.has(k)));
   segoCxApply(); if(window.segoPosCtx) segoPosCtx(); };
 /* com cartões recolhidos, a grelha passa a fluxo: cada aberto cresce em proporção à largura que tinha na grelha (os largos ganham mais) */
@@ -12463,11 +12466,11 @@ window.segoCxApply=function(){ if(window.segoFlxApply) segoFlxApply();
   new MutationObserver(()=>{ if(t) return; t=requestAnimationFrame(()=>{ t=null; if(document.querySelector('#app .cg-cx.cx-fech')||document.querySelector('#app .cg-cxs.cx-flex')) segoCxApply(); }); }).observe(app,{childList:true});
   window.addEventListener('resize',()=>{ clearTimeout(window.__cxT); window.__cxT=setTimeout(()=>{ if(document.querySelector('#app .cg-cx.cx-fech')) segoCxApply(); },150); }); })();
 window.segoCxTodos=function(fechar){ const f=segoCxFech(), ks=[...new Set([...document.querySelectorAll('#app .cg-cx[data-cx]')].map(c=>c.dataset.cx))];
-  ks.forEach(k=>fechar?f.add(k):f.delete(k)); try{ localStorage.setItem('sego-cx-fech',JSON.stringify([...f])); }catch(e){}
+  ks.forEach(k=>fechar?f.add(k):f.delete(k)); 
   document.querySelectorAll('#app .cg-cx[data-cx]').forEach(c=>c.classList.toggle('cx-fech',f.has(c.dataset.cx)));
   if(window.segoFlxSet) segoFlxSet(!!fechar);
   segoCxApply(); if(window.segoPosCtx) segoPosCtx(); };
-window.segoCxAbrirTodos=function(){ SEGO_CX_FECH=new Set(); try{ localStorage.setItem('sego-cx-fech','[]'); }catch(e){} document.querySelectorAll('.cg-cx.cx-fech').forEach(c=>c.classList.remove('cx-fech')); segoCxApply(); };
+window.segoCxAbrirTodos=function(){ SEGO_CX_FECH=new Set(); document.querySelectorAll('.cg-cx.cx-fech').forEach(c=>c.classList.remove('cx-fech')); segoCxApply(); };
 function cgCartao(sig,titulo,corpo,ic,extra,cls){ const [c,bg,p]=CG_IC[ic||sig]||CG_IC.DOC;
   if(sig==='FLX'&&/fpe-flx/.test(cls||'')){ const h=cgCartaoBase(sig,titulo,corpo,ic,extra,cls);
     return h.replace(/<div class="cg-cx-ic" aria-hidden="true">[\s\S]*?<\/svg><\/div>/,`<button type="button" class="cg-cx-ic flx-tg" title="Fechar / abrir o Fluxo" onclick="event.stopPropagation();segoFlxToggle()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path class="flx-a" d="M15 6l-6 6 6 6"/></svg></button>`); }
