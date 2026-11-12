@@ -314,7 +314,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.12.1918</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.12.1921</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -1086,6 +1086,7 @@ window.segoTema=function(){
   .cg-mk{position:absolute;left:var(--mk-x,calc(100% + 10px));top:50%;width:7px;height:7px;border-radius:50%;transform:translateY(-50%);font-style:normal}
   .cg-mk.obr{background:#DC2626}
   .cg-mk.aut{background:#F2C230}
+  .cg-mk.pre{background:linear-gradient(90deg,#DC2626 50%,#F2C230 50%)}   /* pré-preenchido mas alterável (obrigatório) */
   /* Popup de anexos */
   .modal.modal-anx{max-width:1100px !important;width:92vw !important}
   .anx-wrap{display:grid;grid-template-columns:300px minmax(0,1fr);gap:12px;min-height:60vh}
@@ -3700,7 +3701,7 @@ function renderFichaSOS(app,r){
   if(!window._sosCollapsed) window._sosCollapsed={};
   d.temas.forEach(t=>{ if(window._sosCollapsed[t.id]===undefined) window._sosCollapsed[t.id]=true; });
   const AUT='aut';
-  const L=(t,m)=>m?`<span class="cg-lm">${t}<i class="cg-mk ${m}" title="${m==='obr'?'Obrigatório':'Preenchido automaticamente'}"></i></span>`:`<span>${t}</span>`;
+  const L=(t,m)=>m?`<span class="cg-lm">${t}<i class="cg-mk ${m}" title="${m==='obr'?'Obrigatório':m==='pre'?'Pré-preenchido automaticamente — pode ser alterado':'Preenchido automaticamente'}"></i></span>`:`<span>${t}</span>`;
   const inp=(campo,val,tipo,extra)=>ro?(tipo==='date'?(val?peDataPT(val):''):esc(val||'')):`<input class="cg-i" type="${tipo||'text'}" value="${esc(val||'')}" oninput="sosCommit('${campo}',this.value)" ${extra||''}>`;
   const EST={pendente:'Pendente',resolvido:'Resolvido',fechado:'Fechado'};
   const temaBloco=(t,i)=>{
@@ -5069,7 +5070,7 @@ function renderFichaPE(app){
   /* ===== Layout em cartões (padrão IA/ID) ===== */
   const R=(l,v,st)=>cgR(l,v,st), dt=v=>v?peDataPT(v):'', mut='';
   const OBR='obr', AUT='aut';
-  const L=(t,m)=>m?`<span class="cg-lm">${t}<i class="cg-mk ${m}" title="${m==='obr'?'Obrigatório':'Preenchido automaticamente'}"></i></span>`:`<span>${t}</span>`;
+  const L=(t,m)=>m?`<span class="cg-lm">${t}<i class="cg-mk ${m}" title="${m==='obr'?'Obrigatório':m==='pre'?'Pré-preenchido automaticamente — pode ser alterado':'Preenchido automaticamente'}"></i></span>`:`<span>${t}</span>`;
   const inp=(id,val,tipo)=>`<input class="cg-i" id="${id}" type="${tipo||'text'}" value="${esc(val||'')}">`;
   const ai=(campo,tipo,val)=>`<input class="cg-i" id="pea-${campo}" type="${tipo||'text'}" value="${esc(val!==undefined?val:(tipo==='date'?String(d[campo]||'').slice(0,10):(d[campo]||'')))}">`;
   const at=campo=>`<textarea class="cg-ta" id="pea-${campo}">${esc(d[campo]||'')}</textarea>`;
@@ -5996,7 +5997,7 @@ function renderFichaPA(app){
   /* ===== Layout em cartões (padrão da ficha PE) ===== */
   const R=(l,v)=>cgR(l,v), dt=v=>v?peDataPT(v):'';
   const OBR='obr', AUT='aut';
-  const L=(t,m)=>m?`<span class="cg-lm">${t}<i class="cg-mk ${m}" title="${m==='obr'?'Obrigatório':'Preenchido automaticamente'}"></i></span>`:`<span>${t}</span>`;
+  const L=(t,m)=>m?`<span class="cg-lm">${t}<i class="cg-mk ${m}" title="${m==='obr'?'Obrigatório':m==='pre'?'Pré-preenchido automaticamente — pode ser alterado':'Preenchido automaticamente'}"></i></span>`:`<span>${t}</span>`;
   const inp=(id,val,tipo)=>`<input class="cg-i" id="${id}" type="${tipo||'text'}" value="${esc(val==null?'':val)}">`;
   const opts=(c,v)=>paIPOpcoes(c).map(o=>`<option value="${esc(o[0])}" ${String(o[0])===String(v==null?'':v)?'selected':''}>${o[1]==='—'||o[1]==='— aguarda —'?'':esc(o[1])}</option>`).join('');
   const sel=(id,c,v)=>`<select class="cg-i" id="${id}">${opts(c,v)}</select>`;
@@ -6655,7 +6656,7 @@ function renderFichaPB(app){
   /* ===== Layout em cartões (padrão da ficha PE) ===== */
   const R=(l,v)=>cgR(l,v), dt=v=>v?peDataPT(v):'';
   const OBR='obr', AUT='aut';
-  const L=(t,m)=>m?`<span class="cg-lm">${t}<i class="cg-mk ${m}" title="${m==='obr'?'Obrigatório':'Preenchido automaticamente'}"></i></span>`:`<span>${t}</span>`;
+  const L=(t,m)=>m?`<span class="cg-lm">${t}<i class="cg-mk ${m}" title="${m==='obr'?'Obrigatório':m==='pre'?'Pré-preenchido automaticamente — pode ser alterado':'Preenchido automaticamente'}"></i></span>`:`<span>${t}</span>`;
   const inp=(id,val,tipo)=>`<input class="cg-i" id="${id}" type="${tipo||'text'}" value="${esc(val==null?'':val)}">`;
   const txt=(id,val,ed)=>ed?`<textarea class="cg-ta" id="${id}">${esc(val||'')}</textarea>`:`<div class="cg-txt">${val?esc(val):''}</div>`;
   const R2=(l1,v1,l2,v2)=>`<div class="cg-r cg-rdup"><span class="cg-rl">${l1}</span><span class="cg-rv">${v1}</span><span class="cg-rl cg-rl2">${l2}</span><span class="cg-rv">${v2}</span></div>`;
@@ -7271,7 +7272,7 @@ function renderFichaPTQ(app){
   /* ===== Layout em cartões (padrão da ficha PE) ===== */
   const R=(l,v)=>cgR(l,v), dt=v=>v?peDataPT(v):'';
   const AUT='aut';
-  const L=(t,m)=>m?`<span class="cg-lm">${t}<i class="cg-mk ${m}" title="${m==='obr'?'Obrigatório':'Preenchido automaticamente'}"></i></span>`:`<span>${t}</span>`;
+  const L=(t,m)=>m?`<span class="cg-lm">${t}<i class="cg-mk ${m}" title="${m==='obr'?'Obrigatório':m==='pre'?'Pré-preenchido automaticamente — pode ser alterado':'Preenchido automaticamente'}"></i></span>`:`<span>${t}</span>`;
   const inp=(id,val,tipo)=>`<input class="cg-i" id="${id}" type="${tipo||'text'}" value="${esc(val==null?'':val)}">`;
   const R2=(l1,v1,l2,v2)=>`<div class="cg-r cg-rdup"><span class="cg-rl">${l1}</span><span class="cg-rv">${v1}</span><span class="cg-rl cg-rl2">${l2}</span><span class="cg-rv">${v2}</span></div>`;
   // FLX
@@ -7283,7 +7284,7 @@ function renderFichaPTQ(app){
     R(L('Envio',AUT),AE?inp('pta-dataEnvio',String(d.dataEnvio||'').slice(0,10),'date'):dt(d.dataEnvio))+R(L('Autor',AUT),AE?inp('pta-autorEnvio',d.autorEnvio):esc(d.autorEnvio||''));
   // PLA — plano
   const refs=(d.rsosRef&&d.rsosRef.length)?d.rsosRef.map(x=>`<a class="cg-ver" onclick="rsoAbrirRSOref('${d.obraId}','${x.relId}')">RSO ${esc(x.numero)}${x.semana?' (S'+x.semana+')':''}</a>`).join(' · '):'';
-  const cPla=R2(L('Início','obr'),ed?`<input class="cg-i" type="date" value="${esc(String(d.inicioPlano||'').slice(0,10))}" onchange="pqAlterarInicio(this.value)">`:dt(d.inicioPlano),L('Período',AUT),esc(d.periodo||''))+
+  const cPla=R2(L('Início','pre'),ed?`<input class="cg-i" type="date" value="${esc(String(d.inicioPlano||'').slice(0,10))}" onchange="pqAlterarInicio(this.value)">`:dt(d.inicioPlano),L('Período',AUT),esc(d.periodo||''))+
     R2(L('Semanas',AUT),esc(d.semanas==null?'':String(d.semanas)),L('RSO',AUT),refs)   /* RSO: preenchido automaticamente quando um RSO importa este PTQ */+
     `<div class="cg-rtxt"><span class="cg-rl">${L('Observações')}</span>${ed?`<textarea class="cg-ta" id="pq-obs" onchange="pqLerFormAdm()">${esc(d.observacoes||'')}</textarea>`:`<div class="cg-txt">${esc(d.observacoes||'')}</div>`}</div>`;
   // grelhas
@@ -7928,7 +7929,7 @@ function renderFichaQE(app){
   /* ===== Layout em cartões (padrão da ficha PE) ===== */
   const R=(l,v)=>cgR(l,v), dt=v=>v?peDataPT(v):'';
   const OBR='obr', AUT='aut';
-  const L=(t,m)=>m?`<span class="cg-lm">${t}<i class="cg-mk ${m}" title="${m==='obr'?'Obrigatório':'Preenchido automaticamente'}"></i></span>`:`<span>${t}</span>`;
+  const L=(t,m)=>m?`<span class="cg-lm">${t}<i class="cg-mk ${m}" title="${m==='obr'?'Obrigatório':m==='pre'?'Pré-preenchido automaticamente — pode ser alterado':'Preenchido automaticamente'}"></i></span>`:`<span>${t}</span>`;
   const inp=(id,val,tipo)=>`<input class="cg-i" id="${id}" type="${tipo||'text'}" value="${esc(val==null?'':val)}">`;
   const ta=(id,val)=>`<textarea class="cg-ta" id="${id}">${esc(val||'')}</textarea>`;
   const txt=(id,val,ed)=>ed?ta(id,val):`<div class="cg-txt">${val?esc(val):''}</div>`;
@@ -8883,7 +8884,7 @@ function renderFichaTCm(app){
   /* ===== Layout em cartões (padrão da ficha PE) ===== */
   const R=(l,v)=>cgR(l,v), dt=v=>v?peDataPT(v):'';
   const OBR='obr', AUT='aut';
-  const L=(t,m)=>m?`<span class="cg-lm">${t}<i class="cg-mk ${m}" title="${m==='obr'?'Obrigatório':'Preenchido automaticamente'}"></i></span>`:`<span>${t}</span>`;
+  const L=(t,m)=>m?`<span class="cg-lm">${t}<i class="cg-mk ${m}" title="${m==='obr'?'Obrigatório':m==='pre'?'Pré-preenchido automaticamente — pode ser alterado':'Preenchido automaticamente'}"></i></span>`:`<span>${t}</span>`;
   const inp=(id,val,tipo,extra)=>`<input class="cg-i" id="${id}" type="${tipo||'text'}" value="${esc(val==null?'':val)}" ${extra||''}>`;
   const R2=(l1,v1,l2,v2)=>`<div class="cg-r cg-rdup"><span class="cg-rl">${l1}</span><span class="cg-rv">${v1}</span><span class="cg-rl cg-rl2">${l2}</span><span class="cg-rv">${v2}</span></div>`;
   const ai=(k,tipo)=>inp('tca-'+k,tipo==='date'?String(d[k]||'').slice(0,10):d[k],tipo);
@@ -10226,7 +10227,7 @@ function renderFichaAM(app){
   /* ===== Layout em cartões (padrão da ficha PE) ===== */
   const R=(l,v)=>cgR(l,v), dt=v=>v?peDataPT(v):'';
   const AUT='aut';
-  const L=(t,m)=>m?`<span class="cg-lm">${t}<i class="cg-mk ${m}" title="${m==='obr'?'Obrigatório':'Preenchido automaticamente'}"></i></span>`:`<span>${t}</span>`;
+  const L=(t,m)=>m?`<span class="cg-lm">${t}<i class="cg-mk ${m}" title="${m==='obr'?'Obrigatório':m==='pre'?'Pré-preenchido automaticamente — pode ser alterado':'Preenchido automaticamente'}"></i></span>`:`<span>${t}</span>`;
   const ai=(k,tipo)=>`<input class="cg-i" id="ama-${k}" type="${tipo||'text'}" value="${esc(tipo==='date'?String(d[k]||'').slice(0,10):(d[k]==null?'':d[k]))}">`;
   const R2=(l1,v1,l2,v2)=>`<div class="cg-r cg-rdup"><span class="cg-rl">${l1}</span><span class="cg-rv">${v1}</span><span class="cg-rl cg-rl2">${l2}</span><span class="cg-rv">${v2}</span></div>`;
   const ORD=AM_MOD.ordem;
