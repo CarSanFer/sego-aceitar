@@ -314,7 +314,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.12.0318</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.12.0324</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -1294,12 +1294,14 @@ window.segoTema=function(){
     const cx=document.getElementById('nav-ctx'), nv=document.querySelector('.navbar'), app=document.getElementById('app'); if(!cx||!nv||!app) return;
     const nob=document.getElementById('nav-obra'), na=document.getElementById('nav-acoes');
     const nlo=document.getElementById('nav-obras');
-    const vis=(nob&&nob.style.display==='flex'&&nob.innerHTML.trim())||(na&&na.style.display==='flex')||(nlo&&nlo.style.display==='flex');
-    if(!vis||window.innerWidth<=900){ cx.classList.remove('abs'); ['nav-obra-mid','nav-obras-qbox'].forEach(id=>{ const m0=document.getElementById(id); if(m0) m0.style.removeProperty('left'); }); return; }
+    const ncx=document.getElementById('nav-cx');
+    const vis=(nob&&nob.style.display==='flex'&&nob.innerHTML.trim())||(na&&na.style.display==='flex')||(nlo&&nlo.style.display==='flex')||(ncx&&ncx.style.display==='flex');
+    const limpaMid=()=>['nav-obra-mid','nav-obras-qbox'].forEach(id=>{ const m0=document.getElementById(id); if(m0){ m0.style.removeProperty('left'); m0.style.removeProperty('width'); } });
+    if(!vis||window.innerWidth<=900){ cx.classList.remove('abs'); limpaMid(); return; }
     // sonda invisível com a grelha de cards da obra (fora do #app, para não disparar observadores)
     if(!pr){ pr=document.createElement('div'); pr.id='nav-sonda'; pr.setAttribute('aria-hidden','true');
       pr.style.cssText='position:absolute;top:0;height:0;overflow:hidden;visibility:hidden;pointer-events:none';
-      pr.innerHTML='<div class="cg-cxs cg-2"><div class="cg-cx"><div class="cg-cx-h cg-cab"><div style="min-width:0;flex:1"><div>X</div><div>X</div></div><div class="cg-cx-ic"><svg width="14" height="14"></svg></div></div></div><div class="cg-cx"><div class="cg-cx-h cg-cab"><div style="min-width:0;flex:1"><div>X</div><div>X</div></div><div class="cg-cx-ic"><svg width="14" height="14"></svg></div></div></div></div>'; document.body.appendChild(pr); }
+      pr.innerHTML='<div class="cg-cxs cg-2"><div class="cg-cx"><div class="cg-cx-h cg-cab"><div style="min-width:0;flex:1"><div>X</div><div>X</div></div><div class="cg-cx-ic"><svg width="14" height="14"></svg></div></div></div><div class="cg-cx"><div class="cg-cx-h cg-cab"><div style="min-width:0;flex:1"><div>X</div><div>X</div></div><div class="cg-cx-ic"><svg width="14" height="14"></svg></div></div></div><div class="cg-cx"><div class="cg-cx-h cg-cab"><div style="min-width:0;flex:1"><div>X</div><div>X</div></div><div class="cg-cx-ic"><svg width="14" height="14"></svg></div></div></div></div>'; document.body.appendChild(pr); }
     const ra=app.getBoundingClientRect(), cs=getComputedStyle(app);
     const l=ra.left+parseFloat(cs.paddingLeft||0)+parseFloat(cs.borderLeftWidth||0), w=app.clientWidth-parseFloat(cs.paddingLeft||0)-parseFloat(cs.paddingRight||0);
     pr.style.left=(l+window.scrollX)+'px'; pr.style.width=Math.max(0,w)+'px';
@@ -1307,11 +1309,16 @@ window.segoTema=function(){
     // limites interiores do cartão: esquerda = início do texto do cabeçalho; direita = lado direito do ícone do cabeçalho
     const hd=k[1].querySelector('.cg-cx-h'), ic=k[1].querySelector('.cg-cx-ic');
     const inL=hd?(hd.firstElementChild.getBoundingClientRect().left-r2.left):0, inR=ic?(r2.right-ic.getBoundingClientRect().right):0;
-    if(Math.abs(r2.top-r1.top)>1||r2.left<=r1.left){ cx.classList.remove('abs'); return; }   // uma só coluna: fica no fluxo normal
+    if(Math.abs(r2.top-r1.top)>1||r2.left<=r1.left){ cx.classList.remove('abs'); limpaMid(); return; }   // uma só coluna: fica no fluxo normal
     const x=Math.round(r2.left+inL-nv.getBoundingClientRect().left);
     cx.style.setProperty('--ctx-x',x+'px'); cx.style.setProperty('--ctx-w',(Math.round(r2.right-inR-nv.getBoundingClientRect().left)-x)+'px'); cx.classList.add('abs');
     // se as ações forem muitas, o nome da obra afasta-se para a direita (nunca se sobrepõem)
-    ['nav-obra-mid','nav-obras-qbox'].forEach(id=>{ const mid=document.getElementById(id); if(!mid) return; mid.style.removeProperty('left');
+    // caixa da obra / pesquisa: centrada no 3.º cartão, com a largura interior dele (do título ao ícone)
+    const r3=k[2].getBoundingClientRect(), hd3=k[2].querySelector('.cg-cx-h'), ic3=k[2].querySelector('.cg-cx-ic');
+    const tres=Math.abs(r3.top-r2.top)<=1&&r3.left>r2.left;
+    const x3=tres?r3.left+(hd3?(hd3.firstElementChild.getBoundingClientRect().left-r3.left):0):0, x3r=tres?r3.right-(ic3?(r3.right-ic3.getBoundingClientRect().right):0):0;
+    ['nav-obra-mid','nav-obras-qbox'].forEach(id=>{ const mid=document.getElementById(id); if(!mid) return; mid.style.removeProperty('left'); mid.style.removeProperty('width');
+      if(tres){ mid.style.setProperty('left',Math.round((x3+x3r)/2-nv.getBoundingClientRect().left)+'px','important'); mid.style.setProperty('width',Math.round(x3r-x3)+'px','important'); }
       if(getComputedStyle(mid).display!=='none'){ const rc=cx.getBoundingClientRect(), rm=mid.getBoundingClientRect();
         if(rc.right+12>rm.left){ const nl=rc.right+12+rm.width/2-nv.getBoundingClientRect().left; mid.style.setProperty('left',Math.round(nl)+'px','important'); } } });
   };
@@ -1329,11 +1336,14 @@ window.segoTema=function(){
   .flx-tg{cursor:pointer;background:transparent;pointer-events:auto !important;position:relative;z-index:2}
   /* TESTE: qualquer cartão recolhe numa faixa vertical; com algum recolhido, a grelha passa a fluxo e os abertos ocupam o espaço */
   .cg-cx[data-cx]>.cg-cx-h>div.cg-cx-ic[aria-hidden="true"]{display:none !important}
-  #nav-cx{display:none;align-items:center;gap:6px;margin-right:10px}
+  #nav-cx{display:none;align-items:center;gap:6px;margin-left:auto !important;padding-left:6px}
+  #nav-ctx #nav-ords{margin:0 6px 0 0 !important}
+  #nav-ctx #nav-acoes[style*="flex"]~#nav-cx{margin-left:6px !important}
   #nav-cx .on-at{width:24px;height:24px;padding:0;box-sizing:border-box;border-radius:4px;border:1px solid var(--nav-bd);background:transparent;color:var(--nav-bd);cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
   #nav-cx .on-at:hover{background:rgba(227,153,86,.2)}
-  .cg-cx-h>.cg-cx-ic+.cx-tg,.cg-cx-h>.co-mais+.cx-tg{margin-left:6px}
-  .cg-cx-ic.cx-tg{cursor:pointer;pointer-events:auto !important;background:transparent}
+  .cg-cx-h>.cg-cx-ic+.cx-tg,.cg-cx-h>.co-mais+.cx-tg,.cg-cx-h>button+.cx-tg{margin-left:-4px !important}
+  .cg-cx-ic.cx-tg,.cg-cxs>.cg-cx>.cg-cx-h .cg-cx-ic.cx-tg{cursor:pointer !important;pointer-events:auto !important;background:transparent;color:var(--nav-bd) !important}
+  .cg-cxs>.cg-cx>.cg-cx-h .cg-cx-ic.cx-tg:hover{background:rgba(227,153,86,.25) !important}
   .cg-cx.cx-fech .cx-tg svg{transform:rotate(180deg)}
   .cg-cx.cx-fech>.cg-cx-h>.cg-cx-ic.co-mais{display:none !important}
   .cg-cx-ic.cx-tg:hover{background:rgba(227,153,86,.25) !important}
@@ -1533,7 +1543,9 @@ window.addEventListener('DOMContentLoaded',()=>{ if(pwaStandalone()){ const b=do
         nc.innerHTML='<button type="button" class="on-at" title="Recolher todos os cartões" onclick="segoCxTodos(1)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 6l-6 6 6 6M19 6l-6 6 6 6"/></svg></button><button type="button" class="on-at" title="Mostrar todos os cartões" onclick="segoCxTodos(0)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6l6 6-6 6M13 6l6 6-6 6"/></svg></button>';
         nr.insertBefore(nc,nr.firstChild); }
       if(nc){ const tem=!!document.querySelector('#app .cg-cx[data-cx]'); nc.style.display=tem?'flex':'none';
-        const ga=document.getElementById('nav-adm'), dv=document.getElementById('ver-dev'), ref=ga&&ga.parentNode===nr?ga:(dv&&dv.parentNode===nr?dv:null); if(ref&&nc.nextSibling!==ref) nr.insertBefore(nc,ref); } }catch(e){}
+        const cxx=document.getElementById('nav-ctx'); if(cxx&&cxx.lastElementChild!==nc) cxx.appendChild(nc); }
+      // Lista de obras: botões de ordenação no canto superior esquerdo do 2.º cartão, seguidos do n.º e do estado
+      const nords=document.getElementById('nav-ords'), cxo=document.getElementById('nav-ctx'); if(nords&&cxo&&cxo.firstElementChild!==nords) cxo.insertBefore(nords,cxo.firstElementChild); }catch(e){}   // por cima do 2.º cartão, à direita
     if(window.segoPosCtx) segoPosCtx();
   };
   window.addEventListener('resize',()=>{ clearTimeout(window.__rszT); window.__rszT=setTimeout(()=>{ try{ sync(); }catch(e){} },120); });
