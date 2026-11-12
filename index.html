@@ -314,7 +314,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.12.1143</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.12.1147</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -1266,14 +1266,16 @@ window.segoTema=function(){
     app.classList.add('co-modpg');
     const at=(!o.comFases&&typeof CG_ATALHOS!=='undefined')?CG_ATALHOS.map(([k,t])=>`<button class="on-at ${k==='CO'?'on':''}" title="${t}" onclick="segoSairMod();${k==='CO'?`cgAbrirCO('${o.id}')`:`cgAbrir('${o.id}','${k}')`}">${CG_AT_IC[k]}</button>`).join(''):'';
     // o + (novo documento) fica na caixa do centro, logo a seguir à sigla do módulo
-    const sinos=lst.filter(it=>/alertar|notificar/i.test(it.t)); sinos.forEach(it=>lst.splice(lst.indexOf(it),1));   // o sino também vai para junto do +
+    const temIde=!!app.querySelector('.cg-cx[data-cx="IDE"]');   // ficha: todos os botões (+, sino, gravar, enviar…) vão para o IDE
+    if(temIde&&mais){ lst.unshift(mais); mais=null; }
+    const sinos=temIde?[]:lst.filter(it=>/alertar|notificar/i.test(it.t)); sinos.forEach(it=>lst.splice(lst.indexOf(it),1));   // lista: o sino vai para junto do +
     const novo=(mais?`<button type="button" class="on-novo" title="${esc(mais.t.replace(/^\+\s*/,''))}" ${mais.dis?'disabled':''} onclick="segoMvClick(${mais.i})">+</button>`:'')+
       sinos.map(it=>`<button type="button" class="on-novo" title="${esc(it.t)}" ${it.dis?'disabled':''} onclick="segoMvClick(${it.i})">${IC.bell}</button>`).join('');
     // nas fichas: as ações (Gravar, Enviar, …) vão para o cabeçalho do IDE, ao lado do recolher
     const btnIde=it=>{ const ic=ICONE(it.t); const tt=esc(it.t.replace(/^[+✕⇩✓]\s*/,''));
       return `<button type="button" class="cg-cx-ic co-mais ide-at ${ic?'':'txt'}" title="${tt}" ${it.dis?'disabled':''} onclick="event.stopPropagation();segoMvClick(${it.i})" ondblclick="event.stopPropagation()">${ic?IC[ic[0]]:tt}</button>`; };
     return { at, esq:'', ide: lst.map(btnIde).join(''),
-             meio:`<span class="on-sig">${sg}</span><span class="on-nome" title="${esc(o.nome||'')}">${esc(o.nome||'')}</span>${segoOndeMod(mk,novo)}`,
+             meio:`<span class="on-sig" title="${esc(o.nome||'')}">${sg}</span>${segoOndeMod(mk,novo)}`,   // só siglas: obra | módulo (o nome fica no tooltip)
              dir: lst.map(it=>btn(it)).join(''), adm: adm.map(it=>btn(it)).join('') };
   };
   // onde estamos: «obra | SIGLA Módulo · n.º do documento» na caixa do centro
