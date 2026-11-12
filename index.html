@@ -314,7 +314,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.12.1115</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.12.1124</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -814,6 +814,7 @@ window.segoTema=function(){
   .cg-v2a{flex:1 1 auto;min-width:0;text-align:right;overflow:hidden;text-overflow:ellipsis}
   .cg-v2b{flex:0 0 48px;text-align:right;color:var(--text-muted)}
   .cg-r2 .cg-rv:has(.cg-i) .cg-v2b{flex-basis:56px}
+  .cg-r2.cg-r2w .cg-v2b,.cg-r2.cg-r2w .cg-rv:has(.cg-i) .cg-v2b{flex-basis:86px;color:var(--text)}   /* VAL: valor em € calculado, encostado à direita */
   .cg-cpl>span:first-child{flex:0 0 38%}.cg-cpl>span:last-child{flex:1 1 auto;min-width:0}
   .cg-cpl>select{flex:1 1 auto;min-width:0}
   .cg-pro .co-semreg .cg-rl::after{display:none}.cg-pro .co-semreg .cg-rl{color:var(--text-muted);font-weight:400}
@@ -1926,7 +1927,7 @@ function mapObra(r) {
     empresaDO: r.empresa_dono_obra||'', empresaEmp: r.empresa_empreiteiro||'',
     dataConsignacao: r.data_consignacao||'', fimContratual: r.fim_contratual||'', fimReal: r.fim_real||'',
     adiantamentoPct: r.adiantamento_pct, garantiaPct: r.garantia_pct, retencao: r.retencao||'', retencaoGarantia: r.retencao_garantia||'',
-    dataContrato: r.data_contrato||'', adiantamentoValor: r.adiantamento_valor??null, garantiaValor: r.garantia_valor??null, retencaoPct: r.retencao_pct??null, retencaoGarantiaPct: r.retencao_garantia_pct??null,
+    dataContrato: r.data_contrato||'', retencaoPct: r.retencao_pct??null, retencaoGarantiaPct: r.retencao_garantia_pct??null,
     comFases: !!r.com_fases, obraMaeId: r.obra_mae_id||null, entidadeDoId: r.entidade_do_id||'', entidadeEmpId: r.entidade_emp_id||'',
   };
 }
@@ -1956,7 +1957,7 @@ function unmapObra(o) {
     empresa_dono_obra: o.empresaDO||'', empresa_empreiteiro: o.empresaEmp||'',
     data_consignacao: o.dataConsignacao||null, fim_contratual: o.fimContratual||null, fim_real: o.fimReal||null,
     adiantamento_pct: o.adiantamentoPct??null, garantia_pct: o.garantiaPct??null, retencao: o.retencao||'', retencao_garantia: o.retencaoGarantia||'',
-    data_contrato: o.dataContrato||null, adiantamento_valor: o.adiantamentoValor??null, garantia_valor: o.garantiaValor??null, retencao_pct: o.retencaoPct??null, retencao_garantia_pct: o.retencaoGarantiaPct??null,
+    data_contrato: o.dataContrato||null, retencao_pct: o.retencaoPct??null, retencao_garantia_pct: o.retencaoGarantiaPct??null,
     com_fases: !!o.comFases, obra_mae_id: o.obraMaeId||null, entidade_do_id: o.entidadeDoId||null, entidade_emp_id: o.entidadeEmpId||null,
   };
 }
@@ -12502,8 +12503,8 @@ function cgNavTpl(o,atual,botoes){ const mae=cgMae(o);
 function cgR(l,v,st){ const vazio=v===undefined||v===null||v===''||v==='—'||v==='— €'; return `<div class="cg-r"><span class="cg-rl">${l}</span><span class="cg-rv" style="${st||''}">${vazio?'':v}</span></div>`; }
 const cgDiv='<div class="cg-gap">&nbsp;</div>';
 /* linha com valor + complemento à frente (ex.: Fim · Duração; Adiantamento € · %) — o complemento tem coluna própria para os valores alinharem */
-function cgR2(l,a,b,stA,stB){ const lp=v=>(v===undefined||v===null||v==='—'||v==='— €')?'':v;
-  return `<div class="cg-r cg-r2"><span class="cg-rl">${l}</span><span class="cg-rv"><span class="cg-v2"><span class="cg-v2a" style="${stA||''}">${lp(a)}</span><span class="cg-v2b" style="${stB||''}">${lp(b)}</span></span></span></div>`; }
+function cgR2(l,a,b,stA,stB,cls){ const lp=v=>(v===undefined||v===null||v==='—'||v==='— €')?'':v;
+  return `<div class="cg-r cg-r2 ${cls||''}"><span class="cg-rl">${l}</span><span class="cg-rv"><span class="cg-v2"><span class="cg-v2a" style="${stA||''}">${lp(a)}</span><span class="cg-v2b" style="${stB||''}">${lp(b)}</span></span></span></div>`; }
 const cgDivN=n=>cgDiv.repeat(n);
 function renderCardGeral(app){
   const o0=DB.obras.find(x=>x.id===cgObraId); if(!o0){ cgObraId=null; render(); return; }
@@ -12515,7 +12516,7 @@ function renderCardGeral(app){
     /* Grelha comum aos 5 cartões (13 linhas; B = linha em branco) para as linhas alinharem e os cartões terem a mesma altura:
        IDE: Nome·Sigla·Código·B·Estado·B·B·B·Morada·Localidade·B·Dono de Obra·Empreiteiro
        CAR: Pisos+·Pisos−·B·B·Área·B·B·B·Tipo·Subtipo·B·Âmbito·Desafios
-       VAL: Valor Obra·Valor m²·B×6·Adiantamento(€|%)·Retenção(S/N|%)·B·Garantia(€|%)·Retenção(S/N|%)
+       VAL: Valor Obra·Valor m²·B×6·Adiantamento(%|€)·Retenção(S/N|%)·B·Garantia(%|€)·Retenção(S/N|%)
        PZO: Contrato·Consignação·B·B·In. Previsto·Fim Previsto(|duração)·B·B·In. Real(|desvio)·B·B·Fim Real(|desvio)·B
        PRO: (Tipo·Início·Fim(|duração)·B) × n, completado com B até ao fim da grelha
        A linha L (7.ª) só existe com 2+ registos no PRO (o 2.º registo ocupa as linhas 5–7); sem isso a grelha tem 12 linhas. */
@@ -12526,14 +12527,13 @@ function renderCardGeral(app){
       cgR('Morada',cgIn('morada'))+cgR('Localidade',cgEdit?`<span class="cg-cpl"><span>${cgIn('codigoPostal')}</span><span>${cgIn('localidade')}</span></span>`:(esc([o.codigoPostal,o.localidade].filter(Boolean).join(' '))||'—'))+B+cgR('Dono de Obra',cgIn('entidadeDoId','ent'))+cgR('Empreiteiro',cgIn('entidadeEmpId','ent')),'IDE','','cg-ide'));
     cards.push(cgCartao('CAR','Características',cgR('Pisos +',cgIn('pisosAcima','num'))+cgR('Pisos −',cgIn('pisosAbaixo','num'))+B+B+cgR('Área m²',cgIn('area','num'))+B+L+B+
       cgR('Tipo',cgIn('tipoObra','sel',CG_TIPOS))+cgR('Subtipo',cgIn('subtipo','sel',CG_SUBTIPOS))+B+cgR('Âmbito',`<a class="cg-ver" onclick="cgTextoVer('ambito','Âmbito')">${cgEdit?'Editar':'Ver'}</a>`)+cgR('Desafios',`<a class="cg-ver" onclick="cgTextoVer('principaisDesafios','Principais Desafios')">${cgEdit?'Editar':'Ver'}</a>`),'CAR','','cg-car'));
-    // Valores: Adiantamento e Garantia introduzidos em € → % calculada; Retenção Sim/Não + %
-    const vEur=(kv,kp)=>{ const v=o[kv]; if(v!=null&&v!=='') return Number(v); return (o[kp]!=null&&o.valorObra)?o.valorObra*o[kp]/100:null; };
-    const vPct=(kv,kp)=>{ const v=o[kv]; if(v!=null&&v!==''&&o.valorObra) return Number(v)/o.valorObra*100; return o[kp]; };
-    const linVal=(rot,kv,kp)=>cgR2(rot,cgEdit?cgIn(kv,'eur'):(vEur(kv,kp)==null?'':cgNum(vEur(kv,kp))+' €'),pctTxt(vPct(kv,kp)));
-    const linRet=(kr,kp)=>cgR2('Retenção',cgEdit?cgIn(kr,'sel',['','Sim','Não']):esc(o[kr]||''),cgEdit?cgIn(kp,'pct'):(o[kr]==='Sim'?pctTxt(o[kp]):''));
-    cards.push(cgCartao('VAL','Valores',cgR2('Valor Obra',cgIn('valorObra','eur'),'',cgEdit?'':gold)+cgR2('Valor m²',(o.valorObra&&o.area)?cgNum(o.valorObra/o.area)+' €':'','',mut)+B+B+B+B+L+B+
-      linVal('Adiantamento','adiantamentoValor','adiantamentoPct')+linRet('retencao','retencaoPct')+B+
-      linVal('Garantia','garantiaValor','garantiaPct')+linRet('retencaoGarantia','retencaoGarantiaPct'),'VAL'));
+    // Valores: Adiantamento e Garantia → introduz-se a % (à esquerda) e o valor em € fica calculado, encostado à direita; Retenção Sim/Não + %
+    const vEur=kp=>(o[kp]!=null&&o[kp]!==''&&o.valorObra)?o.valorObra*o[kp]/100:null;
+    const linVal=(rot,kp)=>cgR2(rot,cgEdit?cgIn(kp,'pct'):pctTxt(o[kp]),vEur(kp)==null?'':cgNum(vEur(kp))+' €','','','cg-r2w');
+    const linRet=(kr,kp)=>cgR2('Retenção',cgEdit?cgIn(kr,'sel',['','Sim','Não']):esc(o[kr]||''),cgEdit?cgIn(kp,'pct'):(o[kr]==='Sim'?pctTxt(o[kp]):''),'','','cg-r2w');
+    cards.push(cgCartao('VAL','Valores',cgR('Valor Obra',cgIn('valorObra','eur'),cgEdit?'':gold)+cgR('Valor m²',(o.valorObra&&o.area)?cgNum(o.valorObra/o.area)+' €':'—',mut)+B+B+B+B+L+B+
+      linVal('Adiantamento','adiantamentoPct')+linRet('retencao','retencaoPct')+B+
+      linVal('Garantia','garantiaPct')+linRet('retencaoGarantia','retencaoGarantiaPct'),'VAL'));
     { const durP=cgDias(o.inicioPrevisto,o.fimPrevisto), desvI=cgDias(o.inicioPrevisto,o.inicioReal), fimAt=cgFimAtual(o), desvF=o.fimReal?cgDias(fimAt,o.fimReal):null;
       cards.push(cgCartao('PZO','Prazo',cgR2('Contrato',cgIn('dataContrato','date'),'')+cgR2('Consignação',cgIn('dataConsignacao','date'),'')+B+B+
         cgR2('In. Previsto',cgIn('inicioPrevisto','date'),'')+cgR2('Fim Previsto',cgIn('fimPrevisto','date'),durP===null?'':durP+' d')+L+B+
@@ -12607,7 +12607,6 @@ window.cgGuardar=async function(){
   const mae=cgMae(b);
   if(mae&&cgFases(mae.id).some(f=>f.id!==b.id&&String(f.sigla||'').toLowerCase()===String(b.sigla).trim().toLowerCase())){ alert('Já existe uma fase com a sigla "'+b.sigla+'" nesta obra.'); return; }
   b.empresaDO=cgEntNome(b.entidadeDoId); b.empresaEmp=cgEntNome(b.entidadeEmpId);
-  [['adiantamentoValor','adiantamentoPct'],['garantiaValor','garantiaPct']].forEach(([v,p])=>{ if(b[v]!=null&&b.valorObra) b[p]=+(b[v]/b.valorObra*100).toFixed(4); else if(b[v]==null) b[p]=null; });   // a % deriva do valor
   try{ await sb.patch('obras',b.id,Object.assign(unmapObra(b),{updated_at:new Date().toISOString()}));
     const i=DB.obras.findIndex(x=>x.id===b.id), estAnt=(DB.obras[i]||{}).estado; DB.obras[i]=b; cgEdit=false; cgBuf=null;
     try{ auditLog('obra',b.codigo+' '+b.sigla,'editada'); }catch(e){}
@@ -12616,7 +12615,7 @@ window.cgGuardar=async function(){
 
 /* ---------- Nova Obra / Nova Fase ---------- */
 const CG_GRUPOS={ident:{rot:'Identificação',def:true,campos:['morada','codigoPostal','localidade','tipoObra','subtipo','area','pisosAcima','pisosAbaixo']},
-  emp:{rot:'Empresas',def:true,campos:['entidadeDoId','entidadeEmpId','empresaDO','empresaEmp','valorObra','adiantamentoPct','adiantamentoValor','retencao','retencaoPct','garantiaPct','garantiaValor','retencaoGarantia','retencaoGarantiaPct']},
+  emp:{rot:'Empresas',def:true,campos:['entidadeDoId','entidadeEmpId','empresaDO','empresaEmp','valorObra','adiantamentoPct','retencao','retencaoPct','garantiaPct','retencaoGarantia','retencaoGarantiaPct']},
   proj:{rot:'Utilizadores (Projetista)',def:true,campos:[]},
   datas:{rot:'Datas e Prazos',def:false,campos:['dataContrato','dataConsignacao','inicioPrevisto','inicioReal','fimPrevisto','fimContratual','fimReal','prazo','prorrogacoes']},
   ambito:{rot:'Âmbito e Desafios',def:false,campos:['ambito','principaisDesafios']},
