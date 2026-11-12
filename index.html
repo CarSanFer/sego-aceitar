@@ -314,7 +314,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.12.1017</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.12.1103</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -565,7 +565,7 @@ window.segoTema=function(){
   .cg-head .cg-at button{border-color:var(--border);background:var(--bg-card);color:var(--navy)}
   .cg-head .cg-at button.on,.cg-head .cg-at button:hover{background:var(--navy);color:#fff;border-color:var(--navy)}
   html[data-theme=dark] .cg-head .cg-at button{color:var(--text)}
-  .cg-cxs{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;align-items:start}
+  .cg-cxs{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;align-items:stretch}   /* cartões da mesma linha com a mesma altura */
   .cg-cx{background:var(--bg-card);border:0.5px solid var(--border-light);border-radius:var(--radius);overflow:hidden}
   .cg-cx-h{display:flex;align-items:center;gap:10px;padding:11px 14px 10px;border-bottom:0.5px solid var(--border-light)}
   .cg-cx-ic{width:34px;height:34px;border-radius:var(--radius);display:flex;align-items:center;justify-content:center;flex-shrink:0}
@@ -810,6 +810,10 @@ window.segoTema=function(){
   .co-cx .co-vazio .cg-rl::after,.co-cx .co-semreg .cg-rl::after{display:none}
   .co-cx .co-semreg .cg-rl{color:var(--text-muted);font-weight:400}
   .cg-cpl{display:flex;gap:6px;align-items:center;width:100%}
+  .cg-v2{display:flex;justify-content:flex-end;align-items:center;gap:6px;width:100%}
+  .cg-v2a{flex:1 1 auto;min-width:0;text-align:right;overflow:hidden;text-overflow:ellipsis}
+  .cg-v2b{flex:0 0 48px;text-align:right;color:var(--text-muted)}
+  .cg-r2 .cg-rv:has(.cg-i) .cg-v2b{flex-basis:56px}
   .cg-cpl>span:first-child{flex:0 0 38%}.cg-cpl>span:last-child{flex:1 1 auto;min-width:0}
   .cg-cpl>select{flex:1 1 auto;min-width:0}
   .cg-pro .co-semreg .cg-rl::after{display:none}.cg-pro .co-semreg .cg-rl{color:var(--text-muted);font-weight:400}
@@ -1395,13 +1399,14 @@ window.segoTema=function(){
   .cg-cxs.cx-flex{display:flex !important;flex-wrap:wrap;align-items:stretch !important;gap:12px !important}
   .cg-cxs.cx-flex>.cg-cx{min-width:0;grid-column:auto !important;grid-row:auto !important}
   .cg-cxs.cx-flex>.cg-cx.cx-larga{flex:1 1 100% !important}
-  .cg-cxs>.cg-cx.cx-fech{flex:0 0 40px !important;max-width:40px;overflow:hidden;height:var(--cx-h,300px) !important;min-height:0;display:flex;flex-direction:column}
+  .cg-cxs>.cg-cx.cx-fech{flex:0 0 40px !important;max-width:40px;overflow:hidden;min-height:var(--cx-h,300px) !important;display:flex;flex-direction:column}
   .cg-cx.cx-fech .co-oc{display:none}   /* na faixa, o OCULTO percebe-se pelo tracejado */
   .cg-cxs.cx-flex>.cg-cx.cx-fech,.cg-cxs.cx-flex.flx-fech>.fpe-flx{order:-1}   /* faixas encostadas à esquerda */
   .cg-cxs.cx-flex.flx-fech>.fpe-flx{flex:0 0 40px !important;max-width:40px;min-height:200px;display:flex;flex-direction:column}
   .cg-cxs.cx-flex.flx-fech>.fpe-flx>.cg-cx-h{flex:1 1 auto;border-bottom:none !important}
   .cg-cx.cx-fech{box-sizing:border-box}
-  .cg-cxs.cx-flex>.cg-cx.cx-fech{align-self:flex-start !important}   /* faixas com altura fixa: não esticam com o cartão maior */
+  .cg-cxs.cx-flex>.cg-cx.cx-fech{align-self:flex-start !important}   /* frame: altura dos cartões normais da mesma linha (mín. a da descrição mais longa); não acompanha os cartões largos */
+  .cg-cxs.cx-flex>.cg-cx{align-self:stretch !important;height:auto !important}   /* (height:100% impedia o stretch) */
   .cg-cxs.cx-flex.flx-fech>.fpe-flx{align-self:stretch !important;height:auto !important}
   .cg-cx.cx-fech>.cg-cx-h{flex:1 1 auto}
   .cg-cx.cx-fech>.cg-cx-b,.cg-cx.cx-fech>*:not(.cg-cx-h){display:none !important}
@@ -1921,6 +1926,7 @@ function mapObra(r) {
     empresaDO: r.empresa_dono_obra||'', empresaEmp: r.empresa_empreiteiro||'',
     dataConsignacao: r.data_consignacao||'', fimContratual: r.fim_contratual||'', fimReal: r.fim_real||'',
     adiantamentoPct: r.adiantamento_pct, garantiaPct: r.garantia_pct, retencao: r.retencao||'', retencaoGarantia: r.retencao_garantia||'',
+    dataContrato: r.data_contrato||'', adiantamentoValor: r.adiantamento_valor??null, garantiaValor: r.garantia_valor??null, retencaoPct: r.retencao_pct??null, retencaoGarantiaPct: r.retencao_garantia_pct??null,
     comFases: !!r.com_fases, obraMaeId: r.obra_mae_id||null, entidadeDoId: r.entidade_do_id||'', entidadeEmpId: r.entidade_emp_id||'',
   };
 }
@@ -1950,6 +1956,7 @@ function unmapObra(o) {
     empresa_dono_obra: o.empresaDO||'', empresa_empreiteiro: o.empresaEmp||'',
     data_consignacao: o.dataConsignacao||null, fim_contratual: o.fimContratual||null, fim_real: o.fimReal||null,
     adiantamento_pct: o.adiantamentoPct??null, garantia_pct: o.garantiaPct??null, retencao: o.retencao||'', retencao_garantia: o.retencaoGarantia||'',
+    data_contrato: o.dataContrato||null, adiantamento_valor: o.adiantamentoValor??null, garantia_valor: o.garantiaValor??null, retencao_pct: o.retencaoPct??null, retencao_garantia_pct: o.retencaoGarantiaPct??null,
     com_fases: !!o.comFases, obra_mae_id: o.obraMaeId||null, entidade_do_id: o.entidadeDoId||null, entidade_emp_id: o.entidadeEmpId||null,
   };
 }
@@ -12439,9 +12446,9 @@ const CG_IC={
   ESCL:['#185FA5','#E6F1FB','<path d="M18 36h12M20 41h8M24 7a11 11 0 0 0-6 20c1.5 1 2 2.5 2 4h8c0-1.5.5-3 2-4a11 11 0 0 0-6-20z" stroke="C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>'],
   RESP:['#185FA5','#E6F1FB','<path d="M20 12 8 24l12 12M8 24h20a12 12 0 0 1 12 12v2" stroke="C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>'],
   DOC:['var(--pal-1)','var(--pal-1-bg)','<path d="M14 6h14l8 8v28H14z" stroke="C" stroke-width="2.5" stroke-linejoin="round"/><path d="M28 6v8h8M19 24h12M19 30h12" stroke="C" stroke-width="2.2" stroke-linecap="round"/>']};
-/* IA: IDE · CAR · PZO · PRO · VAL */
+/* IA: IDE · CAR · VAL · PZO · PRO */
 function cgOrdemIA(cards){ const sig=c=>{ const m=c.match(/font-weight:700[^"]*">([A-Z]{2,4})</); return m?m[1]:''; };
-  const ord=['IDE','CAR','PZO','PRO','VAL'], usados=new Set(); let h='';
+  const ord=['IDE','CAR','VAL','PZO','PRO'], usados=new Set(); let h='';
   ord.forEach(k=>{ if(k==='_'){ h+='<div class="cg-esp"></div>'; return; } const c=cards.find(x=>sig(x)===k); if(c){ h+=c; usados.add(c); } });
   cards.forEach(c=>{ if(!usados.has(c)) h+=c; }); return h; }
 /* Cartões recolhíveis (todos) — recolhido = faixa vertical; a vista recompõe-se com os abertos.
@@ -12465,7 +12472,12 @@ window.segoCxApply=function(){ segoCxAltura(); if(window.segoFlxApply) segoFlxAp
     if(!tem) return;
     const W=g.clientWidth, ab=[...g.querySelectorAll(':scope>.cg-cx:not(.cx-fech)')].filter(c=>!(g.classList.contains('flx-fech')&&c.classList.contains('fpe-flx'))).map(c=>[c,c.getBoundingClientRect().width]);
     ab.forEach(([c,w])=>{ if(w>=W*0.95) c.classList.add('cx-larga'); else c.style.flex=(w/100).toFixed(2)+' 1 '+Math.round(w)+'px'; });
-    g.classList.add('cx-flex'); });
+    g.classList.add('cx-flex');
+    // frames: altura dos cartões normais da mesma linha; se na linha só houver cartões largos (ex.: DOC), fica com a altura mínima
+    const fr=[...g.querySelectorAll(':scope>.cg-cx.cx-fech')]; fr.forEach(f=>f.style.removeProperty('height'));
+    const abertos=[...g.querySelectorAll(':scope>.cg-cx:not(.cx-fech)')];
+    fr.forEach(f=>{ const t=f.offsetTop; const hs=abertos.filter(c=>Math.abs(c.offsetTop-t)<2&&c.getBoundingClientRect().width<W*0.5).map(c=>c.getBoundingClientRect().height);
+      if(hs.length) f.style.setProperty('height',Math.round(Math.max(...hs))+'px','important'); }); });
   if(window.cgRealinhar) cgRealinhar(); };
 (function(){ const app=document.getElementById('app'); if(!app) return; let t=null;
   new MutationObserver(()=>{ if(t) return; t=requestAnimationFrame(()=>{ t=null; if(document.querySelector('#app .cg-cx.cx-fech')||document.querySelector('#app .cg-cxs.cx-flex')) segoCxApply(); }); }).observe(app,{childList:true});
@@ -12489,6 +12501,10 @@ function cgNavTpl(o,atual,botoes){ const mae=cgMae(o);
   return `<template id="obra-nav-tpl"><span class="on-sig">${sg}</span><span class="on-nome" title="${esc(o.nome||'')}">${esc(o.nome||'')}</span></template><template id="obra-mid-tpl">${meio}</template>`; }
 function cgR(l,v,st){ const vazio=v===undefined||v===null||v===''||v==='—'||v==='— €'; return `<div class="cg-r"><span class="cg-rl">${l}</span><span class="cg-rv" style="${st||''}">${vazio?'':v}</span></div>`; }
 const cgDiv='<div class="cg-gap">&nbsp;</div>';
+/* linha com valor + complemento à frente (ex.: Fim · Duração; Adiantamento € · %) — o complemento tem coluna própria para os valores alinharem */
+function cgR2(l,a,b,stA,stB){ const lp=v=>(v===undefined||v===null||v==='—'||v==='— €')?'':v;
+  return `<div class="cg-r cg-r2"><span class="cg-rl">${l}</span><span class="cg-rv"><span class="cg-v2"><span class="cg-v2a" style="${stA||''}">${lp(a)}</span><span class="cg-v2b" style="${stB||''}">${lp(b)}</span></span></span></div>`; }
+const cgDivN=n=>cgDiv.repeat(n);
 function renderCardGeral(app){
   const o0=DB.obras.find(x=>x.id===cgObraId); if(!o0){ cgObraId=null; render(); return; }
   if(cgTab==='DP'||cgTab==='DV') cgTab='IA'; if(!['IA','ID'].includes(cgTab)) cgTab='IA';
@@ -12496,33 +12512,43 @@ function renderCardGeral(app){
   const sinal=d=>d===null?'—':(d>0?'+':'')+d+' d';
   let cards=[];
   if(cgTab==='IA'){
-    const pctV=p=>(p&&o.valorObra)?cgNum(o.valorObra*p/100)+' €':'—';
-    cards.push(cgCartao('IDE','Identificação',cgR('Nome',cgIn('nome'))+cgR('Sigla',cgIn('sigla'))+cgR('Código',cgIn('codigo'))+cgR('Estado',cgIn('estado','sel',CG_ESTADOS))+cgDiv+
-      cgR('Morada',cgIn('morada'))+cgR('Localidade',cgEdit?`<span class="cg-cpl"><span>${cgIn('codigoPostal')}</span><span>${cgIn('localidade')}</span></span>`:(esc([o.codigoPostal,o.localidade].filter(Boolean).join(' '))||'—'))+cgDiv+cgR('Dono de Obra',cgIn('entidadeDoId','ent'))+cgR('Empreiteiro',cgIn('entidadeEmpId','ent')),'IDE','','cg-ide'));
-    cards.push(cgCartao('CAR','Características',cgR('Pisos +',cgIn('pisosAcima','num'))+cgR('Pisos −',cgIn('pisosAbaixo','num'))+cgR('Área m²',cgIn('area','num'))+cgDiv+cgDiv+cgR('Tipo',cgIn('tipoObra','sel',CG_TIPOS))+cgR('Subtipo',cgIn('subtipo','sel',CG_SUBTIPOS))+cgDiv+cgR('Âmbito',`<a class="cg-ver" onclick="cgTextoVer('ambito','Âmbito')">${cgEdit?'Editar':'Ver'}</a>`)+cgR('Desafios',`<a class="cg-ver" onclick="cgTextoVer('principaisDesafios','Principais Desafios')">${cgEdit?'Editar':'Ver'}</a>`),'CAR','','cg-car'));
-  }
-  if(cgTab==='IA'){
-    const prrs=o.prorrogacoes||[];
-    const dur=cgDias(o.inicioPrevisto,o.fimContratual||o.fimPrevisto), desvI=cgDias(o.inicioPrevisto,o.inicioReal), fimAt=cgFimAtual(o), desvF=o.fimReal?cgDias(fimAt,o.fimReal):null;
-    const durR=o.inicioReal&&(o.fimReal||fimAt)?cgDias(o.inicioReal,o.fimReal||fimAt):null;
-    { const durP=cgDias(o.inicioPrevisto,o.fimPrevisto); const vermelho=d=>d>0?'color:var(--danger)':'';
-      cards.push(cgCartao('PZO','Prazo',cgR('In. Previsto',cgIn('inicioPrevisto','date'))+cgR('Fim Previsto',cgIn('fimPrevisto','date'))+cgR('Duração',durP===null?'—':durP+' d',mut)+cgDiv+
-        cgR('Consignação',cgIn('dataConsignacao','date'))+cgR('In. Real',cgIn('inicioReal','date'))+cgR('Desvio',sinal(desvI),vermelho(desvI))+cgDiv+
-        cgR('Fim Real',cgIn('fimReal','date'))+cgR('Desvio',sinal(desvF),vermelho(desvF)),'PRR')); }
-    const pctV=p=>(p&&o.valorObra)?cgNum(o.valorObra*p/100)+' €':'—';
-    cards.push(cgCartao('VAL','Valores',cgR('Valor Obra',cgIn('valorObra','eur'),cgEdit?'':gold)+cgR('Valor m²',(o.valorObra&&o.area)?cgNum(o.valorObra/o.area)+' €':'—',mut)+cgDiv+
-      cgR('Adiantamento',cgIn('adiantamentoPct','pct'))+cgR('Valor',pctV(o.adiantamentoPct),mut)+cgR('Retenção',cgIn('retencao'))+cgDiv+
-      cgR('Garantia',cgIn('garantiaPct','pct'))+cgR('Valor',pctV(o.garantiaPct),mut)+cgR('Retenção',cgIn('retencaoGarantia')),'VAL'));
-    { const tipos=CG_PRR_TIPOS.filter(Boolean); let corpo='';
-      prrs.forEach((p,i)=>{ const d=cgDias(p.data,p.novoFim); const lf=p.tipo==='Aditamento'?'Fim Adit.':p.tipo==='Adenda'?'Fim Adenda':'Novo Fim';
-        if(i>0) corpo+=cgDiv;
+    /* Grelha comum aos 5 cartões (13 linhas; B = linha em branco) para as linhas alinharem e os cartões terem a mesma altura:
+       IDE: Nome·Sigla·Código·B·Estado·B·B·B·Morada·Localidade·B·Dono de Obra·Empreiteiro
+       CAR: Pisos+·Pisos−·B·B·Área·B·B·B·Tipo·Subtipo·B·Âmbito·Desafios
+       VAL: Valor Obra·Valor m²·B×6·Adiantamento(€|%)·Retenção(S/N|%)·B·Garantia(€|%)·Retenção(S/N|%)
+       PZO: Contrato·Consignação·B·B·In. Previsto·Fim Previsto(|duração)·B·B·In. Real·Desvio·B·Fim Real·Desvio
+       PRO: (Tipo·Início·Fim(|duração)·B) × n, completado com B até 13 linhas */
+    const NL=13, B=cgDiv;
+    const pctTxt=v=>(v===null||v===undefined||v===''||isNaN(v))?'':cgNum(v,2).replace(/,00$/,'')+' %';
+    const vermelho=d=>d>0?'color:var(--danger)':'';
+    cards.push(cgCartao('IDE','Identificação',cgR('Nome',cgIn('nome'))+cgR('Sigla',cgIn('sigla'))+cgR('Código',cgIn('codigo'))+B+cgR('Estado',cgIn('estado','sel',CG_ESTADOS))+B+B+B+
+      cgR('Morada',cgIn('morada'))+cgR('Localidade',cgEdit?`<span class="cg-cpl"><span>${cgIn('codigoPostal')}</span><span>${cgIn('localidade')}</span></span>`:(esc([o.codigoPostal,o.localidade].filter(Boolean).join(' '))||'—'))+B+cgR('Dono de Obra',cgIn('entidadeDoId','ent'))+cgR('Empreiteiro',cgIn('entidadeEmpId','ent')),'IDE','','cg-ide'));
+    cards.push(cgCartao('CAR','Características',cgR('Pisos +',cgIn('pisosAcima','num'))+cgR('Pisos −',cgIn('pisosAbaixo','num'))+B+B+cgR('Área m²',cgIn('area','num'))+B+B+B+
+      cgR('Tipo',cgIn('tipoObra','sel',CG_TIPOS))+cgR('Subtipo',cgIn('subtipo','sel',CG_SUBTIPOS))+B+cgR('Âmbito',`<a class="cg-ver" onclick="cgTextoVer('ambito','Âmbito')">${cgEdit?'Editar':'Ver'}</a>`)+cgR('Desafios',`<a class="cg-ver" onclick="cgTextoVer('principaisDesafios','Principais Desafios')">${cgEdit?'Editar':'Ver'}</a>`),'CAR','','cg-car'));
+    // Valores: Adiantamento e Garantia introduzidos em € → % calculada; Retenção Sim/Não + %
+    const vEur=(kv,kp)=>{ const v=o[kv]; if(v!=null&&v!=='') return Number(v); return (o[kp]!=null&&o.valorObra)?o.valorObra*o[kp]/100:null; };
+    const vPct=(kv,kp)=>{ const v=o[kv]; if(v!=null&&v!==''&&o.valorObra) return Number(v)/o.valorObra*100; return o[kp]; };
+    const linVal=(rot,kv,kp)=>cgR2(rot,cgEdit?cgIn(kv,'eur'):(vEur(kv,kp)==null?'':cgNum(vEur(kv,kp))+' €'),pctTxt(vPct(kv,kp)));
+    const linRet=(kr,kp)=>cgR2('Retenção',cgEdit?cgIn(kr,'sel',['','Sim','Não']):esc(o[kr]||''),cgEdit?cgIn(kp,'pct'):(o[kr]==='Sim'?pctTxt(o[kp]):''));
+    cards.push(cgCartao('VAL','Valores',cgR2('Valor Obra',cgIn('valorObra','eur'),'',cgEdit?'':gold)+cgR2('Valor m²',(o.valorObra&&o.area)?cgNum(o.valorObra/o.area)+' €':'','',mut)+cgDivN(6)+
+      linVal('Adiantamento','adiantamentoValor','adiantamentoPct')+linRet('retencao','retencaoPct')+B+
+      linVal('Garantia','garantiaValor','garantiaPct')+linRet('retencaoGarantia','retencaoGarantiaPct'),'VAL'));
+    { const durP=cgDias(o.inicioPrevisto,o.fimPrevisto), desvI=cgDias(o.inicioPrevisto,o.inicioReal), fimAt=cgFimAtual(o), desvF=o.fimReal?cgDias(fimAt,o.fimReal):null;
+      cards.push(cgCartao('PZO','Prazo',cgR2('Contrato',cgIn('dataContrato','date'),'')+cgR2('Consignação',cgIn('dataConsignacao','date'),'')+B+B+
+        cgR2('In. Previsto',cgIn('inicioPrevisto','date'),'')+cgR2('Fim Previsto',cgIn('fimPrevisto','date'),durP===null?'':durP+' d')+B+B+
+        cgR2('In. Real',cgIn('inicioReal','date'),'')+cgR2('Desvio',sinal(desvI),'',vermelho(desvI))+B+
+        cgR2('Fim Real',cgIn('fimReal','date'),'')+cgR2('Desvio',sinal(desvF),'',vermelho(desvF)),'PRR')); }
+    { const prrs=o.prorrogacoes||[], tipos=CG_PRR_TIPOS.filter(Boolean); let corpo='', n=0;
+      prrs.forEach((p,i)=>{ const d=cgDias(p.data,p.novoFim);
+        if(i>0){ corpo+=B; n++; }
         corpo+=cgEdit
-          ?cgR('Tipo',`<span class="cg-cpl"><select class="cg-i" onchange="cgBuf.prorrogacoes[${i}].tipo=this.value;render()">${['',...tipos].map(t=>`<option ${p.tipo===t?'selected':''} value="${t}">${t||'—'}</option>`).join('')}</select><button class="btn-icon del" title="Remover" style="flex:0 0 auto" onclick="cgBuf.prorrogacoes.splice(${i},1);render()">✕</button></span>`)+
-            cgR('Data',`<input class="cg-i" type="date" value="${p.data||''}" onchange="cgBuf.prorrogacoes[${i}].data=this.value;render()">`)+
-            cgR(lf,`<input class="cg-i" type="date" value="${p.novoFim||''}" onchange="cgBuf.prorrogacoes[${i}].novoFim=this.value;render()">`)+
-            cgR('Duração',d===null?'—':d+' d',mut)
-          :cgR('Tipo',esc(p.tipo||'—'))+cgR('Data',fmtDate(p.data))+cgR(lf,fmtDate(p.novoFim))+cgR('Duração',d===null?'—':d+' d',mut); });
-      if(!prrs.length) corpo=`<div class="cg-r co-semreg"><span class="cg-rl">Sem registos</span><span class="cg-rv"></span></div>`;
+          ?cgR2('Tipo',`<span class="cg-cpl"><select class="cg-i" onchange="cgBuf.prorrogacoes[${i}].tipo=this.value;render()">${['',...tipos].map(t=>`<option ${p.tipo===t?'selected':''} value="${t}">${t||'—'}</option>`).join('')}</select><button class="btn-icon del" title="Remover" style="flex:0 0 auto" onclick="cgBuf.prorrogacoes.splice(${i},1);render()">✕</button></span>`,'')+
+            cgR2('Início',`<input class="cg-i" type="date" value="${p.data||''}" onchange="cgBuf.prorrogacoes[${i}].data=this.value;render()">`,'')+
+            cgR2('Fim',`<input class="cg-i" type="date" value="${p.novoFim||''}" onchange="cgBuf.prorrogacoes[${i}].novoFim=this.value;render()">`,d===null?'':d+' d')
+          :cgR2('Tipo',esc(p.tipo||''),'')+cgR2('Início',fmtDate(p.data),'')+cgR2('Fim',fmtDate(p.novoFim),d===null?'':d+' d');
+        n+=3; });
+      if(!prrs.length){ corpo=`<div class="cg-r co-semreg"><span class="cg-rl">Sem registos</span><span class="cg-rv"></span></div>`; n=1; }
+      if(n<NL) corpo+=cgDivN(NL-n);   // completa a grelha: mesma altura que os outros cartões
       const ext=cgEdit?`<button style="align-self:flex-start;background:transparent;border:1px solid var(--gold);color:var(--gold);border-radius:var(--radius);padding:1px 8px;cursor:pointer;font-family:inherit" onclick="event.stopPropagation();cgBuf.prorrogacoes.push({tipo:'Prorrogação',data:'',novoFim:''});render()">+ Novo</button>`
         :'';
       cards.push(cgCartao('PRO','Prorrogações, Adendas e Aditamentos',corpo,'PRR',ext,'cg-pro')); }
@@ -12580,6 +12606,7 @@ window.cgGuardar=async function(){
   const mae=cgMae(b);
   if(mae&&cgFases(mae.id).some(f=>f.id!==b.id&&String(f.sigla||'').toLowerCase()===String(b.sigla).trim().toLowerCase())){ alert('Já existe uma fase com a sigla "'+b.sigla+'" nesta obra.'); return; }
   b.empresaDO=cgEntNome(b.entidadeDoId); b.empresaEmp=cgEntNome(b.entidadeEmpId);
+  [['adiantamentoValor','adiantamentoPct'],['garantiaValor','garantiaPct']].forEach(([v,p])=>{ if(b[v]!=null&&b.valorObra) b[p]=+(b[v]/b.valorObra*100).toFixed(4); else if(b[v]==null) b[p]=null; });   // a % deriva do valor
   try{ await sb.patch('obras',b.id,Object.assign(unmapObra(b),{updated_at:new Date().toISOString()}));
     const i=DB.obras.findIndex(x=>x.id===b.id), estAnt=(DB.obras[i]||{}).estado; DB.obras[i]=b; cgEdit=false; cgBuf=null;
     try{ auditLog('obra',b.codigo+' '+b.sigla,'editada'); }catch(e){}
@@ -12588,9 +12615,9 @@ window.cgGuardar=async function(){
 
 /* ---------- Nova Obra / Nova Fase ---------- */
 const CG_GRUPOS={ident:{rot:'Identificação',def:true,campos:['morada','codigoPostal','localidade','tipoObra','subtipo','area','pisosAcima','pisosAbaixo']},
-  emp:{rot:'Empresas',def:true,campos:['entidadeDoId','entidadeEmpId','empresaDO','empresaEmp','valorObra','adiantamentoPct','retencao','garantiaPct','retencaoGarantia']},
+  emp:{rot:'Empresas',def:true,campos:['entidadeDoId','entidadeEmpId','empresaDO','empresaEmp','valorObra','adiantamentoPct','adiantamentoValor','retencao','retencaoPct','garantiaPct','garantiaValor','retencaoGarantia','retencaoGarantiaPct']},
   proj:{rot:'Utilizadores (Projetista)',def:true,campos:[]},
-  datas:{rot:'Datas e Prazos',def:false,campos:['dataConsignacao','inicioPrevisto','inicioReal','fimPrevisto','fimContratual','fimReal','prazo','prorrogacoes']},
+  datas:{rot:'Datas e Prazos',def:false,campos:['dataContrato','dataConsignacao','inicioPrevisto','inicioReal','fimPrevisto','fimContratual','fimReal','prazo','prorrogacoes']},
   ambito:{rot:'Âmbito e Desafios',def:false,campos:['ambito','principaisDesafios']},
   docs:{rot:'Documentos',def:false,campos:['docs']}};
 window.cgNovaObraModal=function(){
