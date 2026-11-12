@@ -314,7 +314,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.12.0246</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.12.0254</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -817,6 +817,9 @@ window.segoTema=function(){
   /* Cartões interiores (IA/ID/CO): mesmo pressuposto do cartão da lista — cabeçalho na cor do estado + faixa, corpo do cartão */
   .cg-cxs>.cg-cx{background:var(--bg-card);border:1px solid var(--border-light)}
   .cg-cxs>.cg-cx>.cg-cx-h{background:var(--est-curso);border-bottom:3px solid var(--cg-faixa)}
+  #app.o-concl .cg-cxs>.cg-cx>.cg-cx-h{background:var(--est-concl)}
+  #app.o-susp .cg-cxs>.cg-cx>.cg-cx-h{background:var(--est-susp)}
+  #app.o-prep .cg-cxs>.cg-cx>.cg-cx-h{background:var(--est-prep)}
   .cg-cxs>.cg-cx>.cg-cx-h .co-cnt,.cg-cxs>.cg-cx>.cg-cx-h>div:last-child:not(:nth-child(2)){color:rgba(255,255,255,.85) !important}
   html:not([data-paleta=navy]) .cg-cxs>.cg-cx>.cg-cx-h{text-shadow:0 1px 1px rgba(0,0,0,.18)}
   .cg-cxs>.cg-cx>.cg-cx-h{padding:10px 10px 10px 14px !important;gap:8px !important;align-items:center !important;min-height:54px;box-sizing:border-box}
@@ -1043,6 +1046,8 @@ window.segoTema=function(){
   .ut-modal{max-width:760px !important;width:760px}
   .ut-obs{max-height:260px;overflow:auto;border:1px solid var(--border-light);border-radius:var(--radius);padding:4px 8px;display:flex;flex-direction:column}
   .ut-ob-i{display:flex;gap:6px;align-items:center;padding:2px 0;cursor:pointer;font-weight:400 !important;color:var(--text) !important}
+  .ut-sdw{display:inline-flex;align-items:center;gap:4px;margin-left:auto}
+  .ut-sd{height:20px;border:1px solid var(--border-light);border-radius:4px;background:transparent;color:var(--text);font-family:inherit;padding:0 4px}
   .pm-def{color:var(--text-muted)}
   .pm-alt{color:var(--nav-bd);font-weight:700;background:rgba(227,153,86,.10)}
   td.pm-lock{color:var(--text-muted);cursor:default !important}
@@ -1486,6 +1491,13 @@ window.addEventListener('DOMContentLoaded',()=>{ if(pwaStandalone()){ const b=do
             if(b.dataset.h!==h){ b.innerHTML=h; b.dataset.h=h; }
             b.title='Ordenar por '+NOM[k]+(on?(obrasOrdem.d>0?' (A→Z) — clique para inverter':' (Z→A) — clique para inverter'):''); }); }catch(e){}
         const e=document.getElementById('nav-obras-est'); if(e){ e.value=obrasFilter||'Todos os Estados'; } } }
+    try{ const app=document.getElementById('app'); let est='';   // cor do estado da obra também nos cartões de dentro (igual ao cartão da lista)
+      if(app&&!['dashAtivo','segDashAtivo','modPgAtivo','guiaAtivo','defPg'].some(n=>{ try{ return !!window.eval(n); }catch(e){ return false; } })){
+        let id=null; for(const n of ['cgObraId','peObraId','paObraId','pbObraId','ptqObraId','qeObraId','tcmObraId','amObraId','metObraId','relObraId','fichObraId','segObraId','fiscObraId']){ try{ const v=window.eval(n); if(v){ id=v; break; } }catch(e){} }
+        const o=id&&(DB.obras||[]).find(x=>String(x.id)===String(id));
+        if(o){ const m=o.obraMaeId?(DB.obras||[]).find(x=>x.id===o.obraMaeId):null; const e=(m&&m.estado==='Concluída')?'Concluída':o.estado;
+          est={'Concluída':'o-concl','Suspensa':'o-susp','Em Preparação':'o-prep'}[e]||''; } }
+      if(app&&app.dataset.est!==est){ ['o-concl','o-susp','o-prep'].forEach(c=>app.classList.remove(c)); if(est) app.classList.add(est); app.dataset.est=est; } }catch(e){}
     if(window.segoPosCtx) segoPosCtx();
   };
   window.addEventListener('resize',()=>{ clearTimeout(window.__rszT); window.__rszT=setTimeout(()=>{ try{ sync(); }catch(e){} },120); });
@@ -12691,7 +12703,7 @@ window.utEditar=function(id){ const u=id?(DB.utilizadores||[]).find(x=>String(x.
   const temPw=u&&(u.pwd_hash==='definida'||!!u.pwd_hash);
   const sai=v.obras_saida||{};
   const obs=utObrasLista().map(({o,rot})=>{ const on=ids.includes(String(o.id)); const conc=o.estado==='Concluída'; const sd=!on&&sai[String(o.id)];
-    return `<label class="ut-ob-i${conc?' ut-conc':''}" ${conc&&!on&&!sd&&!utConcl?'style="display:none"':''}><input type="checkbox" class="ut-cb" value="${esc(o.id)}" ${on?'checked':''}> ${esc(rot)}${conc?' <span class="pm-n">(Concluída)</span>':''}${sd?` <span class="pm-n" title="Saiu da obra: fica no histórico da equipa (ID da obra), sem acesso nem notificações. Marque para voltar a associar.">(saiu ${fmtDate(sd)})</span>`:''}</label>`; }).join('');
+    return `<label class="ut-ob-i${conc?' ut-conc':''}" ${conc&&!on&&!sd&&!utConcl?'style="display:none"':''}><input type="checkbox" class="ut-cb" value="${esc(o.id)}" ${on?'checked':''} onchange="utCbMuda(this)"> ${esc(rot)}${conc?' <span class="pm-n">(Concluída)</span>':''}<span class="ut-sdw" ${sd?'':'style="display:none"'} title="Saiu da obra nesta data: fica no histórico da equipa (ID da obra), sem acesso nem notificações. Apagar a data = sem histórico. Marcar a obra = volta a estar associado."><span class="pm-n">Saiu</span><input type="date" class="ut-sd" value="${esc(sd||'')}"></span></label>`; }).join('');
   showModal(u?'Editar Utilizador':'Novo Utilizador',`<div class="ut-form">
     <div class="form-row f2"><div><label class="form-label">Nome *</label><input class="form-input" id="ut-nome" value="${esc(v.nome||'')}"></div><div><label class="form-label">Email *</label><input class="form-input" id="ut-email" type="email" value="${esc(v.email||'')}"></div></div>
     <div class="form-row f2"><div><label class="form-label">Função</label><input class="form-input" id="ut-func" value="${esc(v.funcao||'')}" placeholder="ex.: Dir. Obra"></div><div><label class="form-label">Contacto</label><input class="form-input" id="ut-cont" value="${esc(v.contacto||'')}"></div></div>
@@ -12704,6 +12716,8 @@ window.utEditar=function(id){ const u=id?(DB.utilizadores||[]).find(x=>String(x.
       <div class="ut-obs">${obs||'<span class="pm-n">Sem obras.</span>'}</div></div></div>
   </div>`,[{label:'Cancelar',cls:'btn-outline',fn:'closeModal()'},{label:'Guardar',cls:'btn-gold',fn:`utGuardar('${u?esc(u.id):''}')`}],'ut-modal');
 };
+window.utCbMuda=function(cb){ const w=cb.parentNode.querySelector('.ut-sdw'), d=w&&w.querySelector('.ut-sd'); if(!w) return;
+  if(cb.checked) w.style.display='none'; else { w.style.display=''; if(!d.value) d.value=new Date().toISOString().slice(0,10); } };
 window.utObFiltrar=function(){ const q=((document.getElementById('ut-obq')||{}).value||'').toLowerCase(), c=(document.getElementById('ut-concl')||{}).checked;
   document.querySelectorAll('.ut-ob-i').forEach(l=>{ const on=l.querySelector('input').checked; const ok=(!q||l.textContent.toLowerCase().includes(q))&&(on||c||!l.classList.contains('ut-conc')); l.style.display=ok?'':'none'; }); };
 window.utGerarPwd=function(){ const ch='ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789'; const a=new Uint32Array(10); (window.crypto||{}).getRandomValues?crypto.getRandomValues(a):a.forEach((_,i)=>a[i]=Math.random()*1e9); return Array.from(a,x=>ch[x%ch.length]).join(''); };
@@ -12720,9 +12734,9 @@ window.utGuardar=async function(id){
   const vis=new Set([...document.querySelectorAll('.ut-cb')].map(c=>c.value));
   const obras=[...((u&&u.obras)||[]).map(String).filter(x=>!vis.has(x)),...[...document.querySelectorAll('.ut-cb:checked')].map(c=>c.value)];
   // quem sai de uma obra fica no histórico (obras_saida); se voltar, sai do histórico
-  const hoje=new Date().toISOString().slice(0,10), obras_saida=Object.assign({},(u&&u.obras_saida)||{});
-  ((u&&u.obras)||[]).map(String).forEach(x=>{ if(!obras.includes(x)&&!obras_saida[x]) obras_saida[x]=hoje; });
-  obras.forEach(x=>{ delete obras_saida[x]; });
+  const obras_saida={}; Object.entries((u&&u.obras_saida)||{}).forEach(([k,v])=>{ if(!vis.has(String(k))) obras_saida[k]=v; });
+  document.querySelectorAll('.ut-ob-i').forEach(l=>{ const cb=l.querySelector('.ut-cb'), d=l.querySelector('.ut-sd'), w=l.querySelector('.ut-sdw');
+    if(!cb.checked&&d&&w&&w.style.display!=='none'&&/^\d{4}-\d{2}-\d{2}$/.test(d.value)) obras_saida[cb.value]=d.value; });
   let apps=((u&&u.apps)||[]).filter(a=>a!=='sego'); if(sego) apps.push('sego');
   const pl={nome,email,funcao:g('ut-func'),contacto:g('ut-cont'),role,ativo,obras,apps,obras_saida};
   if(pwd) pl.pwd_hash=hashPwd(pwd);   // o servidor guarda a credencial à parte e devolve 'definida'
