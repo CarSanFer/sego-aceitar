@@ -314,7 +314,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.14.2236</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.14.2239</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -1169,19 +1169,19 @@ window.segoTema=function(){
       const cx=g.closest('.cg-cx'), todo=cx&&window.CG_FIM_CARTAO&&CG_FIM_CARTAO.has(cx.dataset.cx);
       const blocos=[[]];
       if(todo) blocos[0]=[...g.querySelectorAll('.cg-r')];
-      else g.querySelectorAll('.cg-r,.cg-gap').forEach(el=>{ if(el.classList.contains('cg-gap')){ if(blocos[blocos.length-1].length) blocos.push([]); } else blocos[blocos.length-1].push(el); });
+      else g.querySelectorAll('.cg-r,.cg-gap:not(.cg-gapv)').forEach(el=>{ if(el.classList.contains('cg-gap')){ if(blocos[blocos.length-1].length) blocos.push([]); } else blocos[blocos.length-1].push(el); });
       blocos.forEach(rows=>{
         const ms=[];
         rows.forEach(r=>{ r.style.removeProperty('--cg-vw'); });
         rows.forEach(r=>{ const v=r.querySelector('.cg-rv'); if(!v||v.querySelector('input,select,textarea')) return;
           const tx=(v.textContent||'').replace(/\u00a0/g,' ').trim(); if(!tx) return;
-          ms.push({r,w:Math.ceil(v.getBoundingClientRect().width)+1,ph:tx==='—'}); });
+          ms.push({r,w:Math.ceil(v.getBoundingClientRect().width)+1,ph:tx==='—',livre:r.classList.contains('cg-rlivre')}); });
         if(!ms.length) return;
-        const ws=ms.filter(m=>!m.ph).map(m=>m.w).sort((a,b)=>a-b);
+        const ws=ms.filter(m=>!m.ph&&!m.livre).map(m=>m.w).sort((a,b)=>a-b);
         let alvo=ws.length?ws[0]:Math.max(...ms.map(m=>m.w));
         for(let k=1;k<ws.length;k++){ if(ws[k]<=ws[k-1]*1.5+10) alvo=ws[k]; else break; }
         alvo=Math.min(alvo,lim);
-        ms.forEach(m=>{ m.r.style.setProperty('--cg-vw',(m.w<=alvo?alvo:Math.min(m.w,lim))+'px'); });
+        ms.forEach(m=>{ m.r.style.setProperty('--cg-vw',(m.livre?Math.min(m.w,lim):(m.w<=alvo?alvo:Math.min(m.w,lim)))+'px'); });
         ms.forEach(m=>{ const v=m.r.querySelector('.cg-rv'); if(!v) return; const cortado=v.scrollWidth>v.clientWidth+1;
           if(cortado&&!v.querySelector('[title]')){ if(!v.title||v.dataset.cgt){ v.title=(v.textContent||'').trim(); v.dataset.cgt='1'; } }
           else if(v.dataset.cgt){ v.removeAttribute('title'); delete v.dataset.cgt; } });
@@ -12595,6 +12595,8 @@ function cgNavTpl(o,atual,botoes){ const mae=cgMae(o);
 function cgR(l,v,st){ const vazio=v===undefined||v===null||v===''||v==='—'||v==='— €'; return `<div class="cg-r"><span class="cg-rl">${l}</span><span class="cg-rv" style="${st||''}">${vazio?'':v}</span></div>`; }
 window.CG_FIM_CARTAO=new Set(['CAR']);   // cartões em que o fim do pontilhado alinha no cartão inteiro (decidido cartão a cartão)
 const cgDiv='<div class="cg-gap">&nbsp;</div>';
+const cgDivV='<div class="cg-gap cg-gapv">&nbsp;</div>';   // linha em branco que não separa o alinhamento dos valores
+const cgLivre=h=>h.replace('class="cg-r','class="cg-r cg-rlivre');   // linha fora do alinhamento dos valores (fica com a sua largura)
 /* linha com valor + complemento à frente (ex.: Fim · Duração; Adiantamento € · %) — o complemento tem coluna própria para os valores alinharem */
 function cgR2(l,a,b,stA,stB,cls){ const lp=v=>(v===undefined||v===null||v==='—'||v==='— €')?'':v;
   return `<div class="cg-r cg-r2 ${cls||''}"><span class="cg-rl">${l}</span><span class="cg-rv"><span class="cg-v2"><span class="cg-v2a" style="${stA||''}">${lp(a)}</span><span class="cg-v2b" style="${stB||''}">${lp(b)}</span></span></span></div>`; }
@@ -12617,9 +12619,9 @@ function renderCardGeral(app){
     const pctTxt=v=>(v===null||v===undefined||v===''||isNaN(v))?'':cgNum(v,2).replace(/,00$/,'')+' %';
     const vermelho=d=>d>0?'color:var(--danger)':'';
     cards.push(cgCartao('IDE','Identificação',cgR('Nome',cgIn('nome'))+cgR('Sigla',cgIn('sigla'))+cgR('Código',cgIn('codigo'))+B+cgR('Estado',cgIn('estado','sel',CG_ESTADOS))+B+L+B+
-      cgR('Morada',cgIn('morada'))+cgR('Localidade',cgEdit?`<span class="cg-cpl"><span>${cgIn('codigoPostal')}</span><span>${cgIn('localidade')}</span></span>`:(esc([o.codigoPostal,o.localidade].filter(Boolean).join(' '))||'—'))+B+cgR('Dono de Obra',cgIn('entidadeDoId','ent'))+cgR('Empreiteiro',cgIn('entidadeEmpId','ent')),'IDE','','cg-ide'));
+      cgR('Morada',cgIn('morada'))+cgR('Localidade',cgEdit?`<span class="cg-cpl"><span>${cgIn('codigoPostal')}</span><span>${cgIn('localidade')}</span></span>`:(esc([o.codigoPostal,o.localidade].filter(Boolean).join(' '))||'—'))+cgDivV+cgR('Dono de Obra',cgIn('entidadeDoId','ent'))+cgR('Empreiteiro',cgIn('entidadeEmpId','ent')),'IDE','','cg-ide'));
     cards.push(cgCartao('CAR','Características',cgR('Pisos +',cgIn('pisosAcima','num'))+cgR('Pisos −',cgIn('pisosAbaixo','num'))+B+B+cgR('Área m²',cgIn('area','num'))+B+L+B+
-      cgR('Tipo',cgIn('tipoObra','sel',CG_TIPOS))+cgR('Subtipo',cgIn('subtipo','sel',CG_SUBTIPOS))+B+cgR('Âmbito',`<a class="cg-ver" onclick="cgTextoVer('ambito','Âmbito')">${cgEdit?'Editar':'Ver'}</a>`)+cgR('Desafios',`<a class="cg-ver" onclick="cgTextoVer('principaisDesafios','Principais Desafios')">${cgEdit?'Editar':'Ver'}</a>`),'CAR','','cg-car'));
+      cgR('Tipo',cgIn('tipoObra','sel',CG_TIPOS))+cgLivre(cgR('Subtipo',cgIn('subtipo','sel',CG_SUBTIPOS)))+B+cgR('Âmbito',`<a class="cg-ver" onclick="cgTextoVer('ambito','Âmbito')">${cgEdit?'Editar':'Ver'}</a>`)+cgR('Desafios',`<a class="cg-ver" onclick="cgTextoVer('principaisDesafios','Principais Desafios')">${cgEdit?'Editar':'Ver'}</a>`),'CAR','','cg-car'));
     // Valores: Adiantamento e Garantia → introduz-se a % (à esquerda) e o valor em € fica calculado, encostado à direita; Retenção Sim/Não + %
     const vEur=kp=>(o[kp]!=null&&o[kp]!==''&&o.valorObra)?o.valorObra*o[kp]/100:null;
     const linVal=(rot,kp)=>cgR2(rot,cgEdit?cgIn(kp,'pct'):pctTxt(o[kp]),vEur(kp)==null?'':cgNum(vEur(kp))+' €','','','cg-r2w');
