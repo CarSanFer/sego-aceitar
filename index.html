@@ -314,7 +314,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.15.1436</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.15.1438</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -870,7 +870,10 @@ window.segoTema=function(){
   .cg-r2 .cg-rv:has(.cg-i) .cg-v2b{flex-basis:56px}
   .cg-cx[data-cx="PZO"] .cg-v2b,.cg-cx[data-cx="PRO"] .cg-v2b{order:-1}
   .cg-cx[data-cx="PZO"] .cg-v2b,.cg-cx[data-cx="PRO"] .cg-v2b{margin-right:28px;flex:0 0 auto;white-space:nowrap}
-  .cg-r.cg-semdias .cg-v2b{display:none}   /* duração e desvio afastados da data */   /* dias antes da data: datas sempre encostadas à direita */
+  .cg-r.cg-semdias .cg-v2b{display:none}
+  .cg-cx[data-cx="PRO"] .cg-r2 .cg-rv:has(input,select),.cg-cx[data-cx="PZO"] .cg-r2 .cg-rv:has(input,select){flex:0 0 auto !important;width:auto !important;max-width:none !important;overflow:visible !important}   /* em edição os campos não ficam cortados */
+  .cg-cx[data-cx="PRO"] .cg-r2 .cg-rv:has(input,select) .cg-v2b:empty,.cg-cx[data-cx="PZO"] .cg-r2 .cg-rv:has(input,select) .cg-v2b:empty{display:none}
+  .cg-cx .cg-rv .pe-x{background:none !important;color:var(--danger) !important;border:1px solid var(--danger) !important;width:20px !important;height:20px !important;padding:0 !important}   /* duração e desvio afastados da data */   /* dias antes da data: datas sempre encostadas à direita */
   .cg-r2.cg-r2w .cg-v2b,.cg-r2.cg-r2w .cg-rv:has(.cg-i) .cg-v2b{flex-basis:86px;color:var(--text)}   /* VAL: valor em € calculado, encostado à direita */
   .cg-cpl>span:first-child{flex:0 0 38%}.cg-cpl>span:last-child{flex:1 1 auto;min-width:0}
   .cg-cpl>select{flex:1 1 auto;min-width:0}
@@ -12699,7 +12702,7 @@ function renderCardGeral(app){
       prrs.forEach((p,i)=>{ const d=cgDias(p.data,p.novoFim);
         if(i>0){ corpo+=B; n++; }
         corpo+=cgEdit
-          ?cgR2('Tipo',`<span class="cg-cpl"><select class="cg-i" onchange="cgBuf.prorrogacoes[${i}].tipo=this.value;render()">${['',...tipos].map(t=>`<option ${p.tipo===t?'selected':''} value="${t}">${t||'—'}</option>`).join('')}</select><button class="btn-icon del" title="Remover" style="flex:0 0 auto" onclick="cgBuf.prorrogacoes.splice(${i},1);render()">✕</button></span>`,'')+
+          ?cgR2('Tipo',`<span class="cg-cpl" style="display:inline-flex;gap:6px;align-items:center"><select class="cg-i" style="min-width:112px" onchange="cgBuf.prorrogacoes[${i}].tipo=this.value;render()">${['',...tipos].map(t=>`<option ${p.tipo===t?'selected':''} value="${t}">${t||'—'}</option>`).join('')}</select><button class="pe-x" title="Remover" style="flex:0 0 auto" onclick="cgBuf.prorrogacoes.splice(${i},1);render()">×</button></span>`,'')+
             cgR2('Início',`<input class="cg-i" type="date" value="${p.data||''}" onchange="cgBuf.prorrogacoes[${i}].data=this.value;render()">`,'')+
             cgR2('Fim',`<input class="cg-i" type="date" value="${p.novoFim||''}" onchange="cgBuf.prorrogacoes[${i}].novoFim=this.value;render()">`,d===null?'':cgDiasTxt(d))
           :cgR2('Tipo',esc(p.tipo||''),'')+cgR2('Início',fmtDate(p.data),'')+cgR2('Fim',fmtDate(p.novoFim),d===null?'':cgDiasTxt(d));
@@ -12707,7 +12710,7 @@ function renderCardGeral(app){
       if(!prrs.length){ corpo=`<div class="cg-r co-semreg"><span class="cg-rl">Sem registos</span><span class="cg-rv"></span></div>`; n=1; }
       if(n<NL) corpo+=cgDivN(NL-n);   // completa a grelha: mesma altura que os outros cartões
       let c=cgCartao('PRO','Prorrogações, Adendas e Aditamentos',corpo,'PRR','','cg-pro');
-      if(cgEdit) c=c.replace(/<div class="cg-cx-ic" aria-hidden="true">[\s\S]*?<\/svg><\/div>/,`<button type="button" class="cg-cx-ic co-mais" title="Nova Prorrogação, Adenda ou Aditamento" onclick="event.stopPropagation();cgBuf.prorrogacoes.push({tipo:'Prorrogação',data:'',novoFim:''});render()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>`);
+      if(cgEdit||cgPodeEditar()) c=c.replace(/<div class="cg-cx-ic" aria-hidden="true">[\s\S]*?<\/svg><\/div>/,`<button type="button" class="cg-cx-ic co-mais" title="Nova Prorrogação, Adenda ou Aditamento" onclick="event.stopPropagation();cgProNovo()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>`);
       cards.push(c); }
   }
   if(cgTab==='ID'){
@@ -12763,6 +12766,8 @@ window.cgTextoVer=function(k,tit){ const o=cgEdit?cgBuf:DB.obras.find(x=>x.id===
 /* Dias: espaço como separador de milhares (ex.: -3 431 d); sinal opcional */
 window.cgDiasTxt=function(n,sinal){ n=Number(n); if(!isFinite(n)) return ''; const a=Math.abs(n), t=(Number.isInteger(a)?String(a):a.toFixed(1).replace('.',',')).replace(/\B(?=(\d{3})+(?!\d))/g,'\u00a0');
   return (n<0?'-':(sinal&&n>0?'+':''))+t+'\u00a0d'; };
+/* PRO: + sempre visível para quem pode editar — entra em edição (se preciso) e acrescenta uma linha */
+window.cgProNovo=function(){ if(!cgEdit) cgEditar(); if(!Array.isArray(cgBuf.prorrogacoes)) cgBuf.prorrogacoes=[]; cgBuf.prorrogacoes.push({tipo:'Prorrogação',data:'',novoFim:''}); render(); };
 window.cgPctEur=function(kp,el){ const t=String(el.value||'').trim(); if(!t){ cgBuf[kp]=null; render(); return; }
   let n=t.replace(/[%€\s\u00a0]/g,''); if(n.includes(',')) n=n.replace(/\./g,'').replace(',','.'); n=Number(n);
   if(isNaN(n)){ alert('Valor inválido: '+t); el.focus(); return; }
