@@ -314,7 +314,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.15.0202</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.15.0210</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -1153,8 +1153,10 @@ window.segoTema=function(){
       arr.forEach(a=>a.l.style.setProperty('--mk-x',Math.ceil((a.w<=alvo?alvo:a.w)+18)+'px')); });
     const largComBola=l=>{ const x=parseFloat(l.style.getPropertyValue('--mk-x'))||0; return Math.max(largL(l), x?x+7+6:0); };
     const grupoLab=new Map(), blocoMap=new Map();
+    // grupo = linhas entre linhas em branco (as cg-gapv não separam; nos cartões de CG_FIM_CARTAO o cartão é um só grupo)
     const blocoDe=row=>{ if(!row) return null; if(blocoMap.has(row)) return blocoMap.get(row); const p=row.parentElement; let cur={rows:[]};
-      [...p.children].forEach(c=>{ if(c.classList.contains('cg-gap')){ if(cur.rows.length) cur={rows:[]}; } else if(c.matches('.cg-r,.cg-rtxt')){ cur.rows.push(c); blocoMap.set(c,cur); } }); return blocoMap.get(row)||null; };
+      const cx=p.closest('.cg-cx'), todo=cx&&window.CG_FIM_CARTAO&&CG_FIM_CARTAO.has(cx.dataset.cx);
+      [...p.children].forEach(c=>{ if(c.classList.contains('cg-gap')){ if(!todo&&!c.classList.contains('cg-gapv')&&cur.rows.length) cur={rows:[]}; } else if(c.matches('.cg-r,.cg-rtxt')){ cur.rows.push(c); blocoMap.set(c,cur); } }); return blocoMap.get(row)||null; };
     app.querySelectorAll('.cg-r .cg-rl:not(.cg-rl2),.cg-rtxt>.cg-rl').forEach(l=>{ if(l.closest('.co-semreg')) return;
       const box=l.closest('.cg-vgrid') || (l.closest('.cg-fpe [class*="fpe-c"]') ? l.closest('.cg-fpe') : (blocoDe(l.closest('.cg-r,.cg-rtxt'))||l.closest('.cg-cx-b,.cg-card')||l.parentElement));
       const w=largComBola(l); grupoLab.set(box,Math.max(grupoLab.get(box)||0,w)); });
@@ -1170,19 +1172,22 @@ window.segoTema=function(){
       const blocos=[[]];
       if(todo) blocos[0]=[...g.querySelectorAll('.cg-r')];
       else g.querySelectorAll('.cg-r,.cg-gap:not(.cg-gapv)').forEach(el=>{ if(el.classList.contains('cg-gap')){ if(blocos[blocos.length-1].length) blocos.push([]); } else blocos[blocos.length-1].push(el); });
-      blocos.forEach(rows=>{
-        const ms=[], vazios=[];
+      // fim do pontilhado: em cada grupo acaba antes do valor mais largo (os muito mais largos, ex. Morada, e as linhas «livres» ficam com a sua largura);
+      // linhas sem valor e grupos sem valores acabam no mesmo sítio que o 1.º grupo com valores do cartão
+      const G=blocos.map(rows=>{ const ms=[], vazios=[];
         rows.forEach(r=>{ r.style.removeProperty('--cg-vw'); });
         rows.forEach(r=>{ const v=r.querySelector('.cg-rv'); if(!v||v.querySelector('input,select,textarea')) return;
-          const tx=(v.textContent||'').replace(/\u00a0/g,' ').trim(); if(!tx){ vazios.push(r); return; }
+          const tx=(v.textContent||'').replace(/\u00a0/g,' ').trim(); if(!tx){ vazios.push({r,w:Math.ceil(v.getBoundingClientRect().width)}); return; }
           ms.push({r,w:Math.ceil(v.getBoundingClientRect().width)+1,ph:tx==='—',livre:r.classList.contains('cg-rlivre')}); });
-        if(!ms.length) return;
-        const ws=ms.filter(m=>!m.ph&&!m.livre).map(m=>m.w).sort((a,b)=>a-b);
-        let alvo=ws.length?ws[0]:Math.max(...ms.map(m=>m.w));
-        for(let k=1;k<ws.length;k++){ if(ws[k]<=ws[k-1]*1.5+10) alvo=ws[k]; else break; }
-        alvo=Math.min(alvo,lim);
-        ms.forEach(m=>{ m.r.style.setProperty('--cg-vw',(m.livre?Math.min(m.w,lim):(m.w<=alvo?alvo:Math.min(m.w,lim)))+'px'); });
-        vazios.forEach(r=>r.style.setProperty('--cg-vw',alvo+'px'));   // sem valor: o pontilhado acaba onde acabam os outros
+        let alvo=null; const ws=ms.filter(m=>!m.ph&&!m.livre).map(m=>m.w).sort((a,b)=>a-b);
+        if(ws.length){ alvo=ws[0]; for(let k=1;k<ws.length;k++){ if(ws[k]<=ws[k-1]*1.5+10) alvo=ws[k]; else break; } alvo=Math.min(alvo,lim); }
+        else if(ms.length) alvo=Math.min(Math.max(...ms.map(m=>m.w)),lim);
+        return {ms,vazios,alvo}; });
+      let F=(G.find(x=>x.alvo!=null)||{}).alvo;
+      if(F==null) F=Math.max(0,...G.flatMap(x=>x.vazios.map(v=>v.w)));   // cartão sem valores: todos acabam no mesmo sítio
+      G.forEach(({ms,vazios,alvo})=>{ const a=alvo==null?F:alvo;
+        ms.forEach(m=>{ m.r.style.setProperty('--cg-vw',(m.livre?Math.min(m.w,lim):(m.w<=a?a:Math.min(m.w,lim)))+'px'); });
+        vazios.forEach(v=>v.r.style.setProperty('--cg-vw',(a||v.w)+'px'));
         ms.forEach(m=>{ const v=m.r.querySelector('.cg-rv'); if(!v) return; const cortado=v.scrollWidth>v.clientWidth+1;
           if(cortado&&!v.querySelector('[title]')){ if(!v.title||v.dataset.cgt){ v.title=(v.textContent||'').trim(); v.dataset.cgt='1'; } }
           else if(v.dataset.cgt){ v.removeAttribute('title'); delete v.dataset.cgt; } });
@@ -12619,7 +12624,7 @@ function renderCardGeral(app){
     const L2=(o.prorrogacoes||[]).length>=2, NL=L2?13:12, B=cgDiv, L=L2?cgDiv:'';
     const pctTxt=v=>(v===null||v===undefined||v===''||isNaN(v))?'':cgNum(v,2).replace(/,00$/,'')+' %';
     const vermelho=d=>d>0?'color:var(--danger)':'';
-    cards.push(cgCartao('IDE','Identificação',cgR('Nome',cgIn('nome'))+cgR('Sigla',cgIn('sigla'))+cgR('Código',cgIn('codigo'))+B+cgR('Estado',cgIn('estado','sel',CG_ESTADOS))+B+L+B+
+    cards.push(cgCartao('IDE','Identificação',cgR('Nome',cgIn('nome'))+cgR('Sigla',cgIn('sigla'))+cgR('Código',cgIn('codigo'))+cgDivV+cgR('Estado',cgIn('estado','sel',CG_ESTADOS))+B+L+B+
       cgR('Morada',cgIn('morada'))+cgR('Localidade',cgEdit?`<span class="cg-cpl"><span>${cgIn('codigoPostal')}</span><span>${cgIn('localidade')}</span></span>`:(esc([o.codigoPostal,o.localidade].filter(Boolean).join(' '))||'—'))+cgDivV+cgR('Dono de Obra',cgIn('entidadeDoId','ent'))+cgR('Empreiteiro',cgIn('entidadeEmpId','ent')),'IDE','','cg-ide'));
     cards.push(cgCartao('CAR','Características',cgR('Pisos +',cgIn('pisosAcima','num'))+cgR('Pisos −',cgIn('pisosAbaixo','num'))+B+B+cgR('Área m²',cgIn('area','num'))+B+L+B+
       cgR('Tipo',cgIn('tipoObra','sel',CG_TIPOS))+cgLivre(cgR('Subtipo',cgIn('subtipo','sel',CG_SUBTIPOS)))+B+cgR('Âmbito',`<a class="cg-ver" onclick="cgTextoVer('ambito','Âmbito')">${cgEdit?'Editar':'Ver'}</a>`)+cgR('Desafios',`<a class="cg-ver" onclick="cgTextoVer('principaisDesafios','Principais Desafios')">${cgEdit?'Editar':'Ver'}</a>`),'CAR','','cg-car'));
