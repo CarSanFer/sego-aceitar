@@ -314,7 +314,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.15.0313</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.15.0315</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -619,10 +619,12 @@ window.segoTema=function(){
   /* Paletas: Aceitar (laranja + azul, por defeito) · Azul e Dourado */
   :root{--cab:var(--est-curso)}   /* todos os cabeçalhos (cartões, tabelas, janelas, guia) seguem a paleta escolhida */
   html:not([data-paleta=navy]) thead tr th,html:not([data-paleta=navy]) .modal-header,html:not([data-paleta=navy]) .pe-modal h3{text-shadow:0 1px 1px rgba(0,0,0,.18)}
-  :root{--est-curso:#2D5D7D;--est-prep:#E39956;--est-susp:#A32D2D;--est-concl:#5F7180;--cg-faixa:#E39956;--pal-1:#3F7FA6;--pal-1-bg:#E6F1F8} /* azul do logótipo (#69A1C2) escurecido para o laranja #E39956 se ver nos cabeçalhos */
+  :root{--est-curso:#2D5D7D;--est-prep:#A85F28;--est-susp:#A32D2D;--est-concl:#5F7180;--cg-faixa:#E39956;--pal-1:#3F7FA6;--pal-1-bg:#E6F1F8} /* azul do logótipo (#69A1C2) escurecido para o laranja #E39956 se ver nos cabeçalhos */
   html:not([data-paleta=navy]) .cg-cab [style*="rgba(255,255,255,.7)"]{color:var(--cab-tx) !important}
   html:not([data-paleta=navy]) .cg-cab{text-shadow:0 1px 1px rgba(0,0,0,.18)}
   html:not([data-paleta]) .cg-cab[style*="est-prep"]{border-bottom-color:#2D5D7D}
+  html:not([data-paleta]) #app.o-prep .cg-cxs>.cg-cx>.cg-cx-h{border-bottom-color:#2D5D7D}   /* Em Preparação (laranja): faixa azul e botões claros para se verem */
+  html:not([data-paleta]) #app.o-prep .cg-cxs>.cg-cx>.cg-cx-h button,html:not([data-paleta]) #app.o-prep .cg-cxs>.cg-cx>.cg-cx-h button *,html:not([data-paleta]) .cg-cab[style*="est-prep"] .cg-at button{border-color:var(--cab-tx) !important;color:var(--cab-tx) !important}
   html[data-paleta=navy]{--est-curso:#1E3A5F;--est-prep:#2E5C8A;--est-susp:#7F2424;--est-concl:#4F5B69;--cg-faixa:#C9922A;--pal-1:#1E3A5F;--pal-1-bg:#EEF1F6}
   html[data-theme=dark]{--pal-1-bg:rgba(255,255,255,.07)}
   html[data-paleta=vermelho]{--est-curso:#6E2A2A;--est-prep:#8C5A2B;--est-susp:#4B4F58;--est-concl:#5F6670;--cg-faixa:#C9922A;--pal-1:#6E2A2A;--pal-1-bg:#F6ECEC}
@@ -5066,7 +5068,7 @@ function renderListaPE(app){
           ${peESuper()?'<th style="text-align:center">×</th>':''}
         </tr></thead>
         <tbody>${linhas}</tbody>
-      </table>`:`<div class="pe-vazio">Sem pedidos de esclarecimento nesta obra.${peEEmpOuFisc()?' Use “+ Novo Pedido”.':''}</div>`}
+      </table>`:`<div class="pe-vazio">Sem pedidos de esclarecimento nesta obra.${peEEmpOuFisc()?' Use o botão +.':''}</div>`}
     </div>
   </div>`;
 }
@@ -5887,7 +5889,7 @@ function renderListaPA(app){
           ${peESuper()?'<th style="text-align:center">×</th>':''}
         </tr></thead>
         <tbody>${linhas}</tbody>
-      </table>`:`<div class="pe-vazio">Sem pedidos de aprovação nesta obra.${peEEmp()?' Use “+ Novo Pedido”.':''}</div>`}
+      </table>`:`<div class="pe-vazio">Sem pedidos de aprovação nesta obra.${peEEmp()?' Use o botão +.':''}</div>`}
     </div>
   </div>`;
 }
@@ -6683,7 +6685,7 @@ function renderListaPB(app){
           ${peESuper()?'<th style="text-align:center">×</th>':''}
         </tr></thead>
         <tbody>${linhas}</tbody>
-      </table>`:`<div class="pe-vazio">Sem pedidos de betonagem nesta obra.${peEEmp()?' Use “+ Novo Pedido”.':''}</div>`}
+      </table>`:`<div class="pe-vazio">Sem pedidos de betonagem nesta obra.${peEEmp()?' Use o botão +.':''}</div>`}
     </div>
   </div>`;
 }
@@ -7216,7 +7218,7 @@ function renderListaPTQ(app){
     <div class="table-card">
       ${lst.length?`<table>
         <thead><tr><th style="text-align:left">Id</th><th class="pe-th-state" style="--st:var(--success)">Enviado</th><th style="text-align:center">Início</th><th style="text-align:left">Período</th><th style="text-align:center">Semanas</th><th style="text-align:center">Actividades</th><th style="text-align:center">Subempreiteiros</th><th style="text-align:center">Equipamentos</th>${peESuper()?'<th style="text-align:center">×</th>':''}</tr></thead>
-        <tbody>${linhas}</tbody></table>`:`<div class="pe-vazio">Sem planos quinzenais nesta obra.${peEEmp()?' Use “+ Novo Plano”.':''}</div>`}
+        <tbody>${linhas}</tbody></table>`:`<div class="pe-vazio">Sem planos quinzenais nesta obra.${peEEmp()?' Use o botão +.':''}</div>`}
     </div>
   </div>`;
 }
@@ -7885,7 +7887,7 @@ function renderListaQE(app){
           ${peESuper()?'<th style="text-align:center">×</th>':''}
         </tr></thead>
         <tbody>${linhas}</tbody>
-      </table>`:`<div class="pe-vazio">Sem registos de Qualidade de Execução nesta obra.${peEFisc()?' Use “+ Novo Registo”.':''}</div>`}
+      </table>`:`<div class="pe-vazio">Sem registos de Qualidade de Execução nesta obra.${peEFisc()?' Use o botão +.':''}</div>`}
     </div>
   </div>`;
 }
@@ -8150,7 +8152,7 @@ function renderListaMET(app){
   const maxT=tots.length?Math.max(...tots):0;
   const diaMax=lista.find(r=>metTot(r)===maxT);
   const emps=new Set(); lista.forEach(r=>(r.linhas||[]).forEach(l=>{ if(l.empresa) emps.add(l.empresa.toUpperCase()); }));
-  const kpi=(lbl,val,sub)=>`<div style="flex:1;min-width:150px;background:var(--bg-card);border:1px solid var(--border-light);border-left:3px solid var(--cab);border-radius:var(--radius);padding:9px 12px"><div style="font-size:11px;color:var(--text-muted)">${lbl}</div><div style="font-size:13px;font-weight:700;color:var(--cab)">${val}</div>${sub?`<div style="font-size:11px;color:var(--text-muted)">${sub}</div>`:''}</div>`;
+  const kpi=(lbl,val,sub)=>`<div style="flex:1;min-width:150px;background:var(--bg-card);border:1px solid var(--border-light);border-left:3px solid var(--cab);border-radius:var(--radius);padding:9px 12px"><div style="color:var(--text-muted);font-weight:700">${lbl}</div><div style="color:var(--pal-1)">${val}</div>${sub?`<div style="font-size:11px;color:var(--text-muted)">${sub}</div>`:''}</div>`;
   const linhasHtml=lista.length?lista.map(r=>{
     const t=metTot(r); const ne=(r.linhas||[]).length;
     return `<tr class="tr-click" onclick="metAbrirForm('${String(r.id).replace(/'/g,"\\'")}')">
@@ -8902,7 +8904,7 @@ function renderListaTCm(app){
           <td class="pe-dt" style="text-align:center">${d.data_criacao?peDataPT(d.data_criacao):'—'}</td><td class="pe-dt" style="text-align:center">${d.data_envio?peDataPT(d.data_envio):'—'}</td>
           <td class="pe-dt" style="text-align:center">${d.data_aprovacao?peDataPT(d.data_aprovacao):'—'}</td><td class="pe-dt" style="text-align:center">${d.data_fecho?peDataPT(d.data_fecho):'—'}</td>
           ${SA?`<td style="text-align:center"><span class="pe-x" onclick="tcmEliminar('${d.id}',event)" title="Eliminar este TCm">×</span></td>`:''}</tr>`; }).join('')}</tbody></table>`
-      :`<div class="pe-vazio">Sem TCm nesta obra.${(peEEmp()||SA)?' Use "+ Novo TCm".':''}</div>`}
+      :`<div class="pe-vazio">Sem TCm nesta obra.${(peEEmp()||SA)?' Use o botão +.':''}</div>`}
     </div>
   </div>`;
 }
@@ -9532,7 +9534,7 @@ function renderListaAM(app){
           ?(amTcErro?'Os AM TCm ainda não estão ativos — corra o SQL "SEGO_tcm.sql".':'Sem Autos de TCm nesta obra. '+(amTcmAprovados().length?amTcmAprovados().length+' TCm aprovado(s) disponível(eis) para medição.':'Os AM TCm fazem-se sobre TCm aprovados — ainda não há nenhum.'))
           :amLPU.length
           ?'Sem Autos Mensais nesta obra.'
-          :'Comece por importar a LPU da obra'+(peESuper()?' (separador LPU → "Importar LPU").':'.')}</div>`}
+          :'Comece por importar a LPU da obra'+(peESuper()?' (separador LPU).':'.')}</div>`}
     </div>`;
   }
 
