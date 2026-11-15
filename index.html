@@ -314,7 +314,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.15.2222</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.15.2228</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -940,11 +940,12 @@ window.segoTema=function(){
   .cg-anx .pe-anexos{display:inline}
   .cg-anx-add{background:transparent;border:1px solid var(--nav-bd,#E39956);color:var(--nav-bd,#E39956);border-radius:4px;height:22px;padding:0 8px;cursor:pointer;font-family:inherit;margin-top:4px}
   .cg-nota{color:var(--text-muted);font-style:italic;line-height:18px}
-  .cg-hist .cg-dr .cg-dv{grid-template-columns:minmax(0,1fr) minmax(0,5fr) !important}
+  .cg-hist .cg-dr .cg-dv{grid-template-columns:var(--his-a,minmax(0,1fr)) minmax(0,5fr) !important}
   .cg-hist .cg-dr .cg-dv>span{text-align:left !important}
   .cg-hist .cg-dv>.cg-hau{display:flex !important;align-items:baseline;overflow:visible !important}
   .cg-hist .cg-dv>.cg-hau>span{flex:0 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .cg-hist .cg-dv>.cg-hau::after{content:'';flex:1 1 auto;min-width:12px;margin:0 2px 0 6px;border-bottom:1px dotted var(--text-muted);opacity:.22}
+  .cg-hist[style*="--his-a"] .cg-dv>.cg-hau::after{min-width:0}
   html[data-caixas] .cg-hist .cg-dr:not(.cg-dh) .cg-dv>.cg-hau{border:none !important;padding:0 !important;height:auto !important}
   html[data-caixas] .cg-hist .cg-dv>.cg-hau>span:not(:empty){border:1px solid var(--border-light);border-radius:4px;padding:0 6px;height:20px;line-height:18px;box-sizing:border-box}
   .cg-ficha .co-semreg .cg-rl::after{display:none}.cg-ficha .co-semreg .cg-rl{color:var(--text-muted);font-weight:400}
@@ -1212,12 +1213,16 @@ window.segoTema=function(){
       const cx=p.closest('.cg-cx'), todo=cx&&window.CG_FIM_CARTAO&&CG_FIM_CARTAO.has(cx.dataset.cx);
       [...p.children].forEach(c=>{ if(c.classList.contains('cg-gap')){ if(!todo&&!c.classList.contains('cg-gapv')&&cur.rows.length) cur={rows:[]}; } else if(c.matches('.cg-r,.cg-rtxt')){ cur.rows.push(c); blocoMap.set(c,cur); } }); return blocoMap.get(row)||null; };
     app.querySelectorAll('.cg-r .cg-rl:not(.cg-rl2),.cg-rtxt>.cg-rl').forEach(l=>{ if(l.closest('.co-semreg')) return;
+      if(l.closest('.cg-vcol')) return;   // colunas de verificação: tratadas à parte (abaixo)
       const box=l.closest('.cg-vgrid') || (l.closest('.cg-fpe [class*="fpe-c"]') ? l.closest('.cg-fpe') : (blocoDe(l.closest('.cg-r,.cg-rtxt'))||l.closest('.cg-cx-b,.cg-card')||l.parentElement));
       const w=largComBola(l); grupoLab.set(box,Math.max(grupoLab.get(box)||0,w)); });
     grupoLab.forEach((w,box)=>{ const v=Math.ceil(w)+'px';
       if(box.rows) box.rows.forEach(r=>r.style.setProperty('--lab-w',v));
       else if(box.classList&&box.classList.contains('cg-fpe')) box.querySelectorAll('[class*="fpe-c"] .cg-cx-b').forEach(b=>b.style.setProperty('--lab-w',v));
       else box.style.setProperty('--lab-w',v); });
+    app.querySelectorAll('.cg-vcol').forEach(col=>{ const rs=[...col.querySelectorAll(':scope>.cg-r')].map(r=>({r,w:Math.ceil(largComBola(r.querySelector('.cg-rl')))})).filter(x=>x.r.querySelector('.cg-rl'));
+      if(!rs.length) return; const ws=rs.map(x=>x.w).sort((a,b)=>a-b); let a=ws[0]; for(let k=1;k<ws.length;k++){ if(ws[k]<=ws[k-1]*1.5+10) a=ws[k]; else break; }
+      rs.forEach(x=>x.r.style.setProperty('--lab-w',Math.max(a,x.w)+'px')); });
     window.__cgLargComBola=largComBola;
     cards.forEach(g=>{
       const lim=Math.floor(g.clientWidth*0.65), limG0=Math.floor(g.clientWidth*0.34);   // limG: coluna dos valores de um grupo (nomes compridos cortam com «…» e tooltip, o pontilhado fica comprido)
@@ -1269,7 +1274,21 @@ window.segoTema=function(){
       let L=Infinity; first.querySelectorAll('.cg-rv').forEach(v=>{ if((v.textContent||'').trim()) L=Math.min(L,v.getBoundingClientRect().left); });
       const fr=first.getBoundingClientRect(); if(!isFinite(L)) L=fr.left+fr.width*0.45;
       const bl=body.getBoundingClientRect().left+parseFloat(getComputedStyle(body).paddingLeft||0);
-      dw.style.setProperty('--doc-l',Math.max(80,Math.round(L-bl))+'px'); });
+      dw.style.setProperty('--doc-l',Math.max(80,Math.round(L-bl))+'px');
+      if(dw.classList.contains('cg-hist')){   // Histórico: autor começa onde começam os valores do cartão de cima; descrição onde começam os rótulos do cartão ao lado
+        const dt=dw.getBoundingClientRect().top, cima=irmaos.filter(c=>!c.classList.contains('cg-docw')&&Math.abs(c.getBoundingClientRect().left-dl)<2&&c.getBoundingClientRect().bottom<=dt+2).sort((a,b)=>b.getBoundingClientRect().bottom-a.getBoundingClientRect().bottom)[0];
+        dw.style.removeProperty('--his-a'); if(!cima) return;
+        const cr=cima.getBoundingClientRect(); let La=Infinity;
+        cima.querySelectorAll('.cg-rv').forEach(v=>{ const i=v.querySelector('input,select'); if(i){ La=Math.min(La,i.getBoundingClientRect().left); return; } if(!(v.textContent||'').trim()) return; const rg=document.createRange(); rg.selectNodeContents(v); La=Math.min(La,rg.getBoundingClientRect().left); });
+        const lado=irmaos.filter(c=>c!==cima&&Math.abs(c.getBoundingClientRect().top-cr.top)<3&&c.getBoundingClientRect().left>cr.right-2).sort((a,b)=>a.getBoundingClientRect().left-b.getBoundingClientRect().left)[0];
+        if(!lado) return; const lb=lado.querySelector('.cg-cx-b'); if(!lb) return;
+        const T=lb.getBoundingClientRect().left+parseFloat(getComputedStyle(lb).paddingLeft||0);
+        const dv=dw.querySelector('.cg-dr .cg-dv');
+        if(!isFinite(La)){ if(!dv) return; La=dv.getBoundingClientRect().left; }   // cartão de cima sem valores: o autor fica onde está; só a descrição alinha
+        let dl2=Math.max(80,Math.round(La-bl-10)); dw.style.setProperty('--doc-l',dl2+'px');
+        if(dv){ const dd=Math.round(La-dv.getBoundingClientRect().left); if(dd&&dl2+dd>=80){ dl2+=dd; dw.style.setProperty('--doc-l',dl2+'px'); } }   // acerto fino: o autor começa mesmo em La
+        const cg=dv?parseFloat(getComputedStyle(dv).columnGap)||12:12;
+        if(T-La>60) dw.style.setProperty('--his-a',Math.round(T-La-cg)+'px'); } });
   }
   const pedir=()=>{ if(!pend){ pend=true; requestAnimationFrame(alinhar); } };
   const arm=()=>{ const app=document.getElementById('app'); if(!app){ setTimeout(arm,300); return; }
