@@ -314,7 +314,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.15.2220</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.15.2222</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -1930,6 +1930,16 @@ const SID_READONLY = false; // obras/utilizadores agora são do SEGO
 // que segue em todos os pedidos no cabeçalho x-client-info
 // ================================================================
 let SEGO_TOKEN = null;
+/* Conta «Admin» (técnica): não aparece em lista nenhuma, nunca é notificada e é só de consulta — nada é criado, editado, gravado ou enviado */
+const SEGO_ADMIN_IDS=['u2'];
+function segoEAdmin(u){ return !!u&&(SEGO_ADMIN_IDS.includes(String(u.id))||(String(u.nome||'').trim()==='Admin'&&String(u.funcao||'').trim()==='Admin')); }
+const SEGO_ADMIN_MSG='Conta Admin: só consulta — nada é gravado nem enviado.';
+(function(){ const f0=window.fetch.bind(window);
+  window.fetch=function(url,opt){ const m=String((opt&&opt.method)||'GET').toUpperCase();
+    let adm=false; try{ adm=segoEAdmin(currentUser); }catch(e){}
+    if(m!=='GET'&&m!=='HEAD'&&adm&&!/\/rest\/v1\/rpc\/sego_(login|sessao|logout|sair)/.test(String(url)))
+      return Promise.reject(new Error(SEGO_ADMIN_MSG));
+    return f0(url,opt); }; })();
 function segoTok(){ return SEGO_TOKEN ? {'x-client-info': 'sego-web sego-token='+SEGO_TOKEN} : {}; }
 async function segoRpc(fn, args){
   const r = await fetch(`${SUPA.url}/rest/v1/rpc/${fn}`, {
@@ -2141,7 +2151,7 @@ async function loadDB() {
     DB.permissoes = permRows||[];
     DB.obras = obras.map(mapObra);
     DB.obras.forEach(o=>{ const d=DB.entidades.find(e=>e.id===o.entidadeDoId), m=DB.entidades.find(e=>e.id===o.entidadeEmpId); if(d) o.empresaDO=d.nome; if(m) o.empresaEmp=m.nome; });
-    DB.utilizadores = utils.map(mapUtil);
+    DB.utilizadores = utils.map(mapUtil).filter(u=>!segoEAdmin(u));   // a conta Admin não entra em listas nem notificações
     DB.subempreiteiros = subs;
     DB.especialidades = esps;
     DB.tiposDoc = tdocs;
@@ -2208,7 +2218,8 @@ function hashPwd(pwd){
 // EmailJS config
 const EJS={service:'service_66t6wsn',template:'template_8e782pq',pubkey:'BiTbyfz5BTSKgyq0P'};
 const EJS_TPL_RVT='template_ohytgg4'; // Template ID real do EmailJS (nome: template_rvt_pub)
-function initEmailJS(){ if(window.emailjs) emailjs.init({publicKey:EJS.pubkey}); }
+function initEmailJS(){ if(window.emailjs){ emailjs.init({publicKey:EJS.pubkey});
+  if(!emailjs._segoAdm){ const s0=emailjs.send.bind(emailjs); emailjs.send=(...a)=>segoEAdmin(currentUser)?Promise.reject(new Error(SEGO_ADMIN_MSG)):s0(...a); emailjs._segoAdm=true; } } }
 
 window.enviarConvite=function(uid){
   const u=DB.utilizadores.find(x=>x.id===uid);
@@ -12517,7 +12528,7 @@ function cgFases(maeId){ return DB.obras.filter(o=>o.obraMaeId===maeId).sort((a,
 function cgMae(o){ return o&&o.obraMaeId?DB.obras.find(x=>x.id===o.obraMaeId):null; }
 function cgEntNome(id){ const e=(DB.entidades||[]).find(x=>x.id===id); return e?e.nome:''; }
 function cgFimAtual(o){ const p=o.prorrogacoes||[]; for(let i=p.length-1;i>=0;i--){ if(p[i].novoFim) return p[i].novoFim; } return o.fimContratual||o.fimPrevisto; }
-function cgPodeEditar(){ return typeof peESuper==='function'&&peESuper(); }
+function cgPodeEditar(){ return typeof peESuper==='function'&&peESuper()&&!segoEAdmin(currentUser); }
 function cgVoltarCO(){ return `<button class="btn btn-gold btn-sm" onclick="cgAbrirCO('${cgObraId}')">Controlo Operacional →</button>`; }
 
 window.cgAbrir=function(id,tab){ const o=DB.obras.find(x=>x.id===id); if(!o) return;
@@ -13080,7 +13091,7 @@ function segoInterveio(u,d){ if(!u||!d) return false; const nm=String(u.nome||''
   const cv=d.conteudo&&typeof d.conteudo==='object'?d.conteudo:null; if(cv&&Array.isArray(cv.historico)&&cv.historico.some(x=>x&&Object.values(x).some(bate))) return true;
   return false; }
 function segoPode(m,a,oid,u,d){ if(a==='pdf') a='ver';   // o PDF segue a Consulta
-  u=u||currentUser; if(!u) return false; if(u.role==='superadmin') return true;
+  u=u||currentUser; if(!u) return false; if(segoEAdmin(u)) return a==='ver'; if(u.role==='superadmin') return true;
   const M=PERM_MOD[m]; if(!M) return false; const g=permRegras(oid,m); const ov=(g.perm[String(u.id)]||{})[a];
   if(typeof ov==='boolean') return ov; const v=M.def(u,a); return v==='int'?segoInterveio(u,d):!!v; }
 function segoNotifDest(m,est,o,ctx){ const M=PERM_MOD[m], g=permRegras(o&&o.id,m), ov=g.notif[est]||{}; const para=[], cc=[];
