@@ -13,7 +13,7 @@
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="icon" type="image/png" href="/favicon-48.png">
 <title>SEGO — Sistema Externo de Gestão de Obra | aceitar</title>
-<script>try{ const t=localStorage.getItem('sego-tema'); if(t==='escuro'||t==='contraste') document.documentElement.setAttribute('data-theme','dark'); if(t==='contraste') document.documentElement.setAttribute('data-contraste',''); }catch(e){}</script>
+<script>try{ const t=localStorage.getItem('sego-tema'); if(t==='escuro'||t==='contraste') document.documentElement.setAttribute('data-theme','dark'); if(t==='contraste') localStorage.setItem('sego-tema','escuro'); }catch(e){}</script>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Calibri:wght@400;700&display=swap');
@@ -306,15 +306,15 @@ tr.tr-click:hover td{background:#F5F7FA}
   <div class="nav-right">
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-pwa-instalar" title="Instalar o SEGO como app neste dispositivo" onclick="pwaInstalar()">📲 Instalar App</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-pwa-atualizar" title="Recarregar a app (dados e versão mais recentes)" onclick="location.reload()">↻ Atualizar</button>
-    <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-dash" title="Dash FISC — documentos e prazos (RSO, SOS, RVT, PE, PA, PB, PTQ, QE, AM)" onclick="dashAbrir('')">📊 Dash FISC</button>
+    <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-dash" title="Dash FISC — documentos e prazos (RSO, SOS, RVT, PE, PA, PB, PTQ, QE, AM)" onclick="dashAbrir('')"><svg viewBox="0 0 24 24"><path d="M3 3v18h18M8 17v-6M13 17V7M18 17v-4"/></svg>Dash FISC</button>
     <button type="button" id="btn-dashmenu" title="Dashboards" aria-label="Dashboards" onclick="dashMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></button>
-    <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-dashseg" title="Dash SEG — análise das Listas de Verificação dos RVT" onclick="segDashAbrir()">🦺 Dash SEG</button>
+    <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-dashseg" title="Dash SEG — análise das Listas de Verificação dos RVT" onclick="segDashAbrir()"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Dash SEG</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-modulos" title="Módulos visíveis por obra (Superadmin)" onclick="modPgAbrir()">🧩 Módulos</button>
-    <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-guia" title="Guia do SEGO" onclick="guiaAbrir()">📘 Guia</button>
+    <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-guia" title="Guia do SEGO" onclick="guiaAbrir()"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5v14z"/><path d="M6.5 17A2.5 2.5 0 0 0 4 19.5 2.5 2.5 0 0 0 6.5 22H20v-5"/></svg>Guia</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.15.0240</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.15.0246</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -368,7 +368,7 @@ tr.tr-click:hover td{background:#F5F7FA}
 
   /* ===== Tema escuro ===== */
   html:not([data-theme=dark]) [style*="background:#fff" i],html:not([data-theme=dark]) [style*="background:white" i],html:not([data-theme=dark]) [style*="background: #fff" i]{background:var(--bg-card) !important}
-  html:not([data-theme=dark]) input:not(#nav-obras-q):not([type=checkbox]):not([type=radio]):not([type=color]),html:not([data-theme=dark]) select:not(#nav-obras-est),html:not([data-theme=dark]) textarea{background-color:var(--bg-card)}
+  html:not([data-theme=dark]) input:not(.navbar *):not([type=checkbox]):not([type=radio]):not([type=color]),html:not([data-theme=dark]) select:not(.navbar *),html:not([data-theme=dark]) textarea:not(.navbar *){background-color:var(--bg-card)}
   html[data-theme=dark]{color-scheme:dark;
     --navy:#3B6EA8;--navy2:#4A7DB8;--border:#3A4A60;--border-light:#2C3A4D;
     --bg:#0F1724;--bg-card:#18222F;--text:#E6E9EF;--text-muted:#9AA4B2;
@@ -610,8 +610,6 @@ window.segoTema=function(){
   .um-temas{display:flex;gap:6px;padding:4px 14px 10px}.um-temas button{flex:1;white-space:nowrap;border:1px solid var(--border-light);background:var(--bg-card);color:var(--text);border-radius:4px;padding:3px 6px;cursor:pointer}
   .um-temas button.on{background:var(--gold);color:#fff;border-color:var(--gold)}
   /* Contraste: escuro reforçado */
-  html[data-theme=dark][data-contraste]{--bg:#000;--bg-card:#000;--text:#fff;--text-muted:#e6e6e6;--border-light:#9a9a9a;--border:#fff;--navy:#0b3a75;--info:#9cc7ff}
-  html[data-theme=dark][data-contraste] .navbar{background:#000;border-bottom:2px solid var(--gold)}
   #ver-dev{display:none;margin-right:10px;border:1px solid #f87171;color:#fca5a5;border-radius:4px;padding:0 6px;height:24px;align-items:center;box-sizing:border-box}
 </style>
 <script>try{ if(!/^sego\.aceitar\.pt$/.test(location.hostname)) document.addEventListener('DOMContentLoaded',()=>{ const v=document.getElementById('verBadge'); if(v){ const d=document.createElement('span'); d.id='ver-dev'; d.textContent='DEV'; d.style.display='inline-flex'; d.title='Versão de desenvolvimento (dados do SEGO)'; v.parentNode.insertBefore(d,v.parentNode.firstChild); } }); }catch(e){}</script>
@@ -754,7 +752,6 @@ window.segoTema=function(){
   /* card da lista: quadradinhos com o fundo da barra, ícone e contorno laranja (iguais aos da barra) */
   .cg-at button{background:#1E3A5F !important;color:#E39956 !important;border-color:#E39956 !important}
   html[data-theme=dark] .cg-at button{background:#0B1320 !important}
-  html[data-theme=dark][data-contraste] .cg-at button{background:#000 !important}
   .cg-at button:hover{background:#E39956 !important;color:#fff !important}
 </style>
 
@@ -807,11 +804,21 @@ window.segoTema=function(){
   .cg-dform .cg-r .cg-rl{flex:1 1 auto}
   .cg-dform .cg-r .cg-rl{--lab-w:60px}   /* largura fixa: o pontilhado começa no mesmo sítio */
   .cg-dform .cg-r .cg-rl .dl-t{display:inline-flex;align-items:center}
-  .cg-dform .cg-r .cg-rl .cg-mk{position:static;display:inline-block;margin-left:10px;transform:none}
+  .cg-dform .cg-r .cg-rl .cg-mk{position:static;display:inline-block;margin-left:10px;transform:none;flex:0 0 7px}
+  .cg-dform .cg-r .cg-rl .dl-t{white-space:nowrap}
   .cg-dform .cg-r .cg-rl::after{order:2}
   .cg-dform .cg-r .cg-rv{flex:0 0 104px !important;width:104px !important;max-width:none !important;overflow:visible !important}   /* coluna dos valores estreita: o pontilhado vai até junto do valor e acaba igual em todas */
   .cg-dform .cg-r.dl-larga .cg-rv,.cg-dform .cg-r#dn-fich-l .cg-rv,.cg-dform .cg-r#dn-outro-l .cg-rv{flex:0 1 auto !important;width:auto !important;max-width:65% !important}
   .cg-dform .cg-gap{height:10px;visibility:hidden}
+  .modal.modal-df-l{width:540px !important}
+  .cg-dform .df-cx{display:flex;align-items:center;gap:8px;width:100%}
+  .df-lk{color:#E39956;cursor:pointer;white-space:nowrap}
+  .df-sec{display:flex;align-items:center;gap:10px;margin:14px 0 6px;font-weight:700;color:var(--text-muted)}
+  .df-sec .nv-dir{flex:1}.df-sec .pm-chk{display:inline-flex;gap:4px;align-items:center;font-weight:400;white-space:nowrap}
+  .cg-dform .df-chk{display:flex;flex-direction:column;gap:2px;padding:4px 0 0 2px}.cg-dform .df-chk label{display:flex;gap:6px;align-items:center;font-weight:400}
+  .df-linha{display:flex;align-items:center;gap:14px}.df-lb{color:var(--text-muted)}
+  td.mp-oc{background:var(--danger-bg) !important}
+  .um-it svg{width:14px;height:14px;margin-right:8px;vertical-align:-2px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;opacity:.75}
   .cg-dform .cg-i{width:100% !important;border:none !important;border-bottom:1px solid var(--border-light) !important;border-radius:0 !important;background:transparent !important;text-align:right;text-align-last:right}
   .cg-dform .cg-i:focus{outline:none;border-bottom-color:var(--nav-bd) !important}
   .cg-dfich{justify-content:flex-end}
@@ -1595,9 +1602,9 @@ window.segoTema=function(){
 
 <!-- MODAL -->
 <div id="def-menu" class="sego-pop" style="display:none">
-  <div class="um-sec">Administração</div><div class="um-it" onclick="defAbrir('Utilizadores')">👥 Utilizadores</div><div class="um-it" onclick="defAbrir('entidades')">🏢 Entidades</div><div class="um-it" onclick="defAbrir('permissoes')">🔐 Permissões por Obra</div><div class="um-it" onclick="defAbrir('Especialidades')">🏷 Especialidades</div><div class="um-it" onclick="defAbrir('Documentos')">📄 Documentos</div><div class="um-it" onclick="defAbrir('Auditoria')">📜 Auditoria</div>
-  <div class="um-sec">Obras</div><div class="um-it" onclick="cgNovaObraModal()">🏗 + Nova Obra</div><div class="um-it" onclick="cgNovaFaseModal()">📑 + Nova Fase</div><div class="um-it" onclick="defMenuFechar();modPgAbrir()">🧩 Módulos por Obra</div>
-  <div class="um-sec">Dados</div><div class="um-it" onclick="defAbrir('backup')">📤 Exportar Dados</div><div class="um-it" onclick="defAbrir('Importar Dados')">📥 Importar Dados</div>
+  <div class="um-sec">Administração</div><div class="um-it" onclick="defAbrir('Utilizadores')"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>Utilizadores</div><div class="um-it" onclick="defAbrir('entidades')"><svg viewBox="0 0 24 24"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-5h6v5"/></svg>Entidades</div><div class="um-it" onclick="defAbrir('permissoes')"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Permissões por Obra</div><div class="um-it" onclick="defAbrir('Especialidades')"><svg viewBox="0 0 24 24"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>Especialidades</div><div class="um-it" onclick="defAbrir('Documentos')"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h8"/></svg>Documentos</div><div class="um-it" onclick="defAbrir('Auditoria')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>Auditoria</div>
+  <div class="um-sec">Obras</div><div class="um-it" onclick="cgNovaObraModal()"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 8v8M8 12h8"/></svg>Nova Obra</div><div class="um-it" onclick="cgNovaFaseModal()"><svg viewBox="0 0 24 24"><path d="M12 2 2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>Nova Fase</div><div class="um-it" onclick="defMenuFechar();modPgAbrir()"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Módulos por Obra</div>
+  <div class="um-sec">Dados</div><div class="um-it" onclick="defAbrir('backup')"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>Exportar Dados</div>
   <div class="um-ver" id="def-versao"></div>
 </div>
 <div id="user-menu" class="sego-pop" style="display:none"></div>
@@ -12792,19 +12799,14 @@ window.cgDocRetirar=async function(i){ const o=DB.obras.find(x=>x.id===cgObraId)
   try{ await sb.patch('obras',o.id,{docs}); o.docs=docs; render(); }catch(e){ alert('Erro: '+e.message); } };
 window.cgNovaObraModal=function(){
   if(!cgPodeEditar()) return; defMenuFechar();
-  showModal('Nova Obra',`<div class="form-row f3"><div><label class="form-label">Código *</label><input class="form-input" id="no-cod" placeholder="ex.: 7A01"></div>
-    <div><label class="form-label">Sigla *</label><input class="form-input" id="no-sig" placeholder="ex.: ABC"></div>
-    <div><label class="form-label">Estado</label><select class="form-select" id="no-est">${CG_ESTADOS.map(e=>`<option>${e}</option>`).join('')}</select></div></div>
-    <div class="form-row"><div><label class="form-label">Nome *</label><input class="form-input" id="no-nom" placeholder="Nome da obra"></div></div>
-    <label style="display:flex;gap:8px;align-items:center;margin:8px 0"><input type="checkbox" id="no-fases" onchange="document.getElementById('no-f1').style.display=this.checked?'':'none'"> <b>Obra com Fases</b></label>
-    <div id="no-f1" style="display:none"><div class="form-row f3"><div style="grid-column:span 2"><label class="form-label">Nome da 1.ª Fase *</label><input class="form-input" id="no-fnom" placeholder="ex.: Fase 1 — Estruturas"></div>
-      <div><label class="form-label">Sigla *</label><input class="form-input" id="no-fsig" placeholder="ex.: F1"></div></div>
-      <div style="color:var(--text-muted)">A obra-mãe guarda só nome, sigla, código e estado; o conteúdo fica em cada fase.</div></div>`,
-    [{label:'Cancelar',cls:'btn-outline',fn:'closeModal()'},{label:'Criar Obra',cls:'btn-gold',fn:'cgNovaObraCriar()'}]);
+  showModal('Nova Obra',`<div class="cg-dform">${dfR('Código',dfIn('no-cod',''),{obr:1})}${dfR('Sigla',dfIn('no-sig',''),{obr:1})}${dfR('Nome',dfIn('no-nom','',' style="min-width:220px"'),{obr:1,larga:1})}
+    ${dfR('Estado',dfSel('no-est',CG_ESTADOS.map(e=>[e,e]),CG_ESTADOS[0]))}${dfR('Obra com Fases',dfSN('no-fases',false,"document.getElementById('no-f1').style.display=this.value==='1'?'':'none'"),{tit:'A obra-mãe guarda só nome, sigla, código e estado; o conteúdo fica em cada fase'})}
+    <div id="no-f1" style="display:none"><div class="cg-gap"></div>${dfR('Nome da 1.ª Fase',dfIn('no-fnom','',' style="min-width:220px"'),{obr:1,larga:1})}${dfR('Sigla da Fase',dfIn('no-fsig',''),{obr:1})}</div></div>`,
+    [{label:'Cancelar',cls:'btn-outline',fn:'closeModal()'},{label:'Criar Obra',cls:'btn-gold',fn:'cgNovaObraCriar()'}],'modal-doc');
 };
 window.cgNovaObraCriar=async function(){
   const g=id=>(document.getElementById(id)||{}).value||'';
-  const cod=g('no-cod').trim(), sig=g('no-sig').trim(), nom=g('no-nom').trim(), est=g('no-est'), comF=document.getElementById('no-fases').checked;
+  const cod=g('no-cod').trim(), sig=g('no-sig').trim(), nom=g('no-nom').trim(), est=g('no-est'), comF=document.getElementById('no-fases').value==='1';
   if(!cod||!sig||!nom){ alert('Código, Sigla e Nome são obrigatórios.'); return; }
   if(DB.obras.some(o=>!o.obraMaeId&&String(o.codigo||'').toLowerCase()===cod.toLowerCase())){ alert('Já existe uma obra com o código '+cod+'.'); return; }
   let f1=null; if(comF){ const fn=g('no-fnom').trim(), fs=g('no-fsig').trim(); if(!fn||!fs){ alert('Indique o nome e a sigla da 1.ª fase.'); return; } f1={nome:fn,sigla:fs}; }
@@ -12823,11 +12825,11 @@ window.cgNovaFaseModal=function(maeId){
   const maes=DB.obras.filter(o=>o.comFases).sort((a,b)=>(a.codigo||'').localeCompare(b.codigo||''));
   if(!maes.length){ alert('Não há obras com fases. Crie uma em Definições → + Nova Obra, marcando "Obra com Fases".'); return; }
   const sel=maeId||maes[0].id;
-  showModal('Nova Fase',`<div class="form-row"><div><label class="form-label">Obra *</label><select class="form-select" id="nf-mae" onchange="cgNovaFaseOrigens()">${maes.map(m=>`<option value="${m.id}" ${m.id===sel?'selected':''}>${esc(m.codigo+' · '+m.sigla+' — '+m.nome)}</option>`).join('')}</select></div></div>
-    <div class="form-row f3"><div style="grid-column:span 2"><label class="form-label">Nome *</label><input class="form-input" id="nf-nom" placeholder="ex.: Fase 2 — Acabamentos"></div><div><label class="form-label">Sigla *</label><input class="form-input" id="nf-sig" placeholder="ex.: F2"></div></div>
-    <div class="form-row"><div><label class="form-label">Copiar Campos de</label><select class="form-select" id="nf-orig" onchange="document.getElementById('nf-grp').style.display=this.value?'':'none'"></select></div></div>
-    <div id="nf-grp" style="display:none">${Object.entries(CG_GRUPOS).map(([k,g])=>`<label style="display:flex;gap:8px;align-items:center;padding:2px 0"><input type="checkbox" class="nf-g" value="${k}" ${g.def?'checked':''}> ${g.rot}</label>`).join('')}</div>`,
-    [{label:'Cancelar',cls:'btn-outline',fn:'closeModal()'},{label:'Criar Fase',cls:'btn-gold',fn:'cgNovaFaseCriar()'}]);
+  showModal('Nova Fase',`<div class="cg-dform">${dfR('Obra',dfSel('nf-mae',maes.map(m=>[m.id,m.codigo+' · '+m.sigla+' — '+m.nome]),sel,'cgNovaFaseOrigens()'),{obr:1,larga:1})}
+    ${dfR('Nome',dfIn('nf-nom','',' style="min-width:220px"'),{obr:1,larga:1})}${dfR('Sigla',dfIn('nf-sig',''),{obr:1})}
+    ${dfR('Copiar Campos de',`<select class="cg-i" id="nf-orig" onchange="document.getElementById('nf-grp').style.display=this.value?'':'none'"></select>`,{larga:1})}
+    <div id="nf-grp" class="df-chk" style="display:none">${Object.entries(CG_GRUPOS).map(([k,g])=>`<label><input type="checkbox" class="nf-g" value="${k}" ${g.def?'checked':''}> ${g.rot}</label>`).join('')}</div></div>`,
+    [{label:'Cancelar',cls:'btn-outline',fn:'closeModal()'},{label:'Criar Fase',cls:'btn-gold',fn:'cgNovaFaseCriar()'}],'modal-doc');
   cgNovaFaseOrigens();
 };
 window.cgNovaFaseOrigens=function(){ const m=document.getElementById('nf-mae').value; const s=document.getElementById('nf-orig');
@@ -12871,6 +12873,14 @@ window.defMenuFechar=function(){ const m=document.getElementById('def-menu'); if
 window.defAbrir=function(pg){ defMenuFechar(); if(pg==='backup'){ if(typeof backupExportar==='function') backupExportar(); else { const b=document.getElementById('btn-backup'); if(b) b.click(); } return; }
   defPg=pg; cgObraId=null; cgMaeId=null; fichObraId=null; render(); window.scrollTo(0,0); };
 /* ---------- Tabelas de administração (antes no SID): Especialidades, Tipos de Documento; Auditoria (consulta) ---------- */
+/* Formulários de parametrização — padrão único (rótulo · pontilhado · valor à direita) */
+const DF_MK='<i class="cg-mk obr" title="Obrigatório"></i>';
+function dfR(l,campo,o){ o=o||{}; return `<div class="cg-r${o.larga?' dl-larga':''}"${o.id?` id="${o.id}"`:''}${o.oculto?' style="display:none"':''}${o.tit?` title="${o.tit}"`:''}><span class="cg-rl"><span class="dl-t">${l}${o.obr?DF_MK:''}</span></span><span class="cg-rv">${campo}</span></div>`; }
+const dfSN=(id,v,on)=>`<select class="cg-i" id="${id}"${on?` onchange="${on}"`:''}><option value="1" ${v?'selected':''}>Sim</option><option value="0" ${v?'':'selected'}>Não</option></select>`;
+const dfSel=(id,ops,v,on)=>`<select class="cg-i" id="${id}"${on?` onchange="${on}"`:''}>${ops.map(([k,l])=>`<option value="${esc(k)}" ${String(v)===String(k)?'selected':''}>${esc(l)}</option>`).join('')}</select>`;
+const dfIn=(id,v,x)=>`<input class="cg-i" id="${id}" value="${esc(v||'')}"${x||''}>`;
+const dfNav=(tit,mais,extra)=>`<template id="obra-nav-tpl"><span class="on-nome">${esc(tit)}</span></template><template id="obra-mid-tpl">${extra||''}<span class="nv-dir"></span>${mais?`<button class="on-at" title="${esc(mais[1]||'Novo')}" onclick="${mais[0]}">${NV_IC.mais}</button>`:''}</template>`;
+const dfDel=(fn,bloq)=>`<button class="btn btn-outline" style="margin-right:auto;color:var(--danger)" ${bloq?`disabled title="${esc(bloq)}"`:`onclick="${fn}"`}>Eliminar</button>`;
 const ADM_FASES=[['concurso','Concurso'],['contrato','Contrato'],['obra','Obra']];
 const ADM_TAB={
   Especialidades:{tabela:'especialidades',db:'especialidades',sing:'Especialidade',novo:'Nova Especialidade',campos:[['codigo','Código','txt',1],['nome','Nome','txt',1]],ordem:(a,b)=>String(a.codigo||'').localeCompare(String(b.codigo||''),'pt',{numeric:true})},
@@ -12883,19 +12893,18 @@ function renderAdmTab(app,pg){ const T=ADM_TAB[pg], rows=[...(DB[T.db]||[])].sor
   const linha=r=>`<tr class="ut-r" ondblclick="admEditar('${pg}','${esc(r.id)}')" title="Duplo clique para editar">${T.campos.filter(c=>c[0]!==T.grupo).map(c=>`<td class="${c[2]==='bool'?'ut-c':''}">${val(r,c)}</td>`).join('')}</tr>`;
   const ncol=T.campos.filter(c=>c[0]!==T.grupo).length;
   const corpo=T.grupo?T.grupos.map(([k,l])=>{ const rs=rows.filter(r=>String(r[T.grupo]||'').toLowerCase()===k); return rs.length?`<tr class="pm-g ut-g"><td colspan="${ncol}">${l} <span class="pm-n">(${rs.length})</span></td></tr>`+rs.map(linha).join(''):''; }).join(''):rows.map(linha).join('');
-  const nav=`<template id="obra-nav-tpl"><span class="on-nome">${esc(T.titulo||pg)}</span></template><template id="obra-mid-tpl"><span class="nv-cnt" title="${rows.length} registo(s)">${rows.length}</span><span class="nv-dir"></span><button class="on-at" title="Novo" onclick="admEditar('${pg}',null)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button></template>`;
+  const nav=dfNav(T.titulo||pg,[`admEditar('${pg}',null)`,T.novo]);
   app.innerHTML=`<button class="back-btn" onclick="defPg=null;render()">← Voltar</button>${nav}
   <div class="pm-wrap"><table class="data-table pm-tbl ut-tbl"><thead><tr>${T.campos.filter(c=>c[0]!==T.grupo).map(c=>`<th class="${c[2]==='bool'?'ut-c':''}">${c[1]}</th>`).join('')}</tr></thead>
   <tbody>${corpo||`<tr><td colspan="${ncol}">Sem registos.</td></tr>`}</tbody></table></div>`;
   permTopo(); }
 window.admEditar=function(pg,id){ const T=ADM_TAB[pg], r=id?(DB[T.db]||[]).find(x=>String(x.id)===String(id)):null; if(id&&!r) return;
-  const mk=`<i class="cg-mk obr" title="Obrigatório"></i>`;
-  const campo=c=>{ const v=r?r[c[0]]:''; if(c[2]==='bool') return `<select class="cg-i" id="adm-${c[0]}"><option value="1" ${v?'selected':''}>Sim</option><option value="0" ${v?'':'selected'}>Não</option></select>`;
-    if(c[2]==='sel') return `<select class="cg-i" id="adm-${c[0]}">${c[4].map(([k,l])=>`<option value="${k}" ${String(v||'').toLowerCase()===k?'selected':''}>${l}</option>`).join('')}</select>`;
-    return `<input class="cg-i" id="adm-${c[0]}" value="${esc(v||'')}"${c[0]==='nome'?' style="min-width:220px"':''}>`; };
-  showModal(r?'Editar '+(T.sing||pg):(T.novo||'Novo'),`<div class="cg-dform">${T.campos.map(c=>`<div class="cg-r${c[2]==='txt'&&c[0]==='nome'?' dl-larga':''}"><span class="cg-rl"><span class="dl-t">${c[1]}${c[3]?mk:''}</span></span><span class="cg-rv">${campo(c)}</span></div>`).join('')}</div>`,
+  const campo=c=>{ const v=r?r[c[0]]:''; if(c[2]==='bool') return dfSN('adm-'+c[0],v);
+    if(c[2]==='sel') return dfSel('adm-'+c[0],c[4],String(v||'').toLowerCase());
+    return dfIn('adm-'+c[0],v,c[0]==='nome'?' style="min-width:220px"':''); };
+  showModal(r?'Editar '+(T.sing||pg):(T.novo||'Novo'),`<div class="cg-dform">${T.campos.map(c=>dfR(c[1],campo(c),{obr:c[3],larga:c[2]==='txt'&&c[0]==='nome'})).join('')}</div>`,
     [{label:'Cancelar',cls:'btn-outline',fn:'closeModal()'},{label:'Guardar',cls:'btn-gold',fn:`admGuardar('${pg}',${r?`'${esc(r.id)}'`:'null'})`}],'modal-doc',
-    r?`<button class="btn btn-outline" style="margin-right:auto;color:var(--danger)" onclick="admEliminar('${pg}','${esc(r.id)}')">Eliminar</button>`:''); };
+    r?dfDel(`admEliminar('${pg}','${esc(r.id)}')`):''); };
 window.admGuardar=async function(pg,id){ const T=ADM_TAB[pg], o={};
   for(const c of T.campos){ const el=document.getElementById('adm-'+c[0]); let v=el?el.value:''; if(c[2]==='bool') v=v==='1'; else v=String(v).trim();
     if(c[3]&&c[2]!=='bool'&&!v){ alert('Preencha: '+c[1]+'.'); return; } o[c[0]]=v; }
@@ -12909,7 +12918,7 @@ let auditDados=null;
 async function renderAuditSego(app){
   if(auditDados===null){ app.innerHTML='<div class="cg-bloco">A carregar…</div>'; try{ auditDados=await sb.get('auditoria','order=created_at.desc&limit=1000'); }catch(e){ auditDados=[]; } if(defPg==='Auditoria') render(); return; }
   const linhas=auditDados.map(a=>`<tr><td style="white-space:nowrap">${esc(a.data||(a.created_at?fmtDate(String(a.created_at).slice(0,10)):''))}</td><td>${esc(a.utilizador_nome||'')}</td><td>${esc(a.acao||'')}</td><td>${esc(a.entidade||'')}</td><td>${esc(a.entidade_nome||'')}</td><td class="ut-m">${esc(a.detalhes||'')}</td></tr>`).join('');
-  app.innerHTML=`<button class="back-btn" onclick="defPg=null;auditDados=null;render()">← Voltar</button><template id="obra-nav-tpl"><span class="on-nome">Auditoria</span></template><template id="obra-mid-tpl"><span class="nv-cnt" title="${auditDados.length} registo(s)">${auditDados.length}</span><span class="nv-dir"></span></template>
+  app.innerHTML=`<button class="back-btn" onclick="defPg=null;auditDados=null;render()">← Voltar</button>${dfNav('Auditoria')}
   <div class="pm-wrap"><table class="data-table pm-tbl ut-tbl"><thead><tr><th>Data</th><th>Utilizador</th><th>Ação</th><th>Entidade</th><th>Registo</th><th>Detalhes</th></tr></thead><tbody>${linhas||'<tr><td colspan="6">Sem registos.</td></tr>'}</tbody></table></div>`;
   permTopo(); }
 function renderDefinicoes(app){
@@ -13198,17 +13207,16 @@ window.utEditar=function(id){ const u=id?(DB.utilizadores||[]).find(x=>String(x.
   const sai=v.obras_saida||{};
   const obs=utObrasLista().map(({o,rot})=>{ const on=ids.includes(String(o.id)); const conc=o.estado==='Concluída'; const sd=!on&&sai[String(o.id)];
     return `<label class="ut-ob-i${conc?' ut-conc':''}" ${conc&&!on&&!sd&&!utConcl?'style="display:none"':''}><input type="checkbox" class="ut-cb" value="${esc(o.id)}" ${on?'checked':''} onchange="utCbMuda(this)"> ${esc(rot)}${conc?' <span class="pm-n">(Concluída)</span>':''}<span class="ut-sdw" ${sd?'':'style="display:none"'} title="Saiu da obra nesta data: fica no histórico da equipa (ID da obra), sem acesso nem notificações. Apagar a data = sem histórico. Marcar a obra = volta a estar associado."><span class="pm-n">Saiu</span><input type="date" class="ut-sd" value="${esc(sd||'')}"></span></label>`; }).join('');
-  showModal(u?'Editar Utilizador':'Novo Utilizador',`<div class="ut-form">
-    <div class="form-row f2"><div><label class="form-label">Nome *</label><input class="form-input" id="ut-nome" value="${esc(v.nome||'')}"></div><div><label class="form-label">Email *</label><input class="form-input" id="ut-email" type="email" value="${esc(v.email||'')}"></div></div>
-    <div class="form-row f2"><div><label class="form-label">Função</label><input class="form-input" id="ut-func" value="${esc(v.funcao||'')}" placeholder="ex.: Dir. Obra"></div><div><label class="form-label">Contacto</label><input class="form-input" id="ut-cont" value="${esc(v.contacto||'')}"></div></div>
-    <div class="form-row f3"><div><label class="form-label">Tipo</label><select class="form-input" id="ut-tipo">${UT_TIPOS.map(([k,l])=>`<option value="${k}" ${v.role===k?'selected':''}>${l}</option>`).join('')}</select></div>
-      <div><label class="form-label">Ativo</label><select class="form-input" id="ut-ativo"><option value="1" ${v.ativo!==false?'selected':''}>Sim</option><option value="0" ${v.ativo===false?'selected':''}>Não</option></select></div>
-      <div><label class="form-label">Acesso ao SEGO</label><select class="form-input" id="ut-sego"><option value="1" ${(v.apps||[]).includes('sego')?'selected':''}>Sim</option><option value="0" ${(v.apps||[]).includes('sego')?'':'selected'}>Não</option></select></div></div>
-    <div class="form-row"><div><label class="form-label">${temPw?'Nova Password <span class="pm-n">(vazio mantém a atual)</span>':'Password <span class="pm-n">(sem password não consegue entrar)</span>'}</label>
-      <div style="display:flex;gap:6px"><input class="form-input" id="ut-pwd" type="text" autocomplete="new-password" style="flex:1"><button class="btn btn-outline btn-sm" onclick="document.getElementById('ut-pwd').value=utGerarPwd()">Gerar</button></div></div></div>
-    <div class="form-row"><div><label class="form-label" style="display:flex;justify-content:space-between;align-items:center">Obras Associadas <span class="pm-n" style="font-weight:400" title="Desmarcar uma obra = sai da obra: deixa de ter acesso e de ser notificado, mas continua na equipa da obra como histórico">(desmarcar = sai da obra, fica no histórico)</span><span style="font-weight:400"><input class="form-input" id="ut-obq" placeholder="Filtrar…" oninput="utObFiltrar()" style="width:150px;display:inline-block"> <label class="pm-chk" style="display:inline-flex;gap:4px;margin-left:8px"><input type="checkbox" id="ut-concl" ${utConcl?'checked':''} onchange="utConcl=this.checked;utObFiltrar()"> Incluir Concluídas</label></span></label>
-      <div class="ut-obs">${obs||'<span class="pm-n">Sem obras.</span>'}</div></div></div>
-  </div>`,[{label:'Cancelar',cls:'btn-outline',fn:'closeModal()'},{label:'Guardar',cls:'btn-gold',fn:`utGuardar('${u?esc(u.id):''}')`}],'ut-modal');
+  const pwLk=`<a class="df-lk" onclick="document.getElementById('ut-pwd').value=utGerarPwd()" title="Gerar password">Gerar</a>`;
+  showModal(u?'Editar Utilizador':'Novo Utilizador',`<div class="cg-dform ut-form">
+    ${dfR('Nome',dfIn('ut-nome',v.nome),{obr:1,larga:1})}${dfR('Email',dfIn('ut-email',v.email,' type="email"'),{obr:1,larga:1})}
+    ${dfR('Função',dfIn('ut-func',v.funcao),{larga:1})}${dfR('Contacto',dfIn('ut-cont',v.contacto))}
+    <div class="cg-gap"></div>
+    ${dfR('Tipo',dfSel('ut-tipo',UT_TIPOS,v.role))}${dfR('Ativo',dfSN('ut-ativo',v.ativo!==false))}${dfR('Acesso ao SEGO',dfSN('ut-sego',(v.apps||[]).includes('sego')))}
+    ${dfR(temPw?'Nova Password':'Password',`<span class="df-cx">${dfIn('ut-pwd','',' type="text" autocomplete="new-password"')}${pwLk}</span>`,{larga:1,tit:temPw?'Vazio mantém a atual':'Sem password não consegue entrar'})}
+    <div class="df-sec" title="Desmarcar uma obra = sai da obra: deixa de ter acesso e de ser notificado, mas continua na equipa da obra como histórico"><span>Obras Associadas</span><span class="nv-dir"></span><input class="cg-i" id="ut-obq" placeholder="Filtrar…" oninput="utObFiltrar()" style="width:130px !important"><label class="pm-chk"><input type="checkbox" id="ut-concl" ${utConcl?'checked':''} onchange="utConcl=this.checked;utObFiltrar()"> Incluir Concluídas</label></div>
+    <div class="ut-obs">${obs||'<span class="pm-n">Sem obras.</span>'}</div>
+  </div>`,[{label:'Cancelar',cls:'btn-outline',fn:'closeModal()'},{label:'Guardar',cls:'btn-gold',fn:`utGuardar('${u?esc(u.id):''}')`}],'modal-doc modal-df-l');
 };
 window.utCbMuda=function(cb){ const w=cb.parentNode.querySelector('.ut-sdw'), d=w&&w.querySelector('.ut-sd'); if(!w) return;
   if(cb.checked) w.style.display='none'; else { w.style.display=''; if(!d.value) d.value=new Date().toISOString().slice(0,10); } };
@@ -13248,47 +13256,45 @@ window.utGuardar=async function(id){
 /* ---------- Entidades ---------- */
 function entUso(id){ return DB.obras.filter(o=>o.entidadeDoId===id||o.entidadeEmpId===id); }
 function renderEntidades(app){
-  const ents=(DB.entidades||[]).slice().sort((a,b)=>a.nome.localeCompare(b.nome));
-  app.innerHTML=`<button class="back-btn" onclick="defPg=null;render()">← Voltar</button>
-  <div class="cg-head"><b>Entidades</b><span style="color:var(--text-muted)">· Empresas que entram nas obras (Dono de Obra, Empreiteiro) · ${ents.length}</span></div>
-  <div class="cg-bloco" style="margin-bottom:10px"><div style="display:flex;gap:8px;align-items:end;flex-wrap:wrap">
-    <div><label class="form-label">Nome *</label><input class="form-input" id="ent-n" style="width:320px"></div><div><label class="form-label">NIF</label><input class="form-input" id="ent-f" style="width:140px"></div>
-    <button class="btn btn-gold btn-sm" onclick="entAdicionar()">+ Adicionar</button></div></div>
-  <div class="table-card"><table class="data-table"><thead><tr><th style="text-align:left">Nome</th><th>NIF</th><th>Obras</th><th>×</th></tr></thead><tbody>
-  ${ents.map(e=>{ const us=entUso(e.id); return `<tr><td><input class="cg-i" value="${esc(e.nome)}" onchange="entGuardar('${e.id}','nome',this)"></td><td style="width:150px"><input class="cg-i" value="${esc(e.nif||'')}" placeholder="—" onchange="entGuardar('${e.id}','nif',this)"></td>
-    <td style="text-align:center" title="${esc(us.map(o=>o.codigo+' '+o.sigla).join(', '))}">${us.length}</td>
-    <td style="text-align:center;width:40px"><span class="pe-x" style="cursor:pointer;color:var(--danger)" onclick="entEliminar('${e.id}')" title="${us.length?'Em uso — não pode ser eliminada':'Eliminar'}">×</span></td></tr>`; }).join('')}
-  </tbody></table></div>`;
+  const ents=(DB.entidades||[]).slice().sort((a,b)=>a.nome.localeCompare(b.nome,'pt'));
+  const linhas=ents.map(e=>{ const us=entUso(e.id), ob=us.map(o=>o.sigla||o.codigo).join(', ');
+    return `<tr class="ut-r" ondblclick="entEditar('${esc(e.id)}')" title="Duplo clique para editar"><td>${esc(e.nome)}</td><td class="ut-m">${esc(e.nif||'')}</td><td class="ut-ob" title="${esc(us.map(o=>o.codigo+' '+o.sigla).join(', '))}">${esc(ob)}</td></tr>`; }).join('');
+  app.innerHTML=`<button class="back-btn" onclick="defPg=null;render()">← Voltar</button>${dfNav('Entidades',["entEditar('')",'Nova Entidade'])}
+  <div class="pm-wrap"><table class="data-table pm-tbl ut-tbl"><thead><tr><th>Nome</th><th style="width:140px">NIF</th><th>Obras</th></tr></thead>
+  <tbody>${linhas||'<tr><td colspan="3">Sem registos.</td></tr>'}</tbody></table></div>`;
+  permTopo();
 }
+window.entEditar=function(id){ const e=id?(DB.entidades||[]).find(x=>String(x.id)===String(id)):null; if(id&&!e) return; const us=e?entUso(e.id):[];
+  showModal(e?'Editar Entidade':'Nova Entidade',`<div class="cg-dform">${dfR('Nome',dfIn('ent-n',e&&e.nome,' style="min-width:220px"'),{obr:1,larga:1})}${dfR('NIF',dfIn('ent-f',e&&e.nif))}${us.length?dfR('Obras',`<span>${esc(us.map(o=>o.sigla||o.codigo).join(', '))}</span>`,{larga:1}):''}</div>`,
+    [{label:'Cancelar',cls:'btn-outline',fn:'closeModal()'},{label:'Guardar',cls:'btn-gold',fn:`entGravar('${e?esc(e.id):''}')`}],'modal-doc',
+    e?dfDel(`entEliminar('${esc(e.id)}')`,us.length?'Em uso nas obras — não pode ser eliminada':''):''); };
 function entValida(nome,nif,ignorar){ const n=String(nome||'').trim(), f=String(nif||'').trim();
   if(!n) return 'O Nome é obrigatório.';
   if((DB.entidades||[]).some(e=>e.id!==ignorar&&e.nome.trim().toLowerCase()===n.toLowerCase())) return 'Já existe uma entidade com esse Nome.';
   if(f&&(DB.entidades||[]).some(e=>e.id!==ignorar&&String(e.nif||'').trim()===f)) return 'Já existe uma entidade com esse NIF.';
   return null; }
-window.entAdicionar=async function(){ const n=document.getElementById('ent-n').value.trim(), f=document.getElementById('ent-f').value.trim();
-  const er=entValida(n,f,null); if(er){ alert(er); return; }
-  try{ const r=await sb.post('entidades',{nome:n,nif:f||null}); DB.entidades.push(r[0]); render(); }catch(e){ alert('Erro: '+e.message); } };
-window.entGuardar=async function(id,campo,el){ const e=DB.entidades.find(x=>x.id===id); const v=el.value.trim();
-  const er=entValida(campo==='nome'?v:e.nome,campo==='nif'?v:e.nif,id); if(er){ alert(er); el.value=e[campo]||''; return; }
-  try{ await sb.patch('entidades',id,{[campo]:v||null}); e[campo]=v||null;
-    if(campo==='nome'){ for(const o of entUso(id)){ const p={}; if(o.entidadeDoId===id){ p.empresa_dono_obra=v; o.empresaDO=v; } if(o.entidadeEmpId===id){ p.empresa_empreiteiro=v; o.empresaEmp=v; } await sb.patch('obras',o.id,p); } }
-  }catch(x){ alert('Erro: '+x.message); el.value=e[campo]||''; } };
+window.entGravar=async function(id){ const n=document.getElementById('ent-n').value.trim(), f=document.getElementById('ent-f').value.trim();
+  const er=entValida(n,f,id||null); if(er){ alert(er); return; }
+  try{ if(!id){ const r=await sb.post('entidades',{nome:n,nif:f||null}); DB.entidades.push(r[0]); }
+    else { const e=DB.entidades.find(x=>x.id===id); const mudouNome=e.nome!==n; await sb.patch('entidades',id,{nome:n,nif:f||null}); e.nome=n; e.nif=f||null;
+      if(mudouNome){ for(const o of entUso(id)){ const p={}; if(o.entidadeDoId===id){ p.empresa_dono_obra=n; o.empresaDO=n; } if(o.entidadeEmpId===id){ p.empresa_empreiteiro=n; o.empresaEmp=n; } await sb.patch('obras',o.id,p); } } }
+    closeModal(); render(); }catch(x){ alert('Erro ao guardar: '+x.message); } };
 window.entEliminar=async function(id){ const e=DB.entidades.find(x=>x.id===id); if(!e) return; const us=entUso(id);
   if(us.length) throw (alert('"'+e.nome+'" está a ser usada em: '+us.map(o=>o.codigo+' '+o.sigla).join(', ')+'.\nNão pode ser eliminada.'), new Error('em uso'));
   if(!confirm('Eliminar a entidade "'+e.nome+'"?')) return;
-  await sb.delete('entidades',id); DB.entidades=DB.entidades.filter(x=>x.id!==id); render(); };
+  await sb.delete('entidades',id); DB.entidades=DB.entidades.filter(x=>x.id!==id); closeModal(); render(); };
 
 /* ---------- Menu do Utilizador ---------- */
 window.userMenuAbrir=function(ev){ ev&&ev.stopPropagation(); defMenuFechar(); const m=document.getElementById('user-menu'); if(!m||!currentUser) return;
   const rot={superadmin:'Superadmin',fiscalizacao:'Fiscalização',dono_obra:'Dono de Obra',empreiteiro:'Empreiteiro',projetista:'Projetista',outros:'Outros'}[currentUser.role]||currentUser.role;
-  const tema=document.documentElement.getAttribute('data-contraste')!==null?'contraste':(document.documentElement.getAttribute('data-theme')==='dark'?'escuro':'claro');
+  const tema=document.documentElement.getAttribute('data-theme')==='dark'?'escuro':'claro';
   m.innerHTML=`<div class="um-top"><div class="nav-avatar" style="width:38px !important;height:38px !important">${esc((currentUser.nome||'').split(' ').map(x=>x[0]).filter(Boolean).slice(0,1).concat((currentUser.nome||'').split(' ').slice(-1).map(x=>x[0])).join('').toUpperCase())}</div>
     <div><b>${esc(currentUser.nome||'')}</b><div style="color:var(--text-muted)">${esc(rot)}</div></div><button class="um-x" onclick="userMenuFechar()">✕</button></div>
-    <div class="um-it" onclick="userPerfil()">👤 Perfil</div>${(peESuper()||(SEGO_CFG.guia&&SEGO_CFG.guia.publico))?`<div class="um-it" onclick="userMenuFechar();guiaAbrir()">📘 Guia</div>`:''}
-    <div class="um-sec">Aparência</div><div class="um-temas">${[['claro','☀ Claro'],['escuro','☾ Escuro'],['contraste','Contraste']].map(([k,l])=>`<button class="${tema===k?'on':''}" onclick="segoTemaDef('${k}')">${l}</button>`).join('')}</div>
+    <div class="um-it" onclick="userPerfil()"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a7 7 0 0 1 16 0v1"/></svg>Perfil</div>${(peESuper()||(SEGO_CFG.guia&&SEGO_CFG.guia.publico))?`<div class="um-it" onclick="userMenuFechar();guiaAbrir()">📘 Guia</div>`:''}
+    <div class="um-sec">Aparência</div><div class="um-temas">${[['claro','Claro'],['escuro','Escuro']].map(([k,l])=>`<button class="${tema===k?'on':''}" onclick="segoTemaDef('${k}')">${l}</button>`).join('')}</div>
     <div class="um-sec">Cores</div><div class="um-temas">${[['aceitar','Aceitar'],['navy','Azul e Dourado']].map(([k,l])=>`<button class="${(document.documentElement.getAttribute('data-paleta')||'aceitar')===k?'on':''}" onclick="segoPaleta('${k}')">${l}</button>`).join('')}</div>
     <div class="um-sec">Campos em Edição</div><div class="um-temas">${[['0','Sem Caixa'],['1','Com Caixa']].map(([k,l])=>`<button class="${(document.documentElement.hasAttribute('data-caixas')?'1':'0')===k?'on':''}" onclick="segoCaixas('${k}')">${l}</button>`).join('')}</div>
-    <div class="um-it" style="border-top:1px solid var(--border-light)" onclick="doLogout()">↩ Sair</div>`;
+    <div class="um-it" style="border-top:1px solid var(--border-light)" onclick="doLogout()"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>Sair</div>`;
   m.style.display=m.style.display==='block'?'none':'block'; };
 window.segoPaleta=function(k){ if(k==='navy') document.documentElement.setAttribute('data-paleta','navy'); else document.documentElement.removeAttribute('data-paleta');
   try{ localStorage.setItem('sego-paleta',k); }catch(e){} const m=document.getElementById('user-menu'); if(m&&m.style.display==='block'){ m.style.display='none'; userMenuAbrir(); } };
@@ -13297,7 +13303,7 @@ window.segoCaixas=function(k){ if(k==='1') document.documentElement.setAttribute
   try{ localStorage.setItem('sego-caixas',k); }catch(e){} try{ render(); }catch(e){} const m=document.getElementById('user-menu'); if(m&&m.style.display==='block'){ m.style.display='none'; userMenuAbrir(); } };
 window.userMenuFechar=function(){ const m=document.getElementById('user-menu'); if(m) m.style.display='none'; };
 window.segoTemaDef=function(t){ const h=document.documentElement;
-  h.removeAttribute('data-contraste'); if(t==='claro') h.removeAttribute('data-theme'); else h.setAttribute('data-theme','dark'); if(t==='contraste') h.setAttribute('data-contraste','');
+  h.removeAttribute('data-contraste'); if(t==='claro') h.removeAttribute('data-theme'); else h.setAttribute('data-theme','dark'); 
   try{ localStorage.setItem('sego-tema',t); }catch(e){} const mt=document.querySelector('meta[name="theme-color"]'); if(mt) mt.content=t==='claro'?'#1E3A5F':'#0B1320';
   const m=document.getElementById('user-menu'); if(m&&m.style.display==='block'){ m.style.display='none'; userMenuAbrir(); } };
 window.userPerfil=function(){ userMenuFechar(); const u=currentUser||{}; const full=(DB.utilizadores||[]).find(x=>x.id===u.id)||u;
@@ -13572,41 +13578,28 @@ function renderModulosObraTabela(){
   const box=document.getElementById('modpg-tabela'); if(!box) return;
   const obras=modPgObras();
   const th=CO_MODS.map(m=>{ const nOc=obras.filter(o=>modOculto(o.id,m.key)).length;
-    return `<th style="text-align:center;cursor:pointer;white-space:nowrap" title="${esc(m.label||m.sigla)} — clique para mostrar/ocultar em todas as obras listadas" onclick="modPgColuna('${m.key}')">${m.sigla}${nOc?`<div style="font-size:9px;font-weight:400;color:#F5C6C2">${nOc} oculto${nOc>1?'s':''}</div>`:''}</th>`; }).join('');
+    return `<th style="text-align:center;cursor:pointer;white-space:nowrap" title="${esc(m.label||m.sigla)} — clique para mostrar/ocultar em todas as obras listadas${nOc?` (${nOc} oculto${nOc>1?'s':''})`:''}" onclick="modPgColuna('${m.key}')">${m.sigla}</th>`; }).join('');
   const linhas=obras.map(o=>{
     const nOc=CO_MODS.filter(m=>modOculto(o.id,m.key)).length;
     const tds=CO_MODS.map(m=>{ const vis=!modOculto(o.id,m.key);
-      return `<td style="text-align:center;${vis?'':'background:#FDECEC'}"><input type="checkbox" ${vis?'checked':''} onchange="modPgSet('${o.id}','${m.key}',this.checked)" title="${m.sigla} ${vis?'visível':'oculto'} em ${esc(o.sigla||o.codigo||'')}"></td>`; }).join('');
-    return `<tr><td style="white-space:nowrap"><span class="code-pill" style="font-size:11px">${esc(o.codigo||'')}</span> <b>${esc(o.sigla||'')}</b></td>
+      return `<td style="text-align:center"${vis?'':' class="mp-oc"'}><input type="checkbox" ${vis?'checked':''} onchange="modPgSet('${o.id}','${m.key}',this.checked)" title="${m.sigla} ${vis?'visível':'oculto'} em ${esc(o.sigla||o.codigo||'')}"></td>`; }).join('');
+    return `<tr><td style="white-space:nowrap">${esc(o.codigo||'')} · ${esc(o.sigla||'')}</td>
       <td style="max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(o.nome||'')}">${esc(o.nome||'')}</td>
       <td style="white-space:nowrap;color:var(--text-muted)">${esc(o.estado||'')}</td>${tds}
       <td style="white-space:nowrap;text-align:center"><button class="btn btn-outline btn-sm" style="font-size:10px;padding:2px 8px" onclick="modPgLinha('${o.id}',${nOc?'true':'false'})">${nOc?'Mostrar Todos':'Ocultar Todos'}</button></td></tr>`;
   }).join('');
-  box.innerHTML=`<table class="data-table" style="width:100%"><thead><tr><th>Obra</th><th>Nome</th><th>Estado</th>${th}<th style="text-align:center">Linha</th></tr></thead><tbody>${linhas||`<tr><td colspan="${CO_MODS.length+4}" style="text-align:center;color:var(--text-muted)">Sem obras.</td></tr>`}</tbody></table>`;
+  box.innerHTML=`<table class="data-table pm-tbl ut-tbl" style="width:100%"><thead><tr><th>Obra</th><th>Nome</th><th>Estado</th>${th}<th style="text-align:center">Linha</th></tr></thead><tbody>${linhas||`<tr><td colspan="${CO_MODS.length+4}" style="text-align:center;color:var(--text-muted)">Sem obras.</td></tr>`}</tbody></table>`;
 }
 function renderModulosObra(app){
   if(!peESuper()){ modPgAtivo=false; render(); return; }
   const estados=[...new Set((DB.obras||[]).map(o=>o.estado).filter(Boolean))].sort();
+  const pub=!!(SEGO_CFG.guia&&SEGO_CFG.guia.publico);
   app.innerHTML=`
-  <button class="back-btn" onclick="modPgAtivo=false;render()">← Voltar</button>
-  <div class="page-header"><div>
-    <div class="page-title">🧩 Módulos por Obra</div>
-    <div style="font-size:12px;color:var(--text-muted)">Escolha que cards do Controlo Operacional ficam visíveis em cada obra. Desmarcado = oculto para todos os utilizadores dessa obra. O Superadmin vê sempre todos (os ocultos aparecem esbatidos, com a etiqueta <b style="color:#B42318">OCULTO</b>).</div>
-  </div></div>
-  ${SEGO_CFG.ok?'':`<div style="padding:10px 12px;margin-bottom:12px;border-left:3px solid #B42318;background:#FDECEC;font-size:12px"><b>Tabela de configuração em falta.</b> Corra o <b>SEGO_config.sql</b> no Supabase do SEGO e recarregue a página — até lá, as alterações não ficam gravadas.</div>`}
-  <div class="table-card" style="padding:12px 14px;margin-bottom:14px;display:flex;gap:18px;align-items:center;flex-wrap:wrap">
-    <div><b>📘 Guia do SEGO</b> — visível para:</div>
-    <label style="display:flex;gap:6px;align-items:center;cursor:pointer"><input type="radio" name="modpg-guia" ${SEGO_CFG.guia&&SEGO_CFG.guia.publico?'':'checked'} onchange="modPgGuia(false)"> Só Superadmin</label>
-    <label style="display:flex;gap:6px;align-items:center;cursor:pointer"><input type="radio" name="modpg-guia" ${SEGO_CFG.guia&&SEGO_CFG.guia.publico?'checked':''} onchange="modPgGuia(true)"> Todos os Utilizadores</label>
-    <div id="modpg-estado" style="margin-left:auto;font-size:12px;color:var(--text-muted)"></div>
-  </div>
-  <div style="display:flex;gap:10px;margin-bottom:10px;align-items:center;flex-wrap:wrap">
-    <input class="form-input" style="max-width:280px" placeholder="Pesquisar obra…" value="${esc(modPgFiltro)}" oninput="modPgFiltro=this.value;renderModulosObraTabela()">
-    <select class="form-select" style="max-width:200px" onchange="modPgEstado=this.value;renderModulosObraTabela()"><option value="">Todos os Estados</option>${estados.map(e=>`<option ${e===modPgEstado?'selected':''}>${esc(e)}</option>`).join('')}</select>
-    <div style="font-size:11px;color:var(--text-muted)">Clique no cabeçalho de um módulo para o mostrar/ocultar em todas as obras listadas.</div>
-  </div>
-  <div class="table-card" id="modpg-tabela" style="overflow:auto"></div>`;
-  renderModulosObraTabela();
+  <button class="back-btn" onclick="modPgAtivo=false;render()">← Voltar</button><template id="obra-nav-tpl"><span class="nv-q"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input id="modpg-q" type="text" autocomplete="off" title="Pesquisar obra" value="${esc(modPgFiltro)}" oninput="modPgFiltro=this.value;renderModulosObraTabela()"></span></template><template id="obra-mid-tpl"><select class="nv-sel" title="Estado" onchange="modPgEstado=this.value;renderModulosObraTabela()"><option value="">Todos os Estados</option>${estados.map(e=>`<option ${e===modPgEstado?'selected':''}>${esc(e)}</option>`).join('')}</select><span class="nv-dir"></span></template>
+  ${SEGO_CFG.ok?'':`<div class="cg-bloco" style="margin-bottom:10px;border-left:3px solid var(--danger)"><b>Tabela de configuração em falta</b> — as alterações não ficam gravadas.</div>`}
+  <div class="cg-bloco df-linha" style="margin-bottom:10px"><b class="df-lb">Guia Visível para</b><div class="um-temas"><button class="${pub?'':'on'}" onclick="modPgGuia(false)">Só Superadmin</button><button class="${pub?'on':''}" onclick="modPgGuia(true)">Todos os Utilizadores</button></div><span id="modpg-estado" style="margin-left:auto;color:var(--text-muted)"></span></div>
+  <div class="pm-wrap" id="modpg-tabela"></div>`;
+  renderModulosObraTabela(); permTopo();
 }
 
 /* Conteúdo do Guia (gerado a partir do código em 09/11/2026) */
