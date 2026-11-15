@@ -314,7 +314,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.15.0210</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.15.0212</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -797,6 +797,7 @@ window.segoTema=function(){
 
 <style>
   .cg-cxs.cg-2>.cg-docw{grid-column:1 / -1 !important}
+  .cg-ddel{color:var(--danger);cursor:pointer;margin-left:6px;text-decoration:none;opacity:.7} .cg-ddel:hover{opacity:1}
   .cg-dr .cg-rl{flex:0 0 var(--doc-l,160px) !important;min-width:0 !important}
   .cg-dr .cg-dv{flex:1 1 auto;min-width:0;display:grid;grid-template-columns:minmax(0,2fr) repeat(6,minmax(0,1fr));column-gap:12px;align-items:baseline}
   .cg-dr .cg-dv>span{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -12680,6 +12681,7 @@ function renderCardGeral(app){
     const nomeDoc=d=>esc(((tipos[d.tipo]||{}).nome)||d.tipo||d.titulo||d.nome||'Documento')+(d.subtipo?' — '+esc(d.subtipo):'');
     const fases=[['concurso','Concurso'],['contrato','Contrato'],['obra','Obra']];
     const lin=(l,cel,cls)=>`<div class="cg-r cg-dr ${cls||''}"><span class="cg-rl">${l}</span><div class="cg-dv">${cel.map(c=>`<span>${c}</span>`).join('')}</div></div>`;
+    const pdDoc=cgPodeEditar(), delDoc=d=>pdDoc?` <a class="cg-ddel" title="Retirar documento" onclick="event.stopPropagation();cgDocRetirar(${docs.indexOf(d)})">✕</a>`:'';
     let corpo=lin('',['Documento','Versão','Data','Validade','OK','Ficheiro','Notas'],'cg-dh');
     fases.forEach(([k,rot])=>{ const lst=docs.filter(d=>String(d.fase||'').trim().toLowerCase()===k);
       const def=(DB.tiposDoc||[]).filter(t=>(t.is_default||t.isDefault)&&String(t.fase||'').trim().toLowerCase()===k&&!lst.some(d=>d.tipo===t.id));
@@ -12687,10 +12689,12 @@ function renderCardGeral(app){
       lst.forEach(d=>{ const exp=d.validade&&d.validade<hoje;
         corpo+=lin(n++?'':rot,[`<span title="${nomeDoc(d)}">${nomeDoc(d)}</span>`,esc(d.versao||''),((d.criadoEm||d.data)?fmtDate(d.criadoEm||d.data):''),d.validade?`<span style="${exp?'color:var(--danger)':''}">${fmtDate(d.validade)}</span>`:'',
           d.validade?(exp?'<b style="color:var(--danger)">NOK</b>':'<b style="color:var(--success)">OK</b>'):'',
-          d.fileUrl?`<a href="${esc(d.fileUrl)}" target="_blank" title="${esc(d.fileName||'Abrir')}" style="color:#E39956">Abrir</a>`:'',`<span style="color:var(--text-muted)" title="${esc(d.notas||'')}">${esc(d.notas||'')}</span>`]); });
-      def.forEach(t=>{ corpo+=lin(n++?'':rot,[`<i title="${esc(t.nome)}">${esc(t.nome)}</i>`,'<span style="color:var(--text-muted)">Em falta</span>','','','','',''],'cg-dfalta'); });
+          d.fileUrl?`<a href="${esc(d.fileUrl)}" target="_blank" title="${esc(d.fileName||'Abrir')}" style="color:#E39956">Abrir</a>`:'',`<span style="color:var(--text-muted)" title="${esc(d.notas||'')}">${esc(d.notas||'')}</span>${delDoc(d)}`]); });
+      def.forEach(t=>{ corpo+=lin(n++?'':rot,[`<i title="${esc(t.nome)}">${esc(t.nome)}</i>`,'<span style="color:var(--text-muted)">Em falta</span>','','','',pdDoc?`<a style="color:#E39956;cursor:pointer" onclick="event.stopPropagation();cgDocNovo('${k}','${esc(t.id)}')">Carregar</a>`:'',''],'cg-dfalta'); });
       if(!n) corpo+=lin(rot,['','','','','','','']); });
-    cards.push(cgCartao('DOC','Documentos',corpo,'DOC','','cg-docw'));
+    { let c=cgCartao('DOC','Documentos',corpo,'DOC','','cg-docw');
+      if(pdDoc) c=c.replace(/<div class="cg-cx-ic" aria-hidden="true">[\s\S]*?<\/svg><\/div>/,`<button type="button" class="cg-cx-ic co-mais" title="Adicionar documento" onclick="event.stopPropagation();cgDocNovo()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>`);
+      cards.push(c); }
   }
   const podeEd=cgPodeEditar()&&cgTab!=='ID';
   const bts=cgEdit?`<button class="on-at" title="Guardar (Ctrl+Enter)" onclick="cgGuardar()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg></button><button class="on-at" title="Cancelar (Esc)" onclick="cgEdit=false;cgBuf=null;render()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>`:'';   // só ícones
@@ -12721,6 +12725,35 @@ const CG_GRUPOS={ident:{rot:'Identificação',def:true,campos:['morada','codigoP
   datas:{rot:'Datas e Prazos',def:false,campos:['dataContrato','dataConsignacao','inicioPrevisto','inicioReal','fimPrevisto','fimContratual','fimReal','prazo','prorrogacoes']},
   ambito:{rot:'Âmbito e Desafios',def:false,campos:['ambito','principaisDesafios']},
   docs:{rot:'Documentos',def:false,campos:['docs']}};
+/* Documentos da obra (antes geridos no SID): adicionar e retirar. O ficheiro vai para o armazenamento do SEGO; o registo para obras.docs */
+window.cgDocNovo=function(fase,tipo){ if(!cgPodeEditar()) return; const fases=[['concurso','Concurso'],['contrato','Contrato'],['obra','Obra']];
+  const tipos=f=>(DB.tiposDoc||[]).filter(t=>String(t.fase||'').trim().toLowerCase()===f).sort((a,b)=>String(a.nome).localeCompare(b.nome,'pt'));
+  window.__cgDocTipos=f=>`${tipos(f).map(t=>`<option value="${esc(t.id)}" ${t.id===tipo?'selected':''}>${esc(t.nome)}</option>`).join('')}<option value="">Outro</option>`;
+  const f0=fase||'obra', hoje=new Date().toISOString().slice(0,10);
+  showModal('Novo Documento',`<div class="form-row f3"><div><label class="form-label">Fase *</label><select class="form-select" id="dn-fase" onchange="document.getElementById('dn-tipo').innerHTML=__cgDocTipos(this.value);cgDocTipoMuda()">${fases.map(([k,r])=>`<option value="${k}" ${k===f0?'selected':''}>${r}</option>`).join('')}</select></div>
+    <div style="grid-column:span 2"><label class="form-label">Tipo *</label><select class="form-select" id="dn-tipo" onchange="cgDocTipoMuda()">${__cgDocTipos(f0)}</select></div></div>
+    <div class="form-row" id="dn-outro-l" style="display:none"><div><label class="form-label">Designação *</label><input class="form-input" id="dn-outro" placeholder="Nome do documento"></div></div>
+    <div class="form-row f3"><div><label class="form-label">Versão</label><input class="form-input" id="dn-ver"></div><div><label class="form-label">Data</label><input class="form-input" type="date" id="dn-data" value="${hoje}"></div><div><label class="form-label">Validade</label><input class="form-input" type="date" id="dn-val"></div></div>
+    <div class="form-row"><div><label class="form-label">Ficheiro *</label><input class="form-input" type="file" id="dn-fich"></div></div>
+    <div class="form-row"><div><label class="form-label">Notas</label><input class="form-input" id="dn-notas"></div></div>`,
+    [{label:'Cancelar',cls:'btn-outline',fn:'closeModal()'},{label:'Guardar',cls:'btn-gold',fn:'cgDocGuardar()'}]);
+  cgDocTipoMuda(); };
+window.cgDocTipoMuda=function(){ const t=document.getElementById('dn-tipo'), l=document.getElementById('dn-outro-l'); if(t&&l) l.style.display=t.value?'none':''; };
+window.cgDocGuardar=async function(){ const o=DB.obras.find(x=>x.id===cgObraId); if(!o) return;
+  const g=id=>document.getElementById(id), fase=g('dn-fase').value, tipo=g('dn-tipo').value, outro=g('dn-outro').value.trim(), f=g('dn-fich').files[0];
+  if(!tipo&&!outro){ alert('Indique a designação do documento.'); return; } if(!f){ alert('Escolha o ficheiro.'); return; }
+  showLoadingOverlay('A carregar o documento…');
+  try{ const path=o.id+'/docs/'+Date.now()+'_'+f.name.replace(/[^\w.\-]/g,'_');
+    const up=await fetch(SUPA_SEGO.url+'/storage/v1/object/checklist-fotos/'+encodeURI(path),{method:'POST',headers:{apikey:SUPA_SEGO.key,Authorization:'Bearer '+SUPA_SEGO.key,'Content-Type':f.type||'application/octet-stream','x-upsert':'true'},body:f});
+    if(!up.ok) throw new Error('Falhou o carregamento do ficheiro ('+up.status+')');
+    const d={fase,tipo:tipo||outro,versao:g('dn-ver').value.trim(),data:g('dn-data').value||'',validade:g('dn-val').value||'',notas:g('dn-notas').value.trim(),fileName:f.name,fileUrl:SUPA_SEGO.url+'/storage/v1/object/public/checklist-fotos/'+encodeURI(path),autor:(currentUser||{}).nome||''};
+    const docs=[...(o.docs||[]),d]; await sb.patch('obras',o.id,{docs}); o.docs=docs;
+    hideLoadingOverlay(); closeModal(); render();
+  }catch(e){ hideLoadingOverlay(); alert('Erro: '+e.message); } };
+window.cgDocRetirar=async function(i){ const o=DB.obras.find(x=>x.id===cgObraId); if(!o||!cgPodeEditar()) return; const d=(o.docs||[])[i]; if(!d) return;
+  if(!confirm('Retirar «'+(((DB.tiposDoc||[]).find(t=>t.id===d.tipo)||{}).nome||d.tipo||'documento')+'» da lista de documentos da obra?')) return;
+  const docs=(o.docs||[]).filter((_,k)=>k!==i);
+  try{ await sb.patch('obras',o.id,{docs}); o.docs=docs; render(); }catch(e){ alert('Erro: '+e.message); } };
 window.cgNovaObraModal=function(){
   if(!cgPodeEditar()) return; defMenuFechar();
   showModal('Nova Obra',`<div class="form-row f3"><div><label class="form-label">Código *</label><input class="form-input" id="no-cod" placeholder="ex.: 7A01"></div>
