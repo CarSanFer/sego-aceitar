@@ -314,7 +314,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.15.0212</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.15.0217</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -797,6 +797,17 @@ window.segoTema=function(){
 
 <style>
   .cg-cxs.cg-2>.cg-docw{grid-column:1 / -1 !important}
+  .cg-dform{min-width:440px}
+  .cg-dform .cg-r .cg-rl{flex:1 1 auto}
+  .cg-dform .cg-r .cg-rl .cg-mk{position:static;display:inline-block;margin-left:6px;transform:none;order:1}
+  .cg-dform .cg-r .cg-rl::after{order:2}
+  .cg-dform .cg-r .cg-rv{flex:0 0 62% !important;width:62% !important;max-width:none !important;overflow:visible !important}
+  .cg-dform .cg-gap{height:10px;visibility:hidden}
+  .cg-dform .cg-i{border:none !important;border-bottom:1px solid var(--border-light) !important;border-radius:0 !important;background:transparent !important;text-align:right;text-align-last:right}
+  .cg-dform .cg-i:focus{outline:none;border-bottom-color:var(--nav-bd) !important}
+  .cg-dfich{justify-content:flex-end}
+  .cg-dfich{display:flex;align-items:center;border:1px dashed var(--border-light);border-radius:4px;padding:2px 8px;cursor:pointer;color:var(--nav-bd)}
+  .cg-dfich input{display:none} .cg-dfich span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .cg-ddel{color:var(--danger);cursor:pointer;margin-left:6px;text-decoration:none;opacity:.7} .cg-ddel:hover{opacity:1}
   .cg-dr .cg-rl{flex:0 0 var(--doc-l,160px) !important;min-width:0 !important}
   .cg-dr .cg-dv{flex:1 1 auto;min-width:0;display:grid;grid-template-columns:minmax(0,2fr) repeat(6,minmax(0,1fr));column-gap:12px;align-items:baseline}
@@ -12730,15 +12741,24 @@ window.cgDocNovo=function(fase,tipo){ if(!cgPodeEditar()) return; const fases=[[
   const tipos=f=>(DB.tiposDoc||[]).filter(t=>String(t.fase||'').trim().toLowerCase()===f).sort((a,b)=>String(a.nome).localeCompare(b.nome,'pt'));
   window.__cgDocTipos=f=>`${tipos(f).map(t=>`<option value="${esc(t.id)}" ${t.id===tipo?'selected':''}>${esc(t.nome)}</option>`).join('')}<option value="">Outro</option>`;
   const f0=fase||'obra', hoje=new Date().toISOString().slice(0,10);
-  showModal('Novo Documento',`<div class="form-row f3"><div><label class="form-label">Fase *</label><select class="form-select" id="dn-fase" onchange="document.getElementById('dn-tipo').innerHTML=__cgDocTipos(this.value);cgDocTipoMuda()">${fases.map(([k,r])=>`<option value="${k}" ${k===f0?'selected':''}>${r}</option>`).join('')}</select></div>
-    <div style="grid-column:span 2"><label class="form-label">Tipo *</label><select class="form-select" id="dn-tipo" onchange="cgDocTipoMuda()">${__cgDocTipos(f0)}</select></div></div>
-    <div class="form-row" id="dn-outro-l" style="display:none"><div><label class="form-label">Designação *</label><input class="form-input" id="dn-outro" placeholder="Nome do documento"></div></div>
-    <div class="form-row f3"><div><label class="form-label">Versão</label><input class="form-input" id="dn-ver"></div><div><label class="form-label">Data</label><input class="form-input" type="date" id="dn-data" value="${hoje}"></div><div><label class="form-label">Validade</label><input class="form-input" type="date" id="dn-val"></div></div>
-    <div class="form-row"><div><label class="form-label">Ficheiro *</label><input class="form-input" type="file" id="dn-fich"></div></div>
-    <div class="form-row"><div><label class="form-label">Notas</label><input class="form-input" id="dn-notas"></div></div>`,
+  // formulário no padrão dos cartões: rótulo · pontilhado · campo; marcas de obrigatório / pré-preenchido
+  const mk=m=>`<i class="cg-mk ${m}" title="${m==='obr'?'Obrigatório':'Pré-preenchido automaticamente — pode ser alterado'}"></i>`;
+  const R=(l,m,campo,id)=>`<div class="cg-r"${id?` id="${id}"`:''}><span class="cg-rl">${l}${m?mk(m):''}</span><span class="cg-rv">${campo}</span></div>`;
+  showModal('Novo Documento',`<div class="cg-dform">
+    ${R('Fase','obr',`<select class="cg-i" id="dn-fase" onchange="document.getElementById('dn-tipo').innerHTML=__cgDocTipos(this.value);cgDocTipoMuda()">${fases.map(([k,r])=>`<option value="${k}" ${k===f0?'selected':''}>${r}</option>`).join('')}</select>`)}
+    ${R('Tipo','obr',`<select class="cg-i" id="dn-tipo" onchange="cgDocTipoMuda()">${__cgDocTipos(f0)}</select>`)}
+    ${R('Designação','obr',`<input class="cg-i" id="dn-outro" placeholder="Nome do documento">`,'dn-outro-l')}
+    <div class="cg-gap">&nbsp;</div>
+    ${R('Versão','',`<input class="cg-i" id="dn-ver">`)}
+    ${R('Data','pre',`<input class="cg-i" type="date" id="dn-data" value="${hoje}">`)}
+    ${R('Validade','',`<input class="cg-i" type="date" id="dn-val">`)}
+    <div class="cg-gap">&nbsp;</div>
+    ${R('Ficheiro','obr',`<label class="cg-dfich"><input type="file" id="dn-fich" onchange="document.getElementById('dn-fnome').textContent=this.files[0]?this.files[0].name:'Escolher ficheiro…'"><span id="dn-fnome">Escolher ficheiro…</span></label>`)}
+    ${R('Notas','',`<input class="cg-i" id="dn-notas">`)}
+  </div>`,
     [{label:'Cancelar',cls:'btn-outline',fn:'closeModal()'},{label:'Guardar',cls:'btn-gold',fn:'cgDocGuardar()'}]);
   cgDocTipoMuda(); };
-window.cgDocTipoMuda=function(){ const t=document.getElementById('dn-tipo'), l=document.getElementById('dn-outro-l'); if(t&&l) l.style.display=t.value?'none':''; };
+window.cgDocTipoMuda=function(){ const t=document.getElementById('dn-tipo'), l=document.getElementById('dn-outro-l'); if(t&&l) l.style.display=t.value?'none':'flex'; };
 window.cgDocGuardar=async function(){ const o=DB.obras.find(x=>x.id===cgObraId); if(!o) return;
   const g=id=>document.getElementById(id), fase=g('dn-fase').value, tipo=g('dn-tipo').value, outro=g('dn-outro').value.trim(), f=g('dn-fich').files[0];
   if(!tipo&&!outro){ alert('Indique a designação do documento.'); return; } if(!f){ alert('Escolha o ficheiro.'); return; }
