@@ -314,7 +314,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.15.0247</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.15.0249</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -336,6 +336,7 @@ tr.tr-click:hover td{background:#F5F7FA}
   #nav-obras-q{background:transparent;border:none;outline:none;color:#fff;width:210px;padding:0}
   #nav-obras-q::placeholder{color:rgba(255,255,255,.55)}
   #nav-obras-est{height:26px;box-sizing:border-box;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.3);border-radius:4px;color:rgba(255,255,255,.9);padding:0 6px;cursor:pointer;outline:none}
+  option{background-color:var(--bg-card);color:var(--text)}
   #nav-obras-est option{color:#1a1a1a;background:#fff}
   #nav-obras-q{width:100%;min-width:0}
   @media (max-width:760px){ #nav-obras{margin-left:8px} }
@@ -12660,7 +12661,8 @@ function renderCardGeral(app){
       cgR('Tipo',cgIn('tipoObra','sel',CG_TIPOS))+cgLivre(cgR('Subtipo',cgIn('subtipo','sel',CG_SUBTIPOS)))+B+cgR('Âmbito',`<a class="cg-ver" onclick="cgTextoVer('ambito','Âmbito')">${cgEdit?'Editar':'Ver'}</a>`)+cgR('Desafios',`<a class="cg-ver" onclick="cgTextoVer('principaisDesafios','Principais Desafios')">${cgEdit?'Editar':'Ver'}</a>`),'CAR','','cg-car'));
     // Valores: Adiantamento e Garantia → introduz-se a % (à esquerda) e o valor em € fica calculado, encostado à direita; Retenção Sim/Não + %
     const vEur=kp=>(o[kp]!=null&&o[kp]!==''&&o.valorObra)?o.valorObra*o[kp]/100:null;
-    const linVal=(rot,kp)=>cgR2(rot,cgEdit?cgIn(kp,'pct'):pctTxt(o[kp]),vEur(kp)==null?'':cgNum(vEur(kp))+' €','','','cg-r2w');
+    const linVal=(rot,kp)=>cgEdit?cgR(rot,`<input class="cg-i" type="text" value="${esc(pctTxt(o[kp]))}" title="Escreva a percentagem (ex.: 10 %) ou o valor (ex.: 837 608,48 €)" onchange="cgPctEur('${kp}',this)">`)
+      :cgR2(rot,pctTxt(o[kp]),vEur(kp)==null?'':cgNum(vEur(kp))+' €','','','cg-r2w');
     const linRet=(kr,kp)=>cgR2('Retenção',cgEdit?cgIn(kr,'sel',['','Sim','Não']):esc(o[kr]||''),cgEdit?cgIn(kp,'pct'):(o[kr]==='Sim'?pctTxt(o[kp]):''),'','','cg-r2w');
     cards.push(cgCartao('VAL','Valores',cgR('Valor Obra',cgIn('valorObra','eur'),cgEdit?'':gold)+cgR('Valor m²',(o.valorObra&&o.area)?cgNum(o.valorObra/o.area)+' €':'—',mut)+B+B+B+B+L+B+
       linVal('Adiantamento','adiantamentoPct')+linRet('retencao','retencaoPct')+B+
@@ -12734,6 +12736,13 @@ document.addEventListener('keydown',e=>{ if(!cgEdit||!cgObraId) return; if(e.key
 window.cgTextoVer=function(k,tit){ const o=cgEdit?cgBuf:DB.obras.find(x=>x.id===cgObraId); if(!o) return; const v=o[k]||'';
   if(cgEdit) showModal(tit,`<textarea id="cg-txt-ed" class="form-input" rows="12" style="width:100%;text-align:justify">${esc(v)}</textarea>`,[{label:'Cancelar',cls:'btn-outline',fn:'closeModal()'},{label:'Aplicar',cls:'btn-gold',fn:`cgBuf['${k}']=document.getElementById('cg-txt-ed').value;closeModal()`}]);
   else showModal(tit,`<div style="white-space:pre-wrap;line-height:1.5;text-align:justify;hyphens:auto" lang="pt">${v?esc(v):'<span style="color:var(--text-muted)">Sem texto.</span>'}</div>`,[{label:'Fechar',cls:'btn-outline',fn:'closeModal()'}]); };
+/* Adiantamento / Garantia: um só campo — aceita "10 %" ou "837 608,48 €" (guarda sempre a %) */
+window.cgPctEur=function(kp,el){ const t=String(el.value||'').trim(); if(!t){ cgBuf[kp]=null; render(); return; }
+  let n=t.replace(/[%€\s\u00a0]/g,''); if(n.includes(',')) n=n.replace(/\./g,'').replace(',','.'); n=Number(n);
+  if(isNaN(n)){ alert('Valor inválido: '+t); el.focus(); return; }
+  const vo=Number(cgBuf.valorObra)||0, eur=t.includes('€')||(!t.includes('%')&&n>100);
+  if(eur){ if(!vo){ alert('Indique primeiro o Valor da Obra para converter o valor em percentagem.'); el.focus(); return; } n=n/vo*100; }
+  cgBuf[kp]=Math.round(n*10000)/10000; render(); };
 window.cgEditar=function(){ const o=DB.obras.find(x=>x.id===cgObraId); cgBuf=JSON.parse(JSON.stringify(o)); cgBuf.prorrogacoes=cgBuf.prorrogacoes||[]; cgEdit=true; render(); };
 window.cgGuardar=async function(){
   const b=cgBuf; if(!b) return;
