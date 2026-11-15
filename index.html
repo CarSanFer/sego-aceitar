@@ -314,7 +314,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.15.0227</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.15.0233</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -806,7 +806,7 @@ window.segoTema=function(){
   .cg-dform .cg-r .cg-rl .cg-mk{position:static;display:inline-block;margin-left:10px;transform:none}
   .cg-dform .cg-r .cg-rl::after{order:2}
   .cg-dform .cg-r .cg-rv{flex:0 0 104px !important;width:104px !important;max-width:none !important;overflow:visible !important}   /* coluna dos valores estreita: o pontilhado vai até junto do valor e acaba igual em todas */
-  .cg-dform .cg-r#dn-fich-l .cg-rv,.cg-dform .cg-r#dn-outro-l .cg-rv{flex:0 1 auto !important;width:auto !important;max-width:65% !important}
+  .cg-dform .cg-r.dl-larga .cg-rv,.cg-dform .cg-r#dn-fich-l .cg-rv,.cg-dform .cg-r#dn-outro-l .cg-rv{flex:0 1 auto !important;width:auto !important;max-width:65% !important}
   .cg-dform .cg-gap{height:10px;visibility:hidden}
   .cg-dform .cg-i{width:100% !important;border:none !important;border-bottom:1px solid var(--border-light) !important;border-radius:0 !important;background:transparent !important;text-align:right;text-align-last:right}
   .cg-dform .cg-i:focus{outline:none;border-bottom-color:var(--nav-bd) !important}
@@ -12865,12 +12865,56 @@ window.defMenuAbrir=function(ev){ ev&&ev.stopPropagation(); userMenuFechar(); da
 window.defMenuFechar=function(){ const m=document.getElementById('def-menu'); if(m) m.style.display='none'; };
 window.defAbrir=function(pg){ defMenuFechar(); if(pg==='backup'){ if(typeof backupExportar==='function') backupExportar(); else { const b=document.getElementById('btn-backup'); if(b) b.click(); } return; }
   defPg=pg; cgObraId=null; cgMaeId=null; fichObraId=null; render(); window.scrollTo(0,0); };
+/* ---------- Tabelas de administração (antes no SID): Especialidades, Tipos de Documento; Auditoria (consulta) ---------- */
+const ADM_FASES=[['concurso','Concurso'],['contrato','Contrato'],['obra','Obra']];
+const ADM_TAB={
+  Especialidades:{tabela:'especialidades',db:'especialidades',sing:'Especialidade',novo:'Nova Especialidade',campos:[['codigo','Código','txt',1],['nome','Nome','txt',1]],ordem:(a,b)=>String(a.codigo||'').localeCompare(String(b.codigo||''),'pt',{numeric:true})},
+  Documentos:{tabela:'tipos_doc',db:'tiposDoc',titulo:'Tipos de Documento',sing:'Tipo de Documento',novo:'Novo Tipo de Documento',grupo:'fase',grupos:ADM_FASES,
+    campos:[['codigo','Código','txt',1],['sigla','Sigla','txt'],['nome','Nome','txt',1],['fase','Fase','sel',1,ADM_FASES],['tem_versao','Tem Versão','bool'],['tem_validade','Tem Validade','bool'],['is_default','Esperado em Todas as Obras','bool']],
+    ordem:(a,b)=>String(a.nome||'').localeCompare(String(b.nome||''),'pt')}
+};
+function renderAdmTab(app,pg){ const T=ADM_TAB[pg], rows=[...(DB[T.db]||[])].sort(T.ordem);
+  const val=(r,c)=>c[2]==='bool'?(r[c[0]]?'✓':''):c[2]==='sel'?((c[4].find(x=>x[0]===String(r[c[0]]||'').toLowerCase())||[])[1]||esc(r[c[0]]||'')):esc(r[c[0]]||'');
+  const linha=r=>`<tr class="ut-r" ondblclick="admEditar('${pg}','${esc(r.id)}')" title="Duplo clique para editar">${T.campos.filter(c=>c[0]!==T.grupo).map(c=>`<td class="${c[2]==='bool'?'ut-c':''}">${val(r,c)}</td>`).join('')}</tr>`;
+  const ncol=T.campos.filter(c=>c[0]!==T.grupo).length;
+  const corpo=T.grupo?T.grupos.map(([k,l])=>{ const rs=rows.filter(r=>String(r[T.grupo]||'').toLowerCase()===k); return rs.length?`<tr class="pm-g ut-g"><td colspan="${ncol}">${l} <span class="pm-n">(${rs.length})</span></td></tr>`+rs.map(linha).join(''):''; }).join(''):rows.map(linha).join('');
+  const nav=`<template id="obra-nav-tpl"><span class="on-nome">${esc(T.titulo||pg)}</span></template><template id="obra-mid-tpl"><span class="nv-cnt" title="${rows.length} registo(s)">${rows.length}</span><span class="nv-dir"></span><button class="on-at" title="Novo" onclick="admEditar('${pg}',null)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button></template>`;
+  app.innerHTML=`<button class="back-btn" onclick="defPg=null;render()">← Voltar</button>${nav}
+  <div class="pm-wrap"><table class="data-table pm-tbl ut-tbl"><thead><tr>${T.campos.filter(c=>c[0]!==T.grupo).map(c=>`<th class="${c[2]==='bool'?'ut-c':''}">${c[1]}</th>`).join('')}</tr></thead>
+  <tbody>${corpo||`<tr><td colspan="${ncol}">Sem registos.</td></tr>`}</tbody></table></div>`;
+  permTopo(); }
+window.admEditar=function(pg,id){ const T=ADM_TAB[pg], r=id?(DB[T.db]||[]).find(x=>String(x.id)===String(id)):null; if(id&&!r) return;
+  const mk=`<i class="cg-mk obr" title="Obrigatório"></i>`;
+  const campo=c=>{ const v=r?r[c[0]]:''; if(c[2]==='bool') return `<select class="cg-i" id="adm-${c[0]}"><option value="1" ${v?'selected':''}>Sim</option><option value="0" ${v?'':'selected'}>Não</option></select>`;
+    if(c[2]==='sel') return `<select class="cg-i" id="adm-${c[0]}">${c[4].map(([k,l])=>`<option value="${k}" ${String(v||'').toLowerCase()===k?'selected':''}>${l}</option>`).join('')}</select>`;
+    return `<input class="cg-i" id="adm-${c[0]}" value="${esc(v||'')}"${c[0]==='nome'?' style="min-width:220px"':''}>`; };
+  showModal(r?'Editar '+(T.sing||pg):(T.novo||'Novo'),`<div class="cg-dform">${T.campos.map(c=>`<div class="cg-r${c[2]==='txt'&&c[0]==='nome'?' dl-larga':''}"><span class="cg-rl"><span class="dl-t">${c[1]}${c[3]?mk:''}</span></span><span class="cg-rv">${campo(c)}</span></div>`).join('')}</div>`,
+    [{label:'Cancelar',cls:'btn-outline',fn:'closeModal()'},{label:'Guardar',cls:'btn-gold',fn:`admGuardar('${pg}',${r?`'${esc(r.id)}'`:'null'})`}],'modal-doc',
+    r?`<button class="btn btn-outline" style="margin-right:auto;color:var(--danger)" onclick="admEliminar('${pg}','${esc(r.id)}')">Eliminar</button>`:''); };
+window.admGuardar=async function(pg,id){ const T=ADM_TAB[pg], o={};
+  for(const c of T.campos){ const el=document.getElementById('adm-'+c[0]); let v=el?el.value:''; if(c[2]==='bool') v=v==='1'; else v=String(v).trim();
+    if(c[3]&&c[2]!=='bool'&&!v){ alert('Preencha: '+c[1]+'.'); return; } o[c[0]]=v; }
+  try{ if(id){ await sb.patch(T.tabela,id,o); const r=DB[T.db].find(x=>String(x.id)===String(id)); Object.assign(r,o); }
+    else { o.id=uid(); await sb.post(T.tabela,o); DB[T.db].push(o); }
+    closeModal(); render(); }catch(e){ alert('Erro ao guardar: '+e.message); } };
+window.admEliminar=async function(pg,id){ const T=ADM_TAB[pg], r=(DB[T.db]||[]).find(x=>String(x.id)===String(id)); if(!r) return;
+  if(!confirm('Eliminar «'+(r.nome||r.codigo||id)+'»? Não pode ser desfeito.')) return;
+  try{ await sb.delete(T.tabela,id); DB[T.db]=DB[T.db].filter(x=>String(x.id)!==String(id)); closeModal(); render(); }catch(e){ alert('Erro ao eliminar: '+e.message); } };
+let auditDados=null;
+async function renderAuditSego(app){
+  if(auditDados===null){ app.innerHTML='<div class="cg-bloco">A carregar…</div>'; try{ auditDados=await sb.get('auditoria','order=created_at.desc&limit=1000'); }catch(e){ auditDados=[]; } if(defPg==='Auditoria') render(); return; }
+  const linhas=auditDados.map(a=>`<tr><td style="white-space:nowrap">${esc(a.data||(a.created_at?fmtDate(String(a.created_at).slice(0,10)):''))}</td><td>${esc(a.utilizador_nome||'')}</td><td>${esc(a.acao||'')}</td><td>${esc(a.entidade||'')}</td><td>${esc(a.entidade_nome||'')}</td><td class="ut-m">${esc(a.detalhes||'')}</td></tr>`).join('');
+  app.innerHTML=`<button class="back-btn" onclick="defPg=null;auditDados=null;render()">← Voltar</button><template id="obra-nav-tpl"><span class="on-nome">Auditoria</span></template><template id="obra-mid-tpl"><span class="nv-cnt" title="${auditDados.length} registo(s)">${auditDados.length}</span><span class="nv-dir"></span></template>
+  <div class="pm-wrap"><table class="data-table pm-tbl ut-tbl"><thead><tr><th>Data</th><th>Utilizador</th><th>Ação</th><th>Entidade</th><th>Registo</th><th>Detalhes</th></tr></thead><tbody>${linhas||'<tr><td colspan="6">Sem registos.</td></tr>'}</tbody></table></div>`;
+  permTopo(); }
 function renderDefinicoes(app){
   if(!cgPodeEditar()){ defPg=null; render(); return; }
   if(defPg==='entidades') return renderEntidades(app);
   if(defPg==='permissoes') return renderPermissoes(app);
   if(defPg==='Utilizadores') return renderUtilSego(app);
-  app.innerHTML=`<button class="back-btn" onclick="defPg=null;render()">← Voltar</button><div class="cg-bloco"><div class="cg-bt">${esc(defPg)}</div><div style="color:var(--text-muted)">Esta área chega na Fase 3 (Administração). Até lá continua no SID.</div></div>`;
+  if(ADM_TAB[defPg]) return renderAdmTab(app,defPg);
+  if(defPg==='Auditoria') return renderAuditSego(app);
+  app.innerHTML=`<button class="back-btn" onclick="defPg=null;render()">← Voltar</button><div class="cg-bloco"><div class="cg-bt">${esc(defPg)}</div><div style="color:var(--text-muted)">Em preparação.</div></div>`;
 }
 /* ===================== Permissões e notificações por obra ===================== */
 /* Regras de origem por módulo (def / defNotif); a página guarda só as exceções (obra_permissoes.regras). */
