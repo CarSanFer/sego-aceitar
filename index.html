@@ -314,7 +314,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.15.0254</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.15.0301</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -620,7 +620,7 @@ window.segoTema=function(){
   :root{--cab:var(--est-curso)}   /* todos os cabeçalhos (cartões, tabelas, janelas, guia) seguem a paleta escolhida */
   html:not([data-paleta=navy]) thead tr th,html:not([data-paleta=navy]) .modal-header,html:not([data-paleta=navy]) .pe-modal h3{text-shadow:0 1px 1px rgba(0,0,0,.18)}
   :root{--est-curso:#2D5D7D;--est-prep:#E39956;--est-susp:#A32D2D;--est-concl:#5F7180;--cg-faixa:#E39956;--pal-1:#3F7FA6;--pal-1-bg:#E6F1F8} /* azul do logótipo (#69A1C2) escurecido para o laranja #E39956 se ver nos cabeçalhos */
-  html:not([data-paleta=navy]) .cg-cab [style*="rgba(255,255,255,.7)"]{color:#fff !important}
+  html:not([data-paleta=navy]) .cg-cab [style*="rgba(255,255,255,.7)"]{color:var(--cab-tx) !important}
   html:not([data-paleta=navy]) .cg-cab{text-shadow:0 1px 1px rgba(0,0,0,.18)}
   html:not([data-paleta]) .cg-cab[style*="est-prep"]{border-bottom-color:#2D5D7D}
   html[data-paleta=navy]{--est-curso:#1E3A5F;--est-prep:#2E5C8A;--est-susp:#7F2424;--est-concl:#4F5B69;--cg-faixa:#C9922A;--pal-1:#1E3A5F;--pal-1-bg:#EEF1F6}
@@ -629,6 +629,10 @@ window.segoTema=function(){
   html[data-paleta=verde]{--est-curso:#28543F;--est-prep:#6B6A2E;--est-susp:#7F2424;--est-concl:#4F5B69;--cg-faixa:#C9922A;--pal-1:#28543F;--pal-1-bg:#EAF2ED}
   html[data-theme=dark] {--pal-1:#7FB3D5} html[data-theme=dark][data-paleta]{--pal-1:#E8C26A}
   .cg-cab{border-bottom:3px solid var(--cg-faixa)}
+  /* texto dos cabeçalhos em cinzento claro (menos luminoso que o branco) */
+  :root{--cab-tx:#E1E5EA}
+  .cg-cxs>.cg-cx>.cg-cx-h,.cg-cab,thead th,.modal-title,.cg-tbl th,.dash-tbl th,.sd-tbl th,.gd-t th,.pe-modal h3{color:var(--cab-tx) !important}
+  html body .cg-cxs>.cg-cx>.cg-cx-h *:not(button):not(button *):not(input):not(select),html body .cg-cab *:not(button):not(button *):not(input):not(select){color:var(--cab-tx) !important}
 </style>
 <script>try{ { const pl=localStorage.getItem('sego-paleta'); if(['navy','vermelho','verde'].includes(pl)) document.documentElement.setAttribute('data-paleta',pl); } if(localStorage.getItem('sego-caixas')==='1') document.documentElement.setAttribute('data-caixas',''); }catch(e){}</script>
 
@@ -753,8 +757,8 @@ window.segoTema=function(){
 
 <style>
   /* card da lista: quadradinhos com o fundo da barra, ícone e contorno laranja (iguais aos da barra) */
-  .cg-at button{background:#1E3A5F !important;color:#E39956 !important;border-color:#E39956 !important}
-  html[data-theme=dark] .cg-at button{background:#0B1320 !important}
+  .cg-at button{background:rgba(0,0,0,.28) !important;color:#E39956 !important;border-color:#E39956 !important}   /* tom mais escuro da cor do cabeçalho: acompanha a paleta */
+  html[data-paleta] .cg-at button{color:var(--cg-faixa) !important;border-color:var(--cg-faixa) !important}
   .cg-at button:hover{background:#E39956 !important;color:#fff !important}
 </style>
 
@@ -862,7 +866,7 @@ window.segoTema=function(){
   .cg-v2a:empty::before,.cg-v2b:empty::before{content:'\00a0'}   /* vazio também tem linha de base (alinhamento com o rótulo) */
   .cg-r2 .cg-rv:has(.cg-i) .cg-v2b{flex-basis:56px}
   .cg-cx[data-cx="PZO"] .cg-v2b,.cg-cx[data-cx="PRO"] .cg-v2b{order:-1}
-  .cg-cx[data-cx="PZO"] .cg-v2b,.cg-cx[data-cx="PRO"] .cg-v2b{margin-right:28px}   /* duração e desvio afastados da data */   /* dias antes da data: datas sempre encostadas à direita */
+  .cg-cx[data-cx="PZO"] .cg-v2b,.cg-cx[data-cx="PRO"] .cg-v2b{margin-right:28px;flex:0 0 auto;white-space:nowrap}   /* duração e desvio afastados da data */   /* dias antes da data: datas sempre encostadas à direita */
   .cg-r2.cg-r2w .cg-v2b,.cg-r2.cg-r2w .cg-rv:has(.cg-i) .cg-v2b{flex-basis:86px;color:var(--text)}   /* VAL: valor em € calculado, encostado à direita */
   .cg-cpl>span:first-child{flex:0 0 38%}.cg-cpl>span:last-child{flex:1 1 auto;min-width:0}
   .cg-cpl>select{flex:1 1 auto;min-width:0}
@@ -1199,9 +1203,10 @@ window.segoTema=function(){
       else box.style.setProperty('--lab-w',v); });
     window.__cgLargComBola=largComBola;
     cards.forEach(g=>{
-      const lim=Math.floor(g.clientWidth*0.65);
+      const lim=Math.floor(g.clientWidth*0.65), limG0=Math.floor(g.clientWidth*0.34);   // limG: coluna dos valores de um grupo (nomes compridos cortam com «…» e tooltip, o pontilhado fica comprido)
       // fim do pontilhado: por bloco (entre linhas em branco); nos cartões de CG_FIM_CARTAO alinha no cartão inteiro
       const cx=g.closest('.cg-cx'), todo=cx&&window.CG_FIM_CARTAO&&CG_FIM_CARTAO.has(cx.dataset.cx);
+      const limG=todo?lim:limG0;
       const blocos=[[]];
       if(todo) blocos[0]=[...g.querySelectorAll('.cg-r')];
       else g.querySelectorAll('.cg-r,.cg-gap:not(.cg-gapv)').forEach(el=>{ if(el.classList.contains('cg-gap')){ if(blocos[blocos.length-1].length) blocos.push([]); } else blocos[blocos.length-1].push(el); });
@@ -1213,13 +1218,13 @@ window.segoTema=function(){
           const tx=(v.textContent||'').replace(/\u00a0/g,' ').trim(); if(!tx){ vazios.push({r,w:Math.ceil(v.getBoundingClientRect().width)}); return; }
           ms.push({r,w:Math.ceil(v.getBoundingClientRect().width)+1,ph:tx==='—',livre:r.classList.contains('cg-rlivre')}); });
         let alvo=null; const ws=ms.filter(m=>!m.ph&&!m.livre).map(m=>m.w).sort((a,b)=>a-b);
-        if(ws.length){ alvo=ws[0]; for(let k=1;k<ws.length;k++){ if(ws[k]<=ws[k-1]*1.5+10) alvo=ws[k]; else break; } alvo=Math.min(alvo,lim); }
-        else if(ms.length) alvo=Math.min(Math.max(...ms.map(m=>m.w)),lim);
+        if(ws.length) alvo=Math.min(ws[ws.length-1],limG);   // todas as linhas do grupo acabam no mesmo sítio; o que não cabe corta com «…» (tooltip)
+        else if(ms.length) alvo=Math.min(Math.max(...ms.map(m=>m.w)),limG);
         return {ms,vazios,alvo}; });
       let F=(G.find(x=>x.alvo!=null)||{}).alvo;
       if(F==null) F=Math.max(0,...G.flatMap(x=>x.vazios.map(v=>v.w)));   // cartão sem valores: todos acabam no mesmo sítio
       G.forEach(({ms,vazios,alvo})=>{ const a=alvo==null?F:alvo;
-        ms.forEach(m=>{ m.r.style.setProperty('--cg-vw',(m.livre?Math.min(m.w,lim):(m.w<=a?a:Math.min(m.w,lim)))+'px'); });
+        ms.forEach(m=>{ m.r.style.setProperty('--cg-vw',(m.livre?Math.min(m.w,lim):a)+'px'); });
         vazios.forEach(v=>v.r.style.setProperty('--cg-vw',(a||v.w)+'px'));
         ms.forEach(m=>{ const v=m.r.querySelector('.cg-rv'); if(!v) return; const cortado=v.scrollWidth>v.clientWidth+1;
           if(cortado&&!v.querySelector('[title]')){ if(!v.title||v.dataset.cgt){ v.title=(v.textContent||'').trim(); v.dataset.cgt='1'; } }
@@ -4943,7 +4948,7 @@ td.pe-dt{text-align:center;font-variant-numeric:tabular-nums}
 td.pe-dt.pe-empty{color:#C7CDD6}
 .pe-idp{font-family:monospace;font-weight:700;color:var(--navy)}
 .pe-revlink{font-size:11px;color:var(--info);text-decoration:none;cursor:pointer}
-.pe-x{color:var(--danger);cursor:pointer;font-weight:700;border:none;background:none;font-size:15px}
+.pe-x{color:var(--danger);cursor:pointer;font-weight:700;border:1px solid var(--danger);border-radius:4px;background:none;font-size:13px;width:20px;height:20px;padding:0;display:inline-flex;align-items:center;justify-content:center;line-height:1;box-sizing:border-box}
 .pe-vazio{padding:26px;text-align:center;color:var(--text-muted)}
 /* ficha */
 .pe-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:var(--bg-card);border:1px solid var(--border-light);border-radius:var(--radius);padding:10px 12px;margin-bottom:12px}
@@ -7171,7 +7176,7 @@ table.pq-grade td.c-del{padding:0;text-align:center}
 table.pq-grade th.pq-thl{padding:0 !important;text-align:center;vertical-align:middle}
 .pq-addl{border:1px solid var(--gold);background:var(--bg-card);color:var(--gold);cursor:pointer;border-radius:4px;padding:0 2px;height:20px;min-width:22px;font-weight:700;line-height:1;font-family:inherit;white-space:nowrap}
 .pq-addl:hover{background:var(--gold);color:#fff}
-.pq-btnx{border:none;background:none;color:var(--danger);cursor:pointer;font-size:14px;font-weight:700;line-height:1;padding:2px 4px}
+.pq-btnx{border:1px solid var(--danger);border-radius:4px;background:none;color:var(--danger);cursor:pointer;font-size:13px;font-weight:700;line-height:1;width:20px;height:20px;padding:0;display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box}
 .pq-btnmais{margin-left:auto;border:1px solid var(--info);background:var(--bg-card);color:var(--info);cursor:pointer;border-radius:4px;width:24px;height:22px;font-weight:700;line-height:1}
 .pq-obs{width:100%;box-sizing:border-box;min-height:60px;border:1px solid var(--border-light);border-radius:var(--radius);padding:6px 8px;font-family:inherit;font-size:13px}
 </style>`;
@@ -8212,7 +8217,7 @@ function metRenderLinhas(){
       <td style="padding:3px 4px"><input class="form-input" list="met-dl-emp" value="${esc(l.empresa||'')}" oninput="metForm.linhas[${i}].empresa=this.value"></td>
       <td style="padding:3px 4px"><input class="form-input" list="met-dl-ativ" value="${esc(l.atividade||'')}" oninput="metForm.linhas[${i}].atividade=this.value"></td>
       <td style="padding:3px 4px"><input class="form-input" type="number" min="0" step="1" style="text-align:right" value="${l.trabalhadores===null||l.trabalhadores===undefined?'':l.trabalhadores}" oninput="metForm.linhas[${i}].trabalhadores=this.value;metAtualizarTotal()"></td>
-      <td style="padding:3px 4px;text-align:center"><button class="btn btn-outline btn-sm" title="Remover linha" onclick="metRemLinha(${i})">✕</button></td>
+      <td style="padding:3px 4px;text-align:center"><button class="pe-x" title="Remover linha" onclick="metRemLinha(${i})">×</button></td>
     </tr>`).join('')}</tbody></table>`;
   metAtualizarTotal();
 }
@@ -8892,7 +8897,7 @@ function renderListaTCm(app){
           <td style="text-align:right">${amFmt(t.mais)}</td><td style="text-align:right;color:#B91C1C">${amFmt(t.menos)}</td><td style="text-align:right;font-weight:700">${amFmt(t.total)}</td>
           <td class="pe-dt" style="text-align:center">${d.data_criacao?peDataPT(d.data_criacao):'—'}</td><td class="pe-dt" style="text-align:center">${d.data_envio?peDataPT(d.data_envio):'—'}</td>
           <td class="pe-dt" style="text-align:center">${d.data_aprovacao?peDataPT(d.data_aprovacao):'—'}</td><td class="pe-dt" style="text-align:center">${d.data_fecho?peDataPT(d.data_fecho):'—'}</td>
-          ${SA?`<td style="text-align:center"><span onclick="tcmEliminar('${d.id}',event)" title="Eliminar este TCm" style="cursor:pointer;color:#B91C1C;font-weight:700">✕</span></td>`:''}</tr>`; }).join('')}</tbody></table>`
+          ${SA?`<td style="text-align:center"><span class="pe-x" onclick="tcmEliminar('${d.id}',event)" title="Eliminar este TCm">×</span></td>`:''}</tr>`; }).join('')}</tbody></table>`
       :`<div class="pe-vazio">Sem TCm nesta obra.${(peEEmp()||SA)?' Use "+ Novo TCm".':''}</div>`}
     </div>
   </div>`;
@@ -8914,7 +8919,7 @@ function renderFichaTCm(app){
       const manual=!l.lpu_id;
       if(l.tipo==='capitulo') return `<tr class="am-cap-tr"><td>${P.estrutura&&manual?inpTxt(l.uid,'item_id',l.item_id,'70px'):esc(l.item_id||'')}</td>
         <td class="am-desc" colspan="6" style="padding-left:${((l.nivel||1)-1)*14+6}px">${P.estrutura&&manual?inpTxt(l.uid,'descricao',l.descricao,'95%'):esc(l.descricao||'')}</td>
-        <td>${P.estrutura?`<span onclick="tcmLinhaDel('${l.uid}')" style="cursor:pointer;color:#B91C1C" title="Remover">✕</span>`:''}</td></tr>`;
+        <td>${P.estrutura?`<span class="pe-x" onclick="tcmLinhaDel(\'${l.uid}\')" title="Remover">×</span>`:''}</td></tr>`;
       const v=(l.qt!=null&&l.pu!=null)?amFmt(l.qt*l.pu):'';
       const edV=P.valores;
       return `<tr>
@@ -8925,7 +8930,7 @@ function renderFichaTCm(app){
         <td style="text-align:right">${edV&&manual?inpTxt(l.uid,'pu',l.pu==null?'':String(l.pu).replace('.',','),'76px','right'):amFmt(l.pu)}</td>
         <td style="text-align:right;${Number(l.qt)<0?'color:#B91C1C':''}" id="tcmt-${l.uid}">${v}</td>
         <td style="text-align:center">${bloco==='mais'&&manual&&edV?`<select onchange="tcmLinhaSet('${l.uid}','preco',this)" style="height:22px;font-family:Carlito,Calibri,sans-serif;font-size:10pt;${!l.preco?'border:1px solid #B91C1C':''}"><option value="" ${!l.preco?'selected':''}>PC/PN?</option><option value="PC" ${l.preco==='PC'?'selected':''}>PC</option><option value="PN" ${l.preco==='PN'?'selected':''}>PN</option></select>`:`${esc(l.preco||'')}`}</td>
-        <td>${P.estrutura?`<span onclick="tcmLinhaDel('${l.uid}')" style="cursor:pointer;color:#B91C1C" title="Remover">✕</span>`:''}</td></tr>`;
+        <td>${P.estrutura?`<span class="pe-x" onclick="tcmLinhaDel(\'${l.uid}\')" title="Remover">×</span>`:''}</td></tr>`;
     }).join('');
     const btns=P.estrutura?(bloco==='mais'
       ?`<button class="am-btn" onclick="tcmLinhaNova('mais','linha')">+ Linha Nova</button><button class="am-btn" onclick="tcmLinhaNova('mais','capitulo')">+ Título</button><button class="am-btn" onclick="tcmAbrirLPU('mais')">+ Artigos da LPU (PC)</button>`
@@ -9517,7 +9522,7 @@ function renderListaAM(app){
           <td class="pe-dt" style="text-align:center">${d.data_aprovacao?peDataPT(d.data_aprovacao):'—'}</td>
           <td class="pe-dt" style="text-align:center">${d.data_fecho?peDataPT(d.data_fecho):'—'}</td>
           <td style="text-align:center;white-space:nowrap">${f?`<a onclick="amVerFatura('${d.id}',event)" title="${esc(f.nome||'')}" style="cursor:pointer;color:#1B4F9B;text-decoration:underline">📄 ${peDataPT(f.data)}</a>`:(d.estado==='fechado'&&amPodeFatura()?`<span onclick="event.stopPropagation();amAnexarFatura('${d.id}')" style="cursor:pointer;color:var(--text-muted)" title="Anexar fatura">+ anexar</span>`:'<span class="pe-muted">—</span>')}</td>
-          ${SA?`<td style="text-align:center"><span onclick="amEliminarUm('${d.id}',event)" title="Eliminar este Auto" style="cursor:pointer;color:#B91C1C;font-weight:700">✕</span></td>`:''}</tr>`; }).join('')}
+          ${SA?`<td style="text-align:center"><span class="pe-x" onclick="amEliminarUm('${d.id}',event)" title="Eliminar este Auto">×</span></td>`:''}</tr>`; }).join('')}
         </tbody></table>`
       :`<div class="pe-vazio">${amModo==='TCm'
           ?(amTcErro?'Os AM TCm ainda não estão ativos — corra o SQL "SEGO_tcm.sql".':'Sem Autos de TCm nesta obra. '+(amTcmAprovados().length?amTcmAprovados().length+' TCm aprovado(s) disponível(eis) para medição.':'Os AM TCm fazem-se sobre TCm aprovados — ainda não há nenhum.'))
@@ -11064,7 +11069,7 @@ function renderFichaRS(app,r){
   const sectTitle='font-size:10px;font-weight:700;color:var(--text-muted);letter-spacing:.8px';
   const removeBtn=(s,i)=>{
     if(ro) return '';
-    const xBtn=`<button onclick="rsRemoveRow('${s}',${i})" style="background:none;border:none;cursor:pointer;color:#B91C1C;font-size:18px;line-height:1;padding:0;margin:0;vertical-align:middle" title="Remover linha">×</button>`;
+    const xBtn=`<button class="pe-x" onclick="rsRemoveRow(\'${s}\',${i})" title="Remover linha">×</button>`;
     if(s==='subempreiteiros'){
       const plusBtn=`<button onclick="rsAddRowAfter(${i})" style="background:none;border:none;cursor:pointer;color:#1A7A4A;font-size:16px;line-height:1;padding:0;margin-left:4px;vertical-align:middle;font-weight:700" title="Adicionar sub à mesma atividade">+</button>`;
       return xBtn+plusBtn;
@@ -11848,6 +11853,7 @@ const DASH_DEF={
       estLeg:{rascunho:'Medição em preparação pelo Empreiteiro',enviado:'Na Fiscalização, para verificação',verificado:'No Dono de Obra, para aprovação',aprovado:'Na Fiscalização, para reencaminhamento',concordancia:'No Empreiteiro, para concordância e fecho',fechado:'Auto concluído',revisto:'Substituído por revisão'}}
 };
 const DASH_ORDEM=['rso','sos','rvt','pe','pa','pb','ptq','qe','am'];
+DASH_ORDEM.forEach(k=>{ DASH_DEF[k].cor='var(--cab)'; });   // sem cores por tipo: tudo na cor da paleta
 
 function dashObraNome(obraId){ const o=(DB.obras||[]).find(x=>String(x.id)===String(obraId)); return o?((o.sigla?o.sigla+' — ':'')+(o.nome||'')):String(obraId); }
 
@@ -11985,7 +11991,7 @@ const DASH_CSS=`<style>
 .dash-cel:hover{text-decoration:underline}
 .dash-leg{font-size:10.5px;color:var(--text-muted);margin-top:4px;line-height:1.55}
 .dash-pill{display:inline-block;color:#fff;border-radius:999px;padding:1px 8px;font-size:10px;font-weight:700}
-.dash-pbar{background:#EEF1F6;border-radius:3px;height:14px;position:relative;overflow:hidden}
+.dash-pbar{background:var(--pal-1-bg);border-radius:3px;height:14px;position:relative;overflow:hidden}
 .dash-pbar>div{height:100%;border-radius:3px}
 </style>`;
 
@@ -11999,7 +12005,7 @@ function dashChartMensal(dsk,cor){
   let g='';
   dados.forEach((x,i)=>{
     const x0=pad+i*step,h=Math.max(2,Math.round((base-20)*x.n/max));
-    g+=`<rect x="${x0}" y="${base-h}" width="${bw}" height="${h}" rx="3" fill="${cor}"><title>${dashMesLabel(x.ym)}: ${x.n}</title></rect>`;
+    g+=`<rect x="${x0}" y="${base-h}" width="${bw}" height="${h}" rx="3" style="fill:${cor}"><title>${dashMesLabel(x.ym)}: ${x.n}</title></rect>`;
     g+=`<text x="${x0+bw/2}" y="${base-h-5}" font-size="10" font-weight="700" text-anchor="middle" fill="#1A1D2E">${x.n}</text>`;
     g+=`<text x="${x0+bw/2}" y="${H-7}" font-size="9" text-anchor="middle" fill="#6B7280">${x.ym.slice(5)+'/'+x.ym.slice(2,4)}</text>`;
   });
@@ -12028,7 +12034,7 @@ function dashBarrasTempos(k,dsk){
   return `<div style="margin-bottom:12px">${vals.map(x=>`
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:5px">
       <div style="width:200px;text-align:right;font-size:11px">${x.rot}</div>
-      <div style="flex:1;background:#EEF1F6;border-radius:3px"><div style="width:${Math.max(3,100*x.v/max)}%;background:${D.cor};border-radius:3px;height:16px;color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;padding-left:6px;white-space:nowrap">${String(x.v).replace('.',',')} d</div></div>
+      <div style="flex:1;background:var(--pal-1-bg);border-radius:3px"><div style="width:${Math.max(3,100*x.v/max)}%;background:${D.cor};border-radius:3px;height:16px;color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;padding-left:6px;white-space:nowrap">${String(x.v).replace('.',',')} d</div></div>
     </div>`).join('')}
   <div class="dash-leg">Média global de cada etapa, em dias.</div></div>`;
 }
@@ -12038,7 +12044,7 @@ function dashBarrasTipos(ds){
   return `<div class="dash-card"><div class="dash-h">Documentos por Tipo</div>${dados.map(x=>`
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:5px">
       <div style="width:44px;text-align:right"><span class="dash-pill" style="background:${DASH_DEF[x.k].cor}">${DASH_DEF[x.k].sig}</span></div>
-      <div style="flex:1;background:#EEF1F6;border-radius:3px;cursor:pointer" onclick="dashDrillSet('cel','*','${x.k}')"><div style="width:${Math.max(x.n?3:0,100*x.n/max)}%;background:${DASH_DEF[x.k].cor};border-radius:3px;height:16px;color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;padding-left:6px">${x.n||''}</div></div>
+      <div style="flex:1;background:var(--pal-1-bg);border-radius:3px;cursor:pointer" onclick="dashDrillSet('cel','*','${x.k}')"><div style="width:${Math.max(x.n?3:0,100*x.n/max)}%;background:${DASH_DEF[x.k].cor};border-radius:3px;height:16px;color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;padding-left:6px">${x.n||''}</div></div>
     </div>`).join('')}
   <div class="dash-leg">Total de documentos registados por tipo, com os filtros selecionados. Clique numa barra para listar.</div></div>`;
 }
@@ -12222,7 +12228,7 @@ function renderDashboard(app){
     </div>
     <div class="dash-tabs">
       ${DASH_ORDEM.map(k=>`<span class="dash-tab ${dashTab===k?'on':''}" style="${dashTab===k?'background:'+DASH_DEF[k].cor:''}" onclick="dashSetTab('${k}')">${DASH_DEF[k].sig}</span>`).join('')}
-      <span class="dash-tab ${dashTab==='visao'?'on':''}" style="${dashTab==='visao'?'background:var(--navy)':''}" onclick="dashSetTab('visao')">Visão Geral</span>
+      <span class="dash-tab ${dashTab==='visao'?'on':''}" style="${dashTab==='visao'?'background:var(--cab)':''}" onclick="dashSetTab('visao')">Visão Geral</span>
     </div>
     ${corpo}
     ${dashDrillHTML()}
@@ -12377,7 +12383,7 @@ const SD_CSS=`<style>
 .sd-filtros select,.sd-filtros input{height:26px;border:1px solid var(--border-light);border-radius:4px;background:var(--bg-card);color:var(--text);padding:0 6px}
 .sd-chip{display:inline-flex;align-items:center;gap:6px;background:var(--navy);color:#fff;border-radius:4px;padding:2px 8px;cursor:pointer}
 .sd-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:10px}
-.sd-kpi{background:var(--bg-card);border:1px solid var(--border-light);border-left:3px solid var(--navy);border-radius:var(--radius);padding:8px 12px}
+.sd-kpi{background:var(--bg-card);border:1px solid var(--border-light);border-left:3px solid var(--cab);border-radius:var(--radius);padding:8px 12px}
 .sd-kpi-l{color:var(--text-muted);font-weight:700}.sd-kpi-v{font-weight:700;color:var(--text)}.sd-kpi-s{color:var(--text-muted)}
 .sd-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:10px;margin-bottom:10px}
 @media(max-width:1000px){.sd-grid{grid-template-columns:1fr}}
@@ -12632,7 +12638,7 @@ function cgNavTpl(o,atual,botoes){ const mae=cgMae(o);
   const meio=(botoes||'')||(atual&&!o.comFases?CG_ATALHOS.map(([k,t])=>`<button class="on-at ${atual===k?'on':''}" title="${t}" onclick="${k==='CO'?`cgAbrirCO('${o.id}')`:`cgAbrir('${o.id}','${k}')`}">${CG_AT_IC[k]}</button>`).join(''):'');
   return `<template id="obra-nav-tpl"><span class="on-sig">${sg}</span><span class="on-nome" title="${esc(o.nome||'')}">${esc(o.nome||'')}</span></template><template id="obra-mid-tpl">${meio}</template>`; }
 function cgR(l,v,st){ const vazio=v===undefined||v===null||v===''||v==='—'||v==='— €'; return `<div class="cg-r"><span class="cg-rl">${l}</span><span class="cg-rv" style="${st||''}">${vazio?'':v}</span></div>`; }
-window.CG_FIM_CARTAO=new Set(['CAR']);   // cartões em que o fim do pontilhado alinha no cartão inteiro (decidido cartão a cartão)
+window.CG_FIM_CARTAO=new Set(['CAR','PZO']);   // cartões em que o fim do pontilhado alinha no cartão inteiro (decidido cartão a cartão)
 const cgDiv='<div class="cg-gap">&nbsp;</div>';
 const cgDivV='<div class="cg-gap cg-gapv">&nbsp;</div>';   // linha em branco que não separa o alinhamento dos valores
 const cgLivre=h=>h.replace('class="cg-r','class="cg-r cg-rlivre');   // linha fora do alinhamento dos valores (fica com a sua largura)
@@ -12658,7 +12664,7 @@ function renderCardGeral(app){
     const pctTxt=v=>(v===null||v===undefined||v===''||isNaN(v))?'':cgNum(v,2).replace(/,00$/,'')+' %';
     const vermelho=d=>d>0?'color:var(--danger)':'';
     cards.push(cgCartao('IDE','Identificação',cgR('Nome',cgIn('nome'))+cgR('Sigla',cgIn('sigla'))+cgR('Código',cgIn('codigo'))+cgDivV+cgR('Estado',cgIn('estado','sel',CG_ESTADOS))+B+L+B+
-      cgR('Morada',cgIn('morada'))+cgR('Localidade',cgEdit?`<span class="cg-cpl"><span>${cgIn('codigoPostal')}</span><span>${cgIn('localidade')}</span></span>`:(esc([o.codigoPostal,o.localidade].filter(Boolean).join(' '))||'—'))+cgDivV+cgR('Dono de Obra',cgIn('entidadeDoId','ent'))+cgR('Empreiteiro',cgIn('entidadeEmpId','ent')),'IDE','','cg-ide'));
+      cgLivre(cgR('Morada',cgIn('morada')))+cgR('Localidade',cgEdit?`<span class="cg-cpl"><span>${cgIn('codigoPostal')}</span><span>${cgIn('localidade')}</span></span>`:(esc([o.codigoPostal,o.localidade].filter(Boolean).join(' '))||'—'))+cgDivV+cgR('Dono de Obra',cgIn('entidadeDoId','ent'))+cgR('Empreiteiro',cgIn('entidadeEmpId','ent')),'IDE','','cg-ide'));
     cards.push(cgCartao('CAR','Características',cgR('Pisos +',cgIn('pisosAcima','num'))+cgR('Pisos −',cgIn('pisosAbaixo','num'))+B+B+cgR('Área m²',cgIn('area','num'))+B+L+B+
       cgR('Tipo',cgIn('tipoObra','sel',CG_TIPOS))+cgLivre(cgR('Subtipo',cgIn('subtipo','sel',CG_SUBTIPOS)))+B+cgR('Âmbito',`<a class="cg-ver" onclick="cgTextoVer('ambito','Âmbito')">${cgEdit?'Editar':'Ver'}</a>`)+cgR('Desafios',`<a class="cg-ver" onclick="cgTextoVer('principaisDesafios','Principais Desafios')">${cgEdit?'Editar':'Ver'}</a>`),'CAR','','cg-car'));
     // Valores: Adiantamento e Garantia → introduz-se a % (à esquerda) e o valor em € fica calculado, encostado à direita; Retenção Sim/Não + %
@@ -13304,7 +13310,7 @@ window.userMenuAbrir=function(ev){ ev&&ev.stopPropagation(); defMenuFechar(); co
     <div><b>${esc(currentUser.nome||'')}</b><div style="color:var(--text-muted)">${esc(rot)}</div></div><button class="um-x" onclick="userMenuFechar()">✕</button></div>
     <div class="um-it" onclick="userPerfil()"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a7 7 0 0 1 16 0v1"/></svg>Perfil</div>${(peESuper()||(SEGO_CFG.guia&&SEGO_CFG.guia.publico))?`<div class="um-it" onclick="userMenuFechar();guiaAbrir()"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5v14z"/><path d="M6.5 17A2.5 2.5 0 0 0 4 19.5 2.5 2.5 0 0 0 6.5 22H20v-5"/></svg>Guia</div>`:''}
     <div class="um-sec">Aparência</div><div class="um-temas">${[['claro','Claro'],['escuro','Escuro']].map(([k,l])=>`<button class="${tema===k?'on':''}" onclick="segoTemaDef('${k}')">${l}</button>`).join('')}</div>
-    <div class="um-sec">Cores</div><div class="um-temas">${[['aceitar','Aceitar'],['navy','Azul e Dourado'],['vermelho','Vermelho'],['verde','Verde']].map(([k,l])=>`<button class="${(document.documentElement.getAttribute('data-paleta')||'aceitar')===k?'on':''}" onclick="segoPaleta('${k}')">${l}</button>`).join('')}</div>
+    <div class="um-sec">Cores</div><div class="um-temas">${[['aceitar','Aceitar'],['navy','Azul'],['vermelho','Vermelho'],['verde','Verde']].map(([k,l])=>`<button class="${(document.documentElement.getAttribute('data-paleta')||'aceitar')===k?'on':''}" onclick="segoPaleta('${k}')">${l}</button>`).join('')}</div>
     <div class="um-sec">Campos em Edição</div><div class="um-temas">${[['0','Sem Caixa'],['1','Com Caixa']].map(([k,l])=>`<button class="${(document.documentElement.hasAttribute('data-caixas')?'1':'0')===k?'on':''}" onclick="segoCaixas('${k}')">${l}</button>`).join('')}</div>
     <div class="um-it" style="border-top:1px solid var(--border-light)" onclick="doLogout()"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>Sair</div>`;
   m.style.display=m.style.display==='block'?'none':'block'; };
