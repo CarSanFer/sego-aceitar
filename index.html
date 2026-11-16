@@ -314,7 +314,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.16.0237</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.16.0244</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -820,6 +820,8 @@ window.segoTema=function(){
   .cg-dform .cg-r.dl-larga .cg-rv,.cg-dform .cg-r#dn-fich-l .cg-rv,.cg-dform .cg-r#dn-outro-l .cg-rv{flex:0 1 auto !important;width:auto !important;max-width:65% !important}
   .cg-dform .cg-gap{height:10px;visibility:hidden}
   .modal.modal-df-l{width:540px !important}
+  #btn-sugerir{position:fixed;left:16px;bottom:16px;z-index:900;display:flex;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:16px;border:1px solid;font:inherit;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+  @media print{ #btn-sugerir{display:none} }
   .cg-dform.df-ro .cg-r .cg-rv{flex:0 0 190px !important;width:190px !important;overflow:hidden !important;text-overflow:ellipsis;white-space:nowrap}   /* só leitura: todos acabam no mesmo sítio */
   .cg-dform .df-cx{display:flex;align-items:center;gap:8px;width:100%}
   .df-lk{color:#E39956;cursor:pointer;white-space:nowrap}
@@ -1663,7 +1665,7 @@ window.segoTema=function(){
 
 <!-- MODAL -->
 <div id="def-menu" class="sego-pop" style="display:none">
-  <div class="um-sec">Administração</div><div class="um-it" onclick="defAbrir('Utilizadores')"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>Utilizadores</div><div class="um-it" onclick="defAbrir('entidades')"><svg viewBox="0 0 24 24"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-5h6v5"/></svg>Entidades</div><div class="um-it" onclick="defAbrir('permissoes')"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Permissões por Obra</div><div class="um-it" onclick="defAbrir('Especialidades')"><svg viewBox="0 0 24 24"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>Especialidades</div><div class="um-it" onclick="defAbrir('Documentos')"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h8"/></svg>Documentos</div><div class="um-it" onclick="defAbrir('Auditoria')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>Auditoria</div>
+  <div class="um-sec">Administração</div><div class="um-it" onclick="defAbrir('Utilizadores')"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>Utilizadores</div><div class="um-it" onclick="defAbrir('entidades')"><svg viewBox="0 0 24 24"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-5h6v5"/></svg>Entidades</div><div class="um-it" onclick="defAbrir('permissoes')"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Permissões por Obra</div><div class="um-it" onclick="defAbrir('Especialidades')"><svg viewBox="0 0 24 24"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>Especialidades</div><div class="um-it" onclick="defAbrir('Documentos')"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h8"/></svg>Documentos</div><div class="um-it" onclick="defAbrir('Auditoria')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>Auditoria</div><div class="um-it" onclick="defAbrir('Sugestões')"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Sugestões</div>
   <div class="um-sec">Obras</div><div class="um-it" onclick="cgNovaObraModal()"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 8v8M8 12h8"/></svg>Nova Obra</div><div class="um-it" onclick="cgNovaFaseModal()"><svg viewBox="0 0 24 24"><path d="M12 2 2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>Nova Fase</div><div class="um-it" onclick="defMenuFechar();modPgAbrir()"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Módulos por Obra</div>
   <div class="um-sec">Dados</div><div class="um-it" onclick="defAbrir('backup')"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>Exportar Dados</div>
   <div class="um-ver" id="def-versao"></div>
@@ -13038,6 +13040,42 @@ async function renderAuditSego(app){
   app.innerHTML=`<button class="back-btn" onclick="defPg=null;auditDados=null;render()">← Voltar</button>${dfNav('Auditoria')}
   <div class="pm-wrap"><table class="data-table pm-tbl ut-tbl"><thead><tr><th>Data</th><th>Utilizador</th><th>Ação</th><th>Entidade</th><th>Registo</th><th>Detalhes</th></tr></thead><tbody>${linhas||'<tr><td colspan="6">Sem registos.</td></tr>'}</tbody></table></div>`;
   permTopo(); }
+/* ===================== Sugestões (revisão pelos colegas na versão de teste) =====================
+   Botão flutuante «Sugerir» só fora de sego.aceitar.pt; cada sugestão guarda quem, onde (página) e o texto. Lista em Definições → Sugestões. */
+let sugDados=null;
+const SUG_EST=[['nova','Nova'],['vista','Vista'],['feita','Feita'],['nao','Não Se Faz']];
+function segoOndeEstou(){ const t=x=>String(x||'').replace(/\s+/g,' ').trim(); const p=[];
+  if(typeof guiaAtivo!=='undefined'&&guiaAtivo) p.push('Guia'+(typeof guiaSec!=='undefined'?' · '+guiaSec:''));
+  if(typeof defPg!=='undefined'&&defPg) p.push('Definições · '+defPg);
+  const mid=document.getElementById('nav-obra-mid'); if(mid&&mid.style.display!=='none'&&t(mid.innerText)) p.push(t(mid.innerText));
+  try{ if(cgObraId&&cgTab&&!document.querySelector('#app .page-header')) p.push({IA:'IA — Identificação',ID:'ID — Intervenientes e Documentos',CO:'CO — Controlo Operacional'}[cgTab]||cgTab); }catch(e){}
+  const rId=[...document.querySelectorAll('#app .cg-cx[data-cx="IDE"] .cg-r')].find(r=>t(r.querySelector('.cg-rl')?.textContent)==='Id'); if(rId&&t(rId.querySelector('.cg-rv')?.textContent)) p.push('Id '+t(rId.querySelector('.cg-rv').textContent));
+  if(!p.length) p.push(t(document.querySelector('#app .page-title')?.textContent)||'Início'); return p.join(' · '); }
+window.segoSugerir=function(){ if(!currentUser) return; const onde=segoOndeEstou();
+  showModal('Sugerir Alteração',`<div class="cg-dform">${dfR('Página',`<span>${esc(onde)}</span>`,{larga:1})}
+    <div class="cg-rtxt" style="margin-top:8px"><span class="cg-rl"><span class="dl-t">Sugestão</span></span><textarea class="cg-ta" id="sug-txt" style="min-height:120px" placeholder="O que deve ser alterado, e porquê?"></textarea></div></div>`,
+    [{label:'Cancelar',cls:'btn-outline',fn:'closeModal()'},{label:'Enviar',cls:'btn-gold',fn:`segoSugGravar(${JSON.stringify(onde).replace(/"/g,'&quot;')})`}],'modal-doc modal-df-l');
+  setTimeout(()=>{ const e=document.getElementById('sug-txt'); if(e) e.focus(); },50); };
+window.segoSugGravar=async function(onde){ const t=(document.getElementById('sug-txt')||{}).value||''; if(!t.trim()){ alert('Escreva a sugestão.'); return; }
+  try{ await sb.post('sego_sugestoes',{id:uid(),utilizador:currentUser.nome||'',email:currentUser.email||'',pagina:onde,texto:t.trim()}); sugDados=null; closeModal(); alert('Obrigado — sugestão registada.'); }
+  catch(e){ alert('Não foi possível registar: '+e.message); } };
+async function renderSugestoes(app){
+  if(sugDados===null){ app.innerHTML='<div class="cg-bloco">A carregar…</div>'; try{ sugDados=await sb.get('sego_sugestoes','order=created_at.desc&limit=1000'); }catch(e){ sugDados=[]; } if(defPg==='Sugestões') render(); return; }
+  const er=k=>(SUG_EST.find(x=>x[0]===k)||SUG_EST[0])[1];
+  const linhas=sugDados.map(a=>`<tr class="ut-r" ondblclick="segoSugEditar('${esc(a.id)}')" title="Duplo clique para mudar o estado"><td style="white-space:nowrap">${esc(a.created_at?fmtDate(String(a.created_at).slice(0,10)):'')}</td><td style="white-space:nowrap">${esc(a.utilizador||'')}</td><td class="ut-m">${esc(a.pagina||'')}</td><td style="white-space:pre-wrap">${esc(a.texto||'')}${a.resposta?`<div class="gd-mut" style="margin-top:4px">↳ ${esc(a.resposta)}</div>`:''}</td><td style="white-space:nowrap">${er(a.estado)}</td></tr>`).join('');
+  app.innerHTML=`<button class="back-btn" onclick="defPg=null;sugDados=null;render()">← Voltar</button>${dfNav('Sugestões')}
+  <div class="pm-wrap"><table class="data-table pm-tbl ut-tbl"><thead><tr><th>Data</th><th>Quem</th><th>Página</th><th>Sugestão</th><th>Estado</th></tr></thead><tbody>${linhas||'<tr><td colspan="5">Sem sugestões.</td></tr>'}</tbody></table></div>`;
+  permTopo(); }
+window.segoSugEditar=function(id){ const a=(sugDados||[]).find(x=>x.id===id); if(!a) return;
+  showModal('Sugestão',`<div class="cg-dform">${dfR('Estado',dfSel('sug-est',SUG_EST,a.estado||'nova'))}<div class="cg-rtxt" style="margin-top:8px"><span class="cg-rl"><span class="dl-t">Resposta</span></span><textarea class="cg-ta" id="sug-resp">${esc(a.resposta||'')}</textarea></div></div>`,
+    [{label:'Cancelar',cls:'btn-outline',fn:'closeModal()'},{label:'Guardar',cls:'btn-gold',fn:`segoSugGuardar('${esc(id)}')`}],'modal-doc modal-df-l'); };
+window.segoSugGuardar=async function(id){ const a=(sugDados||[]).find(x=>x.id===id); if(!a) return; const o={estado:document.getElementById('sug-est').value,resposta:document.getElementById('sug-resp').value.trim()||null};
+  try{ await sb.patch('sego_sugestoes',id,o); Object.assign(a,o); closeModal(); render(); }catch(e){ alert('Erro ao guardar: '+e.message); } };
+(function(){ const pôr=()=>{ let b=document.getElementById('btn-sugerir'); const ok=typeof SEGO_DEV_HOST!=='undefined'&&SEGO_DEV_HOST&&typeof currentUser!=='undefined'&&currentUser;
+    if(!ok){ if(b) b.remove(); return; }
+    if(!b){ b=document.createElement('button'); b.id='btn-sugerir'; b.type='button'; b.className='at-pri'; b.title='Sugerir uma alteração nesta página (versão de teste)'; b.onclick=()=>segoSugerir();
+      b.innerHTML='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>Sugerir</span>'; document.body.appendChild(b); } };
+  setInterval(pôr,1500); })();
 function renderDefinicoes(app){
   if(!cgPodeEditar()){ defPg=null; render(); return; }
   if(defPg==='entidades') return renderEntidades(app);
@@ -13045,6 +13083,7 @@ function renderDefinicoes(app){
   if(defPg==='Utilizadores') return renderUtilSego(app);
   if(ADM_TAB[defPg]) return renderAdmTab(app,defPg);
   if(defPg==='Auditoria') return renderAuditSego(app);
+  if(defPg==='Sugestões') return renderSugestoes(app);
   app.innerHTML=`<button class="back-btn" onclick="defPg=null;render()">← Voltar</button><div class="cg-bloco"><div class="cg-bt">${esc(defPg)}</div><div style="color:var(--text-muted)">Em preparação.</div></div>`;
 }
 /* ===================== Permissões e notificações por obra ===================== */
@@ -13779,7 +13818,7 @@ function guiaMatrizAcoes(){ const G=GUIA_DADOS, linhas=[], tx=h=>String(h||'').r
     if(/opcional/i.test(C)) return 'Cc: + equipa ao confirmar';
     return 'Automáticos'; };
   const sem='<span class="gd-mut">Sem email</span>';
-  G.modulos.forEach(m=>{ let prim=true; const add=(...c)=>{ linhas.push([prim?'<b>'+esc(m.sigla)+'</b>':'',...c]); prim=false; };
+  G.modulos.forEach(m=>{ let prim=true; const add=(...c)=>{ linhas.push([prim?'<b class="gd-mi">'+esc(m.sigla)+'</b>':'',...c]); prim=false; };
     add('Consulta / PDF','Todos','—','—','');
     (m.fluxo||[]).forEach(f=>{ if(!f||f.length<5||f[0]==='—') return; let quem=curto(f[1]);
       if(m.key==='ptq'&&/Enviado/.test(f[0])) quem='Dir. Obra';
@@ -13849,7 +13888,9 @@ function renderGuia(app){
     .gd-a ul{margin:4px 0 0 18px;padding:0}
     .gd-aviso{padding:8px 12px;border-left:3px solid var(--nav-bd);background:var(--bg-card);border-radius:var(--radius);margin-bottom:14px}
     .gd-oculta{display:none}
-    .gd-m1{overflow-x:auto}.gd-m1 .gd-t td,.gd-m1 .gd-t th{white-space:nowrap;padding:3px 10px}
+    .gd-m1{overflow-x:auto}.gd-m1 .gd-t td,.gd-m1 .gd-t th{white-space:nowrap;padding:7px 12px;line-height:1.5}
+    .gd-m1 .gd-t td{border-bottom:none}.gd-m1 .gd-t tr:has(.gd-mi) td{border-top:1px solid var(--border-light);padding-top:12px}.gd-m1 .gd-t tbody tr:first-child td{border-top:none}
+    .gd-m1 .gd-t tbody tr:nth-child(odd) td{background:transparent}
     @media (max-width:820px){ .gd-menu{position:static} .gd-t{display:block;overflow-x:auto} }
     @media print{ .gd-menu,.back-btn{display:none !important} #gd-corpo .gd-sec{display:block !important;break-inside:avoid-page} }
   </style>
