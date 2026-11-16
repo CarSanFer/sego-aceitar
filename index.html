@@ -314,7 +314,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-def" title="Definições" aria-label="Definições" onclick="defMenuAbrir(event)" style="display:none;width:24px;height:24px;border-radius:4px;border:1px solid rgba(232,168,48,.55);background:transparent;cursor:pointer;align-items:center;justify-content:center;padding:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.16.0219</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.16.0230</span>
     <div class="nav-avatar" id="nav-avatar" onclick="userMenuAbrir(event)" style="cursor:pointer" title="Utilizador">AD</div>
   </div>
 </nav>
@@ -13762,25 +13762,31 @@ const GUIA_DADOS={"subtitulo": "Perguntas e respostas sobre a plataforma e cada 
 /* ================= GUIA DO SEGO ================= */
 window.guiaAbrir=function(){ if(!(peESuper()||(SEGO_CFG.guia&&SEGO_CFG.guia.publico))) return; guiaAtivo=true; modPgAtivo=false; dashAtivo=false; segDashAtivo=false; render(); window.scrollTo(0,0); };
 let guiaSec='app';   // secção do Guia aberta (menu horizontal)
-/* Matriz única «Quem Faz»: cada passo de cada card — quem faz, quem recebe (Para / Cc) e se é possível acrescentar destinatários */
-function guiaMatrizAcoes(){ const G=GUIA_DADOS, linhas=[], tx=h=>String(h||'').replace(/<[^>]*>/g,'');
+/* Matriz única «Quem Faz»: cada passo de cada card numa só linha — quem faz, quem recebe (Para / Cc) e se é possível acrescentar destinatários */
+function guiaMatrizAcoes(){ const G=GUIA_DADOS, linhas=[], tx=h=>String(h||'').replace(/<[^>]*>/g,'').replace(/\s+/g,' ').trim();
+  const curto=t=>tx(t).replace(/\s*\(sem CSO nem Técn\. Segurança\)/g,'').replace(/\s*\(fixo\)/g,'').replace(/\s*\+ opciona(?:l|is)( \([^)]*\))?/gi,'')
+    .replace(/carlos\.ferreira@/g,'CF').replace(/tiago\.faria@/g,'TF')
+    .replace(/Fiscalização da obra \+ CSO da Aceitar na obra/g,'FISC + CSO').replace(/CSO da Aceitar na obra/g,'CSO')
+    .replace(/Restante Fiscalização/g,'Restante Fiscal').replace(/Fiscalização da obra/g,'Fiscal').replace(/Fiscalização/g,'Fiscal')
+    .replace(/Dono de Obra/g,'DO').replace(/Diretor de Obra/g,'Dir. Obra').replace(/ \(ou Superadmin\)/g,'').replace(/ \+ /g,' + ');
+  const passo=t=>tx(t).replace(/ \+ revisão( em Rascunho| Pendente)?/g,' + rev.').replace(/\(Não Aprovado\)/g,'(N/Aprov.)').replace(/\(Não Aceite\)/g,'(N/Aceite)')
+    .replace(/Para Concordância/g,'Concordância').replace(/Disponibilizado/g,'Publicado').replace(/ \(revisão\)/g,' (rev.)').replace(/ \(sem email\)/,' (s/ email)');
   const obs=(para,cc)=>{ const P=tx(para), C=tx(cc);
-    if(/^Sem notifica/i.test(P)) return '<span class="gd-mut">Não envia email.</span>';
-    if(/Quem escolher/i.test(P)) return 'Escolhem-se os destinatários (Para) ao reenviar; Cc fixo.';
-    if(/opcionais/i.test(P)) return 'Ao publicar, pode acrescentar destinatários (Para); Cc fixo.';
-    if(/opcional \(equipa exceto empreiteiros\)/i.test(C)) return 'Ao confirmar, pode acrescentar em Cc pessoas da equipa da obra (exceto empreiteiros).';
-    if(/opcional/i.test(C)) return 'Ao confirmar, pode acrescentar em Cc outras pessoas da equipa da obra.';
-    return 'Destinatários automáticos — não se acrescentam no envio.'; };
-  const limpaCc=c=>String(c||'').replace(/ \+ opcional \([^)]*\)/,'').replace(/ <span class="gd-mut">\(fixo\)<\/span>/,'');
-  const limpaPara=p=>String(p||'').replace(/ \+ opcionais( \([^)]*\))?/,'');
-  G.modulos.forEach(m=>{ let prim=true; const add=(passo,quem,para,cc,ob)=>{ linhas.push([prim?'<b>'+esc(m.sigla)+'</b>':'',passo,quem,para,cc,ob]); prim=false; };
-    add('Consulta / PDF','Todos os intervenientes da obra','—','—','<span class="gd-mut">Não envia email.</span>');
-    (m.fluxo||[]).forEach(f=>{ if(!f||f.length<5||f[0]==='—') return; let quem=f[1];
-      if(m.key==='ptq'&&/Enviado/.test(f[0])) quem='Diretor de Obra (Empreiteiro)';
+    if(/^Sem notifica/i.test(P)) return '<span class="gd-mut">Sem email</span>';
+    if(/Quem escolher/i.test(P)) return 'Para: escolhe-se ao reenviar';
+    if(/opcionais/i.test(P)) return 'Para: + opcionais ao publicar';
+    if(/opcional \(equipa exceto empreiteiros\)/i.test(C)) return 'Cc: + equipa (exc. Emp.) ao confirmar';
+    if(/opcional/i.test(C)) return 'Cc: + equipa ao confirmar';
+    return 'Automáticos'; };
+  const sem='<span class="gd-mut">Sem email</span>';
+  G.modulos.forEach(m=>{ let prim=true; const add=(...c)=>{ linhas.push([prim?'<b>'+esc(m.sigla)+'</b>':'',...c]); prim=false; };
+    add('Consulta / PDF','Todos','—','—',sem);
+    (m.fluxo||[]).forEach(f=>{ if(!f||f.length<5||f[0]==='—') return; let quem=curto(f[1]);
+      if(m.key==='ptq'&&/Enviado/.test(f[0])) quem='Dir. Obra';
       const semN=/^Sem notifica/i.test(tx(f[3]));
-      add(f[0],quem,semN?'—':limpaPara(f[3]),semN?'—':limpaCc(f[4]),obs(f[3],f[4])); });
-    if(m.key==='ptq') add('Enviado → Duplicar','Empreiteiro','—','—','<span class="gd-mut">Não envia email.</span>');
-    if(m.key==='met') add('Registo diário','Fiscalização','—','—','<span class="gd-mut">Não envia email.</span>'); });
+      add(esc(passo(f[0])),esc(quem),semN?'—':esc(curto(f[3])),semN?'—':esc(curto(f[4])),obs(f[3],f[4])); });
+    if(m.key==='ptq') add('Enviado → Duplicar','Empreiteiro','—','—',sem);
+    if(m.key==='met') add('Registo diário','Fiscal','—','—',sem); });
   return linhas; }
 window.guiaIr=function(id){ guiaSec=id; document.querySelectorAll('#gd-corpo .gd-sec').forEach(s=>s.classList.toggle('gd-on',s.id==='guia-'+id));
   document.querySelectorAll('.gd-menu button').forEach(b=>b.classList.toggle('on',b.dataset.k===id));
@@ -13843,6 +13849,7 @@ function renderGuia(app){
     .gd-a ul{margin:4px 0 0 18px;padding:0}
     .gd-aviso{padding:8px 12px;border-left:3px solid var(--nav-bd);background:var(--bg-card);border-radius:var(--radius);margin-bottom:14px}
     .gd-oculta{display:none}
+    .gd-m1{overflow-x:auto}.gd-m1 .gd-t td,.gd-m1 .gd-t th{white-space:nowrap;padding:3px 10px}
     @media (max-width:820px){ .gd-menu{position:static} .gd-t{display:block;overflow-x:auto} }
     @media print{ .gd-menu,.back-btn{display:none !important} #gd-corpo .gd-sec{display:block !important;break-inside:avoid-page} }
   </style>
@@ -13856,8 +13863,8 @@ function renderGuia(app){
       ${G.gerais.map(s=>`<section id="guia-${s.key}" class="gd-sec${s.key===guiaSec?' gd-on':''}"><div class="gd-h"><b>${e(s.titulo)}</b></div>${(s.faq||[]).map(x=>q(x[0],x[1])).join('')}</section>`).join('')}
       ${G.modulos.map(modHTML).join('')}
       <section id="guia-acoes" class="gd-sec${guiaSec==='acoes'||guiaSec==='matriz'?' gd-on':''}"><div class="gd-h"><b>Quem Faz e Quem Recebe</b></div>
-        <p class="gd-mut" style="margin:2px 0 8px">Regra padrão. O Superadmin pode fazer tudo e ajustar por obra (quem faz e quem recebe) em Definições → Permissões por Obra. Carlos Ferreira e Tiago Faria vão sempre em Cc.</p>
-        ${tab(['Módulo','Passo','Quem Faz','Para (To)','Cc','Observações'],guiaMatrizAcoes())}
+        <p class="gd-mut" style="margin:2px 0 8px">CF = Carlos Ferreira · TF = Tiago Faria (sempre em Cc) · Fiscal = Fiscalização da obra · CSO = CSO da Aceitar na obra · DO = Dono de Obra. Fiscal, Empreiteiro e DO não incluem CSO nem Técn. Segurança (exceto o Empreiteiro no RVT). Regra padrão — o Superadmin faz tudo e ajusta por obra em Definições → Permissões por Obra.</p>
+        <div class="gd-m1">${tab(['Módulo','Passo','Quem Faz','Para (To)','Cc','Observações'],guiaMatrizAcoes())}</div>
       </section>
     </div>
   </div>`);
