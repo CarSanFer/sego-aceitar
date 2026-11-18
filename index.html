@@ -309,7 +309,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-guia" title="Guia do SEGO" onclick="guiaAbrir()">📘 Guia</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.18.0646</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.18.0655</span>
     <button type="button" id="btn-tema" title="Tema escuro / claro" aria-label="Tema" onclick="segoTema()"><svg class="ic-lua" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/></svg><svg class="ic-sol" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button>
     <div class="nav-avatar" id="nav-avatar" onclick="doLogout()" style="cursor:pointer" title="Sair">AD</div>
   </div>
@@ -7874,13 +7874,14 @@ async function amCarregar(){
     amDocs=await sbRel.get('autos_mensais',`obra_id=eq.${encodeURIComponent(o.id)}&order=num.desc,rev.desc`);
   }catch(e){ console.error(e); alert('Erro ao carregar Autos Mensais.\n\n'+e.message+'\n\nJá correu o SQL das tabelas dos AM no Supabase do SEGO?'); return; }
   try{
-    let off=0;
+    let off=0, lst=[];
     while(true){
       const pag=await sbRel.get('lpu_obra',`obra_id=eq.${encodeURIComponent(o.id)}&order=ordem.asc&limit=1000&offset=${off}`);
-      amLPU=amLPU.concat(pag);
+      lst=lst.concat(pag);
       if(pag.length<1000) break;
       off+=1000;
     }
+    amLPU=lst; /* atribuição única: duas cargas em paralelo já não duplicam a LPU */
   }catch(e){ console.error(e); }
   amFaturas={}; amFatErro=false; amCfg=null; amCfgErro=false;
   try{ (await sbRel.get('am_faturas',`obra_id=eq.${encodeURIComponent(o.id)}&select=auto_id,data,nome,tam`)).forEach(f=>{ amFaturas[f.auto_id]=f; }); }catch(e){ amFatErro=true; }
@@ -9011,34 +9012,58 @@ window.amPDF=async function(variante){
   const tot=[{text:'T',bold:true,fillColor:CINZ},{text:'Total',bold:true,fillColor:CINZ},{text:'',fillColor:CINZ},{text:'',fillColor:CINZ},{text:'',fillColor:CINZ},
     Object.assign(n(tLpu),{bold:true,fillColor:CINZ}),{text:'',fillColor:CINZ},Object.assign(n(tMes),{bold:true,fillColor:CINZ}),
     {text:'',fillColor:CINZ},Object.assign(n(tAcum),{bold:true,fillColor:CINZ}),{text:'',fillColor:CINZ},Object.assign(n(tSaldo),{bold:true,fillColor:CINZ})];
-  const assin=(rot,nome)=>({stack:[{text:rot,alignment:'center'},{canvas:[{type:'line',x1:0,y1:0,x2:230,y2:0,lineWidth:0.5}],margin:[0,40,0,4]},{text:nome||' ',alignment:'center'},{text:'Data: ____ / ____ / ________',alignment:'center'}]});
-  const ass={unbreakable:true,margin:[0,30,0,0],columnGap:24,columns:[
-    assin('O Empreiteiro',amDirObra(d)),
+  const assin=(rot,nome,k)=>({stack:[{text:rot,alignment:'center',id:k?'am-ass1':undefined},{canvas:[{type:'line',x1:0,y1:0,x2:230,y2:0,lineWidth:0.5}],margin:[0,40,0,4]},{text:nome||' ',alignment:'center'},{text:'Data: ____ / ____ / ________',alignment:'center',id:k?'am-ass2':undefined}]});
+  const ass={margin:[0,30,0,0],columnGap:24,columns:[
+    assin('O Empreiteiro',amDirObra(d),1),
     assin('A Fiscalização',amAssinante('fiscalizacao',d.autor_fisc,/^fiscal\b/)),
     assin('O Dono de Obra',amAssinante('dono_obra',d.autor_do,null))]};
-  folha.push(ass,{text:'',pageBreak:'after'});
-  return {folha,cab,hdr,corpo,tot};
+  return {folha,cab,hdr,corpo,tot,ass};
   };
 
-  const montar=()=>{
-    const {folha,cab,corpo,tot}=construir();
+  /* quebras: capítulos que passam para a página seguinte (nunca ficam sozinhos no fim da página);
+     assFolha: as assinaturas vão para a folha de rosto só quando ficariam sozinhas numa página */
+  let pg={};
+  const montar=(quebras,assFolha)=>{
+    const {folha,cab,corpo,tot,ass}=construir();
+    corpo.forEach((r,i)=>{ r[0].id='am-r'+i; });
+    tot[0].id='am-tot';
+    if(assFolha) folha.push(ass); else ass.unbreakable=quebras.fim===true;
+    folha.push({text:'',pageBreak:'after'});
     const LAY={hLineWidth:()=>0.5,vLineWidth:i=>VL.includes(i)?0.5:0,hLineColor:()=>LN,vLineColor:()=>LN,paddingLeft:()=>3,paddingRight:()=>3,paddingTop:()=>2,paddingBottom:()=>2};
     const WID=[36,'*',18,40,46,58,40,52,40,54,40,58];
     const tab=(linhas,extra)=>Object.assign({table:{headerRows:2,dontBreakRows:true,widths:WID,body:construir().hdr.concat(linhas)},layout:LAY},extra||{});
-    const tabelas=[tab(corpo.concat([tot]))];
+    /* cada quebra abre uma nova tabela na página seguinte (com o cabeçalho das colunas) */
+    const cortes=[0].concat([...quebras].sort((a,b)=>a-b)).concat([corpo.length]);
+    const tabelas=[];
+    for(let k=0;k<cortes.length-1;k++){ const fat=corpo.slice(cortes[k],cortes[k+1]); if(k===cortes.length-2) fat.push(tot); if(fat.length) tabelas.push(tab(fat,k?{pageBreak:'before'}:null)); }
     return {pageSize:'A4',pageOrientation:'landscape',pageMargins:[28,28,28,34],
       info:{title:'AM '+(amModo==='TCm'?'TCm ':'TN ')+d.id+' — '+(o.sigla||'')+' — '+(d.mes_ref||''),author:'SEGO — Aceitar'},
       defaultStyle:{font:'Carlito',fontSize:8.5,color:'#000000'},
       footer:(cp,pc)=>({columns:[{text:'Documento gerado pelo SEGO em '+gerado+' — valores em euros'},{text:cp+' / '+pc,alignment:'right'}],fontSize:8,color:'#444444',margin:[28,12,28,0]}),
       content:[{stack:folha,fontSize:10,lineHeight:1.5},cab,
-        ...tabelas],
-      };
+        ...tabelas].concat(assFolha?[]:[ass]),
+      pageBreakBefore:(no)=>{ if(no.id) pg[no.id]=no.startPosition.pageNumber; return false; }};
   };
   const w=window.open('','_blank');
   showLoadingOverlay('A gerar PDF…');
   try{
     await qeCarregarPdfMake();
-    const dd=montar();
+    const quebras=new Set();
+    const passar=async(assFolha)=>{ pg={}; const dd=montar(quebras,assFolha); await new Promise(res=>pdfMake.createPdf(dd).getBuffer(()=>res())); };
+    for(let it=0;it<8;it++){
+      await passar(false);
+      let nova=false;
+      for(let i=0;i<visiveis.length;i++){
+        if(visiveis[i].l.tipo!=='capitulo'||quebras.has(i)||!pg['am-r'+i]) continue;
+        let j=i; while(j<visiveis.length&&visiveis[j].l.tipo==='capitulo') j++;
+        const pj=j<visiveis.length?pg['am-r'+j]:pg['am-tot'];
+        if(pj&&pj!==pg['am-r'+i]){ let k=i; while(k>0&&visiveis[k-1].l.tipo==='capitulo') k--; if(k>0&&!quebras.has(k)){ quebras.add(k); nova=true; } i=j-1; }
+      }
+      if(!nova) break;
+    }
+    const sozinha=pg['am-tot']&&(pg['am-ass1']!==pg['am-tot']||pg['am-ass2']!==pg['am-tot']);
+    quebras.fim=true;
+    const dd=montar(quebras,!!sozinha);
     const nome=('AM_'+(amModo==='TCm'?'TCm':'TN')+'_'+d.id+'_'+(o.sigla||'')+'_'+(d.mes_ref||'')).replace(/[^\w.\-]+/g,'_')+'.pdf';
     if(w) pdfMake.createPdf(dd).open({},w); else pdfMake.createPdf(dd).download(nome);
   }catch(e){ console.error(e); if(w) w.close(); alert('Erro ao gerar o PDF: '+e.message); }
