@@ -309,7 +309,7 @@ tr.tr-click:hover td{background:#F5F7FA}
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-guia" title="Guia do SEGO" onclick="guiaAbrir()">📘 Guia</button>
     <button style="cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;font-size:11px;font-family:Calibri,sans-serif;display:none;align-items:center;gap:4px" id="btn-backup" title="Backup completo das bases de dados (JSON)" onclick="segoBackup()">💾 Backup</button>
     <button type="button" id="btn-sync" title="Sincronizar agora — volta a ler do SID as obras, utilizadores e restantes dados" aria-label="Sincronizar" onclick="segoSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg></button>
-    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.18.0132</span>
+    <span id="verBadge" style="font-size:10px;font-weight:400;color:#fff;background:transparent;border:1px solid rgba(232,168,48,.55);height:26px;padding:0 8px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:4px">v26.11.18.0625</span>
     <button type="button" id="btn-tema" title="Tema escuro / claro" aria-label="Tema" onclick="segoTema()"><svg class="ic-lua" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/></svg><svg class="ic-sol" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-light)" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button>
     <div class="nav-avatar" id="nav-avatar" onclick="doLogout()" style="cursor:pointer" title="Sair">AD</div>
   </div>
@@ -7841,6 +7841,11 @@ function amFmt(n,casas){
   p[0]=p[0].replace(/\B(?=(\d{3})+(?!\d))/g,'\u202F');
   return p.length>1?p[0]+','+p[1]:p[0];
 }
+/* ARRED por obra (am_config.arred): valor de cada linha = ARRED(Qt × PU; 2), como no Excel do Empreiteiro */
+function amArredOn(){ return !!(amCfg&&amCfg.arred); }
+function amR2(v){ const sg=v<0?-1:1; return sg*Math.round(Math.abs(v)*100+1e-7)/100; }
+function amVL(q,pu){ const v=(Number(q)||0)*(Number(pu)||0); return amArredOn()?amR2(v):v; }
+function amSV(qtL,acumQt,pu){ return amArredOn()?(qtL>acumQt?amVL(qtL,pu)-amVL(acumQt,pu):0):Math.max(0,qtL-acumQt)*pu; }
 function amNum(v){
   if(v==null||v==='') return null;
   if(typeof v==='number') return isNaN(v)?null:v;
@@ -8284,7 +8289,7 @@ function renderListaAM(app){
         <button class="am-btn ${amSub==='resumo'?'on':''}" onclick="amVerSub('resumo')">Resumo</button>
         <button class="am-btn ${amSub==='detalhe'?'on':''}" onclick="amVerSub('detalhe')">Detalhe</button>
         ${amSub==='resumo'?nivChips:''}
-        <span style="margin-left:auto;display:flex;gap:8px">${amCondBtn('adiantamento')}${amCondBtn('retencao')}</span>
+        <span style="margin-left:auto;display:flex;gap:8px"><button class="am-btn ${amArredOn()?'on':''}" onclick="amArredDef()" title="Valor de cada linha arredondado a 2 casas (ARRED), como no Excel do Empreiteiro">Arred: ${amArredOn()?'Sim':'Não'}</button>${amCondBtn('adiantamento')}${amCondBtn('retencao')}</span>
       </div>`+corpo;
   } else {
     const SA=peESuper();
@@ -8507,11 +8512,27 @@ window.amGuardarCondicao=async function(k){
   try{
     showLoadingOverlay('A guardar…');
     try{ await sbRel.deleteWhere('am_config',`obra_id=eq.${encodeURIComponent(o.id)}`); }catch(e){}
-    await sbRel.post('am_config',{obra_id:o.id,adiantamento:novo.adiantamento,retencao:novo.retencao,autor:novo.autor,updated_at:novo.updated_at});
+    await sbRel.post('am_config',{obra_id:o.id,adiantamento:novo.adiantamento,retencao:novo.retencao,arred:!!novo.arred,autor:novo.autor,updated_at:novo.updated_at});
     amCfg=novo;
     const v=document.getElementById('pe-veu'); if(v) v.remove();
     hideLoadingOverlay(); render();
   }catch(e){ hideLoadingOverlay(); alert('Erro ao guardar: '+e.message+'\n\nJá correu o SQL "SEGO_am_faturas_config.sql"?'); }
+};
+
+window.amArredDef=async function(){
+  const o=amObra(); if(!o) return;
+  if(!amPodeCond()){ alert('Só a Fiscalização ou o Superadmin podem alterar o arredondamento.'); return; }
+  if(amCfgErro){ alert('Esta funcionalidade ainda não está ativa.'); return; }
+  const novoV=!amArredOn();
+  if(!confirm((novoV?'Ativar':'Desativar')+' o ARRED nesta obra?\n\n'+(novoV?'O valor de cada linha (Mês, Acumulado e Saldo) passa a ser arredondado a 2 casas: ARRED(Qt × PU; 2).':'Os valores passam a ser calculados sem arredondamento por linha.')+'\n\nAplica-se a todos os Autos desta obra (TN e TCm).')) return;
+  const novo=Object.assign({obra_id:o.id,adiantamento:null,retencao:null},amCfg||{});
+  novo.arred=novoV; novo.autor=currentUser?currentUser.nome:''; novo.updated_at=new Date().toISOString();
+  try{
+    showLoadingOverlay('A guardar…');
+    try{ await sbRel.deleteWhere('am_config',`obra_id=eq.${encodeURIComponent(o.id)}`); }catch(e){}
+    await sbRel.post('am_config',{obra_id:o.id,adiantamento:novo.adiantamento,retencao:novo.retencao,arred:novoV,autor:novo.autor,updated_at:novo.updated_at});
+    amCfg=novo; hideLoadingOverlay(); render();
+  }catch(e){ hideLoadingOverlay(); alert('Erro ao guardar: '+e.message); }
 };
 
 /* ---- Card AM no Controlo Operacional: conta só Autos Fechados ---- */
@@ -8651,12 +8672,12 @@ window.amMedInput=function(lpuId,campo,el){
     if(g('amp')) g('amp').value=qtL?String(Math.round(qt/qtL*10000)/100).replace('.',','):'';
     if(g('amq')) g('amq').value=qt?String(qt).replace('.',','):'';
   }
-  if(g('amv')) g('amv').textContent=amFmt(qt*pu);
+  if(g('amv')) g('amv').textContent=amFmt(amVL(qt,pu));
   if(g('ama')) g('ama').textContent=amFmt(acumQt);
-  if(g('amav')) g('amav').textContent=amFmt(acumQt*pu);
+  if(g('amav')) g('amav').textContent=amFmt(amVL(acumQt,pu));
   if(g('amap')) g('amap').textContent=qtL?amFmt(acumQt/qtL*100)+'%':'—';
   if(g('ams')) g('ams').textContent=amFmt(saldoQt);
-  if(g('amsv')) g('amsv').textContent=amFmt(saldoQt*pu);
+  if(g('amsv')) g('amsv').textContent=amFmt(amSV(qtL,acumQt,pu));
   if(g('amsp')) g('amsp').textContent=qtL?amFmt(saldoQt/qtL*100)+'%':'—';
   if(g('ame')) g('ame').style.color=saldoQt>0?'#B91C1C':'#C6CBD3';
   const tr=document.getElementById('amr-'+lpuId);
@@ -8670,7 +8691,7 @@ function amAtualizarTotais(){
     const pu=Number(l.pu)||0, qtL=Number(l.qt)||0;
     const ant=amFichaAcc[l.id]||0;
     const q=amFichaMed[l.id]&&Number(amFichaMed[l.id].qt)||0;
-    mes+=q*pu; acum+=(ant+q)*pu; saldo+=Math.max(0,qtL-ant-q)*pu;
+    mes+=amVL(q,pu); acum+=amVL(ant+q,pu); saldo+=amSV(qtL,ant+q,pu);
   });
   const g=id=>document.getElementById(id);
   if(g('am-tot-mes')) g('am-tot-mes').textContent=amFmt(mes)+' €';
@@ -8909,7 +8930,7 @@ window.amPDF=function(variante){
     if(l.tipo!=='linha') return;
     const pu=Number(l.pu)||0, qtL=Number(l.qt)||0;
     const ant=acc[l.id]||0, q=(med[l.id]&&Number(med[l.id].qt))||0;
-    tLpu+=Number(l.total)||0; tMes+=q*pu; tAcum+=(ant+q)*pu; tSaldo+=Math.max(0,qtL-ant-q)*pu;
+    tLpu+=Number(l.total)||0; tMes+=amVL(q,pu); tAcum+=amVL(ant+q,pu); tSaldo+=amSV(qtL,ant+q,pu);
   });
   const rows=visiveis.map(({l})=>{
     if(l.tipo==='capitulo')
@@ -8922,13 +8943,13 @@ window.amPDF=function(variante){
     return '<tr>'+
       '<td class="bl">'+esc(l.item_id)+'</td><td class="desc bl">'+esc(l.descricao)+'</td><td class="c bl">'+esc(l.un||'')+'</td>'+
       '<td class="n bl">'+amFmt(qtL)+'</td><td class="n">'+amFmt(pu)+'</td><td class="n">'+amFmt(l.total)+'</td>'+
-      '<td class="n bl">'+(q?amFmt(q):'—')+'</td><td class="n">'+(q?amFmt(q*pu):'—')+'</td>'+
-      '<td class="n bl">'+(acum?amFmt(acum):'—')+'</td><td class="n">'+(acum?amFmt(acum*pu):'—')+'</td>'+
-      '<td class="n bl">'+amFmt(saldo)+'</td><td class="n br">'+amFmt(saldo*pu)+'</td></tr>';
+      '<td class="n bl">'+(q?amFmt(q):'—')+'</td><td class="n">'+(q?amFmt(amVL(q,pu)):'—')+'</td>'+
+      '<td class="n bl">'+(acum?amFmt(acum):'—')+'</td><td class="n">'+(acum?amFmt(amVL(acum,pu)):'—')+'</td>'+
+      '<td class="n bl">'+amFmt(saldo)+'</td><td class="n br">'+amFmt(amSV(qtL,acum,pu))+'</td></tr>';
   }).join('');
   /* Folha de Rosto: dados da empreitada + grelha dos Autos (até este) + Adiantamento */
   const frPu={}; amBase().forEach(l=>{ if(l.tipo==='linha') frPu[l.id]=Number(l.pu)||0; });
-  const frVal=m=>Object.keys(m||{}).reduce((s,k)=>s+((m[k]&&Number(m[k].qt))||0)*(frPu[k]||0),0);
+  const frVal=m=>Object.keys(m||{}).reduce((s,k)=>s+amVL((m[k]&&Number(m[k].qt))||0,frPu[k]||0),0);
   const frUlt={}; amDocs.filter(x=>x.num<d.num).forEach(x=>{ if(!frUlt[x.num]||x.rev>frUlt[x.num].rev) frUlt[x.num]=x; });
   const frAutos=Object.values(frUlt).sort((x,y)=>x.num-y.num).map(x=>({id:x.id,mes:x.mes_ref,v:frVal(x.medicoes),atual:false}));
   frAutos.push({id:d.id,mes:d.mes_ref,v:tMes,atual:true});
@@ -9061,7 +9082,7 @@ function renderFichaAM(app){
     const pu=Number(l.pu)||0, qtL=Number(l.qt)||0;
     const ant=amFichaAcc[l.id]||0;
     const q=amFichaMed[l.id]&&Number(amFichaMed[l.id].qt)||0;
-    totMes+=q*pu; totAcum+=(ant+q)*pu; totSaldo+=Math.max(0,qtL-ant-q)*pu;
+    totMes+=amVL(q,pu); totAcum+=amVL(ant+q,pu); totSaldo+=amSV(qtL,ant+q,pu);
   });
 
   const menosMap=amModo==='TN'?amMenosMap():{};
@@ -9094,12 +9115,12 @@ function renderFichaAM(app){
       <td style="text-align:right">${amFmt(pu)}</td>
       <td style="text-align:right;white-space:nowrap">${podeLinha?`<span id="ame-${l.id}" onclick="amEsgotar('${l.id}')" title="Esgotar o saldo desta linha" style="cursor:pointer;color:${saldoQt>0?'#B91C1C':'#C6CBD3'};margin-right:3px;user-select:none">●</span>`:''}${inp('amp',pct,'pct','Percentagem executada no mês')}</td>
       <td style="text-align:right">${inp('amq',q,'qt','Quantidade executada no mês')}</td>
-      <td style="text-align:right" id="amv-${l.id}">${amFmt(q*pu)}</td>
+      <td style="text-align:right" id="amv-${l.id}">${amFmt(amVL(q,pu))}</td>
       <td style="text-align:right" id="ama-${l.id}">${amFmt(acumQt)}</td>
-      <td style="text-align:right" id="amav-${l.id}">${amFmt(acumQt*pu)}</td>
+      <td style="text-align:right" id="amav-${l.id}">${amFmt(amVL(acumQt,pu))}</td>
       <td style="text-align:right" id="amap-${l.id}">${qtL?amFmt(acumQt/qtL*100)+'%':'—'}</td>
       <td style="text-align:right" id="ams-${l.id}">${amFmt(saldoQt)}</td>
-      <td style="text-align:right" id="amsv-${l.id}">${amFmt(saldoQt*pu)}</td>
+      <td style="text-align:right" id="amsv-${l.id}">${amFmt(amSV(qtL,acumQt,pu))}</td>
       <td style="text-align:right" id="amsp-${l.id}">${qtL?amFmt(saldoQt/qtL*100)+'%':'—'}</td>
     </tr>`;
   }).join('');
@@ -9140,7 +9161,7 @@ function renderFichaAM(app){
       <span class="am-total">Mês: <span id="am-tot-mes">${amFmt(totMes)} €</span></span>
       <span class="am-total">Acumulado: <span id="am-tot-acum">${amFmt(totAcum)} €</span></span>
       <span class="am-total">Saldo: <span id="am-tot-saldo">${amFmt(totSaldo)} €</span></span>
-      <span class="am-total" style="background:#EEF1F5;border-color:var(--border-light)">${amModo==='TCm'?'TCm Aprovados':'LPU'}: ${amFmt(totAcum+totSaldo)} €</span>${amModo==='TN'&&Math.abs((Number(o.valorObra)||0)-(totAcum+totSaldo))>0.005?`<span class="am-total" style="background:#FDE7E7;border-color:#B91C1C;color:#B91C1C" title="O total da LPU tem de bater certo com o Valor de Obra da ficha da obra">⚠ Valor de Obra na Ficha: ${o.valorObra?amFmt(Number(o.valorObra))+' €':'Não Preenchido'}</span>`:''}
+      <span class="am-total" style="background:#EEF1F5;border-color:var(--border-light)">${amModo==='TCm'?'TCm Aprovados':'LPU'}: ${amFmt(totAcum+totSaldo)} €</span>${amModo==='TN'&&Math.abs((Number(o.valorObra)||0)-amLPU.reduce((t,l)=>t+(l.tipo==='linha'?Number(l.total)||0:0),0))>0.005?`<span class="am-total" style="background:#FDE7E7;border-color:#B91C1C;color:#B91C1C" title="O total da LPU tem de bater certo com o Valor de Obra da ficha da obra">⚠ Valor de Obra na Ficha: ${o.valorObra?amFmt(Number(o.valorObra))+' €':'Não Preenchido'}</span>`:''}
     </div>
     <div style="display:flex;gap:6px;align-items:center;margin-bottom:8px;flex-wrap:wrap">
       <span class="am-chip ${!amFCap?'on':''}" onclick="amFSetCap('')">Todos</span>
